@@ -14,7 +14,12 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@gscwd-api/crud": ["libs/crud/src/index.ts"],
+      "@gscwd-api/entity": ["libs/entity/src/index.ts"],
+      "@gscwd-api/password": ["libs/password/src/index.ts"],
+      "@gscwd-api/utils": ["libs/utils/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
