@@ -1,19 +1,34 @@
+import { NestApplication, NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app/app.module';
+import { AppModule } from './api/app.module';
+import { AuthMicroservice } from './config';
+import { MetadataInterceptor } from './global/interceptors/metadata.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // initialize a nest application
+  const app = await NestFactory.create<NestApplication>(AppModule);
 
+  // set global prefix for endpoints
   const globalPrefix = 'api';
 
+  // apply the global prefix
   app.setGlobalPrefix(globalPrefix);
 
-  const port = process.env.PORT || 3333;
+  // apply global interceptor for transforming query results with createdAt and updatedAt as metadata
+  // ! remove this!!!
+  app.useGlobalInterceptors(new MetadataInterceptor());
 
+  // intialize application port to listen to
+  const port = process.env.AUTH_PORT;
+
+  // start all microservices
+  await AuthMicroservice.start(app);
+
+  // start the application
   await app.listen(port);
 
-  Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
+  // application logger
+  Logger.log(`🚀 Authentication is running on: http://localhost:${port}/${globalPrefix}`);
 }
 
 bootstrap();
