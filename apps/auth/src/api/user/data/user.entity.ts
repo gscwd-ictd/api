@@ -9,7 +9,7 @@ export class User extends DatabaseEntity {
   @Column({ unique: true, length: 80 })
   email: string;
 
-  @Column({ length: 200 })
+  @Column({ length: 250 })
   password: string;
 
   @Column({ name: 'is_verified', type: 'boolean', default: false })
