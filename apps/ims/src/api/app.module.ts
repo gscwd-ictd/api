@@ -2,11 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfig } from '../config';
-import { CategoryModule } from './item/category';
-import { CharacteristicModule } from './item/characteristic';
-import { ClassificationModule } from './item/classification/';
-import { SpecificationModule } from './item/specification/core/specification.module';
-import { UnitModule } from './item/unit/core/unit.module';
+import { API_MODULES } from '../constants';
 
 @Module({
   imports: [
@@ -16,12 +12,8 @@ import { UnitModule } from './item/unit/core/unit.module';
     // database connection via typeorm
     TypeOrmModule.forRootAsync({ useClass: DatabaseConfig }),
 
-    // warehouse items
-    CharacteristicModule,
-    ClassificationModule,
-    CategoryModule,
-    SpecificationModule,
-    UnitModule,
+    // append all api modules
+    ...API_MODULES,
   ],
 })
 export class AppModule {}

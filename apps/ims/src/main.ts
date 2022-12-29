@@ -7,6 +7,8 @@ async function bootstrap() {
   // initialize a nest application
   const app = await NestFactory.create<NestApplication>(AppModule);
 
+  app.enableCors();
+
   // set global prefix for endpoints
   const globalPrefix = 'api/ims';
 
