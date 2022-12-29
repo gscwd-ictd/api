@@ -20,7 +20,7 @@ export class UnitController implements ICrudRoutes {
   }
 
   @Get(':id')
-  async findById(id: string): Promise<unknown> {
+  async findById(id: string): Promise<MeasurementUnit> {
     return await this.unitService.findOneBy({ id }, () => new NotFoundException());
   }
 
