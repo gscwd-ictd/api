@@ -1,11 +1,15 @@
 import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 export abstract class DatabaseEntity {
-  @CreateDateColumn({ name: 'create_at' })
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+}
+
+export interface IEntity {
+  id: string | number;
 }
 
 export const generateMetadata = <T extends DatabaseEntity>(data: T) => {

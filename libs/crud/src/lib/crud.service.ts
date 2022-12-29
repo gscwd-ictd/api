@@ -1,5 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DataSource, DeepPartial, DeleteResult, EntityTarget, FindOptionsWhere, ObjectLiteral, Repository, UpdateResult } from 'typeorm';
+import {
+  DataSource,
+  DeepPartial,
+  DeleteResult,
+  EntityTarget,
+  FindManyOptions,
+  FindOneOptions,
+  FindOptionsWhere,
+  ObjectLiteral,
+  Repository,
+  UpdateResult,
+} from 'typeorm';
 import { CRUD_SERVICE, ErrorResult } from './crud.utils';
 
 @Injectable()
@@ -33,12 +44,27 @@ export class CrudService<T extends ObjectLiteral> {
     }
   }
 
-  async findAll(): Promise<T[]> {
-    return await this.repository.find();
+  async findAll(options?: FindManyOptions<T>): Promise<T[]> {
+    return await this.repository.find(options);
   }
 
   async findAllBy(options: FindOptionsWhere<T>): Promise<T[]> {
     return await this.repository.findBy(options);
+  }
+
+  async findOne(options: FindOneOptions<T>, errorCallback?: (error: Error) => ErrorResult) {
+    try {
+      // find one record in the database, and fail this query if it found none
+      return await this.repository.findOneOrFail(options);
+
+      // catch any error
+    } catch (error) {
+      // if errorResult is undefined, throw a generic error
+      if (!errorCallback) throw new Error(error);
+
+      // otherwise, throw the resulting error
+      throw errorCallback(error);
+    }
   }
 
   async findOneBy(options: FindOptionsWhere<T>, errorCallback?: (error: Error) => ErrorResult): Promise<T> {
