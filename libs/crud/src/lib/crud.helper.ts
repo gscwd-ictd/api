@@ -1,6 +1,6 @@
 import { CrudService } from '../../../crud/src/lib/crud.service';
 import { ErrorResult } from '../../../crud/src/lib/crud.utils';
-import { DeepPartial, FindOptionsWhere, ObjectLiteral } from 'typeorm';
+import { DeepPartial, FindManyOptions, FindOneOptions, FindOptionsWhere, ObjectLiteral } from 'typeorm';
 
 export abstract class CrudHelper<T extends ObjectLiteral> {
   constructor(private readonly crud: CrudService<T>) {}
@@ -9,12 +9,16 @@ export abstract class CrudHelper<T extends ObjectLiteral> {
     return await this.crud.create(data, error);
   }
 
-  async findAll() {
-    return await this.crud.findAll();
+  async findAll(options?: FindManyOptions<T>) {
+    return await this.crud.findAll(options);
   }
 
   async findAllBy(options: FindOptionsWhere<T>) {
     return await this.crud.findAllBy(options);
+  }
+
+  async findOne(options: FindOneOptions<T>, error?: (error: Error) => ErrorResult) {
+    return await this.crud.findOne(options, error);
   }
 
   async findOneBy(options: FindOptionsWhere<T>, error?: (error: Error) => ErrorResult) {
