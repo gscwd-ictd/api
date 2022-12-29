@@ -5,7 +5,7 @@ import { CreateMeasurementUnitDto, UpdatemeasurementUnitDto } from '../data/unit
 import { MeasurementUnit } from '../data/unit.entity';
 import { UnitService } from './unit.service';
 
-@Controller('item/units')
+@Controller('items/units')
 export class UnitController implements ICrudRoutes {
   constructor(private readonly unitService: UnitService) {}
 
