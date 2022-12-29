@@ -5,7 +5,7 @@ import { CreateItemSpecificationDto } from '../data/specification.dto';
 import { ItemSpecification } from '../data/specification.entity';
 import { SpecificationService } from './specification.service';
 
-@Controller('item/specifications')
+@Controller('items/specifications')
 export class SpecificationController implements ICrudRoutes {
   constructor(private readonly specificationService: SpecificationService) {}
 
