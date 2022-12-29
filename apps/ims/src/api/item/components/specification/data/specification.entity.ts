@@ -1,11 +1,11 @@
-import { DatabaseEntity } from '@gscwd-api/entity';
+import { DatabaseEntity, IEntity } from '@gscwd-api/entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ItemCategory } from '../../category';
 
 @Entity('item_specifications')
-export class ItemSpecification extends DatabaseEntity {
+export class ItemSpecification extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'specification_id' })
-  specificationId: string;
+  id: string;
 
   @ManyToOne(() => ItemCategory, (category) => category.id)
   @JoinColumn({ name: 'category_id_fk' })

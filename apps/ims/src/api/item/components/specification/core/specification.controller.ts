@@ -1,38 +1,31 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
-import { CreateItemSpecificationDto, UpdateItemSpecificationDto } from '../data/specification.dto';
+import { ICrudRoutes } from '@gscwd-api/crud';
+import { BadRequestException, Controller, NotFoundException } from '@nestjs/common';
+import { UpdateResult, DeleteResult } from 'typeorm';
+import { CreateItemSpecificationDto } from '../data/specification.dto';
+import { ItemSpecification } from '../data/specification.entity';
 import { SpecificationService } from './specification.service';
 
 @Controller('item/specifications')
-export class SpecificationController {
-  constructor(private readonly itemService: SpecificationService) {}
+export class SpecificationController implements ICrudRoutes {
+  constructor(private readonly specificationService: SpecificationService) {}
 
-  @Post()
-  async create(@Body() itemDto: CreateItemSpecificationDto) {
-    return await this.itemService.create(itemDto, () => new BadRequestException());
+  async create(data: CreateItemSpecificationDto): Promise<ItemSpecification> {
+    return await this.specificationService.create(data, () => new BadRequestException());
   }
 
-  @Get()
-  async findAll() {
-    return await this.itemService.findAll();
+  async findAll(): Promise<ItemSpecification[]> {
+    return await this.specificationService.findAll();
   }
 
-  @Get('q')
-  async findAllByCategory(@Query('category_id') categoryId: string) {
-    return await this.itemService.findAllBy({ categoryId });
+  async findById(id: string): Promise<ItemSpecification> {
+    return await this.specificationService.findOneBy({ id }, () => new NotFoundException());
   }
 
-  @Get(':id')
-  async findById(@Param('id') specificationId: string) {
-    return await this.itemService.findOneBy({ specificationId });
+  async update(id: string, data: unknown): Promise<UpdateResult> {
+    return await this.specificationService.update({ id }, data, () => new BadRequestException());
   }
 
-  @Put(':id')
-  async update(@Param('id') specificationId: string, itemDto: UpdateItemSpecificationDto) {
-    return await this.itemService.update({ specificationId }, itemDto, () => new BadRequestException());
-  }
-
-  @Delete(':id')
-  async delete(@Param('id') specificationId: string) {
-    return await this.itemService.delete({ specificationId });
+  async delete(id: string): Promise<DeleteResult> {
+    return await this.specificationService.delete({ id }, () => new BadRequestException());
   }
 }

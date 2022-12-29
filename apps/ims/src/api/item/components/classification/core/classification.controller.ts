@@ -1,44 +1,36 @@
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Query } from '@nestjs/common';
-import { CreateItemClassificationDto, UpdateItemClassificationDto } from '../data/classification.dto';
+import { ICrudRoutes } from '@gscwd-api/crud';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
+import { UpdateResult, DeleteResult } from 'typeorm';
+import { CreateItemClassificationDto } from '../data/classification.dto';
+import { ItemClassification } from '../data/classification.entity';
 import { ClassificationService } from './classification.service';
 
 @Controller('item/classification')
-export class ClassificationController {
-  constructor(private readonly itemService: ClassificationService) {}
+export class ClassificationController implements ICrudRoutes {
+  constructor(private readonly classificationService: ClassificationService) {}
 
   @Post()
-  async create(@Body() itemDto: CreateItemClassificationDto) {
-    return await this.itemService.create(itemDto, () => new BadRequestException());
+  async create(@Body() data: CreateItemClassificationDto): Promise<ItemClassification> {
+    return await this.classificationService.create(data, () => new BadRequestException());
   }
 
   @Get()
-  async findAll(@Query('relations') loadRelations?: boolean) {
-    if (!loadRelations) return await this.itemService.findAll();
-
-    return await this.itemService.findAll({ select: { characteristic: { name: true, code: true } }, relations: { characteristic: true } });
+  async findAll(): Promise<ItemClassification[]> {
+    return await this.classificationService.findAll();
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string, @Query('relations') loadRelations?: boolean) {
-    if (!loadRelations) return await this.itemService.findOneBy({ id }, () => new NotFoundException());
-
-    return await this.itemService.findOne(
-      {
-        where: { id },
-        relations: { characteristic: true },
-        select: { characteristic: { name: true, code: true } },
-      },
-      () => new NotFoundException()
-    );
+  async findById(@Param() id: string): Promise<ItemClassification> {
+    return await this.classificationService.findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() itemDto: UpdateItemClassificationDto) {
-    return await this.itemService.update({ id }, itemDto, () => new BadRequestException());
+  async update(@Param() id: string, @Body() data: ItemClassification): Promise<UpdateResult> {
+    return await this.classificationService.update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    return await this.itemService.delete({ id }, () => new BadRequestException());
+  async delete(@Param() id: string): Promise<DeleteResult> {
+    return await this.classificationService.delete({ id }, () => new BadRequestException());
   }
 }

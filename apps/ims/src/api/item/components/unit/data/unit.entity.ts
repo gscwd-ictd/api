@@ -1,10 +1,10 @@
-import { DatabaseEntity } from '@gscwd-api/entity';
+import { DatabaseEntity, IEntity } from '@gscwd-api/entity';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('unit_of_measure')
-export class MeasurementUnit extends DatabaseEntity {
+export class MeasurementUnit extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'unit_id' })
-  unitId: string;
+  id: string;
 
   @Column({ name: 'unit_name', unique: true, length: 10 })
   name: string;
