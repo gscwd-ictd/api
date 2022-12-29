@@ -9,7 +9,7 @@ export class ItemSpecification extends DatabaseEntity implements IEntity {
 
   @ManyToOne(() => ItemCategory, (category) => category.id)
   @JoinColumn({ name: 'category_id_fk' })
-  categoryId: string;
+  category: ItemCategory;
 
   @Column({ name: 'reorder_point' })
   reorderPoint: number;
