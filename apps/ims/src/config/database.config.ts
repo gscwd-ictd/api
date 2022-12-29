@@ -5,7 +5,7 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
   createTypeOrmOptions(): TypeOrmModuleOptions | Promise<TypeOrmModuleOptions> {
     return {
       type: 'postgres',
-      logging: true,
+      // logging: true,
       synchronize: true,
       entities: DB_ENTITIES,
       replication: {
