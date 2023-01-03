@@ -5,7 +5,7 @@ import { CreateMeasurementUnitDto, UpdatemeasurementUnitDto } from '../data/unit
 import { MeasurementUnit } from '../data/unit.entity';
 import { UnitService } from './unit.service';
 
-@Controller('item/units')
+@Controller('items/units')
 export class UnitController implements ICrudRoutes {
   constructor(private readonly unitService: UnitService) {}
 
@@ -20,7 +20,7 @@ export class UnitController implements ICrudRoutes {
   }
 
   @Get(':id')
-  async findById(id: string): Promise<unknown> {
+  async findById(id: string): Promise<MeasurementUnit> {
     return await this.unitService.findOneBy({ id }, () => new NotFoundException());
   }
 

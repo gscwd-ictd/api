@@ -5,7 +5,7 @@ import { CreateItemCategoryDto, UpdateItemCategoryDto } from '../data/category.d
 import { ItemCategory } from '../data/category.entity';
 import { CategoryService } from './category.service';
 
-@Controller('item/categories')
+@Controller('items/categories')
 export class CategoryController implements ICrudRoutes {
   constructor(private readonly categoryService: CategoryService) {}
 
