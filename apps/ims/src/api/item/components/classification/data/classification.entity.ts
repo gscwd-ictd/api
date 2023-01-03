@@ -7,7 +7,7 @@ export class ItemClassification extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'classification_id' })
   id: string;
 
-  @ManyToOne(() => ItemCharacteristic, (characteristic) => characteristic.id)
+  @ManyToOne(() => ItemCharacteristic, (characteristic) => characteristic.id, { nullable: false })
   @JoinColumn({ name: 'characteristic_id_fk' })
   characteristic: ItemCharacteristic;
 

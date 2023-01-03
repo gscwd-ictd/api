@@ -4,7 +4,7 @@ import { CharacteristicService } from '../components/characteristic';
 import { ClassificationService } from '../components/classification';
 import { SpecificationService } from '../components/specification';
 
-@Controller('item-info')
+@Controller('info/items')
 export class ItemController {
   constructor(
     // inject characteristic service
