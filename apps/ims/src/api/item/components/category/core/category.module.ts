@@ -3,9 +3,10 @@ import { CategoryService } from './category.service';
 import { CategoryController } from './category.controller';
 import { CrudModule } from '@gscwd-api/crud';
 import { ItemCategory } from '../data/category.entity';
+import { GeneratorModule } from '@gscwd-api/generator';
 
 @Module({
-  imports: [CrudModule.register(ItemCategory)],
+  imports: [CrudModule.register(ItemCategory), GeneratorModule.register({ length: 5, lowercase: false })],
   providers: [CategoryService],
   controllers: [CategoryController],
   exports: [CategoryService],
