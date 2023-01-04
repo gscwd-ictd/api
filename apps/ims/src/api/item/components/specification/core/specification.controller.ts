@@ -22,8 +22,8 @@ export class SpecificationController implements ICrudRoutes {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string, @Query('relations') relations: boolean): Promise<ItemSpecification> {
-    if (relations) return await this.specificationService.findSpecification(id);
+  async findById(@Param('id') id: string, @Query('relations') relations: string): Promise<ItemSpecification> {
+    if (relations === 'true') return await this.specificationService.findSpecification(id);
     return await this.specificationService.findOneBy({ id }, () => new NotFoundException());
   }
 

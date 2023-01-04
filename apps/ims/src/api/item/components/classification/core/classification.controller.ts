@@ -22,8 +22,8 @@ export class ClassificationController implements ICrudRoutes {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string, @Query('relations') relations: boolean): Promise<ItemClassification> {
-    if (relations) return await this.classificationService.findClassification(id);
+  async findById(@Param('id') id: string, @Query('relations') relations: string): Promise<ItemClassification> {
+    if (relations === 'true') return await this.classificationService.findClassification(id);
     return await this.classificationService.findOneBy({ id }, () => new NotFoundException());
   }
 
