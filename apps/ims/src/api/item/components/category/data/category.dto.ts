@@ -9,4 +9,13 @@ export class CreateItemCategoryDto {
   description: string;
 }
 
-export class UpdateItemCategoryDto extends CreateItemCategoryDto {}
+export class UpdateItemCategoryDto {
+  code: string;
+  name: string;
+  description: string;
+}
+
+export class PatchItemCategoryDto {
+  classification: ItemClassification;
+  unit: MeasurementUnit;
+}

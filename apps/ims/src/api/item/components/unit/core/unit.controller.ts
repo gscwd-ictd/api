@@ -1,5 +1,5 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
-import { BadRequestException, Controller, Delete, Get, NotFoundException, Post, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
 import { UpdateResult, DeleteResult } from 'typeorm';
 import { CreateMeasurementUnitDto, UpdatemeasurementUnitDto } from '../data/unit.dto';
 import { MeasurementUnit } from '../data/unit.entity';
@@ -10,7 +10,7 @@ export class UnitController implements ICrudRoutes {
   constructor(private readonly unitService: UnitService) {}
 
   @Post()
-  async create(data: CreateMeasurementUnitDto): Promise<MeasurementUnit> {
+  async create(@Body() data: CreateMeasurementUnitDto): Promise<MeasurementUnit> {
     return await this.unitService.create(data, () => new BadRequestException());
   }
 
@@ -20,17 +20,17 @@ export class UnitController implements ICrudRoutes {
   }
 
   @Get(':id')
-  async findById(id: string): Promise<MeasurementUnit> {
+  async findById(@Param('id') id: string): Promise<MeasurementUnit> {
     return await this.unitService.findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
-  async update(id: string, data: UpdatemeasurementUnitDto): Promise<UpdateResult> {
+  async update(@Param('id') id: string, @Body() data: UpdatemeasurementUnitDto): Promise<UpdateResult> {
     return await this.unitService.update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
-  async delete(id: string): Promise<DeleteResult> {
+  async delete(@Param('id') id: string): Promise<DeleteResult> {
     return await this.unitService.delete({ id }, () => new BadRequestException());
   }
 }

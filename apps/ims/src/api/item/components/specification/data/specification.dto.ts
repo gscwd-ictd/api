@@ -1,14 +1,16 @@
+import { ItemCategory } from '../../category';
+
 export class CreateItemSpecificationDto {
-  categoryId: string;
+  category: ItemCategory;
   reorderPoint: number;
   code: string;
-  specification: string;
+  specs: string;
   description: string;
 }
 
 export class UpdateItemSpecificationDto {
   reorderPoint: number;
   code: string;
-  specification: string;
+  specs: string;
   description: string;
 }

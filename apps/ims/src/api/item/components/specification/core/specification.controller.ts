@@ -1,6 +1,7 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
-import { BadRequestException, Controller, Delete, Get, NotFoundException, Post, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Put } from '@nestjs/common';
 import { UpdateResult, DeleteResult } from 'typeorm';
+import { ItemCategory } from '../../category';
 import { CreateItemSpecificationDto } from '../data/specification.dto';
 import { ItemSpecification } from '../data/specification.entity';
 import { SpecificationService } from './specification.service';
@@ -10,7 +11,7 @@ export class SpecificationController implements ICrudRoutes {
   constructor(private readonly specificationService: SpecificationService) {}
 
   @Post()
-  async create(data: CreateItemSpecificationDto): Promise<ItemSpecification> {
+  async create(@Body() data: CreateItemSpecificationDto): Promise<ItemSpecification> {
     return await this.specificationService.create(data, () => new BadRequestException());
   }
 
@@ -20,17 +21,22 @@ export class SpecificationController implements ICrudRoutes {
   }
 
   @Get(':id')
-  async findById(id: string): Promise<ItemSpecification> {
+  async findById(@Param('id') id: string): Promise<ItemSpecification> {
     return await this.specificationService.findOneBy({ id }, () => new NotFoundException());
   }
 
+  @Patch(':id')
+  async patchCategory(@Param('id') id: string, @Body('category') category: ItemCategory) {
+    return await this.specificationService.update({ id }, { category }, () => new BadRequestException());
+  }
+
   @Put(':id')
-  async update(id: string, data: unknown): Promise<UpdateResult> {
+  async update(@Param('id') id: string, @Body() data: unknown): Promise<UpdateResult> {
     return await this.specificationService.update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
-  async delete(id: string): Promise<DeleteResult> {
+  async delete(@Param('id') id: string): Promise<DeleteResult> {
     return await this.specificationService.delete({ id }, () => new BadRequestException());
   }
 }
