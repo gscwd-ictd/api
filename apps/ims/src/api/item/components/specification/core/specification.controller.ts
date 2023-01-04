@@ -1,4 +1,5 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
+import { GeneratorService } from '@gscwd-api/generator';
 import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { UpdateResult, DeleteResult } from 'typeorm';
 import { ItemCategory } from '../../category';
@@ -8,11 +9,17 @@ import { SpecificationService } from './specification.service';
 
 @Controller('items/specifications')
 export class SpecificationController implements ICrudRoutes {
-  constructor(private readonly specificationService: SpecificationService) {}
+  constructor(
+    // inject specification service
+    private readonly specificationService: SpecificationService,
+
+    // inject generator service
+    private readonly generatorService: GeneratorService
+  ) {}
 
   @Post()
   async create(@Body() data: CreateItemSpecificationDto): Promise<ItemSpecification> {
-    return await this.specificationService.create(data, () => new BadRequestException());
+    return await this.specificationService.create({ ...data, code: this.generatorService.generate() }, () => new BadRequestException());
   }
 
   @Get()
