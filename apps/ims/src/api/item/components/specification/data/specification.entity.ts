@@ -18,7 +18,7 @@ export class ItemSpecification extends DatabaseEntity implements IEntity {
   code: string;
 
   @Column({ unique: true, length: 100 })
-  specification: string;
+  specs: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
