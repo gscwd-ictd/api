@@ -21,8 +21,8 @@ export class CategoryController implements ICrudRoutes {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string, @Query('relations') relations: boolean): Promise<ItemCategory> {
-    if (relations) return await this.categoryService.findCategory(id);
+  async findById(@Param('id') id: string, @Query('relations') relations: string): Promise<ItemCategory> {
+    if (relations === 'true') return await this.categoryService.findCategory(id);
     return await this.categoryService.findOneBy({ id }, () => new NotFoundException());
   }
 
