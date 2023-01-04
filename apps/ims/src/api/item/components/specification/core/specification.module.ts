@@ -6,7 +6,13 @@ import { ItemSpecification } from '../data/specification.entity';
 import { GeneratorModule } from '@gscwd-api/generator';
 
 @Module({
-  imports: [CrudModule.register(ItemSpecification), GeneratorModule.register({ length: 5, lowercase: false })],
+  imports: [
+    // register crud module
+    CrudModule.register(ItemSpecification),
+
+    // register string generator module
+    GeneratorModule.register({ length: 5, lowercase: false }),
+  ],
   providers: [SpecificationService],
   controllers: [SpecificationController],
   exports: [SpecificationService],
