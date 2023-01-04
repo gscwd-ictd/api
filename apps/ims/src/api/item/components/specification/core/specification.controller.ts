@@ -39,6 +39,11 @@ export class SpecificationController implements ICrudRoutes {
     return await this.specificationService.update({ id }, { category }, () => new BadRequestException());
   }
 
+  @Patch('quantity/:id')
+  async patchQuantity(@Param('id') id: string, @Body('quantity') quantity: number) {
+    return await this.specificationService.update({ id }, { quantity }, () => new BadRequestException());
+  }
+
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: unknown): Promise<UpdateResult> {
     return await this.specificationService.update({ id }, data, () => new BadRequestException());

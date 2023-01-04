@@ -12,7 +12,7 @@ export class GeneratorService {
     this.stringGeneratorOptions = options;
   }
 
-  public generate() {
+  public generate(): string {
     // extract length from options
     const { length } = this.stringGeneratorOptions;
 

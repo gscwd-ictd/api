@@ -11,14 +11,20 @@ export class ItemSpecification extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'category_id_fk' })
   category: ItemCategory;
 
-  @Column({ name: 'reorder_point' })
-  reorderPoint: number;
-
   @Column({ unique: true, length: 10 })
   code: string;
 
   @Column({ unique: true, length: 100 })
   specs: string;
+
+  @Column()
+  quantity: number;
+
+  @Column({ name: 'reordering_point' })
+  reorderPoint: number;
+
+  @Column({ name: 'reordering_quantity', nullable: true })
+  reorderQuantity: number;
 
   @Column({ type: 'text', nullable: true })
   description: string;
