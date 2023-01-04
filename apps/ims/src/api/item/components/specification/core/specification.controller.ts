@@ -1,5 +1,5 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { UpdateResult, DeleteResult } from 'typeorm';
 import { ItemCategory } from '../../category';
 import { CreateItemSpecificationDto } from '../data/specification.dto';
@@ -16,12 +16,14 @@ export class SpecificationController implements ICrudRoutes {
   }
 
   @Get()
-  async findAll(): Promise<ItemSpecification[]> {
+  async findAll(@Query('category') category: string): Promise<ItemSpecification[]> {
+    if (category) return await this.specificationService.findAllSpecifications(category);
     return await this.specificationService.findAll();
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<ItemSpecification> {
+  async findById(@Param('id') id: string, @Query('relations') relations: boolean): Promise<ItemSpecification> {
+    if (relations) return await this.specificationService.findSpecification(id);
     return await this.specificationService.findOneBy({ id }, () => new NotFoundException());
   }
 
