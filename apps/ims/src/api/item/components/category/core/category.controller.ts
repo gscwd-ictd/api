@@ -1,5 +1,5 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { UpdateResult, DeleteResult } from 'typeorm';
 import { CreateItemCategoryDto, PatchItemCategoryDto, UpdateItemCategoryDto } from '../data/category.dto';
 import { ItemCategory } from '../data/category.entity';
@@ -15,12 +15,14 @@ export class CategoryController implements ICrudRoutes {
   }
 
   @Get()
-  async findAll(): Promise<ItemCategory[]> {
+  async findAll(@Query('classification') classification: string): Promise<ItemCategory[]> {
+    if (classification) return await this.categoryService.findAllCategoriesByClassification(classification);
     return await this.categoryService.findAll();
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<ItemCategory> {
+  async findById(@Param('id') id: string, @Query('relations') relations: boolean): Promise<ItemCategory> {
+    if (relations) return await this.categoryService.findCategory(id);
     return await this.categoryService.findOneBy({ id }, () => new NotFoundException());
   }
 

@@ -12,8 +12,8 @@ export class CategoryService extends CrudHelper<ItemCategory> {
     return await this.crudService.findOne(
       {
         where: { id },
-        relations: { classification: true },
-        select: { classification: { name: true, code: true } },
+        relations: { classification: true, unit: true },
+        select: { classification: { name: true, code: true }, unit: { name: true, code: true } },
       },
       () => new NotFoundException()
     );
@@ -22,8 +22,8 @@ export class CategoryService extends CrudHelper<ItemCategory> {
   async findAllCategoriesByClassification(name: string) {
     return await this.crudService.findAll({
       where: { classification: { name } },
-      relations: { classification: true },
-      select: { classification: { name: true, code: true } },
+      relations: { classification: true, unit: true },
+      select: { classification: { name: true, code: true }, unit: { name: true, code: true } },
     });
   }
 
