@@ -18,9 +18,9 @@ export class MaterialCost extends DatabaseEntity implements IEntity {
   @Column({ name: 'work_description', type: 'text', nullable: true })
   workDescription: string;
 
-  @Column({ name: 'quantity' })
+  @Column({ name: 'quantity', type: 'integer' })
   quantity: number;
 
-  @Column({ name: 'output_per_day' })
+  @Column({ name: 'output_per_day', type: 'integer' })
   outputPerDay: number;
 }
