@@ -8,11 +8,11 @@ export class ItemCategory extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'category_id' })
   id: string;
 
-  @ManyToOne(() => ItemClassification, (classification) => classification.id)
+  @ManyToOne(() => ItemClassification, (classification) => classification.id, { nullable: false })
   @JoinColumn({ name: 'classification_id_fk' })
   classification: ItemClassification;
 
-  @ManyToOne(() => MeasurementUnit, (unit) => unit.id)
+  @ManyToOne(() => MeasurementUnit, (unit) => unit.id, { nullable: false })
   @JoinColumn({ name: 'unit_id_fk' })
   unit: MeasurementUnit;
 

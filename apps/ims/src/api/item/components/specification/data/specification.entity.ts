@@ -7,7 +7,7 @@ export class ItemSpecification extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'specification_id' })
   id: string;
 
-  @ManyToOne(() => ItemCategory, (category) => category.id)
+  @ManyToOne(() => ItemCategory, (category) => category.id, { nullable: false })
   @JoinColumn({ name: 'category_id_fk' })
   category: ItemCategory;
 
@@ -18,7 +18,7 @@ export class ItemSpecification extends DatabaseEntity implements IEntity {
   code: string;
 
   @Column({ unique: true, length: 100 })
-  specification: string;
+  specs: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
