@@ -8,8 +8,8 @@ export class ProjectDetailController implements ICrudRoutes {
   constructor(private readonly projectDetailService: ProjectDetailService) {}
 
   @Post()
-  async create(@Body() itemDto: CreateProjectDetailDto) {
-    return await this.projectDetailService.create(itemDto, () => new BadRequestException());
+  async create(@Body() data: CreateProjectDetailDto) {
+    return await this.projectDetailService.create(data, () => new BadRequestException());
   }
 
   @Get()
@@ -23,8 +23,8 @@ export class ProjectDetailController implements ICrudRoutes {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateProjectDetailDto) {
-    return await this.projectDetailService.update({ id }, dto, () => new BadRequestException());
+  async update(@Param('id') id: string, @Body() data: UpdateProjectDetailDto) {
+    return await this.projectDetailService.update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
