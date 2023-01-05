@@ -3,7 +3,7 @@ import { ICrudRoutes } from '@gscwd-api/crud';
 import { MaterialCostService } from './material-cost.service';
 import { CreateMaterialCostDto, UpdateMaterialCostDto } from '../data/material-cost.dto';
 
-@Controller('cost-estimates/material-costs')
+@Controller({ version: '1', path: 'cost-estimates/material-costs' })
 export class MaterialCostController implements ICrudRoutes {
   constructor(private readonly materialCostService: MaterialCostService) {}
 
