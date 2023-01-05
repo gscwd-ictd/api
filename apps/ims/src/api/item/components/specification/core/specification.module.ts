@@ -11,7 +11,7 @@ import { GeneratorModule } from '@gscwd-api/generator';
     CrudModule.register(ItemSpecification),
 
     // register string generator module
-    GeneratorModule.register({ length: 5, lowercase: false }),
+    GeneratorModule.register({ length: 7, lowercase: true }),
   ],
   providers: [SpecificationService],
   controllers: [SpecificationController],
