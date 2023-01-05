@@ -53,4 +53,9 @@ export class SpecificationController implements ICrudRoutes {
   async delete(@Param('id') id: string): Promise<DeleteResult> {
     return await this.specificationService.delete({ id }, () => new BadRequestException());
   }
+
+  // @Get('test/:id')
+  // async findtest(@Param('id') id: string) {
+  //   return await this.specificationService.testFind(id);
+  // }
 }
