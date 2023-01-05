@@ -8,7 +8,7 @@ export class CategoryService extends CrudHelper<ItemCategory> {
     super(crudService);
   }
 
-  async findCategory(id: string) {
+  async findCategoryWithRelations(id: string) {
     return await this.crudService.findOne(
       {
         where: { id },
@@ -19,9 +19,9 @@ export class CategoryService extends CrudHelper<ItemCategory> {
     );
   }
 
-  async findAllCategoriesByClassification(name: string) {
+  async findAllCategoriesByClassification(code: string) {
     return await this.crudService.findAll({
-      where: { classification: { name } },
+      where: { classification: { code: code.toUpperCase() } },
       relations: { classification: true, unit: true },
       select: { classification: { name: true, code: true }, unit: { name: true, code: true } },
     });

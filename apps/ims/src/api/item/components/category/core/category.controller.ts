@@ -1,12 +1,12 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
 import { GeneratorService } from '@gscwd-api/generator';
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseBoolPipe, Patch, Post, Put, Query } from '@nestjs/common';
 import { UpdateResult, DeleteResult } from 'typeorm';
 import { CreateItemCategoryDto, PatchItemCategoryDto, UpdateItemCategoryDto } from '../data/category.dto';
 import { ItemCategory } from '../data/category.entity';
 import { CategoryService } from './category.service';
 
-@Controller('items/categories')
+@Controller({ version: '1', path: 'items/categories' })
 export class CategoryController implements ICrudRoutes {
   constructor(
     // inject category service
@@ -28,8 +28,8 @@ export class CategoryController implements ICrudRoutes {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string, @Query('relations') relations: string): Promise<ItemCategory> {
-    if (relations === 'true') return await this.categoryService.findCategory(id);
+  async findById(@Param('id') id: string, @Query('relations', ParseBoolPipe) relations: boolean): Promise<ItemCategory> {
+    if (relations) return await this.categoryService.findCategoryWithRelations(id);
     return await this.categoryService.findOneBy({ id }, () => new NotFoundException());
   }
 

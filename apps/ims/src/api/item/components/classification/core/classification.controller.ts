@@ -1,12 +1,12 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseBoolPipe, Patch, Post, Put, Query } from '@nestjs/common';
 import { UpdateResult, DeleteResult } from 'typeorm';
 import { ItemCharacteristic } from '../../characteristic';
 import { CreateItemClassificationDto } from '../data/classification.dto';
 import { ItemClassification } from '../data/classification.entity';
 import { ClassificationService } from './classification.service';
 
-@Controller('items/classification')
+@Controller({ version: '1', path: 'items/classification' })
 export class ClassificationController implements ICrudRoutes {
   constructor(private readonly classificationService: ClassificationService) {}
 
@@ -22,8 +22,8 @@ export class ClassificationController implements ICrudRoutes {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string, @Query('relations') relations: string): Promise<ItemClassification> {
-    if (relations === 'true') return await this.classificationService.findClassification(id);
+  async findById(@Param('id') id: string, @Query('relations', ParseBoolPipe) relations: boolean): Promise<ItemClassification> {
+    if (relations) return await this.classificationService.findClassificationWithRelations(id);
     return await this.classificationService.findOneBy({ id }, () => new NotFoundException());
   }
 
