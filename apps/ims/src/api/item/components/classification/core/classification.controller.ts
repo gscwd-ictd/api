@@ -6,7 +6,7 @@ import { CreateItemClassificationDto } from '../data/classification.dto';
 import { ItemClassification } from '../data/classification.entity';
 import { ClassificationService } from './classification.service';
 
-@Controller('items/classification')
+@Controller({ version: '1', path: 'items/classification' })
 export class ClassificationController implements ICrudRoutes {
   constructor(private readonly classificationService: ClassificationService) {}
 
