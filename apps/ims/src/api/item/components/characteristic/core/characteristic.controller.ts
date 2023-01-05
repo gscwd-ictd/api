@@ -8,8 +8,8 @@ export class CharacteristicController implements ICrudRoutes {
   constructor(private readonly characteristicService: CharacteristicService) {}
 
   @Post()
-  async create(@Body() itemDto: CreateItemCharacteristicsDto) {
-    return await this.characteristicService.create(itemDto, () => new BadRequestException());
+  async create(@Body() data: CreateItemCharacteristicsDto) {
+    return await this.characteristicService.create(data, () => new BadRequestException());
   }
 
   @Get()
@@ -23,8 +23,8 @@ export class CharacteristicController implements ICrudRoutes {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() itemDto: UpdateItemCharacteristicsDto) {
-    return await this.characteristicService.update({ id }, itemDto, () => new BadRequestException());
+  async update(@Param('id') id: string, @Body() data: UpdateItemCharacteristicsDto) {
+    return await this.characteristicService.update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
