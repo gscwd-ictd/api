@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
 import { AppModule } from './api/app.module';
 import { MetadataInterceptor } from './global/interceptors';
@@ -8,6 +8,8 @@ async function bootstrap() {
   const app = await NestFactory.create<NestApplication>(AppModule);
 
   app.enableCors();
+
+  app.enableVersioning({ type: VersioningType.URI });
 
   // set global prefix for endpoints
   const globalPrefix = 'api/ims';

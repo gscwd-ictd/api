@@ -3,7 +3,7 @@ import { ICrudRoutes } from '@gscwd-api/crud';
 import { CreateItemCharacteristicsDto, UpdateItemCharacteristicsDto } from '../data/characteristic.dto';
 import { CharacteristicService } from './characteristic.service';
 
-@Controller('items/characteristics')
+@Controller({ version: '1', path: 'items/characteristics' })
 export class CharacteristicController implements ICrudRoutes {
   constructor(private readonly characteristicService: CharacteristicService) {}
 

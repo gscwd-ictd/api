@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ItemClassification } from '../data/classification.entity';
 
 @Injectable()
@@ -8,7 +8,7 @@ export class ClassificationService extends CrudHelper<ItemClassification> {
     super(crudService);
   }
 
-  async findClassification(id: string) {
+  async findClassificationWithRelations(id: string) {
     return await this.crudService.findOne(
       {
         where: { id },
@@ -19,11 +19,9 @@ export class ClassificationService extends CrudHelper<ItemClassification> {
     );
   }
 
-  async findAllClassification(name: string) {
-    if (name === undefined) throw new BadRequestException();
-
+  async findAllClassification(code: string) {
     return await this.crudService.findAll({
-      where: { characteristic: { name } },
+      where: { characteristic: { code: code.toUpperCase() } },
       relations: { characteristic: true },
       select: { characteristic: { name: true, code: true } },
     });
