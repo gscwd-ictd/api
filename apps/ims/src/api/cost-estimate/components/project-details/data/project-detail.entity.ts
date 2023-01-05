@@ -1,9 +1,9 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/entity';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({ name: 'material_costs' })
-export class MaterialCost extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'material_cost_id' })
+@Entity({ name: 'project_details' })
+export class ProjectDetail extends DatabaseEntity implements IEntity {
+  @PrimaryGeneratedColumn('uuid', { name: 'project_details_id' })
   id: string;
 
   @Column({ name: 'project_name', type: 'text', nullable: true })

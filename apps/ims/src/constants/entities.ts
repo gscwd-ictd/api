@@ -1,4 +1,5 @@
-import { MaterialCost } from '../api/cost-estimate/components/material-cost';
+import { EquipmentCost } from '../api/cost-estimate/components/equipment-cost';
+import { ProjectDetail } from '../api/cost-estimate/components/project-details';
 import { ItemCategory } from '../api/item/components/category';
 import { ItemCharacteristic } from '../api/item/components/characteristic';
 import { ItemClassification } from '../api/item/components/classification';
@@ -9,7 +10,8 @@ import { ItemDetailsView } from '../api/item/data/item-details.view';
 
 export const DB_ENTITIES = [
   // table entities
-  MaterialCost,
+  ProjectDetail,
+  EquipmentCost,
   ItemCharacteristic,
   ItemClassification,
   ItemCategory,

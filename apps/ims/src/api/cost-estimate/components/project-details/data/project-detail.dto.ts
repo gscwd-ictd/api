@@ -1,4 +1,4 @@
-export class CreateMaterialCostDto {
+export class CreateProjectDetailDto {
   projectName: string;
   location: string;
   itemNumber: string;
@@ -7,4 +7,4 @@ export class CreateMaterialCostDto {
   outputPerDay: number;
 }
 
-export class UpdateMaterialCostDto extends CreateMaterialCostDto {}
+export class UpdateProjectDetailDto extends CreateProjectDetailDto {}
