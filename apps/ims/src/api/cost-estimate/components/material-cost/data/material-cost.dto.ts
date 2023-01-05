@@ -1,5 +1,5 @@
 export class CreateMaterialCostDto {
-  project_name: string;
+  projectName: string;
   location: string;
   itemNumber: string;
   workDescription: string;

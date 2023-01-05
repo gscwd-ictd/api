@@ -7,7 +7,7 @@ export class MaterialCost extends DatabaseEntity implements IEntity {
   id: string;
 
   @Column({ name: 'project_name', type: 'text', nullable: true })
-  project_name: string;
+  projectName: string;
 
   @Column({ name: 'location', type: 'text', nullable: true })
   location: string;
