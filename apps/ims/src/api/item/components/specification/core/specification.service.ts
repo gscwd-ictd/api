@@ -10,7 +10,18 @@ export class SpecificationService extends CrudHelper<ItemSpecification> {
 
   async findSpecificationWithRelations(id: string) {
     return await this.crudService.findOne(
-      { where: { id }, relations: { category: true }, select: { category: { name: true, code: true } } },
+      {
+        where: { id },
+        relations: { category: { unit: true, classification: { characteristic: true } } },
+        select: {
+          category: {
+            name: true,
+            code: true,
+            unit: { code: true, name: true },
+            classification: { name: true, code: true, characteristic: { name: true, code: true } },
+          },
+        },
+      },
       () => new NotFoundException()
     );
   }
