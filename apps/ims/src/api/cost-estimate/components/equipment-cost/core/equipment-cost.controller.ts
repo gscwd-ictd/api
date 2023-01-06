@@ -1,9 +1,10 @@
 import { Controller, Get, Post, Body, Put, Param, Delete, BadRequestException, NotFoundException } from '@nestjs/common';
 import { EquipmentCostService } from './equipment-cost.service';
 import { CreateEquipmentCostDto, UpdateEquipmentCostDto } from '../data/equipment-cost.dto';
+import { ICrudRoutes } from '@gscwd-api/crud';
 
-@Controller('equipment-cost')
-export class EquipmentCostController {
+@Controller({ version: '1', path: 'cost-estimates/equipment-costs' })
+export class EquipmentCostController implements ICrudRoutes {
   constructor(private readonly equipmentCostService: EquipmentCostService) {}
 
   @Post()
@@ -27,7 +28,7 @@ export class EquipmentCostController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async delete(@Param('id') id: string) {
     return await this.equipmentCostService.delete({ id }, () => new BadRequestException());
   }
 }

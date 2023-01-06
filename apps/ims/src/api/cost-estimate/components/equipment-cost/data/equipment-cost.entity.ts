@@ -2,7 +2,7 @@ import { DatabaseEntity, IEntity } from '@gscwd-api/entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ProjectDetail } from '../../project-details';
 
-@Entity({ name: 'equipment_cost' })
+@Entity({ name: 'equipment_costs' })
 export class EquipmentCost extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'equipment_cost_id' })
   id: string;
