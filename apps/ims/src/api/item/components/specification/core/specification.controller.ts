@@ -1,8 +1,7 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
 import { GeneratorService } from '@gscwd-api/generator';
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseBoolPipe, Patch, Post, Put, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
 import { UpdateResult, DeleteResult } from 'typeorm';
-import { ItemCategory } from '../../category';
 import { CreateItemSpecificationDto } from '../data/specification.dto';
 import { ItemSpecification } from '../data/specification.entity';
 import { SpecificationService } from './specification.service';
@@ -23,30 +22,13 @@ export class SpecificationController implements ICrudRoutes {
   }
 
   @Get()
-  async findAll(@Query('category') category: string): Promise<ItemSpecification[]> {
-    if (category) return await this.specificationService.findAllSpecifications(category);
+  async findAll(): Promise<ItemSpecification[]> {
     return await this.specificationService.findAll();
   }
 
-  @Get('filter')
-  async findByCode(@Query('code') code: string) {
-    return await this.specificationService.findSpecificationByCode(code);
-  }
-
   @Get(':id')
-  async findById(@Param('id') id: string, @Query('relations', ParseBoolPipe) relations: boolean): Promise<ItemSpecification> {
-    if (relations) return await this.specificationService.findSpecificationWithRelationsById(id);
+  async findById(@Param('id') id: string): Promise<ItemSpecification> {
     return await this.specificationService.findOneBy({ id }, () => new NotFoundException());
-  }
-
-  @Patch(':id')
-  async patchCategory(@Param('id') id: string, @Body('category') category: ItemCategory) {
-    return await this.specificationService.update({ id }, { category }, () => new BadRequestException());
-  }
-
-  @Patch('quantity/:id')
-  async patchQuantity(@Param('id') id: string, @Body('quantity') quantity: number) {
-    return await this.specificationService.update({ id }, { quantity }, () => new BadRequestException());
   }
 
   @Put(':id')
