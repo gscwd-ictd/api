@@ -1,7 +1,7 @@
 import { UnitType } from '../../unit-type';
 
 export class CreateUnitOfMeasureDto {
-  unitType: UnitType;
+  type: UnitType;
   name: string;
   symbol: string;
   description: string;

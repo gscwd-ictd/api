@@ -9,7 +9,7 @@ export class UnitOfMeasure extends DatabaseEntity implements IEntity {
 
   @ManyToOne(() => UnitType, (unitType) => unitType.id, { nullable: false })
   @JoinColumn({ name: 'unit_type_id_fk' })
-  unitType: UnitType;
+  type: UnitType;
 
   @Column({ length: 20, unique: true })
   name: string;
