@@ -33,7 +33,7 @@ export class ItemDetailsView {
   quantity: number;
 
   @ViewColumn()
-  unit_code: string;
+  unit_symbol: string;
 
   @ViewColumn()
   unit_name: string;
