@@ -13,7 +13,7 @@ export class CategoryService extends CrudHelper<ItemCategory> {
       {
         where: { id },
         relations: { classification: true, unit: true },
-        select: { classification: { name: true, code: true }, unit: { name: true, code: true } },
+        select: { classification: { name: true, code: true }, unit: { name: true, symbol: true } },
       },
       () => new NotFoundException()
     );
@@ -23,7 +23,7 @@ export class CategoryService extends CrudHelper<ItemCategory> {
     return await this.crudService.findAll({
       where: { classification: { code: code.toUpperCase() } },
       relations: { classification: true, unit: true },
-      select: { classification: { name: true, code: true }, unit: { name: true, code: true } },
+      select: { classification: { name: true, code: true }, unit: { name: true, symbol: true } },
     });
   }
 
@@ -31,7 +31,7 @@ export class CategoryService extends CrudHelper<ItemCategory> {
     return await this.crudService.findAll({
       where: { unit: { name } },
       relations: { unit: true },
-      select: { unit: { name: true, code: true, description: true } },
+      select: { unit: { name: true, symbol: true, description: true } },
     });
   }
 }

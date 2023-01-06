@@ -17,7 +17,7 @@ export class SpecificationService extends CrudHelper<ItemSpecification> {
           category: {
             name: true,
             code: true,
-            unit: { code: true, name: true },
+            unit: { symbol: true, name: true },
             classification: { name: true, code: true, characteristic: { name: true, code: true } },
           },
         },
@@ -35,7 +35,7 @@ export class SpecificationService extends CrudHelper<ItemSpecification> {
           category: {
             name: true,
             code: true,
-            unit: { code: true, name: true },
+            unit: { symbol: true, name: true },
             classification: { name: true, code: true, characteristic: { name: true, code: true } },
           },
         },

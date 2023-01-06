@@ -7,7 +7,7 @@ export class UnitOfMeasure extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'unit_of_measure_id' })
   id: string;
 
-  @ManyToOne(() => UnitType, (unitType) => unitType.id)
+  @ManyToOne(() => UnitType, (unitType) => unitType.id, { nullable: false })
   @JoinColumn({ name: 'unit_type_id_fk' })
   unitType: UnitType;
 
@@ -16,4 +16,7 @@ export class UnitOfMeasure extends DatabaseEntity implements IEntity {
 
   @Column({ length: 10, unique: true })
   symbol: string;
+
+  @Column({ type: 'text', nullable: true })
+  description: string;
 }
