@@ -4,9 +4,9 @@ import { DeepPartial, UpdateResult, DeleteResult } from 'typeorm';
 export interface ICrudRoutes {
   create(data: any): Promise<any>;
 
-  findAll(query?: string | boolean | number): Promise<any[]>;
+  findAll(): Promise<any[]>;
 
-  findById(id: string | number, query?: string | boolean | number): Promise<any>;
+  findById(id: string | number): Promise<any>;
 
   update(id: string | number, data: DeepPartial<any>): Promise<UpdateResult>;
 
