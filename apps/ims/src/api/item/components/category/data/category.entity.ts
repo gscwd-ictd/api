@@ -13,7 +13,7 @@ export class ItemCategory extends DatabaseEntity implements IEntity {
   classification: ItemClassification;
 
   @ManyToOne(() => UnitOfMeasure, (unit) => unit.id, { nullable: false })
-  @JoinColumn({ name: 'unit_id_fk' })
+  @JoinColumn({ name: 'unit_of_measure_id_fk' })
   unit: UnitOfMeasure;
 
   @Column({ unique: true, length: 5 })
