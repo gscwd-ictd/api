@@ -8,5 +8,6 @@ import { CrudModule } from '@gscwd-api/crud';
   imports: [CrudModule.register(UnitOfMeasure)],
   providers: [UnitOfMeasureService],
   controllers: [UnitOfMeasureController],
+  exports: [UnitOfMeasureService],
 })
 export class UnitOfMeasureModule {}
