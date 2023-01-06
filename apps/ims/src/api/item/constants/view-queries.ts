@@ -18,6 +18,8 @@ export const ITEM_DETAILS_QUERY = `SELECT
     item_specifications.code AS specification_code,
 	item_specifications.specs AS details,
 	item_specifications.quantity AS quantity,
+	item_specifications.reordering_point,
+	item_specifications.reordering_quantity,
 	units_of_measure.symbol AS unit_symbol,
 	units_of_measure.name AS unit_name
 FROM item_classification 

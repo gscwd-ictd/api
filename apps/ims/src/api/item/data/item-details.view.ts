@@ -27,6 +27,12 @@ export class ItemDetailsView {
   specification_code: string;
 
   @ViewColumn()
+  reordering_point: string;
+
+  @ViewColumn()
+  reordering_quantity: string;
+
+  @ViewColumn()
   details: string;
 
   @ViewColumn()
