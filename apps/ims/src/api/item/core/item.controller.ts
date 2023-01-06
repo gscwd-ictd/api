@@ -1,7 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { ItemCodesView } from '../data/item-codes.view';
 import { ItemDetailsView } from '../data/item-details.view';
+import { ItemViewDetailsInterceptor } from '../misc/item-details.interceptor';
 import { ItemService } from './item.service';
 
 @Controller({ version: '1', path: 'inquiry/items' })
@@ -13,6 +14,7 @@ export class ItemController {
     return await this.datasource.getRepository(ItemCodesView).createQueryBuilder().select().getMany();
   }
 
+  @UseInterceptors(ItemViewDetailsInterceptor)
   @Get('views/details')
   async getAllItemDetails() {
     return await this.datasource.getRepository(ItemDetailsView).createQueryBuilder().select().getMany();
