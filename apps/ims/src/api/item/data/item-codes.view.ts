@@ -1,11 +1,11 @@
 import { ViewColumn, ViewEntity } from 'typeorm';
-import { ITEM_CODE_VIEW_QUERY } from '../constants';
+import { ITEM_CODES_VIEW_QUERY } from '../constants';
 
 @ViewEntity({
   name: 'item_codes_view',
-  expression: ITEM_CODE_VIEW_QUERY,
+  expression: ITEM_CODES_VIEW_QUERY,
 })
-export class ItemCodeView {
+export class ItemCodesView {
   @ViewColumn()
   characteristic: string;
 

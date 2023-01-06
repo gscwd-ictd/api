@@ -1,4 +1,4 @@
-export const ITEM_CODE_VIEW_QUERY = `SELECT 
+export const ITEM_CODES_VIEW_QUERY = `SELECT 
     item_characteristics.code AS characteristic, 
     item_classification.code AS classification, 
     item_categories.code AS category, 
