@@ -5,7 +5,7 @@ import { CreateUnitTypeDto, UpdateUnitTypeDto } from '../data/unit-type.dto';
 import { UnitType } from '../data/unit-type.entity';
 import { UnitTypeService } from './unit-type.service';
 
-@Controller({ version: '1', path: 'units/type' })
+@Controller({ version: '1', path: 'units/types' })
 export class UnitTypeController implements ICrudRoutes {
   constructor(private readonly unitTypeService: UnitTypeService) {}
 
