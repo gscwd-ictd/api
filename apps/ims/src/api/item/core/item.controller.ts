@@ -18,6 +18,11 @@ export class ItemController {
     return await this.datasource.getRepository(ItemDetailsView).createQueryBuilder().select().getMany();
   }
 
+  @Get('characteristics')
+  async findCharacteristicByCode(@Query('code') code: string) {
+    return await this.itemService.findCharacteristicByCode(code);
+  }
+
   @Get('classification')
   async findClassificationByCode(@Query('code') code: string) {
     return await this.itemService.findClassificationByCode(code);

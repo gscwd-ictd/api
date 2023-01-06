@@ -1,11 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CategoryService } from '../components/category';
+import { CharacteristicService } from '../components/characteristic';
 import { ClassificationService } from '../components/classification';
 import { SpecificationService } from '../components/specification';
 
 @Injectable()
 export class ItemService {
   constructor(
+    private readonly characteristicService: CharacteristicService,
+
     // inject classificaion service
     private readonly classificationService: ClassificationService,
 
@@ -15,6 +18,12 @@ export class ItemService {
     // inject specification service
     private readonly specificationService: SpecificationService
   ) {}
+
+  async findCharacteristicByCode(code: string) {
+    if (code === undefined) throw new NotFoundException();
+
+    return await this.characteristicService.findOneBy({ code }, () => new NotFoundException());
+  }
 
   async findClassificationByCode(code: string) {
     if (code === undefined) throw new NotFoundException();
