@@ -1,5 +1,6 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { LaborType } from '../../labor-type';
 import { ProjectDetail } from '../../project-details';
 
 @Entity({ name: 'labor_costs' })
@@ -10,6 +11,10 @@ export class LaborCost extends DatabaseEntity implements IEntity {
   @ManyToOne(() => ProjectDetail, (projectDetail) => projectDetail.id, { nullable: false })
   @JoinColumn({ name: 'project_detail_id_fk' })
   projectDetail: ProjectDetail;
+
+  @ManyToOne(() => LaborType, (laborType) => laborType.id, { nullable: false })
+  @JoinColumn({ name: 'labor_type_id_fk' })
+  laborType: LaborType;
 
   @Column({ name: 'number_of_person', type: 'integer' })
   numberOfPerson: number;
