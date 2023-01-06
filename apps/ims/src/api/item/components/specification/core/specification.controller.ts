@@ -28,9 +28,14 @@ export class SpecificationController implements ICrudRoutes {
     return await this.specificationService.findAll();
   }
 
+  @Get('filter')
+  async findByCode(@Query('code') code: string) {
+    return await this.specificationService.findSpecificationByCode(code);
+  }
+
   @Get(':id')
   async findById(@Param('id') id: string, @Query('relations', ParseBoolPipe) relations: boolean): Promise<ItemSpecification> {
-    if (relations) return await this.specificationService.findSpecificationWithRelations(id);
+    if (relations) return await this.specificationService.findSpecificationWithRelationsById(id);
     return await this.specificationService.findOneBy({ id }, () => new NotFoundException());
   }
 
@@ -53,9 +58,4 @@ export class SpecificationController implements ICrudRoutes {
   async delete(@Param('id') id: string): Promise<DeleteResult> {
     return await this.specificationService.delete({ id }, () => new BadRequestException());
   }
-
-  // @Get('test/:id')
-  // async findtest(@Param('id') id: string) {
-  //   return await this.specificationService.testFind(id);
-  // }
 }

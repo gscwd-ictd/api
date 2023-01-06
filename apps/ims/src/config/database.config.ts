@@ -6,7 +6,7 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
     return {
       type: 'postgres',
       logging: true,
-      synchronize: false,
+      synchronize: true,
       entities: DB_ENTITIES,
       replication: {
         master: {

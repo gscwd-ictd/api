@@ -7,6 +7,7 @@ import { ItemSpecification } from '../api/item/components/specification';
 import { MeasurementUnit } from '../api/item/components/unit';
 import { ItemCodeView } from '../api/item/data/item-code.view';
 import { ItemDetailsView } from '../api/item/data/item-details.view';
+import { UnitType } from '../api/unit/components/unit-type';
 
 export const DB_ENTITIES = [
   // table entities
@@ -17,6 +18,8 @@ export const DB_ENTITIES = [
   ItemCategory,
   ItemSpecification,
   MeasurementUnit,
+
+  UnitType,
 
   // entity views
   ItemCodeView,

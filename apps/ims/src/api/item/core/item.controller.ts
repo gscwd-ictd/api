@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import { ItemCodeView } from '../data/item-code.view';
 import { ItemDetailsView } from '../data/item-details.view';
 
-@Controller({ version: '1', path: 'views/items' })
+@Controller({ version: '1', path: 'inquiry/items' })
 export class ItemController {
   constructor(private readonly datasource: DataSource) {}
 
