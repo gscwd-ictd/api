@@ -11,7 +11,7 @@ export class ItemController {
   constructor(private readonly datasource: DataSource, private readonly itemService: ItemService) {}
 
   @Get('views/code')
-  async getAllItemCodes(
+  async findAllItemCodes(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ItemCodesView>> {
@@ -20,7 +20,7 @@ export class ItemController {
 
   @UseInterceptors(FindManyItemViewDetailsInterceptor)
   @Get('views/details')
-  async getAllItemDetails(
+  async findAllItemDetails(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ItemDetailsView>> {
@@ -29,7 +29,7 @@ export class ItemController {
 
   @UseInterceptors(FindManyItemViewDetailsInterceptor)
   @Get('views/details/category')
-  async getAllItemDetailsByCategoryName(
+  async findAllItemDetailsByCategoryName(
     @Query('name') categoryName: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
