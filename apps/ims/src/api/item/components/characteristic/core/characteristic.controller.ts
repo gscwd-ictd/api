@@ -1,7 +1,22 @@
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ICrudRoutes } from '@gscwd-api/crud';
 import { CreateItemCharacteristicsDto, UpdateItemCharacteristicsDto } from '../data/characteristic.dto';
 import { CharacteristicService } from './characteristic.service';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { ItemCharacteristic } from '../data/characteristic.entity';
 
 @Controller({ version: '1', path: 'items/characteristics' })
 export class CharacteristicController implements ICrudRoutes {
@@ -13,8 +28,11 @@ export class CharacteristicController implements ICrudRoutes {
   }
 
   @Get()
-  async findAll() {
-    return await this.characteristicService.findAll();
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<ItemCharacteristic>> {
+    return await this.characteristicService.findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
