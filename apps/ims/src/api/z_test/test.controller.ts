@@ -1,7 +1,8 @@
 import { Controller, DefaultValuePipe, Get, ParseIntPipe, Query } from '@nestjs/common';
 import { TestService } from './test.service';
+import * as data from '../../../mock/people';
 
-@Controller('test/pagination')
+@Controller('test')
 export class TestController {
   constructor(private readonly testService: TestService) {}
 
@@ -12,5 +13,10 @@ export class TestController {
   ) {
     limit = limit > 100 ? 100 : limit;
     return await this.testService.findAll({ page, limit });
+  }
+
+  @Get('mock/people')
+  async findAllPeople() {
+    return data.MOCK_PEOPLE;
   }
 }

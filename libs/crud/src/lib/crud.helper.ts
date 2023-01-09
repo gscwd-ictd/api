@@ -13,10 +13,6 @@ export abstract class CrudHelper<T extends ObjectLiteral> {
     return await this.crud.findAll(options.search, options.pagination);
   }
 
-  async findAllBy(options: FindOptionsWhere<T>) {
-    return await this.crud.findAllBy(options);
-  }
-
   async findOne(options: FindOneOptions<T>, error?: (error: Error) => ErrorResult) {
     return await this.crud.findOne(options, error);
   }

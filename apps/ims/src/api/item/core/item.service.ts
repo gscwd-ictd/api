@@ -63,7 +63,7 @@ export class ItemService {
             name: true,
             code: true,
             description: true,
-            classification: { name: true, code: true, characteristic: { name: true, code: true, description: true } },
+            classification: { name: true, code: true, description: true, characteristic: { name: true, code: true, description: true } },
           },
         },
       },
