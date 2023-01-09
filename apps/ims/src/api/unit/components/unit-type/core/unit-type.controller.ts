@@ -1,5 +1,19 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import { Pagination } from 'nestjs-typeorm-paginate';
 import { UpdateResult, DeleteResult } from 'typeorm';
 import { CreateUnitTypeDto, UpdateUnitTypeDto } from '../data/unit-type.dto';
 import { UnitType } from '../data/unit-type.entity';
@@ -15,8 +29,11 @@ export class UnitTypeController implements ICrudRoutes {
   }
 
   @Get()
-  async findAll(): Promise<UnitType[]> {
-    return await this.unitTypeService.findAll();
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<UnitType>> {
+    return await this.unitTypeService.findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')

@@ -1,8 +1,9 @@
-import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, ParseIntPipe, Query, UseInterceptors } from '@nestjs/common';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { DataSource } from 'typeorm';
 import { ItemCodesView } from '../data/item-codes.view';
 import { ItemDetailsView } from '../data/item-details.view';
-import { FindManyItemViewDetailsInterceptor, FindOneItemViewDetailsInterceptor } from '../misc/item-details.interceptor';
+import { FindManyItemViewDetailsInterceptor } from '../misc/item-details.interceptor';
 import { ItemService } from './item.service';
 
 @Controller({ version: '1', path: 'inquiry/items' })
@@ -10,45 +11,49 @@ export class ItemController {
   constructor(private readonly datasource: DataSource, private readonly itemService: ItemService) {}
 
   @Get('views/code')
-  async getAllItemCodes() {
-    return await this.datasource.getRepository(ItemCodesView).createQueryBuilder().select().getMany();
+  async getAllItemCodes(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<ItemCodesView>> {
+    return await paginate(this.datasource.getRepository(ItemCodesView), { page, limit });
   }
 
   @UseInterceptors(FindManyItemViewDetailsInterceptor)
   @Get('views/details')
-  async getAllItemDetails() {
-    return await this.datasource.getRepository(ItemDetailsView).createQueryBuilder().select().getMany();
+  async getAllItemDetails(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<ItemDetailsView>> {
+    return await paginate(this.datasource.getRepository(ItemDetailsView), { page, limit });
   }
 
   @UseInterceptors(FindManyItemViewDetailsInterceptor)
   @Get('views/details/category')
-  async getAllItemDetailsByCategoryName(@Query('name') categoryName: string) {
-    return await this.datasource.getRepository(ItemDetailsView).find({ where: { category_name: categoryName } });
-  }
-
-  @UseInterceptors(FindOneItemViewDetailsInterceptor)
-  @Get('views/details/specification')
-  async getItemDetailsBySpecificationCode(@Query('code') specificationCode: string) {
-    return await this.datasource.getRepository(ItemDetailsView).findOne({ where: { specification_code: specificationCode } });
+  async getAllItemDetailsByCategoryName(
+    @Query('name') categoryName: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<ItemDetailsView>> {
+    return await paginate(this.datasource.getRepository(ItemDetailsView), { page, limit }, { where: { category_name: categoryName } });
   }
 
   @Get('characteristics')
-  async findCharacteristicByCode(@Query('code') code: string) {
+  async findItemsByCharacteristicCode(@Query('code') code: string) {
     return await this.itemService.findCharacteristicByCode(code);
   }
 
   @Get('classification')
-  async findClassificationByCode(@Query('code') code: string) {
+  async findItemsByClassificationCode(@Query('code') code: string) {
     return await this.itemService.findClassificationByCode(code);
   }
 
   @Get('categories')
-  async findCategoryByCode(@Query('code') code: string) {
+  async findItemsByCategoryCode(@Query('code') code: string) {
     return await this.itemService.findCategoryByCode(code);
   }
 
   @Get('specifications')
-  async findSpecificationByCode(@Query('code') code: string) {
+  async findItemBySpecificationCode(@Query('code') code: string) {
     return await this.itemService.findSpecificationByCode(code);
   }
 }

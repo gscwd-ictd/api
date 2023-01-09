@@ -1,5 +1,19 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import { Pagination } from 'nestjs-typeorm-paginate';
 import { UpdateResult, DeleteResult } from 'typeorm';
 import { CreateUnitOfMeasureDto, UpdateUnitOfMeasureDto } from '../data/unit-of-measure.dto';
 import { UnitOfMeasure } from '../data/unit-of-measure.entity';
@@ -15,8 +29,11 @@ export class UnitOfMeasureController implements ICrudRoutes {
   }
 
   @Get()
-  async findAll(): Promise<UnitOfMeasure[]> {
-    return await this.unitOfMeasureService.findAll();
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<UnitOfMeasure>> {
+    return await this.unitOfMeasureService.findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')

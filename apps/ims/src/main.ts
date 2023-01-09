@@ -1,7 +1,7 @@
 import { Logger, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
 import { AppModule } from './api/app.module';
-import { MetadataInterceptor } from './global/interceptors';
+//import { MetadataInterceptor } from './global/interceptors';
 
 async function bootstrap() {
   // initialize a nest application
@@ -14,7 +14,7 @@ async function bootstrap() {
   // set global prefix for endpoints
   const globalPrefix = 'api/ims';
 
-  app.useGlobalInterceptors(new MetadataInterceptor());
+  //app.useGlobalInterceptors(new MetadataInterceptor());
 
   // apply the global prefix
   app.setGlobalPrefix(globalPrefix);

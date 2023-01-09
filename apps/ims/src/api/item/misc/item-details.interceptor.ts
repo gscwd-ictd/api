@@ -1,4 +1,5 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { Pagination } from 'nestjs-typeorm-paginate';
 import { map, Observable } from 'rxjs';
 import { ItemDetailsView } from '../data/item-details.view';
 
@@ -6,8 +7,8 @@ import { ItemDetailsView } from '../data/item-details.view';
 export class FindManyItemViewDetailsInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
     return next.handle().pipe(
-      map((items: ItemDetailsView[]) => {
-        return items.map((item) => {
+      map((data: Pagination<ItemDetailsView>) => {
+        const items = data.items.map((item) => {
           return {
             code: `${item.characteristic_code}-${item.classification_code}-${item.category_code}-${item.specification_code}`,
             item: {
@@ -26,6 +27,8 @@ export class FindManyItemViewDetailsInterceptor implements NestInterceptor {
             },
           };
         });
+
+        return { items, meta: data.meta };
       })
     );
   }
