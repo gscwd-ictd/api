@@ -38,22 +38,22 @@ export class ItemController {
   }
 
   @Get('characteristics')
-  async findCharacteristicByCode(@Query('code') code: string) {
+  async findItemsByCharacteristicCode(@Query('code') code: string) {
     return await this.itemService.findCharacteristicByCode(code);
   }
 
   @Get('classification')
-  async findClassificationByCode(@Query('code') code: string) {
+  async findItemsByClassificationCode(@Query('code') code: string) {
     return await this.itemService.findClassificationByCode(code);
   }
 
   @Get('categories')
-  async findCategoryByCode(@Query('code') code: string) {
+  async findItemsByCategoryCode(@Query('code') code: string) {
     return await this.itemService.findCategoryByCode(code);
   }
 
   @Get('specifications')
-  async findSpecificationByCode(@Query('code') code: string) {
+  async findItemBySpecificationCode(@Query('code') code: string) {
     return await this.itemService.findSpecificationByCode(code);
   }
 }
