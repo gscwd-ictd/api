@@ -5,9 +5,10 @@ import { CostEstimateController } from './cost-estimate.controller';
 import { CostEstimateService } from './cost-estimate.service';
 import { LaborTypeModule } from '../components/labor-type';
 import { LaborCostModule } from '../components/labor-cost';
+import { MaterialCostModule } from '../components/material-cost';
 
 @Module({
-  imports: [ProjectDetailModule, EquipmentCostModule, LaborCostModule, LaborTypeModule],
+  imports: [ProjectDetailModule, EquipmentCostModule, LaborCostModule, LaborTypeModule, MaterialCostModule],
   providers: [CostEstimateService],
   controllers: [CostEstimateController],
 })
