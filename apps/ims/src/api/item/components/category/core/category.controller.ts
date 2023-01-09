@@ -1,6 +1,20 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
 import { GeneratorService } from '@gscwd-api/generator';
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import { Pagination } from 'nestjs-typeorm-paginate';
 import { UpdateResult, DeleteResult } from 'typeorm';
 import { CreateItemCategoryDto, UpdateItemCategoryDto } from '../data/category.dto';
 import { ItemCategory } from '../data/category.entity';
@@ -22,8 +36,11 @@ export class CategoryController implements ICrudRoutes {
   }
 
   @Get()
-  async findAll(): Promise<ItemCategory[]> {
-    return await this.categoryService.findAll();
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<ItemCategory>> {
+    return await this.categoryService.findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
