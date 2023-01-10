@@ -9,8 +9,8 @@ export abstract class CrudHelper<T extends ObjectLiteral> {
     return await this.crud.create(data, error);
   }
 
-  async findAll(options?: FindAllOptions<T>) {
-    return await this.crud.findAll(options.search, options.pagination);
+  async findAll(options: FindAllOptions<T>) {
+    return await this.crud.findAll(options);
   }
 
   async findOne(options: FindOneOptions<T>, error?: (error: Error) => ErrorResult) {

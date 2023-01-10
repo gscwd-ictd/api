@@ -1,7 +1,9 @@
-import { Controller, DefaultValuePipe, Get, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
 import { TestService } from './test.service';
 import * as data from '../../../mock/people';
+import { TestControllerGuard, TestRouteGuard } from './test.guard';
 
+@UseGuards(TestControllerGuard)
 @Controller('test')
 export class TestController {
   constructor(private readonly testService: TestService) {}
@@ -15,6 +17,7 @@ export class TestController {
     return await this.testService.findAll({ page, limit });
   }
 
+  @UseGuards(TestRouteGuard)
   @Get('mock/people')
   async findAllPeople() {
     return data.MOCK_PEOPLE;
