@@ -3,7 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { DatabaseConfig } from '../config/database.config';
-import { ZTestModule } from './z_test/z_test.module';
+import { API_MODULES } from '../constants';
+// import { ZTestModule } from './z_test/z_test.module';
 
 @Module({
   imports: [
@@ -13,7 +14,9 @@ import { ZTestModule } from './z_test/z_test.module';
     // database config for connecting to ams database
     TypeOrmModule.forRootAsync({ useClass: DatabaseConfig }),
 
-    ZTestModule,
+    ...API_MODULES,
+
+    // ZTestModule,
   ],
 })
 export class AppModule {}
