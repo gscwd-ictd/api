@@ -2,6 +2,7 @@ import { EquipmentCost } from '../api/cost-estimate/components/equipment-cost';
 import { LaborCost } from '../api/cost-estimate/components/labor-cost';
 import { LaborType } from '../api/cost-estimate/components/labor-type';
 import { ProjectDetail } from '../api/cost-estimate/components/project-details';
+import { ValueAddedTax } from '../api/cost-estimate/components/value-added-tax';
 import { ItemCategory } from '../api/item/components/category';
 import { ItemCharacteristic } from '../api/item/components/characteristic';
 import { ItemClassification } from '../api/item/components/classification';
@@ -18,6 +19,7 @@ export const DB_ENTITIES = [
   EquipmentCost,
   LaborType,
   LaborCost,
+  ValueAddedTax,
 
   ItemCharacteristic,
   ItemClassification,
