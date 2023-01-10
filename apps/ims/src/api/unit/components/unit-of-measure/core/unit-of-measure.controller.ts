@@ -21,11 +21,11 @@ import { UnitOfMeasureService } from './unit-of-measure.service';
 
 @Controller({ version: '1', path: 'units/measurement' })
 export class UnitOfMeasureController implements ICrudRoutes {
-  constructor(private readonly unitOfMeasureService: UnitOfMeasureService) {}
+  constructor(private readonly service: UnitOfMeasureService) {}
 
   @Post()
   async create(@Body() data: CreateUnitOfMeasureDto): Promise<UnitOfMeasure> {
-    return await this.unitOfMeasureService.create(data, () => new BadRequestException());
+    return await this.service.getProvider().create(data, () => new BadRequestException());
   }
 
   @Get()
@@ -33,21 +33,21 @@ export class UnitOfMeasureController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<UnitOfMeasure>> {
-    return await this.unitOfMeasureService.findAll({ pagination: { page, limit } });
+    return await this.service.getProvider().findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<UnitOfMeasure> {
-    return await this.unitOfMeasureService.findOneBy({ id }, () => new NotFoundException());
+    return await this.service.getProvider().findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateUnitOfMeasureDto): Promise<UpdateResult> {
-    return await this.unitOfMeasureService.update({ id }, data, () => new BadRequestException());
+    return await this.service.getProvider().update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.unitOfMeasureService.delete({ id }, () => new BadRequestException());
+    return await this.service.getProvider().delete({ id }, () => new BadRequestException());
   }
 }

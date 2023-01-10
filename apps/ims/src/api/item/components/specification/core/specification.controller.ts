@@ -32,7 +32,7 @@ export class SpecificationController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateItemSpecificationDto): Promise<ItemSpecification> {
-    return await this.specificationService.create({ ...data, code: this.generatorService.generate() }, () => new BadRequestException());
+    return await this.specificationService.getProvider().create({ ...data, code: this.generatorService.generate() }, () => new BadRequestException());
   }
 
   @Get()
@@ -40,21 +40,21 @@ export class SpecificationController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ItemSpecification>> {
-    return await this.specificationService.findAll({ pagination: { page, limit } });
+    return await this.specificationService.getProvider().findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<ItemSpecification> {
-    return await this.specificationService.findOneBy({ id }, () => new NotFoundException());
+    return await this.specificationService.getProvider().findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: unknown): Promise<UpdateResult> {
-    return await this.specificationService.update({ id }, data, () => new BadRequestException());
+    return await this.specificationService.getProvider().update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.specificationService.delete({ id }, () => new BadRequestException());
+    return await this.specificationService.getProvider().delete({ id }, () => new BadRequestException());
   }
 }

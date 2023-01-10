@@ -21,11 +21,11 @@ import { UnitTypeService } from './unit-type.service';
 
 @Controller({ version: '1', path: 'units/types' })
 export class UnitTypeController implements ICrudRoutes {
-  constructor(private readonly unitTypeService: UnitTypeService) {}
+  constructor(private readonly service: UnitTypeService) {}
 
   @Post()
   async create(@Body() data: CreateUnitTypeDto): Promise<UnitType> {
-    return await this.unitTypeService.create(data, () => new BadRequestException());
+    return await this.service.getProvider().create(data, () => new BadRequestException());
   }
 
   @Get()
@@ -33,21 +33,21 @@ export class UnitTypeController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<UnitType>> {
-    return await this.unitTypeService.findAll({ pagination: { page, limit } });
+    return await this.service.getProvider().findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<UnitType> {
-    return await this.unitTypeService.findOneBy({ id }, () => new NotFoundException());
+    return await this.service.getProvider().findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateUnitTypeDto): Promise<UpdateResult> {
-    return await this.unitTypeService.update({ id }, data, () => new BadRequestException());
+    return await this.service.getProvider().update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.unitTypeService.delete({ id }, () => new BadRequestException());
+    return await this.service.getProvider().delete({ id }, () => new BadRequestException());
   }
 }
