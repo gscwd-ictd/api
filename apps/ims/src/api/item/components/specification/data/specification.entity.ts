@@ -1,4 +1,5 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/entities';
+import { UnitOfMeasure } from '../../../../unit/components/unit-of-measure';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ItemCategory } from '../../category';
 
@@ -11,11 +12,15 @@ export class ItemSpecification extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'category_id_fk' })
   category: ItemCategory;
 
+  @ManyToOne(() => UnitOfMeasure, (unit) => unit.id, { nullable: false })
+  @JoinColumn({ name: 'unit_of_measure_id_fk' })
+  unit: UnitOfMeasure;
+
   @Column({ unique: true, length: 10 })
   code: string;
 
   @Column({ unique: true, length: 100 })
-  specs: string;
+  details: string;
 
   @Column()
   quantity: number;

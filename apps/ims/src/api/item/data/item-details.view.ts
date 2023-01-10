@@ -39,6 +39,9 @@ export class ItemDetailsView {
   quantity: number;
 
   @ViewColumn()
+  description: string;
+
+  @ViewColumn()
   unit_symbol: string;
 
   @ViewColumn()

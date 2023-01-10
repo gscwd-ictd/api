@@ -3,7 +3,7 @@ import { DatabaseEntity, IEntity } from '@gscwd-api/entities';
 
 @Entity('property_categories')
 export class PropertyCategory extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'category_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'property_category_id' })
   id: string;
 
   @Column({ unique: true, length: 5 })
