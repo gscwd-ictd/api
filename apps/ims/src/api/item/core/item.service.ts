@@ -22,13 +22,13 @@ export class ItemService {
   async findCharacteristicByCode(code: string) {
     if (code === undefined) throw new NotFoundException();
 
-    return await this.characteristicService.findOneBy({ code }, () => new NotFoundException());
+    return await this.characteristicService.getProvider().findOneBy({ code }, () => new NotFoundException());
   }
 
   async findClassificationByCode(code: string) {
     if (code === undefined) throw new NotFoundException();
 
-    return await this.classificationService.findOne(
+    return await this.classificationService.getProvider().findOne(
       {
         where: { code },
         relations: { characteristic: true },
@@ -41,7 +41,7 @@ export class ItemService {
   async findCategoryByCode(code: string) {
     if (code === undefined) throw new NotFoundException();
 
-    return await this.categoryService.findOne(
+    return await this.categoryService.getProvider().findOne(
       {
         where: { code },
         relations: { classification: { characteristic: true } },
@@ -54,7 +54,7 @@ export class ItemService {
   async findSpecificationByCode(code: string) {
     if (code === undefined) throw new NotFoundException();
 
-    return await this.specificationService.findOne(
+    return await this.specificationService.getProvider().findOne(
       {
         where: { code },
         relations: { unit: true, category: { classification: { characteristic: true } } },
