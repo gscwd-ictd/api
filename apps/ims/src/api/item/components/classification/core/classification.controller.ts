@@ -21,11 +21,11 @@ import { ClassificationService } from './classification.service';
 
 @Controller({ version: '1', path: 'items/classification' })
 export class ClassificationController implements ICrudRoutes {
-  constructor(private readonly classificationService: ClassificationService) {}
+  constructor(private readonly service: ClassificationService) {}
 
   @Post()
   async create(@Body() data: CreateItemClassificationDto): Promise<ItemClassification> {
-    return await this.classificationService.create(data, () => new BadRequestException());
+    return await this.service.getProvider().create(data, () => new BadRequestException());
   }
 
   @Get()
@@ -33,21 +33,21 @@ export class ClassificationController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ItemClassification>> {
-    return await this.classificationService.findAll({ pagination: { page, limit } });
+    return await this.service.getProvider().findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<ItemClassification> {
-    return await this.classificationService.findOneBy({ id }, () => new NotFoundException());
+    return await this.service.getProvider().findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: ItemClassification): Promise<UpdateResult> {
-    return await this.classificationService.update({ id }, data, () => new BadRequestException());
+    return await this.service.getProvider().update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.classificationService.delete({ id }, () => new BadRequestException());
+    return await this.service.getProvider().delete({ id }, () => new BadRequestException());
   }
 }
