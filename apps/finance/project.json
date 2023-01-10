@@ -1,7 +1,7 @@
 {
-  "name": "budget",
+  "name": "finance",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/budget/src",
+  "sourceRoot": "apps/finance/src",
   "projectType": "application",
   "targets": {
     "build": {
@@ -10,10 +10,10 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/apps/budget",
-        "main": "apps/budget/src/main.ts",
-        "tsConfig": "apps/budget/tsconfig.app.json",
-        "assets": ["apps/budget/src/assets"]
+        "outputPath": "dist/apps/finance",
+        "main": "apps/finance/src/main.ts",
+        "tsConfig": "apps/finance/tsconfig.app.json",
+        "assets": ["apps/finance/src/assets"]
       },
       "configurations": {
         "production": {
@@ -22,8 +22,8 @@
           "inspect": false,
           "fileReplacements": [
             {
-              "replace": "apps/budget/src/environments/environment.ts",
-              "with": "apps/budget/src/environments/environment.prod.ts"
+              "replace": "apps/finance/src/environments/environment.ts",
+              "with": "apps/finance/src/environments/environment.prod.ts"
             }
           ]
         }
@@ -32,11 +32,11 @@
     "serve": {
       "executor": "@nrwl/js:node",
       "options": {
-        "buildTarget": "budget:build"
+        "buildTarget": "finance:build"
       },
       "configurations": {
         "production": {
-          "buildTarget": "budget:build:production"
+          "buildTarget": "finance:build:production"
         }
       }
     },
@@ -44,14 +44,14 @@
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["apps/budget/**/*.ts"]
+        "lintFilePatterns": ["apps/finance/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/budget/jest.config.ts",
+        "jestConfig": "apps/finance/jest.config.ts",
         "passWithNoTests": true
       }
     }
