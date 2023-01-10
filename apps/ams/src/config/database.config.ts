@@ -1,4 +1,5 @@
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
+import { DB_ENTITIES } from '../constants/entities';
 
 export class DatabaseConfig implements TypeOrmOptionsFactory {
   createTypeOrmOptions(): TypeOrmModuleOptions | Promise<TypeOrmModuleOptions> {
@@ -6,7 +7,7 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       type: 'postgres',
       logging: true,
       synchronize: true,
-      entities: [],
+      entities: [...DB_ENTITIES],
       replication: {
         master: {
           host: process.env.MASTER_DB_HOST,

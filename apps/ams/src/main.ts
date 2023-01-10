@@ -25,7 +25,7 @@ async function bootstrap() {
   await app.listen(port);
 
   // application logger
-  Logger.log(`🚀 Inventory is running on: http://localhost:${port}/${globalPrefix}`);
+  Logger.log(`🚀 Asset Management is running on: http://localhost:${port}/${globalPrefix}`);
 }
 
 bootstrap();
