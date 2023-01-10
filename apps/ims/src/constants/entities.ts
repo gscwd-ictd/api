@@ -10,7 +10,6 @@ import { UnitsView } from '../api/unit/data/units-view';
 
 export const DB_ENTITIES = [
   // table entities
-
   ItemCharacteristic,
   ItemClassification,
   ItemCategory,
