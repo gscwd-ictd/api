@@ -1,3 +1,4 @@
+import { ContractorProfit } from '../api/cost-estimate/components/contractor-profit';
 import { EquipmentCost } from '../api/cost-estimate/components/equipment-cost';
 import { LaborCost } from '../api/cost-estimate/components/labor-cost';
 import { LaborType } from '../api/cost-estimate/components/labor-type';
@@ -20,6 +21,7 @@ export const DB_ENTITIES = [
   LaborType,
   LaborCost,
   MaterialCost,
+  ContractorProfit,
 
   ItemCharacteristic,
   ItemClassification,
