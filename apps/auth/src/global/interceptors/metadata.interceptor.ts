@@ -1,4 +1,4 @@
-import { DatabaseEntity, generateMetadata } from '@gscwd-api/entity';
+import { DatabaseEntity, generateMetadata } from '@gscwd-api/entities';
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { map, Observable } from 'rxjs';
 

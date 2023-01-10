@@ -1,4 +1,4 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/entity';
+import { DatabaseEntity, IEntity } from '@gscwd-api/entities';
 import { UnitOfMeasure } from '../../../../unit/components/unit-of-measure/';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ItemClassification } from '../../classification';

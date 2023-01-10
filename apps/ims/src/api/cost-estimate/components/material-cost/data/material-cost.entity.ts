@@ -1,4 +1,4 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/entity';
+import { DatabaseEntity, IEntity } from '@gscwd-api/entities';
 import { ItemClassification } from 'apps/ims/src/api/item/components/classification';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ProjectDetail } from '../../project-details';

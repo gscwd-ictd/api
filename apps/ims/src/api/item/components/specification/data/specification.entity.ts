@@ -1,4 +1,4 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/entity';
+import { DatabaseEntity, IEntity } from '@gscwd-api/entities';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ItemCategory } from '../../category';
 
