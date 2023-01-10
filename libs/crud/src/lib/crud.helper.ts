@@ -29,7 +29,11 @@ export abstract class CrudHelper<T extends ObjectLiteral> {
     return await this.crud.delete(options, error);
   }
 
-  async getRepository() {
+  public getRepository() {
     return this.crud.getRepository();
+  }
+
+  public getProvider() {
+    return this.crud;
   }
 }
