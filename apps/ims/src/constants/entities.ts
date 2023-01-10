@@ -1,8 +1,3 @@
-import { EquipmentCost } from '../api/cost-estimate/components/equipment-cost';
-import { LaborCost } from '../api/cost-estimate/components/labor-cost';
-import { LaborType } from '../api/cost-estimate/components/labor-type';
-import { MaterialCost } from '../api/cost-estimate/components/material-cost';
-import { ProjectDetail } from '../api/cost-estimate/components/project-details';
 import { ItemCategory } from '../api/item/components/category';
 import { ItemCharacteristic } from '../api/item/components/characteristic';
 import { ItemClassification } from '../api/item/components/classification';
@@ -15,12 +10,6 @@ import { UnitsView } from '../api/unit/data/units-view';
 
 export const DB_ENTITIES = [
   // table entities
-  ProjectDetail,
-  EquipmentCost,
-  LaborType,
-  LaborCost,
-  MaterialCost,
-
   ItemCharacteristic,
   ItemClassification,
   ItemCategory,
