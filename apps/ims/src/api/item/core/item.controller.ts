@@ -3,7 +3,7 @@ import { FindItemByIdInterceptor } from '../misc/item.interceptor';
 import { FindAllItemsInterceptor } from '../misc/items.interceptor';
 import { ItemService } from './item.service';
 
-@Controller({ version: '1', path: 'items' })
+@Controller({ version: '1', path: 'items/details' })
 export class ItemController {
   constructor(private readonly itemService: ItemService) {}
 
