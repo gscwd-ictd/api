@@ -29,7 +29,7 @@ export class CrudService<T extends ObjectLiteral> {
     this.repository = datasource.getRepository(entity);
   }
 
-  async create(data: DeepPartial<T>, errorCallback?: (error: Error) => ErrorResult): Promise<T> {
+  async create(data: DeepPartial<T>, onError?: (error: Error) => ErrorResult): Promise<T> {
     try {
       // insert a new record into the database
       return await this.repository.save(data);
@@ -37,10 +37,10 @@ export class CrudService<T extends ObjectLiteral> {
       // catch any error
     } catch (error) {
       // if errorResult is undefined, throw a generic error
-      if (!errorCallback) throw new Error(error);
+      if (!onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw errorCallback(error);
+      throw onError(error);
     }
   }
 
@@ -48,7 +48,7 @@ export class CrudService<T extends ObjectLiteral> {
     return paginate<T>(this.repository, pagination, search);
   }
 
-  async findOne(options: FindOneOptions<T>, errorCallback?: (error: Error) => ErrorResult) {
+  async findOne(options: FindOneOptions<T>, onError?: (error: Error) => ErrorResult) {
     try {
       // find one record in the database, and fail this query if it found none
       return await this.repository.findOneOrFail(options);
@@ -56,14 +56,14 @@ export class CrudService<T extends ObjectLiteral> {
       // catch any error
     } catch (error) {
       // if errorResult is undefined, throw a generic error
-      if (!errorCallback) throw new Error(error);
+      if (!onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw errorCallback(error);
+      throw onError(error);
     }
   }
 
-  async findOneBy(options: FindOptionsWhere<T>, errorCallback?: (error: Error) => ErrorResult): Promise<T> {
+  async findOneBy(options: FindOptionsWhere<T>, onError?: (error: Error) => ErrorResult): Promise<T> {
     try {
       // find one record in the database, and fail this query if it found none
       return await this.repository.findOneByOrFail(options);
@@ -71,14 +71,14 @@ export class CrudService<T extends ObjectLiteral> {
       // catch the resulting error
     } catch (error) {
       // if errorResult is undefined, throw a generic error
-      if (!errorCallback) throw new Error(error);
+      if (!onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw errorCallback(error);
+      throw onError(error);
     }
   }
 
-  async update(options: FindOptionsWhere<T>, data: DeepPartial<T>, errorCallback?: (error: Error) => ErrorResult): Promise<UpdateResult> {
+  async update(options: FindOptionsWhere<T>, data: DeepPartial<T>, onError?: (error: Error) => ErrorResult): Promise<UpdateResult> {
     try {
       // update a record in the database
       return await this.repository.update(options, data);
@@ -86,14 +86,14 @@ export class CrudService<T extends ObjectLiteral> {
       // catch the resulting error
     } catch (error) {
       // if errorResult is undefined, throw a generic error
-      if (!errorCallback) throw new Error(error);
+      if (!onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw errorCallback(error);
+      throw onError(error);
     }
   }
 
-  async delete(options: FindOptionsWhere<T>, errorCallback?: (error: Error) => ErrorResult): Promise<DeleteResult> {
+  async delete(options: FindOptionsWhere<T>, onError?: (error: Error) => ErrorResult): Promise<DeleteResult> {
     try {
       // delete a record in the database
       return await this.repository.delete(options);
@@ -101,10 +101,10 @@ export class CrudService<T extends ObjectLiteral> {
       // catch the resulting error
     } catch (error) {
       // if errorResult is undefined, throw a generic error
-      if (!errorCallback) throw new Error(error);
+      if (!onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw errorCallback(error);
+      throw onError(error);
     }
   }
 
