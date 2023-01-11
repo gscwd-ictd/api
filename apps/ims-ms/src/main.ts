@@ -10,14 +10,14 @@ async function bootstrap() {
       host: process.env.IMS_REDIS_HOST,
       port: parseInt(process.env.IMS_REDIS_PORT),
       password: process.env.IMS_REDIS_PASS,
+      retryAttempts: 10,
+      retryDelay: 3000,
     },
   });
 
   await app.listen();
 
-  const port = process.env.IMS_MS_PORT;
-
-  Logger.log(`🚀 IMS Microservice is listening on port ${port}`);
+  Logger.log(`🚀 IMS Microservice is listening on port ${process.env.IMS_REDIS_PORT}`);
 }
 
 bootstrap();
