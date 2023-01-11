@@ -18,6 +18,7 @@
       "@gscwd-api/crud": ["libs/crud/src/index.ts"],
       "@gscwd-api/entities": ["libs/entities/src/index.ts"],
       "@gscwd-api/generator": ["libs/generator/src/index.ts"],
+      "@gscwd-api/microservice": ["libs/microservice/src/index.ts"],
       "@gscwd-api/password": ["libs/password/src/index.ts"],
       "@gscwd-api/utils": ["libs/utils/src/index.ts"]
     }
