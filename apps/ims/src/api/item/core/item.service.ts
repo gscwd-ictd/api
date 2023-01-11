@@ -1,23 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { DataSource } from 'typeorm';
-import { CategoryService } from '../components/category';
-import { CharacteristicService } from '../components/characteristic';
-import { ClassificationService } from '../components/classification';
 import { SpecificationService } from '../components/specification';
 import { ItemDetailsView } from '../data/item-details.view';
 
 @Injectable()
 export class ItemService {
   constructor(
-    private readonly characteristicService: CharacteristicService,
-
-    // inject classificaion service
-    private readonly classificationService: ClassificationService,
-
-    // inject category service
-    private readonly categoryService: CategoryService,
-
     // inject specification service
     private readonly specificationService: SpecificationService,
 
