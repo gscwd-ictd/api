@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { DataSource } from 'typeorm';
 import { CategoryService } from '../components/category';
@@ -41,13 +41,16 @@ export class ItemService {
   }
 
   async findItem(id: string) {
-    return await this.specificationService.getProvider().findOne({
-      where: { id },
-      relations: { unit: true, category: { classification: { characteristic: true } } },
-      select: {
-        unit: { name: true, symbol: true },
-        category: { code: true, name: true, classification: { code: true, name: true, characteristic: { code: true, name: true } } },
+    return await this.specificationService.getProvider().findOne(
+      {
+        where: { id },
+        relations: { unit: true, category: { classification: { characteristic: true } } },
+        select: {
+          unit: { name: true, symbol: true },
+          category: { code: true, name: true, classification: { code: true, name: true, characteristic: { code: true, name: true } } },
+        },
       },
-    });
+      () => new NotFoundException()
+    );
   }
 }
