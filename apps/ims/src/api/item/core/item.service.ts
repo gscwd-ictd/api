@@ -1,23 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { DataSource } from 'typeorm';
-import { CategoryService } from '../components/category';
-import { CharacteristicService } from '../components/characteristic';
-import { ClassificationService } from '../components/classification';
 import { SpecificationService } from '../components/specification';
 import { ItemDetailsView } from '../data/item-details.view';
 
 @Injectable()
 export class ItemService {
   constructor(
-    private readonly characteristicService: CharacteristicService,
-
-    // inject classificaion service
-    private readonly classificationService: ClassificationService,
-
-    // inject category service
-    private readonly categoryService: CategoryService,
-
     // inject specification service
     private readonly specificationService: SpecificationService,
 
@@ -41,13 +30,16 @@ export class ItemService {
   }
 
   async findItem(id: string) {
-    return await this.specificationService.getProvider().findOne({
-      where: { id },
-      relations: { unit: true, category: { classification: { characteristic: true } } },
-      select: {
-        unit: { name: true, symbol: true },
-        category: { code: true, name: true, classification: { code: true, name: true, characteristic: { code: true, name: true } } },
+    return await this.specificationService.getProvider().findOne(
+      {
+        where: { id },
+        relations: { unit: true, category: { classification: { characteristic: true } } },
+        select: {
+          unit: { name: true, symbol: true },
+          category: { code: true, name: true, classification: { code: true, name: true, characteristic: { code: true, name: true } } },
+        },
       },
-    });
+      () => new NotFoundException()
+    );
   }
 }
