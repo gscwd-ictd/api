@@ -15,6 +15,7 @@ export const ITEM_DETAILS_QUERY = `SELECT
 	item_classification.name AS classification_name,
     item_categories.code AS category_code, 
 	item_categories.name AS category_name,
+	item_specifications.specification_id AS id,
     item_specifications.code AS specification_code,
 	item_specifications.details AS details,
 	item_specifications.quantity AS quantity,

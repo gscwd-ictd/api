@@ -9,11 +9,11 @@ export class UserController {
 
   @Get()
   async findAllUsers() {
-    return await this.userService.findAll();
+    return await this.userService.getProvider().findAll({});
   }
 
   @Get(':id')
   async findUserById(@Param('id') userId: string) {
-    return await this.userService.findOneBy({ userId }, () => new NotFoundException());
+    return await this.userService.getProvider().findOneBy({ userId }, () => new NotFoundException());
   }
 }
