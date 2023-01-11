@@ -32,7 +32,9 @@ export class CategoryController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateItemCategoryDto): Promise<ItemCategory> {
-    return await this.categoryService.getProvider().create({ ...data, code: this.generatorService.generate() }, () => new BadRequestException());
+    return await this.categoryService
+      .getProvider()
+      .create({ ...data, code: this.generatorService.generate() as string }, () => new BadRequestException());
   }
 
   @Get()

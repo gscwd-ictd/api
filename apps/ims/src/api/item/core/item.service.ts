@@ -1,8 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
+import { DataSource } from 'typeorm';
 import { CategoryService } from '../components/category';
 import { CharacteristicService } from '../components/characteristic';
 import { ClassificationService } from '../components/classification';
 import { SpecificationService } from '../components/specification';
+import { ItemDetailsView } from '../data/item-details.view';
 
 @Injectable()
 export class ItemService {
@@ -16,59 +19,35 @@ export class ItemService {
     private readonly categoryService: CategoryService,
 
     // inject specification service
-    private readonly specificationService: SpecificationService
+    private readonly specificationService: SpecificationService,
+
+    // inject data source to get repository of a specific view entity
+    private readonly datasource: DataSource
   ) {}
 
-  async findCharacteristicByCode(code: string) {
-    if (code === undefined) throw new NotFoundException();
-
-    return await this.characteristicService.findOneBy({ code }, () => new NotFoundException());
+  async findAllItems(pagination: IPaginationOptions) {
+    return await paginate(this.datasource.getRepository(ItemDetailsView), pagination, {
+      select: {
+        id: true,
+        characteristic_code: true,
+        classification_code: true,
+        category_code: true,
+        category_name: true,
+        specification_code: true,
+        details: true,
+        description: true,
+      },
+    });
   }
 
-  async findClassificationByCode(code: string) {
-    if (code === undefined) throw new NotFoundException();
-
-    return await this.classificationService.findOne(
-      {
-        where: { code },
-        relations: { characteristic: true },
-        select: { characteristic: { name: true, code: true, description: true } },
+  async findItem(id: string) {
+    return await this.specificationService.getProvider().findOne({
+      where: { id },
+      relations: { unit: true, category: { classification: { characteristic: true } } },
+      select: {
+        unit: { name: true, symbol: true },
+        category: { code: true, name: true, classification: { code: true, name: true, characteristic: { code: true, name: true } } },
       },
-      () => new NotFoundException()
-    );
-  }
-
-  async findCategoryByCode(code: string) {
-    if (code === undefined) throw new NotFoundException();
-
-    return await this.categoryService.findOne(
-      {
-        where: { code },
-        relations: { classification: { characteristic: true } },
-        select: { classification: { name: true, code: true, description: true, characteristic: { name: true, code: true, description: true } } },
-      },
-      () => new NotFoundException()
-    );
-  }
-
-  async findSpecificationByCode(code: string) {
-    if (code === undefined) throw new NotFoundException();
-
-    return await this.specificationService.findOne(
-      {
-        where: { code },
-        relations: { unit: true, category: { classification: { characteristic: true } } },
-        select: {
-          unit: { name: true, symbol: true },
-          category: {
-            name: true,
-            code: true,
-            description: true,
-            classification: { name: true, code: true, description: true, characteristic: { name: true, code: true, description: true } },
-          },
-        },
-      },
-      () => new NotFoundException()
-    );
+    });
   }
 }
