@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { DatabaseEntity } from '@gscwd-api/entity';
+import { DatabaseEntity } from '@gscwd-api/entities';
 
 @Entity('users')
 export class User extends DatabaseEntity {

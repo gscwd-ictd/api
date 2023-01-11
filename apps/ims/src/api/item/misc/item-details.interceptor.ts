@@ -11,18 +11,17 @@ export class FindManyItemViewDetailsInterceptor implements NestInterceptor {
         const items = data.items.map((item) => {
           return {
             code: `${item.characteristic_code}-${item.classification_code}-${item.category_code}-${item.specification_code}`,
-            item: {
-              characteristic: item.characteristic_name,
-              classification: item.classification_name,
-              category: item.category_name,
-              details: {
-                quantity: item.quantity,
-                specifications: item.details,
-                unit: item.unit_symbol,
-                reorder: {
-                  point: item.reordering_point,
-                  quantity: item.reordering_quantity,
-                },
+            characteristic: item.characteristic_name,
+            classification: item.classification_name,
+            category: item.category_name,
+            details: {
+              name: item.details,
+              quantity: item.quantity,
+              unit: item.unit_symbol,
+              description: item.description,
+              reorder: {
+                point: item.reordering_point,
+                quantity: item.reordering_quantity,
               },
             },
           };

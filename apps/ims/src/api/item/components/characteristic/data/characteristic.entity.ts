@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { DatabaseEntity, IEntity } from '@gscwd-api/entity';
+import { DatabaseEntity, IEntity } from '@gscwd-api/entities';
 
 @Entity('item_characteristics')
 export class ItemCharacteristic extends DatabaseEntity implements IEntity {

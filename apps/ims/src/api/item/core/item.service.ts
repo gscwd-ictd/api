@@ -57,13 +57,14 @@ export class ItemService {
     return await this.specificationService.findOne(
       {
         where: { code },
-        relations: { category: { classification: { characteristic: true } } },
+        relations: { unit: true, category: { classification: { characteristic: true } } },
         select: {
+          unit: { name: true, symbol: true },
           category: {
             name: true,
             code: true,
             description: true,
-            classification: { name: true, code: true, characteristic: { name: true, code: true, description: true } },
+            classification: { name: true, code: true, description: true, characteristic: { name: true, code: true, description: true } },
           },
         },
       },

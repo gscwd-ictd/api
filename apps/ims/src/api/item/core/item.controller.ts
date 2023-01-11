@@ -6,12 +6,12 @@ import { ItemDetailsView } from '../data/item-details.view';
 import { FindManyItemViewDetailsInterceptor } from '../misc/item-details.interceptor';
 import { ItemService } from './item.service';
 
-@Controller({ version: '1', path: 'inquiry/items' })
+@Controller({ version: '1', path: 'items' })
 export class ItemController {
   constructor(private readonly datasource: DataSource, private readonly itemService: ItemService) {}
 
   @Get('views/code')
-  async getAllItemCodes(
+  async findAllItemCodes(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ItemCodesView>> {
@@ -20,7 +20,7 @@ export class ItemController {
 
   @UseInterceptors(FindManyItemViewDetailsInterceptor)
   @Get('views/details')
-  async getAllItemDetails(
+  async findAllItemDetails(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ItemDetailsView>> {
@@ -29,7 +29,7 @@ export class ItemController {
 
   @UseInterceptors(FindManyItemViewDetailsInterceptor)
   @Get('views/details/category')
-  async getAllItemDetailsByCategoryName(
+  async findAllItemDetailsByCategoryName(
     @Query('name') categoryName: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
@@ -37,22 +37,22 @@ export class ItemController {
     return await paginate(this.datasource.getRepository(ItemDetailsView), { page, limit }, { where: { category_name: categoryName } });
   }
 
-  @Get('characteristics')
+  @Get('characteristics/q')
   async findItemsByCharacteristicCode(@Query('code') code: string) {
     return await this.itemService.findCharacteristicByCode(code);
   }
 
-  @Get('classification')
+  @Get('classification/q')
   async findItemsByClassificationCode(@Query('code') code: string) {
     return await this.itemService.findClassificationByCode(code);
   }
 
-  @Get('categories')
+  @Get('categories/q')
   async findItemsByCategoryCode(@Query('code') code: string) {
     return await this.itemService.findCategoryByCode(code);
   }
 
-  @Get('specifications')
+  @Get('specifications/q')
   async findItemBySpecificationCode(@Query('code') code: string) {
     return await this.itemService.findSpecificationByCode(code);
   }

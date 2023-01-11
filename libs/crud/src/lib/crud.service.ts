@@ -1,18 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import {
   DataSource,
   DeepPartial,
   DeleteResult,
   EntityTarget,
-  FindManyOptions,
   FindOneOptions,
   FindOptionsWhere,
   ObjectLiteral,
   Repository,
   UpdateResult,
 } from 'typeorm';
-import { CRUD_SERVICE, ErrorResult } from './crud.utils';
+import { CRUD_SERVICE, ErrorResult, FindAllOptions } from './crud.utils';
 
 @Injectable()
 export class CrudService<T extends ObjectLiteral> {
@@ -45,12 +44,8 @@ export class CrudService<T extends ObjectLiteral> {
     }
   }
 
-  async findAll(options?: FindManyOptions<T>, pagination?: IPaginationOptions): Promise<Pagination<T>> {
-    return paginate<T>(this.repository, pagination, options);
-  }
-
-  async findAllBy(options: FindOptionsWhere<T>): Promise<T[]> {
-    return await this.repository.findBy(options);
+  async findAll({ pagination, search }: FindAllOptions<T>): Promise<Pagination<T>> {
+    return paginate<T>(this.repository, pagination, search);
   }
 
   async findOne(options: FindOneOptions<T>, errorCallback?: (error: Error) => ErrorResult) {

@@ -32,7 +32,7 @@ export class CategoryController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateItemCategoryDto): Promise<ItemCategory> {
-    return await this.categoryService.create({ ...data, code: this.generatorService.generate() }, () => new BadRequestException());
+    return await this.categoryService.getProvider().create({ ...data, code: this.generatorService.generate() }, () => new BadRequestException());
   }
 
   @Get()
@@ -40,21 +40,21 @@ export class CategoryController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ItemCategory>> {
-    return await this.categoryService.findAll({ pagination: { page, limit } });
+    return await this.categoryService.getProvider().findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<ItemCategory> {
-    return await this.categoryService.findOneBy({ id }, () => new NotFoundException());
+    return await this.categoryService.getProvider().findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateItemCategoryDto): Promise<UpdateResult> {
-    return await this.categoryService.update({ id }, data, () => new BadRequestException());
+    return await this.categoryService.getProvider().update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.categoryService.delete({ id }, () => new BadRequestException());
+    return await this.categoryService.getProvider().delete({ id }, () => new BadRequestException());
   }
 }
