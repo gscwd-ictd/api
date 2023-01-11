@@ -6,6 +6,9 @@ import { ITEM_DETAILS_QUERY } from '../constants';
 })
 export class ItemDetailsView {
   @ViewColumn()
+  id: string;
+
+  @ViewColumn()
   characteristic_code: string;
 
   @ViewColumn()

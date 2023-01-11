@@ -32,7 +32,9 @@ export class SpecificationController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateItemSpecificationDto): Promise<ItemSpecification> {
-    return await this.specificationService.getProvider().create({ ...data, code: this.generatorService.generate() }, () => new BadRequestException());
+    return await this.specificationService
+      .getProvider()
+      .create({ ...data, code: this.generatorService.generate() as string }, () => new BadRequestException());
   }
 
   @Get()
