@@ -18,7 +18,7 @@ import { CharacteristicService } from './characteristic.service';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ItemCharacteristic } from '../data/characteristic.entity';
 
-@Controller({ version: '1', path: 'items/characteristics' })
+@Controller({ version: '1', path: 'items/info/characteristics' })
 export class CharacteristicController implements ICrudRoutes {
   constructor(private readonly service: CharacteristicService) {}
 

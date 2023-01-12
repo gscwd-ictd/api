@@ -20,7 +20,7 @@ import { CreateItemSpecificationDto } from '../data/specification.dto';
 import { ItemSpecification } from '../data/specification.entity';
 import { SpecificationService } from './specification.service';
 
-@Controller({ version: '1', path: 'items/specifications' })
+@Controller({ version: '1', path: 'items/info/specifications' })
 export class SpecificationController implements ICrudRoutes {
   constructor(
     // inject specification service

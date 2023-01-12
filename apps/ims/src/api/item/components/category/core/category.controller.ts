@@ -20,7 +20,7 @@ import { CreateItemCategoryDto, UpdateItemCategoryDto } from '../data/category.d
 import { ItemCategory } from '../data/category.entity';
 import { CategoryService } from './category.service';
 
-@Controller({ version: '1', path: 'items/categories' })
+@Controller({ version: '1', path: 'items/info/categories' })
 export class CategoryController implements ICrudRoutes {
   constructor(
     // inject category service
