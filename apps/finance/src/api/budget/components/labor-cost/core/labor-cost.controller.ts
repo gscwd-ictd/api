@@ -19,7 +19,7 @@ import { LaborCost } from '../data/labor-cost.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { DeleteResult, UpdateResult } from 'typeorm';
 
-@Controller({ version: '1', path: 'cost-estimates/labor-costs' })
+@Controller({ version: '1', path: 'budget/labor-costs' })
 export class LaborCostController implements ICrudRoutes {
   constructor(private readonly laborCostService: LaborCostService) {}
 

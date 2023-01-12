@@ -19,7 +19,7 @@ import { ValueAddedTax } from '../data/value-added-tax.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { DeleteResult, UpdateResult } from 'typeorm';
 
-@Controller({ version: '1', path: 'cost-estimates/value-added-taxes' })
+@Controller({ version: '1', path: 'budget/value-added-taxes' })
 export class ValueAddedTaxController implements ICrudRoutes {
   constructor(private readonly valueAddedTaxService: ValueAddedTaxService) {}
 

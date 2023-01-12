@@ -19,7 +19,7 @@ import { ProjectDetail } from '../data/project-detail.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { DeleteResult, UpdateResult } from 'typeorm';
 
-@Controller({ version: '1', path: 'cost-estimates/project-details' })
+@Controller({ version: '1', path: 'budget/project-details' })
 export class ProjectDetailController implements ICrudRoutes {
   constructor(private readonly projectDetailService: ProjectDetailService) {}
 
