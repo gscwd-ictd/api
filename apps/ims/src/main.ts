@@ -1,5 +1,6 @@
 import { Logger, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './api/app.module';
 //import { MetadataInterceptor } from './global/interceptors';
 
@@ -7,20 +8,30 @@ async function bootstrap() {
   // initialize a nest application
   const app = await NestFactory.create<NestApplication>(AppModule);
 
-  app.enableCors();
+  // intialize application port to listen to
+  const port = process.env.IMS_PORT;
 
-  app.enableVersioning({ type: VersioningType.URI });
-
-  // set global prefix for endpoints
   const globalPrefix = 'api/ims';
 
-  //app.useGlobalInterceptors(new MetadataInterceptor());
+  // enable cors policy
+  app.enableCors();
+
+  // enable api versioning
+  app.enableVersioning({ type: VersioningType.URI });
 
   // apply the global prefix
   app.setGlobalPrefix(globalPrefix);
 
-  // intialize application port to listen to
-  const port = process.env.IMS_PORT;
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.REDIS,
+    options: {
+      host: process.env.IMS_REDIS_HOST,
+      port: parseInt(process.env.IMS_REDIS_PORT),
+      password: process.env.IMS_REDIS_PASS,
+    },
+  });
+
+  await app.startAllMicroservices();
 
   // start the application
   await app.listen(port);

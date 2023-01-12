@@ -44,8 +44,8 @@ export class CrudService<T extends ObjectLiteral> {
     }
   }
 
-  async findAll({ pagination, search }: FindAllOptions<T>): Promise<Pagination<T>> {
-    return paginate<T>(this.repository, pagination, search);
+  async findAll(options: FindAllOptions<T>): Promise<Pagination<T>> {
+    return paginate<T>(this.repository, options.pagination, options.search);
   }
 
   async findOne(options: FindOneOptions<T>, onError?: (error: Error) => ErrorResult) {
