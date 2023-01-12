@@ -2,9 +2,9 @@ import { CrudService } from '../lib/crud.service';
 import { ObjectLiteral } from 'typeorm';
 
 export abstract class CrudHelper<T extends ObjectLiteral> {
-  constructor(private readonly crud: CrudService<T>) {}
+  constructor(private readonly myCrud: CrudService<T>) {}
 
-  public getProvider() {
-    return this.crud;
+  public crud() {
+    return this.myCrud;
   }
 }

@@ -14,8 +14,8 @@ import { SpecificationMicroserviceController } from './specification-ms.controll
     // register string generator module
     GeneratorModule.register({ length: 10 }),
   ],
-  providers: [SpecificationService],
   controllers: [SpecificationController, SpecificationMicroserviceController],
+  providers: [SpecificationService],
   exports: [SpecificationService],
 })
 export class ItemSpecificationModule {}

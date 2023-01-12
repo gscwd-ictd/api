@@ -44,8 +44,21 @@ export class CrudService<T extends ObjectLiteral> {
     }
   }
 
-  async findAll(options: FindAllOptions<T>): Promise<Pagination<T>> {
-    return paginate<T>(this.repository, options.pagination, options.search);
+  async findAll(options?: FindAllOptions<T>): Promise<Pagination<T> | T[]> {
+    /**
+     * check if options is not defined.
+     * perform repository.find() by default.
+     */
+    if (options === undefined) return await this.repository.find();
+
+    /**
+     * check if pagination is not defined but search is defined.
+     * perform repository.find() -> passing in search options.
+     */
+    if (options.search && options.pagination === undefined) return await this.repository.find(options.search);
+
+    // perform search with pagination
+    return await paginate<T>(this.repository, options.pagination, options.search);
   }
 
   async findOne(options: FindOneOptions<T>, onError?: (error: Error) => ErrorResult) {
