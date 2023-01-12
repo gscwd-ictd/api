@@ -25,29 +25,29 @@ export class ProjectDetailController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateProjectDetailDto): Promise<ProjectDetail> {
-    return await this.projectDetailService.getProvider().create(data, () => new BadRequestException());
+    return await this.projectDetailService.crud().create(data, () => new BadRequestException());
   }
 
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<ProjectDetail>> {
-    return await this.projectDetailService.getProvider().findAll({ pagination: { page, limit } });
+  ): Promise<Pagination<ProjectDetail> | ProjectDetail[]> {
+    return await this.projectDetailService.crud().findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<ProjectDetail> {
-    return await this.projectDetailService.getProvider().findOneBy({ id }, () => new NotFoundException());
+    return await this.projectDetailService.crud().findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateProjectDetailDto): Promise<UpdateResult> {
-    return await this.projectDetailService.getProvider().update({ id }, data, () => new BadRequestException());
+    return await this.projectDetailService.crud().update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.projectDetailService.getProvider().delete({ id }, () => new BadRequestException());
+    return await this.projectDetailService.crud().delete({ id }, () => new BadRequestException());
   }
 }

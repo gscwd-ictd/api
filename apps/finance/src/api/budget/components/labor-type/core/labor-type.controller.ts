@@ -25,29 +25,29 @@ export class LaborTypeController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateLaborTypeDto): Promise<LaborType> {
-    return await this.laborTypeService.getProvider().create(data, () => new BadRequestException());
+    return await this.laborTypeService.crud().create(data, () => new BadRequestException());
   }
 
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<LaborType>> {
-    return await this.laborTypeService.getProvider().findAll({ pagination: { page, limit } });
+  ): Promise<Pagination<LaborType> | LaborType[]> {
+    return await this.laborTypeService.crud().findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<LaborType> {
-    return this.laborTypeService.getProvider().findOneBy({ id }, () => new NotFoundException());
+    return this.laborTypeService.crud().findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateLaborTypeDto): Promise<UpdateResult> {
-    return this.laborTypeService.getProvider().update({ id }, data, () => new BadRequestException());
+    return this.laborTypeService.crud().update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return this.laborTypeService.getProvider().delete({ id }, () => new BadRequestException());
+    return this.laborTypeService.crud().delete({ id }, () => new BadRequestException());
   }
 }
