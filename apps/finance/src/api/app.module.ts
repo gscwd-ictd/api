@@ -3,8 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { DatabaseConfig } from '../config';
-// import { API_MODULES } from '../constants';
-import { TestModule } from './test-ms/ms.module';
+import { API_MODULES } from '../constants';
 
 @Module({
   imports: [
@@ -15,9 +14,7 @@ import { TestModule } from './test-ms/ms.module';
     TypeOrmModule.forRootAsync({ useClass: DatabaseConfig }),
 
     // append all api modules
-    // ...API_MODULES,
-
-    TestModule,
+    ...API_MODULES,
   ],
 })
 export class AppModule {}
