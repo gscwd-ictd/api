@@ -1,15 +1,20 @@
-import { HttpException } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom, timeout } from 'rxjs';
-import { MessagePattern, RpcError } from '../types';
+import { RpcRequest } from '../types/ms.types';
 
 export abstract class MicroserviceHelper {
   constructor(private readonly microserviceClient: ClientProxy) {}
 
-  async send<TResult, TInput>(pattern: MessagePattern, data: TInput, onError?: (error: RpcError) => HttpException): Promise<TResult> {
+  async send<T, K extends object>(request: RpcRequest<K>): Promise<T> {
+    // deconstruct payload object
+    const { target, payload, onError } = request;
+
     try {
-      // send microservice request
-      return await lastValueFrom(this.microserviceClient.send<TResult, TInput>(pattern, data).pipe(timeout(5000)));
+      /**
+       * send microservice request
+       * transform the resulting value from a stream to a promise
+       */
+      return await lastValueFrom(this.microserviceClient.send<T, K>(target, payload).pipe(timeout(5000)));
 
       // catch any resulting error
     } catch (error) {

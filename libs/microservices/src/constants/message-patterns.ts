@@ -1,2 +1,4 @@
-export const FIND_ALL_SPECS = { msg: 'mnXRiUvtsT' };
-export const FIND_SPECS_BY_ID = { msg: 'BJpUxVERyB' };
+export enum Specifications {
+  FIND_ALL = 'mnXRiUvtsT',
+  FIND_BY_ID = 'BJpUxVERyB',
+}
