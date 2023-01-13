@@ -25,29 +25,29 @@ export class ValueAddedTaxController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateValueAddedTaxDto): Promise<ValueAddedTax> {
-    return await this.valueAddedTaxService.getProvider().create(data, () => new BadRequestException());
+    return await this.valueAddedTaxService.crud().create(data, () => new BadRequestException());
   }
 
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<ValueAddedTax>> {
-    return await this.valueAddedTaxService.getProvider().findAll({ pagination: { page, limit } });
+  ): Promise<Pagination<ValueAddedTax> | ValueAddedTax[]> {
+    return await this.valueAddedTaxService.crud().findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<ValueAddedTax> {
-    return await this.valueAddedTaxService.getProvider().findOneBy({ id }, () => new NotFoundException());
+    return await this.valueAddedTaxService.crud().findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateValueAddedTaxDto): Promise<UpdateResult> {
-    return await this.valueAddedTaxService.getProvider().update({ id }, data, () => new BadRequestException());
+    return await this.valueAddedTaxService.crud().update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return this.valueAddedTaxService.getProvider().delete({ id }, () => new BadRequestException());
+    return this.valueAddedTaxService.crud().delete({ id }, () => new BadRequestException());
   }
 }

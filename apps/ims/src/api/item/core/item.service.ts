@@ -30,7 +30,7 @@ export class ItemService {
   }
 
   async findItem(id: string) {
-    return await this.specificationService.getProvider().findOne(
+    return await this.specificationService.crud().findOne(
       {
         where: { id },
         relations: { unit: true, category: { classification: { characteristic: true } } },

@@ -1,0 +1,1 @@
+export const IMS_MICROSERVICE = 'IMS_MICROSERVICE';

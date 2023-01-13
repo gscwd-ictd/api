@@ -25,29 +25,29 @@ export class LaborCostController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateLaborCostDto): Promise<LaborCost> {
-    return await this.laborCostService.getProvider().create(data, () => new BadRequestException());
+    return await this.laborCostService.crud().create(data, () => new BadRequestException());
   }
 
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<LaborCost>> {
-    return await this.laborCostService.getProvider().findAll({ pagination: { page, limit } });
+  ): Promise<Pagination<LaborCost> | LaborCost[]> {
+    return await this.laborCostService.crud().findAll({ pagination: { page, limit } });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<LaborCost> {
-    return await this.laborCostService.getProvider().findOneBy({ id }, () => new NotFoundException());
+    return await this.laborCostService.crud().findOneBy({ id }, () => new NotFoundException());
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateLaborCostDto): Promise<UpdateResult> {
-    return await this.laborCostService.getProvider().update({ id }, data, () => new BadRequestException());
+    return await this.laborCostService.crud().update({ id }, data, () => new BadRequestException());
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.laborCostService.getProvider().delete({ id }, () => new BadRequestException());
+    return await this.laborCostService.crud().delete({ id }, () => new BadRequestException());
   }
 }
