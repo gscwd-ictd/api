@@ -12,7 +12,7 @@ export class MaterialCost extends DatabaseEntity implements IEntity {
   projectDetail: ProjectDetail;
 
   @Column({ name: 'specification_id_fk', type: 'uuid', nullable: false })
-  specificationId: number;
+  specificationId: string;
 
   @Column({ name: 'quantity', type: 'integer' })
   quantity: number;
