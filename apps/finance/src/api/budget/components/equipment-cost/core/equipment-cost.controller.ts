@@ -19,7 +19,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { EquipmentCost } from '../data/equipment-cost.entity';
 import { DeleteResult, UpdateResult } from 'typeorm';
 
-@Controller({ version: '1', path: 'cost-estimates/equipment-costs' })
+@Controller({ version: '1', path: 'budget/equipment-costs' })
 export class EquipmentCostController implements ICrudRoutes {
   constructor(private readonly equipmentCostService: EquipmentCostService) {}
 
