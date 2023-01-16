@@ -1,11 +1,9 @@
-//! perhaps just one dto? i.e. ItemCharacteristicDto
-
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { PartialType } from '@nestjs/swagger';
+import { IsOptional, IsString, Length, MaxLength } from 'class-validator';
 
 export class CreateItemCharacteristicsDto {
   @IsString()
-  @MinLength(3, { message: 'Characteristic code should be 3 characters long.' })
-  @MaxLength(3, { message: 'Characteristic code should be 3 characters long.' })
+  @Length(3, 3, { message: 'Characteristic code must be 3 characters long.' })
   code: string;
 
   @IsString()
@@ -17,4 +15,4 @@ export class CreateItemCharacteristicsDto {
   description: string;
 }
 
-export class UpdateItemCharacteristicsDto extends CreateItemCharacteristicsDto {}
+export class UpdateItemCharacteristicsDto extends PartialType(CreateItemCharacteristicsDto) {}
