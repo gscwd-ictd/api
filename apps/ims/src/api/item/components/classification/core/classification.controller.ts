@@ -9,8 +9,8 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
 } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -41,9 +41,8 @@ export class ClassificationController implements ICrudRoutes {
     return await this.service.crud().findOneBy({ id }, () => new NotFoundException());
   }
 
-  @Put(':id')
+  @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateItemClassificationDto): Promise<UpdateResult> {
-    console.log('update');
     return await this.service.crud().update({ id }, data, () => new BadRequestException());
   }
 

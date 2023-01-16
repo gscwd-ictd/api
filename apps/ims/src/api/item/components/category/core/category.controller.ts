@@ -10,8 +10,8 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
 } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -48,7 +48,7 @@ export class CategoryController implements ICrudRoutes {
     return await this.categoryService.crud().findOneBy({ id }, () => new NotFoundException());
   }
 
-  @Put(':id')
+  @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateItemCategoryDto): Promise<UpdateResult> {
     return await this.categoryService.crud().update({ id }, data, () => new BadRequestException());
   }
