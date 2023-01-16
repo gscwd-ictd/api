@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { UpdateResult, DeleteResult } from 'typeorm';
-import { CreateItemClassificationDto } from '../data/classification.dto';
+import { CreateItemClassificationDto, UpdateItemClassificationDto } from '../data/classification.dto';
 import { ItemClassification } from '../data/classification.entity';
 import { ClassificationService } from './classification.service';
 
@@ -42,7 +42,8 @@ export class ClassificationController implements ICrudRoutes {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() data: ItemClassification): Promise<UpdateResult> {
+  async update(@Param('id') id: string, @Body() data: UpdateItemClassificationDto): Promise<UpdateResult> {
+    console.log('update');
     return await this.service.crud().update({ id }, data, () => new BadRequestException());
   }
 
