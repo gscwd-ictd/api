@@ -91,7 +91,7 @@ export class CrudService<T extends ObjectLiteral> {
     }
   }
 
-  async update(options: FindOptionsWhere<T>, data: DeepPartial<T>, onError?: (error: Error) => ErrorResult): Promise<UpdateResult> {
+  async update<K extends object>(options: FindOptionsWhere<T>, data: DeepPartial<K>, onError?: (error: Error) => ErrorResult): Promise<UpdateResult> {
     try {
       // update a record in the database
       return await this.repository.update(options, data);

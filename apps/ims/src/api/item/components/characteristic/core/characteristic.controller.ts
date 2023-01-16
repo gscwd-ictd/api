@@ -8,8 +8,8 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
 } from '@nestjs/common';
 import { ICrudRoutes } from '@gscwd-api/crud';
@@ -40,7 +40,7 @@ export class CharacteristicController implements ICrudRoutes {
     return await this.service.crud().findOneBy({ id }, () => new NotFoundException());
   }
 
-  @Put(':id')
+  @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateItemCharacteristicsDto) {
     return await this.service.crud().update({ id }, data, () => new BadRequestException());
   }

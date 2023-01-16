@@ -1,4 +1,4 @@
-import { OmitType, PartialType } from '@nestjs/swagger';
+import { PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { UnitOfMeasure } from '../../../../unit/components/unit-of-measure';
@@ -32,4 +32,4 @@ export class CreateItemSpecificationDto {
   description: string;
 }
 
-export class UpdateItemSpecificationDto extends PartialType(OmitType(CreateItemSpecificationDto, ['category', 'unit'])) {}
+export class UpdateItemSpecificationDto extends PartialType(CreateItemSpecificationDto) {}

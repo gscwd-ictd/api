@@ -10,13 +10,13 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
 } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { UpdateResult, DeleteResult } from 'typeorm';
-import { CreateItemSpecificationDto } from '../data/specification.dto';
+import { CreateItemSpecificationDto, UpdateItemSpecificationDto } from '../data/specification.dto';
 import { ItemSpecification } from '../data/specification.entity';
 import { SpecificationService } from './specification.service';
 
@@ -50,8 +50,8 @@ export class SpecificationController implements ICrudRoutes {
     return await this.specificationService.crud().findOneBy({ id }, () => new NotFoundException());
   }
 
-  @Put(':id')
-  async update(@Param('id') id: string, @Body() data: unknown): Promise<UpdateResult> {
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() data: UpdateItemSpecificationDto): Promise<UpdateResult> {
     return await this.specificationService.crud().update({ id }, data, () => new BadRequestException());
   }
 

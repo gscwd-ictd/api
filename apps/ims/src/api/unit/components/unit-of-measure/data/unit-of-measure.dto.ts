@@ -1,4 +1,4 @@
-import { OmitType, PartialType } from '@nestjs/swagger';
+import { PartialType } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID, Length } from 'class-validator';
 import { UnitType } from '../../unit-type';
 
@@ -19,4 +19,4 @@ export class CreateUnitOfMeasureDto {
   description: string;
 }
 
-export class UpdateUnitOfMeasureDto extends PartialType(OmitType(CreateUnitOfMeasureDto, ['type'])) {}
+export class UpdateUnitOfMeasureDto extends PartialType(CreateUnitOfMeasureDto) {}

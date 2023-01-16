@@ -1,4 +1,4 @@
-import { OmitType, PartialType } from '@nestjs/swagger';
+import { PartialType } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID, Length } from 'class-validator';
 import { ItemCharacteristic } from '../../characteristic';
 
@@ -19,4 +19,4 @@ export class CreateItemClassificationDto {
   description: string;
 }
 
-export class UpdateItemClassificationDto extends PartialType(OmitType(CreateItemClassificationDto, ['characteristic'] as const)) {}
+export class UpdateItemClassificationDto extends PartialType(CreateItemClassificationDto) {}
