@@ -4,7 +4,6 @@ import { SpecificationController } from './specification.controller';
 import { CrudModule } from '@gscwd-api/crud';
 import { ItemSpecification } from '../data/specification.entity';
 import { GeneratorModule } from '@gscwd-api/generator';
-import { SpecificationMicroserviceController } from './specification-ms.controller';
 
 @Module({
   imports: [
@@ -14,7 +13,7 @@ import { SpecificationMicroserviceController } from './specification-ms.controll
     // register string generator module
     GeneratorModule.register({ length: 10 }),
   ],
-  controllers: [SpecificationController, SpecificationMicroserviceController],
+  controllers: [SpecificationController],
   providers: [SpecificationService],
   exports: [SpecificationService],
 })
