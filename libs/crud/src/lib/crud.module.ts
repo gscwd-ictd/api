@@ -1,7 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { EntityTarget } from 'typeorm';
 import { CrudService } from './crud.service';
-import { CRUD_SERVICE } from './crud.utils';
+import { CRUD_SERVICE } from '../types/crud.types';
 
 @Module({})
 export class CrudModule {

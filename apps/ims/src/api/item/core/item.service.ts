@@ -15,6 +15,7 @@ export class ItemService {
   ) {}
 
   async findAllItems(pagination: IPaginationOptions) {
+    console.log(pagination);
     return await paginate(this.datasource.getRepository(ItemDetailsView), pagination, {
       select: {
         id: true,
@@ -29,7 +30,7 @@ export class ItemService {
     });
   }
 
-  async findItem(id: string) {
+  async findItemById(id: string) {
     return await this.specificationService.crud().findOne(
       {
         where: { id },

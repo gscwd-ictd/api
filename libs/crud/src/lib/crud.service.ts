@@ -11,7 +11,7 @@ import {
   Repository,
   UpdateResult,
 } from 'typeorm';
-import { CRUD_SERVICE, ErrorResult, FindAllOptions } from './crud.utils';
+import { CRUD_SERVICE, ErrorResult, FindAllOptions } from '../types/crud.types';
 
 @Injectable()
 export class CrudService<T extends ObjectLiteral> {

@@ -1,6 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common';
+import { GENERATOR_SERVICE } from '../constants';
+import { StringGeneratorOptions } from '../types';
 import { GeneratorService } from './generator.service';
-import { GENERATOR_SERVICE, StringGeneratorOptions } from './generator.utils';
 
 @Module({})
 export class GeneratorModule {

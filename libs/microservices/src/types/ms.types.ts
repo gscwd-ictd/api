@@ -1,10 +1,5 @@
-import { HttpException } from '@nestjs/common';
-import { RpcError } from './error';
+import { ItemPatterns } from '../constants';
+import { ObjectValues } from '../utils';
 
-export type MessagePattern = { msg: string };
-
-export type RpcRequest<TInput extends object> = {
-  target: MessagePattern | string;
-  payload: TInput;
-  onError?: (error: RpcError) => HttpException;
-};
+// microservice target types
+export type Items = ObjectValues<typeof ItemPatterns>;

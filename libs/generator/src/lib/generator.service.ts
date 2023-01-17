@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { GENERATOR_SERVICE, LOWERCASE, NUMERIC, StringGeneratorOptions, UPPERCASE } from './generator.utils';
+import { GENERATOR_SERVICE, LOWERCASE, NUMERIC, UPPERCASE } from '../constants';
+import { StringGeneratorOptions } from '../types';
 
 @Injectable()
 export class GeneratorService {
