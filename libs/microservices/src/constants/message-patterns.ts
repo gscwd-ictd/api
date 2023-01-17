@@ -1,4 +1,4 @@
-export enum Specifications {
-  FIND_ALL = 'mnXRiUvtsT',
-  FIND_BY_ID = 'BJpUxVERyB',
-}
+export const ItemPatterns = {
+  findAll: 'fUsHvwDWfT',
+  findById: 'xCxCxAyVTf',
+} as const;
