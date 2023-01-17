@@ -19,6 +19,6 @@ export class ItemController {
   @UseInterceptors(FindItemByIdInterceptor)
   @Get(':id')
   async findById(@Param('id') id: string) {
-    return await this.itemService.findItem(id);
+    return await this.itemService.findItemById(id);
   }
 }
