@@ -1,11 +1,11 @@
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom, timeout } from 'rxjs';
-import { RpcRequest } from '../types/ms.types';
+import { RpcRequest } from '../utils';
 
 export abstract class MicroserviceHelper {
   constructor(private readonly microserviceClient: ClientProxy) {}
 
-  async send<T, K extends object>(request: RpcRequest<K>): Promise<T> {
+  async send<T, K, Target>(request: RpcRequest<K, Target>): Promise<T> {
     // deconstruct payload object
     const { target, payload, onError } = request;
 
