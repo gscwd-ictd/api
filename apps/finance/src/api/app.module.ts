@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { DatabaseConfig } from '../config';
 import { API_MODULES } from '../constants';
-import { TestModule } from './mytest/test.module';
+//import { TestModule } from './mytest/test.module';
 
 @Module({
   imports: [
@@ -17,7 +17,7 @@ import { TestModule } from './mytest/test.module';
     // append all api modules
     ...API_MODULES,
 
-    TestModule,
+    //TestModule,
   ],
 })
 export class AppModule {}
