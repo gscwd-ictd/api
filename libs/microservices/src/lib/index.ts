@@ -1,1 +1,2 @@
-export * from './microservice.helper';
+export * from './ms-client';
+export * from './ms-hybrid';
