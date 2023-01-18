@@ -11,13 +11,13 @@ export class ItemMicroserviceController {
   constructor(private readonly service: ItemService) {}
 
   @UseInterceptors(FindAllItemsInterceptor)
-  @MessagePattern(ItemPatterns.findAll)
+  @MessagePattern(ItemPatterns.FIND_ALL)
   async findAllItems(@Payload() options: IPaginationOptions) {
     return await this.service.findAllItems(options);
   }
 
   @UseInterceptors(FindItemByIdInterceptor)
-  @MessagePattern(ItemPatterns.findById)
+  @MessagePattern(ItemPatterns.FIND_BY_ID)
   async findItemById(@Payload() id: string) {
     return await this.service.findItemById(id);
   }
