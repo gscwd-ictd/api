@@ -9,5 +9,6 @@ import { TestService } from './test.service';
   imports: [ClientsModule.registerAsync([{ name: MS_CLIENT, useClass: ImsMicroservice }])],
   providers: [TestService, MicroserviceClient],
   controllers: [TestController],
+  exports: [TestService],
 })
 export class TestModule {}
