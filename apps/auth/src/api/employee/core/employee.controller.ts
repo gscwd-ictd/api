@@ -12,7 +12,7 @@ export class EmployeeController {
     return await this.employeeService.crud().findAll({});
   }
 
-  @MessagePattern(AuthPatterns.findById)
+  @MessagePattern(AuthPatterns.FIND_BY_ID)
   async findEmployeeById(@Payload('id', ParseUUIDPipe) employeeId: string) {
     return await this.employeeService
       .crud()
