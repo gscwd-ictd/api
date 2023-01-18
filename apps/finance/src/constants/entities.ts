@@ -1,3 +1,4 @@
+import { ContractorProfit } from '../api/budget/components/contractor-profit';
 import { EquipmentCost } from '../api/budget/components/equipment-cost';
 import { LaborCost } from '../api/budget/components/labor-cost';
 import { LaborType } from '../api/budget/components/labor-type';
@@ -13,4 +14,5 @@ export const DB_ENTITIES = [
   ProjectDetail,
   ValueAddedTax,
   MaterialCost,
+  ContractorProfit,
 ];
