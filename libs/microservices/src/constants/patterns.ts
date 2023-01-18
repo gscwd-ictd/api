@@ -1,10 +1,8 @@
-export const AuthPatterns = {
-  findById: 'JBSJHIYqLS',
-  login: 'LzRrzHTXUZ',
-  register: 'eRZZodeiIM',
-} as const;
+export enum AuthPatterns {
+  FIND_BY_ID = 'JBSJHIYqLS',
+}
 
-export const ItemPatterns = {
-  findAll: 'fUsHvwDWfT',
-  findById: 'IbrTzUEWGd',
-} as const;
+export enum ItemPatterns {
+  FIND_ALL = 'fUsHvwDWfT',
+  FIND_BY_ID = 'IbrTzUEWGd',
+}
