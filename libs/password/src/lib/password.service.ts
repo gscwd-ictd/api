@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { hash, verify } from 'argon2';
-import { Argon2Options, PASSWORD_UNDEFINED, ErrorResult, INVALID_HASH, PASSWORD_SERVICE } from './password.utils';
+import { Argon2Options, PASSWORD_SERVICE, ErrorResult, PASSWORD_UNDEFINED, INVALID_HASH } from '../types';
 
 @Injectable()
 export class PasswordService {

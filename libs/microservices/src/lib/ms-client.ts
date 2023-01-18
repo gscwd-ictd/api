@@ -1,11 +1,17 @@
+import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom, timeout } from 'rxjs';
+import { MS_CLIENT } from '../constants';
 import { RpcRequest } from '../utils';
 
-export abstract class MicroserviceHelper {
-  constructor(private readonly microserviceClient: ClientProxy) {}
+@Injectable()
+export class MicroserviceClient {
+  constructor(
+    @Inject(MS_CLIENT)
+    private readonly client: ClientProxy
+  ) {}
 
-  async send<T, K, Target>(request: RpcRequest<K, Target>): Promise<T> {
+  async send<T, K, P>(request: RpcRequest<K, P>): Promise<T> {
     // deconstruct payload object
     const { target, payload, onError } = request;
 
@@ -14,7 +20,7 @@ export abstract class MicroserviceHelper {
        * send microservice request
        * transform the resulting value from a stream to a promise
        */
-      return await lastValueFrom(this.microserviceClient.send<T, K>(target, payload).pipe(timeout(5000)));
+      return await lastValueFrom(this.client.send<T, K>(target, payload).pipe(timeout(5000)));
 
       // catch any resulting error
     } catch (error) {

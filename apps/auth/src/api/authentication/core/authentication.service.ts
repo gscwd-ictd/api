@@ -4,8 +4,9 @@ import { DataSource } from 'typeorm';
 import { Credentials, RegistrationDetails, rpcError } from '@gscwd-api/utils';
 import { Employee } from '../../employee';
 import { User, UserService } from '../../user';
-import { EMAIL_ALREADY_EXISTS, FAILED_TO_CREATE_USER, USER_EMAIL_NOT_FOUND } from '../errors/auth.errors';
+import { EMAIL_ALREADY_EXISTS, FAILED_TO_CREATE_USER } from '../errors/auth.errors';
 import { RpcException } from '@nestjs/microservices';
+import { MyRpcException } from '@gscwd-api/microservices';
 
 @Injectable()
 export class AuthenticationService {
@@ -55,7 +56,7 @@ export class AuthenticationService {
     const { email, password } = credentials;
 
     // check if user with the given email exists in the database
-    const user = await this.userService.findOneBy({ email }, () => rpcError(USER_EMAIL_NOT_FOUND));
+    const user = await this.userService.crud().findOneBy({ email }, () => new MyRpcException({ message: 'Not found', code: 404 }));
 
     // verify if password from database matches with the given password
     await this.passwordService.verify(user.password, password, (error) => rpcError(error));

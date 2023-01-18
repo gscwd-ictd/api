@@ -15,7 +15,6 @@ export class ItemService {
   ) {}
 
   async findAllItems(pagination: IPaginationOptions) {
-    console.log(pagination);
     return await paginate(this.datasource.getRepository(ItemDetailsView), pagination, {
       select: {
         id: true,

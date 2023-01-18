@@ -1,6 +1,6 @@
 import { DynamicModule, Module } from '@nestjs/common';
+import { Argon2Options, PASSWORD_SERVICE, Argon2AsyncOptions } from '../types';
 import { PasswordService } from './password.service';
-import { Argon2AsyncOptions, Argon2Options, PASSWORD_SERVICE } from './password.utils';
 
 @Module({})
 export class PasswordModule {

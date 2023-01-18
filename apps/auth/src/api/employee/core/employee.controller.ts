@@ -1,5 +1,6 @@
+import { AuthPatterns, MyRpcException } from '@gscwd-api/microservices';
 import { Controller, Get, ParseUUIDPipe } from '@nestjs/common';
-import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { EmployeeService } from './employee.service';
 
 @Controller('employees')
@@ -8,13 +9,13 @@ export class EmployeeController {
 
   @Get()
   async findAllEmployees() {
-    return await this.employeeService.getProvider().findAll({});
+    return await this.employeeService.crud().findAll({});
   }
 
-  @MessagePattern({ msg: 'find_employee_by_id' })
+  @MessagePattern(AuthPatterns.findById)
   async findEmployeeById(@Payload('id', ParseUUIDPipe) employeeId: string) {
     return await this.employeeService
-      .getProvider()
-      .findOneBy({ employeeId }, (error) => new RpcException({ message: 'Cannot find employee', details: error }));
+      .crud()
+      .findOneBy({ employeeId }, (error) => new MyRpcException({ message: 'Cannot find employee', code: 404, details: error }));
   }
 }

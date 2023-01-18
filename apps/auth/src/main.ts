@@ -9,7 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestApplication>(AppModule);
 
   // set global prefix for endpoints
-  const globalPrefix = 'api';
+  const globalPrefix = 'api/auth';
 
   // apply the global prefix
   app.setGlobalPrefix(globalPrefix);

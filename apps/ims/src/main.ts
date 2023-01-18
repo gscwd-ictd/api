@@ -1,14 +1,20 @@
+import { HybridApp } from '@gscwd-api/microservices';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Transport } from '@nestjs/microservices';
 import { AppModule } from './api/app.module';
-import { GLOBAL_PREFIX, PORT } from './constants';
+import { GLOBAL_PREFIX } from './constants';
 
 async function bootstrap() {
   /**
    * initialize a nest application
    */
   const app = await NestFactory.create<NestApplication>(AppModule);
+
+  /**
+   * set application port
+   */
+  const PORT = process.env.IMS_PORT;
 
   /**
    * enable cors policy to allow browser access
@@ -60,16 +66,16 @@ async function bootstrap() {
   );
 
   /**
-   * enable hybrid configuration
+   *  enable hybrid application to listen to microservice requests
    */
-  app.connectMicroservice<MicroserviceOptions>({
+  HybridApp.startMicroservice(app, {
     /**
-     * set redis as default microservice transporter
+     * set redis as the transport broker for this microservice
      */
     transport: Transport.REDIS,
 
     /**
-     * set connection options
+     * provide connection settings
      */
     options: {
       /**
@@ -83,16 +89,11 @@ async function bootstrap() {
       port: parseInt(process.env.IMS_REDIS_PORT),
 
       /**
-       * specify redis password
+       * identify redis password
        */
       password: process.env.IMS_REDIS_PASS,
     },
   });
-
-  /**
-   * start all connected microservices
-   */
-  await app.startAllMicroservices();
 
   /**
    * start the application
