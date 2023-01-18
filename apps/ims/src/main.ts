@@ -3,13 +3,18 @@ import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { AppModule } from './api/app.module';
-import { GLOBAL_PREFIX, PORT } from './constants';
+import { GLOBAL_PREFIX } from './constants';
 
 async function bootstrap() {
   /**
    * initialize a nest application
    */
   const app = await NestFactory.create<NestApplication>(AppModule);
+
+  /**
+   * set application port
+   */
+  const PORT = process.env.IMS_PORT;
 
   /**
    * enable cors policy to allow browser access
