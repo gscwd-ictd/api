@@ -1,1 +1,1 @@
-export const IMS_MICROSERVICE = 'IMS_MICROSERVICE';
+export const MS_CLIENT = 'MS_CLIENT';

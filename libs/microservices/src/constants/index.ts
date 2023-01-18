@@ -1,2 +1,2 @@
-export * from './message-patterns';
+export * from './patterns';
 export * from './providers';
