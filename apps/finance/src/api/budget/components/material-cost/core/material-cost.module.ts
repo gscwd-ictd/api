@@ -3,13 +3,11 @@ import { MaterialCostService } from './material-cost.service';
 import { MaterialCostController } from './material-cost.controller';
 import { CrudModule } from '@gscwd-api/crud';
 import { MaterialCost } from '../data/material-cost.entity';
-// import { ItemModule } from '../../../../item/core/item.module';
-import { ClientsModule } from '@nestjs/microservices';
-import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
-import { ImsMicroservice } from '../../../../../config';
+import { MicroserviceClient } from '@gscwd-api/microservices';
+import { ItemModule } from '../../../../item/core/item.module';
 
 @Module({
-  imports: [CrudModule.register(MaterialCost), ClientsModule.registerAsync([{ name: MS_CLIENT, useClass: ImsMicroservice }])],
+  imports: [CrudModule.register(MaterialCost), ItemModule],
   providers: [MaterialCostService, MicroserviceClient],
   controllers: [MaterialCostController],
 })

@@ -1,11 +1,24 @@
 import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { Module } from '@nestjs/common';
-import { ClientsModule } from '@nestjs/microservices';
-import { ImsMicroservice } from '../../../config/';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ItemService } from './item.service';
 
 @Module({
-  imports: [ClientsModule.registerAsync([{ name: MS_CLIENT, useClass: ImsMicroservice }])],
+  imports: [
+    ClientsModule.register([
+      {
+        name: MS_CLIENT,
+        transport: Transport.REDIS,
+        options: {
+          host: process.env.IMS_REDIS_HOST,
+          port: parseInt(process.env.IMS_REDIS_PORT),
+          password: process.env.IMS_REDIS_PASS,
+          retryAttempts: 5,
+          retryDelay: 3000,
+        },
+      },
+    ]),
+  ],
   providers: [ItemService, MicroserviceClient],
   controllers: [],
   exports: [ItemService],
