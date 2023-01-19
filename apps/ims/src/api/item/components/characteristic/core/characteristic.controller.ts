@@ -5,6 +5,7 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -24,7 +25,10 @@ export class CharacteristicController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateItemCharacteristicsDto) {
-    return await this.service.crud().create(data, () => new BadRequestException());
+    return await this.service.crud().create({
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Get()
@@ -32,21 +36,34 @@ export class CharacteristicController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ItemCharacteristic> | ItemCharacteristic[]> {
-    return await this.service.crud().findAll({ pagination: { page, limit } });
+    return await this.service.crud().findAll({
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string) {
-    return await this.service.crud().findOneBy({ id }, () => new NotFoundException());
+    return await this.service.crud().findOneBy({
+      findBy: { id },
+      onError: () => new NotFoundException(),
+    });
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateItemCharacteristicsDto) {
-    return await this.service.crud().update({ id }, data, () => new BadRequestException());
+    return await this.service.crud().update({
+      updateBy: { id },
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    return await this.service.crud().delete({ id }, () => new BadRequestException());
+    return await this.service.crud().delete({
+      deleteBy: { id },
+      onError: () => new BadRequestException(),
+    });
   }
 }

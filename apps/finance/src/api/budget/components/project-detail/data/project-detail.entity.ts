@@ -1,4 +1,4 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/entities';
+import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'project_details' })

@@ -7,6 +7,7 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -32,9 +33,10 @@ export class SpecificationController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateItemSpecificationDto): Promise<ItemSpecification> {
-    return await this.specificationService
-      .crud()
-      .create({ ...data, code: this.generatorService.generate() as string }, () => new BadRequestException());
+    return await this.specificationService.crud().create({
+      dto: { ...data, code: this.generatorService.generate() as string },
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Get()
@@ -42,21 +44,34 @@ export class SpecificationController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ItemSpecification> | ItemSpecification[]> {
-    return await this.specificationService.crud().findAll({ pagination: { page, limit } });
+    return await this.specificationService.crud().findAll({
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<ItemSpecification> {
-    return await this.specificationService.crud().findOneBy({ id }, () => new NotFoundException());
+    return await this.specificationService.crud().findOneBy({
+      findBy: { id },
+      onError: () => new NotFoundException(),
+    });
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateItemSpecificationDto): Promise<UpdateResult> {
-    return await this.specificationService.crud().update({ id }, data, () => new BadRequestException());
+    return await this.specificationService.crud().update({
+      updateBy: { id },
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.specificationService.crud().delete({ id }, () => new BadRequestException());
+    return await this.specificationService.crud().delete({
+      deleteBy: { id },
+      onError: () => new BadRequestException(),
+    });
   }
 }

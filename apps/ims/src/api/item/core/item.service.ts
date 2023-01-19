@@ -30,8 +30,8 @@ export class ItemService {
   }
 
   async findItemById(id: string) {
-    return await this.specificationService.crud().findOne(
-      {
+    return await this.specificationService.crud().findOne({
+      find: {
         where: { id },
         relations: { unit: true, category: { classification: { characteristic: true } } },
         select: {
@@ -39,7 +39,7 @@ export class ItemService {
           category: { code: true, name: true, classification: { code: true, name: true, characteristic: { code: true, name: true } } },
         },
       },
-      () => new NotFoundException()
-    );
+      onError: () => new NotFoundException(),
+    });
   }
 }
