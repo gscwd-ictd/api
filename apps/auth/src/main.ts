@@ -2,7 +2,7 @@ import { NestApplication, NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import { AppModule } from './api/app.module';
 import { AuthMicroservice } from './config';
-import { MetadataInterceptor } from './global/interceptors/metadata.interceptor';
+//import { MetadataInterceptor } from './global/interceptors/metadata.interceptor';
 
 async function bootstrap() {
   // initialize a nest application
@@ -16,7 +16,7 @@ async function bootstrap() {
 
   // apply global interceptor for transforming query results with createdAt and updatedAt as metadata
   // ! remove this!!!
-  app.useGlobalInterceptors(new MetadataInterceptor());
+  //app.useGlobalInterceptors(new MetadataInterceptor());
 
   // intialize application port to listen to
   const port = process.env.AUTH_PORT;

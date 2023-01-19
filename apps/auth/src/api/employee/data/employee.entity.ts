@@ -1,4 +1,4 @@
-import { DatabaseEntity } from '@gscwd-api/entities';
+import { DatabaseEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../../user';
 
