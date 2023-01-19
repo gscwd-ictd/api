@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom, timeout } from 'rxjs';
+import { lastValueFrom, Observable, timeout } from 'rxjs';
 import { MS_CLIENT } from '../constants';
-import { RpcRequest } from '../utils';
+import { MicroserviceRequest } from '../utils';
 
 /**
  * The microservice client which holds a connection string in order to connect
@@ -22,15 +22,21 @@ export class MicroserviceClient {
    * @param request The RPC request object which accepts pattern, payload, and an optional error callback function.
    *
    */
-  async send<Pattern, Payload, Output>(request: RpcRequest<Pattern, Payload>): Promise<Output> {
+  async call<Pattern, Payload, Output>(request: MicroserviceRequest<Pattern, Payload>): Promise<Output | Observable<Output>> {
     // deconstruct payload object
-    const { pattern, payload, onError } = request;
+    const { action, pattern, payload, onError } = request;
 
     try {
-      /**
-       * send microservice request
-       * transform the resulting value from a stream to a promise
-       */
+      // check if action type is emit
+      if (action === 'emit') {
+        // execute emit function
+        this.client.emit(pattern, payload);
+
+        // terminate the application
+        return;
+      }
+
+      // execute send function
       return await lastValueFrom(this.client.send<Output, Payload>(pattern, payload).pipe(timeout(5000)));
 
       // catch any resulting error

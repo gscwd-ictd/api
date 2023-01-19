@@ -10,6 +10,8 @@ export type MessagePattern<T> = { msg: T };
 /**
  * Microservice request object
  *
+ * @param action Defines whether microservice request is event based or message based.
+ *
  * @param pattern A microservice channel to route the request to its host function.
  * This pattern should also reside in the listener (in this case, the host),
  * to call the appropriate function.
@@ -19,7 +21,8 @@ export type MessagePattern<T> = { msg: T };
  * @param onError A callback function in case an error in the request happens.
  *
  */
-export type RpcRequest<T, K> = {
+export type MicroserviceRequest<T, K> = {
+  action: 'send' | 'emit';
   pattern: T;
   payload: K;
   onError?: (error: RpcError) => HttpException;
