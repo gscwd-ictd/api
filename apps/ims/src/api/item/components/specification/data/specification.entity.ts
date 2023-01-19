@@ -1,4 +1,4 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/entities';
+import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { UnitOfMeasure } from '../../../../unit/components/unit-of-measure';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ItemCategory } from '../../category';
