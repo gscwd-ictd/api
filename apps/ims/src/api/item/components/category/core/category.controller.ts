@@ -7,6 +7,7 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -32,7 +33,10 @@ export class CategoryController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateItemCategoryDto): Promise<ItemCategory> {
-    return await this.categoryService.crud().create({ ...data, code: this.generatorService.generate() as string }, () => new BadRequestException());
+    return await this.categoryService.crud().create({
+      dto: { ...data, code: this.generatorService.generate() as string },
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Get()
@@ -40,21 +44,34 @@ export class CategoryController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ItemCategory> | ItemCategory[]> {
-    return await this.categoryService.crud().findAll({ pagination: { page, limit } });
+    return await this.categoryService.crud().findAll({
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<ItemCategory> {
-    return await this.categoryService.crud().findOneBy({ id }, () => new NotFoundException());
+    return await this.categoryService.crud().findOneBy({
+      findBy: { id },
+      onError: () => new NotFoundException(),
+    });
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateItemCategoryDto): Promise<UpdateResult> {
-    return await this.categoryService.crud().update({ id }, data, () => new BadRequestException());
+    return await this.categoryService.crud().update({
+      updateBy: { id },
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.categoryService.crud().delete({ id }, () => new BadRequestException());
+    return await this.categoryService.crud().delete({
+      deleteBy: { id },
+      onError: () => new BadRequestException(),
+    });
   }
 }

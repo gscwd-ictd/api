@@ -6,6 +6,7 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -25,7 +26,10 @@ export class UnitTypeController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateUnitTypeDto): Promise<UnitType> {
-    return await this.service.crud().create(data, () => new BadRequestException());
+    return await this.service.crud().create({
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Get()
@@ -33,21 +37,34 @@ export class UnitTypeController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<UnitType> | UnitType[]> {
-    return await this.service.crud().findAll({ pagination: { page, limit } });
+    return await this.service.crud().findAll({
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<UnitType> {
-    return await this.service.crud().findOneBy({ id }, () => new NotFoundException());
+    return await this.service.crud().findOneBy({
+      findBy: { id },
+      onError: () => new NotFoundException(),
+    });
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateUnitTypeDto): Promise<UpdateResult> {
-    return await this.service.crud().update({ id }, data, () => new BadRequestException());
+    return await this.service.crud().update({
+      updateBy: { id },
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.service.crud().delete({ id }, () => new BadRequestException());
+    return await this.service.crud().delete({
+      deleteBy: { id },
+      onError: () => new BadRequestException(),
+    });
   }
 }

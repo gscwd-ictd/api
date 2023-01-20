@@ -1,4 +1,4 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/entities';
+import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { LaborType } from '../../labor-type';
 import { ProjectDetail } from '../../project-detail';

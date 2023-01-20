@@ -1,4 +1,4 @@
-import { IEntity } from '@gscwd-api/entities';
+import { IEntity } from '@gscwd-api/crud';
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ProjectDetail } from '../../project-detail';
 

@@ -16,7 +16,6 @@
     "baseUrl": ".",
     "paths": {
       "@gscwd-api/crud": ["libs/crud/src/index.ts"],
-      "@gscwd-api/entities": ["libs/entities/src/index.ts"],
       "@gscwd-api/generator": ["libs/generator/src/index.ts"],
       "@gscwd-api/microservices": ["libs/microservices/src/index.ts"],
       "@gscwd-api/password": ["libs/password/src/index.ts"],
