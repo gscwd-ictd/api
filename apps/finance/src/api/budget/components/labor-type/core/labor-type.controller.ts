@@ -11,6 +11,7 @@ import {
   Query,
   DefaultValuePipe,
   ParseIntPipe,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { LaborTypeService } from './labor-type.service';
 import { CreateLaborTypeDto, UpdateLaborTypeDto } from '../data/labor-type.dto';
@@ -25,7 +26,10 @@ export class LaborTypeController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateLaborTypeDto): Promise<LaborType> {
-    return await this.laborTypeService.crud().create(data, () => new BadRequestException());
+    return await this.laborTypeService.crud().create({
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Get()
@@ -33,21 +37,34 @@ export class LaborTypeController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<LaborType> | LaborType[]> {
-    return await this.laborTypeService.crud().findAll({ pagination: { page, limit } });
+    return await this.laborTypeService.crud().findAll({
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<LaborType> {
-    return this.laborTypeService.crud().findOneBy({ id }, () => new NotFoundException());
+    return this.laborTypeService.crud().findOneBy({
+      findBy: { id },
+      onError: () => new NotFoundException(),
+    });
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateLaborTypeDto): Promise<UpdateResult> {
-    return this.laborTypeService.crud().update({ id }, data, () => new BadRequestException());
+    return this.laborTypeService.crud().update({
+      updateBy: { id },
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return this.laborTypeService.crud().delete({ id }, () => new BadRequestException());
+    return this.laborTypeService.crud().delete({
+      deleteBy: { id },
+      onError: () => new BadRequestException(),
+    });
   }
 }
