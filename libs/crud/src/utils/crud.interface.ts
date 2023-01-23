@@ -14,7 +14,7 @@ export interface ICrudRoutes {
    * @param page - page count for the resulting values
    * @param limit - how many rows to return
    */
-  findAll(page?: number, limit?: number): Promise<Pagination<any> | any[]>;
+  findAll(page: number, limit: number): Promise<Pagination<any> | any[]>;
 
   /**
    * Get route for finding a certain record in the database
