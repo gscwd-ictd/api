@@ -13,7 +13,7 @@ async function bootstrap() {
   app.enableVersioning({ type: VersioningType.URI });
 
   // set global prefix for endpoints
-  const globalPrefix = 'api/assets';
+  const globalPrefix = 'api/ams';
 
   // apply the global prefix
   app.setGlobalPrefix(globalPrefix);
