@@ -12,7 +12,7 @@ export class CharacteristicsController implements ICrudRoutes {
   @MessagePattern(ItemCharacteristicsPatterns.CREATE)
   async create(@Payload() data: CreateItemCharacteristicDto) {
     return await this.characteristicsService.crud().create({
-      dto: data,
+      dto: { ...data, code: data.code.toUpperCase() },
       onError: (error) =>
         new MyRpcException({
           code: HttpStatus.BAD_REQUEST,

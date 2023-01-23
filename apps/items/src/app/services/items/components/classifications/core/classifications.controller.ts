@@ -12,7 +12,7 @@ export class ClassificationsController implements ICrudRoutes {
   @MessagePattern(ItemClassificationsPatterns.CREATE)
   async create(@Payload() data: CreateItemClassificationDto) {
     return await this.classificationsService.crud().create({
-      dto: data,
+      dto: { ...data, code: data.code.toUpperCase() },
       onError: (error) =>
         new MyRpcException({
           code: HttpStatus.BAD_REQUEST,
