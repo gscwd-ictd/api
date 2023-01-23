@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom, Observable, timeout } from 'rxjs';
-import { MS_CLIENT } from '../constants';
-import { MicroserviceRequest } from '../utils';
+import { MicroserviceRequest } from '../types/ms.types';
+import { MS_CLIENT } from '../utils/ms-provider';
 
 /**
  * The microservice client which holds a connection string in order to connect
