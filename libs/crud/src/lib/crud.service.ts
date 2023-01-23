@@ -47,25 +47,25 @@ export class CrudService<T extends ObjectLiteral> {
 
   async findAll(options?: CrudFindAllOptions<T>) {
     // deconstruct options object
-    const { find, pagination, onError } = options;
+    //const { find, pagination, onError } = options;
 
     try {
       // check if options is not defined.
       if (options === undefined) return await this.repository.find();
 
       // check if pagination is not defined but search is defined.
-      if (find && pagination === undefined) return await this.repository.find(find);
+      if (options.find && options.pagination === undefined) return await this.repository.find(options.find);
 
       // perform search with pagination
-      return await paginate<T>(this.repository, pagination, find);
+      return await paginate<T>(this.repository, options.pagination, options.find);
 
       // catch the resulting error
     } catch (error) {
       // if errorResult is undefined, throw a generic error
-      if (!onError) throw new Error(error);
+      if (!options.onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw onError(error);
+      throw options.onError(error);
     }
   }
 
