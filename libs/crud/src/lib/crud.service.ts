@@ -46,9 +46,6 @@ export class CrudService<T extends ObjectLiteral> {
   }
 
   async findAll(options?: CrudFindAllOptions<T>) {
-    // deconstruct options object
-    //const { find, pagination, onError } = options;
-
     try {
       // check if options is not defined.
       if (options === undefined) return await this.repository.find();
