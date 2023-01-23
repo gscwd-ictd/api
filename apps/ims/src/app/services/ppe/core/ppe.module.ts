@@ -1,6 +1,7 @@
 import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { PpeCategoriesModule, PpeClassificationsModule, PpeSpecificationsModule } from '../components';
 import { PpeController } from './ppe.controller';
 import { PpeService } from './ppe.service';
 
@@ -17,6 +18,9 @@ import { PpeService } from './ppe.service';
         },
       },
     ]),
+    PpeClassificationsModule,
+    PpeCategoriesModule,
+    PpeSpecificationsModule,
   ],
   controllers: [PpeController],
   providers: [PpeService, MicroserviceClient],
