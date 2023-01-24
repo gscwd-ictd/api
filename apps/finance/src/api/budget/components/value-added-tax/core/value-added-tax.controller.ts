@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   Put,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { ValueAddedTaxService } from './value-added-tax.service';
 import { CreateValueAddedTaxDto, UpdateValueAddedTaxDto } from '../data/value-added-tax.dto';
@@ -25,7 +26,10 @@ export class ValueAddedTaxController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateValueAddedTaxDto): Promise<ValueAddedTax> {
-    return await this.valueAddedTaxService.crud().create(data, () => new BadRequestException());
+    return await this.valueAddedTaxService.crud().create({
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Get()
@@ -33,21 +37,34 @@ export class ValueAddedTaxController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<ValueAddedTax> | ValueAddedTax[]> {
-    return await this.valueAddedTaxService.crud().findAll({ pagination: { page, limit } });
+    return await this.valueAddedTaxService.crud().findAll({
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<ValueAddedTax> {
-    return await this.valueAddedTaxService.crud().findOneBy({ id }, () => new NotFoundException());
+    return await this.valueAddedTaxService.crud().findOneBy({
+      findBy: { id },
+      onError: () => new NotFoundException(),
+    });
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateValueAddedTaxDto): Promise<UpdateResult> {
-    return await this.valueAddedTaxService.crud().update({ id }, data, () => new BadRequestException());
+    return await this.valueAddedTaxService.crud().update({
+      updateBy: { id },
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return this.valueAddedTaxService.crud().delete({ id }, () => new BadRequestException());
+    return this.valueAddedTaxService.crud().delete({
+      deleteBy: { id },
+      onError: () => new BadRequestException(),
+    });
   }
 }
