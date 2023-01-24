@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@gscwd-api/app-entities": ["libs/app-entities/src/index.ts"],
       "@gscwd-api/crud": ["libs/crud/src/index.ts"],
       "@gscwd-api/generator": ["libs/generator/src/index.ts"],
       "@gscwd-api/microservices": ["libs/microservices/src/index.ts"],

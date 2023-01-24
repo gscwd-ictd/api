@@ -1,4 +1,6 @@
-import { ItemModule } from '../api/item';
-import { UnitModule } from '../api/unit';
+import { ItemsModue } from '../app/services/items';
+import { ItemsPpeModule } from '../app/services/items-ppe';
+import { PpeModule } from '../app/services/ppe/core/ppe.module';
+import { UnitsModule } from '../app/services/units';
 
-export const API_MODULES = [ItemModule, UnitModule];
+export const SERVICES_MODULES = [UnitsModule, ItemsModue, PpeModule, ItemsPpeModule];

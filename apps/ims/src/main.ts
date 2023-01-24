@@ -2,7 +2,7 @@ import { HybridApp } from '@gscwd-api/microservices';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
-import { AppModule } from './api/app.module';
+import { AppModule } from './app/app.module';
 import { GLOBAL_PREFIX } from './constants';
 
 async function bootstrap() {
