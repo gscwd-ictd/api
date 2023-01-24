@@ -10,9 +10,9 @@ import { ItemService } from './item.service';
         name: MS_CLIENT,
         transport: Transport.REDIS,
         options: {
-          host: process.env.IMS_REDIS_HOST,
-          port: parseInt(process.env.IMS_REDIS_PORT),
-          password: process.env.IMS_REDIS_PASS,
+          host: process.env.ITEMS_REDIS_HOST,
+          port: parseInt(process.env.ITEMS_REDIS_PORT),
+          password: process.env.ITEMS_REDIS_PASS,
           retryAttempts: 5,
           retryDelay: 3000,
         },

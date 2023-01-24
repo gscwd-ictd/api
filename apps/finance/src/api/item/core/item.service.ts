@@ -1,23 +1,24 @@
-import { ItemPatterns, MicroserviceClient } from '@gscwd-api/microservices';
-import { Item, ItemDetails } from '@gscwd-api/utils';
+import { ItemDetailsViewPatterns, MicroserviceClient } from '@gscwd-api/microservices';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { IPaginationOptions, Pagination } from 'nestjs-typeorm-paginate';
+import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ItemService {
   constructor(private readonly client: MicroserviceClient) {}
 
-  async findAllItems(options: IPaginationOptions): Promise<Pagination<Item>> {
-    return await this.client.send({
-      pattern: ItemPatterns.FIND_ALL,
+  async findAllItems(options: IPaginationOptions) {
+    return await this.client.call({
+      action: 'send',
+      pattern: ItemDetailsViewPatterns.FIND_ALL,
       payload: options,
       onError: () => new BadRequestException(),
     });
   }
 
-  async findItemById(id: string): Promise<ItemDetails> {
-    return await this.client.send({
-      pattern: ItemPatterns.FIND_BY_ID,
+  async findItemById(id: string) {
+    return await this.client.call({
+      action: 'send',
+      pattern: ItemDetailsViewPatterns.FIND_BY_ID,
       payload: id,
       onError: (error) => new NotFoundException(error),
     });

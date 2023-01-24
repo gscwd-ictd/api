@@ -1,6 +1,4 @@
-import { Item, ItemDetails } from '@gscwd-api/utils';
 import { DefaultValuePipe, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
-import { Pagination } from 'nestjs-typeorm-paginate';
 import { ItemService } from './item.service';
 
 export class ItemController {
@@ -10,12 +8,12 @@ export class ItemController {
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number
-  ): Promise<Pagination<Item>> {
+  ) {
     return await this.itemService.findAllItems({ page, limit });
   }
 
   @Get(':id')
-  async findById(@Param() id: string): Promise<ItemDetails> {
+  async findById(@Param() id: string) {
     return await this.itemService.findItemById(id);
   }
 }
