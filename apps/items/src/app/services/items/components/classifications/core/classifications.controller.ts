@@ -29,6 +29,7 @@ export class ClassificationsController implements ICrudRoutes {
   async findAll(@Payload('page') page: number, @Payload('limit') limit: number) {
     return await this.classificationsService.crud().findAll({
       pagination: { page, limit },
+      find: { relations: { characteristic: true }, select: { characteristic: { id: true, code: true, name: true } } },
       onError: (error) =>
         new MyRpcException({
           code: HttpStatus.INTERNAL_SERVER_ERROR,
