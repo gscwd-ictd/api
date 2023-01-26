@@ -1,9 +1,10 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { UnitOfMeasure } from '../../../units';
 import { ItemCategory } from '../categories/categories.entity';
 
 @Entity('item_specifications')
+@Unique(['code', 'details'])
 export class ItemSpecification extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'specification_id' })
   id: string;
@@ -19,7 +20,7 @@ export class ItemSpecification extends DatabaseEntity implements IEntity {
   @Column({ unique: true, length: 10 })
   code: string;
 
-  @Column({ unique: true, length: 100 })
+  @Column({ length: 100 })
   details: string;
 
   @Column()

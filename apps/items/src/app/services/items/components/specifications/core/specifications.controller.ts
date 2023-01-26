@@ -36,6 +36,7 @@ export class SpecificationsController implements ICrudRoutes {
   async findAll(@Payload('page') page: number, @Payload('limit') limit: number) {
     return await this.specificationsService.crud().findAll({
       pagination: { page, limit },
+      find: { relations: { category: true }, select: { category: { id: true, code: true, name: true } } },
       onError: (error) =>
         new MyRpcException({
           code: HttpStatus.INTERNAL_SERVER_ERROR,
