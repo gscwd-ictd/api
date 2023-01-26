@@ -15,10 +15,6 @@ export class CreateItemSpecificationDto {
   @Length(1, 100, { message: 'specification details must be between 1 to 100 characters long' })
   details: string;
 
-  @IsNumber({ allowNaN: false, allowInfinity: false, maxDecimalPlaces: 0 }, { message: 'specification quantity must be a valid number' })
-  @Type(() => Number)
-  quantity: number;
-
   @IsNumber({ allowNaN: false, allowInfinity: false, maxDecimalPlaces: 0 }, { message: 'reorder quantity must be a valid number' })
   @Type(() => Number)
   reorderQuantity: number;

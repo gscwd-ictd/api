@@ -23,9 +23,6 @@ export class ItemSpecification extends DatabaseEntity implements IEntity {
   @Column({ length: 100 })
   details: string;
 
-  @Column()
-  quantity: number;
-
   @Column({ name: 'reorder_point' })
   reorderPoint: number;
 
