@@ -18,7 +18,6 @@ import { UnitOfMeasure } from '../data/units';
       .addSelect('sp.details', 'details')
       .addSelect('sp.quantity', 'quantity')
       .addSelect('sp.reorder_point', 'reorder_point')
-      .addSelect('sp.reorder_quantity', 'reorder_quantity')
       .addSelect('sp.description', 'description')
       .addSelect('un.symbol', 'unit_symbol')
       .addSelect('un.name', 'unit_name')
@@ -57,9 +56,6 @@ export class ItemDetailsView {
 
   @ViewColumn()
   details: string;
-
-  @ViewColumn()
-  quantity: number;
 
   @ViewColumn()
   reorder_point: number;

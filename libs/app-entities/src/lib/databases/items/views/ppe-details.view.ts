@@ -17,7 +17,6 @@ import { UnitOfMeasure } from '../data/units';
       .addSelect('sp.specification_id', 'specification_id')
       .addSelect('sp.code', 'specification_code')
       .addSelect('sp.details', 'details')
-      .addSelect('sp.quantity', 'quantity')
       .addSelect('sp.reorder_point', 'reorder_point')
       .addSelect('sp.reorder_quantity', 'reorder_quantity')
       .addSelect('sp.description', 'description')
@@ -58,9 +57,6 @@ export class PpeDetailsView {
 
   @ViewColumn()
   details: string;
-
-  @ViewColumn()
-  quantity: number;
 
   @ViewColumn()
   reorder_point: number;
