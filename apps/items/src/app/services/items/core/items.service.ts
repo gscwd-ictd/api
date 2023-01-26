@@ -17,10 +17,10 @@ export class ItemsService {
           classification_code: true,
           category_code: true,
           specification_code: true,
+          classification_name: true,
           category_name: true,
           details: true,
           description: true,
-          quantity: true,
         },
       },
       onError: (error) =>
