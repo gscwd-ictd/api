@@ -11,6 +11,7 @@ import {
   Query,
   DefaultValuePipe,
   ParseIntPipe,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { LaborCostService } from './labor-cost.service';
 import { CreateLaborCostDto, UpdateLaborCostDto } from '../data/labor-cost.dto';
@@ -25,7 +26,10 @@ export class LaborCostController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreateLaborCostDto): Promise<LaborCost> {
-    return await this.laborCostService.crud().create(data, () => new BadRequestException());
+    return await this.laborCostService.crud().create({
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Get()
@@ -33,21 +37,34 @@ export class LaborCostController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<LaborCost> | LaborCost[]> {
-    return await this.laborCostService.crud().findAll({ pagination: { page, limit } });
+    return await this.laborCostService.crud().findAll({
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<LaborCost> {
-    return await this.laborCostService.crud().findOneBy({ id }, () => new NotFoundException());
+    return await this.laborCostService.crud().findOneBy({
+      findBy: { id },
+      onError: () => new NotFoundException(),
+    });
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateLaborCostDto): Promise<UpdateResult> {
-    return await this.laborCostService.crud().update({ id }, data, () => new BadRequestException());
+    return await this.laborCostService.crud().update({
+      updateBy: { id },
+      dto: data,
+      onError: () => new BadRequestException(),
+    });
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.laborCostService.crud().delete({ id }, () => new BadRequestException());
+    return await this.laborCostService.crud().delete({
+      deleteBy: { id },
+      onError: () => new BadRequestException(),
+    });
   }
 }

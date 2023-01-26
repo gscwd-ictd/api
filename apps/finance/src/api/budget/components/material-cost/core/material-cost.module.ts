@@ -8,6 +8,5 @@ import { MaterialCost } from '../data/material-cost.entity';
   imports: [CrudModule.register(MaterialCost)],
   providers: [MaterialCostService],
   controllers: [MaterialCostController],
-  exports: [MaterialCostService],
 })
 export class MaterialCostModule {}
