@@ -33,9 +33,6 @@ export class ItemPpeDetailsView {
   details: string;
 
   @ViewColumn()
-  quantity: number;
-
-  @ViewColumn()
   reorder_point: number;
 
   @ViewColumn()
