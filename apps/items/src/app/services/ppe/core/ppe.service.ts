@@ -20,7 +20,6 @@ export class PpeService {
           category_name: true,
           details: true,
           description: true,
-          quantity: true,
         },
       },
       onError: (error) =>
