@@ -11,10 +11,10 @@ export class FindAllItemsInterceptor implements NestInterceptor {
         const items = result.items.map((item: ItemDetailsView) => ({
           id: item.specification_id,
           code: `${item.characteristic_code}-${item.classification_code}-${item.category_code}-${item.specification_code}`,
+          classification: item.classification_name,
           item: item.category_name,
           details: item.details,
           description: item.description,
-          balance: item.quantity,
         }));
 
         return { ...result, items };
@@ -35,7 +35,6 @@ export class FindItemByIdInterceptor implements NestInterceptor {
         specifications: {
           item: item.category_name,
           details: item.details,
-          balance: item.quantity,
           unit: item.unit_symbol,
           description: item.description,
           reorder: {
