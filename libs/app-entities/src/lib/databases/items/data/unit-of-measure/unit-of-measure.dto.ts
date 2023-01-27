@@ -1,11 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUUID, Length } from 'class-validator';
-import { UnitType } from '../unit-type/unit-type.entity';
+import { IsOptional, IsString, Length } from 'class-validator';
 
 export class CreateUnitOfMeasureDto {
-  @IsUUID(4, { message: 'unit type id is not valid' })
-  type: UnitType;
-
   @IsString({ message: 'unit name must be a string' })
   @Length(1, 20, { message: 'unit name must be between 1 to 20 characters long' })
   name: string;

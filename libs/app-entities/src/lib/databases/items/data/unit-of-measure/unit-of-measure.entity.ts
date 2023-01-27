@@ -1,15 +1,10 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { UnitType } from '../unit-type/unit-type.entity';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('units_of_measure')
 export class UnitOfMeasure extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'unit_of_measure_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'unit_id' })
   id: string;
-
-  @ManyToOne(() => UnitType, (unitType) => unitType.id, { nullable: false })
-  @JoinColumn({ name: 'unit_type_id_fk' })
-  type: UnitType;
 
   @Column({ length: 20, unique: true })
   name: string;

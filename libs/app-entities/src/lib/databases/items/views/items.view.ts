@@ -1,9 +1,8 @@
 import { ViewColumn, ViewEntity } from 'typeorm';
-import { ItemClassification, ItemCharacteristic, ItemCategory, ItemSpecification } from '../data/items';
-import { UnitOfMeasure } from '../data/units';
+import { ItemClassification, ItemCharacteristic, ItemCategory, ItemSpecification, UnitOfMeasure, ItemDetails } from '../data';
 
 @ViewEntity({
-  name: 'item_details',
+  name: 'items_view',
   expression: (datasource) =>
     datasource
       .createQueryBuilder()
@@ -13,23 +12,28 @@ import { UnitOfMeasure } from '../data/units';
       .addSelect('cl.name', 'classification_name')
       .addSelect('ca.code', 'category_code')
       .addSelect('ca.name', 'category_name')
-      .addSelect('sp.specification_id', 'specification_id')
       .addSelect('sp.code', 'specification_code')
-      .addSelect('sp.details', 'details')
-      .addSelect('sp.reorder_point', 'reorder_point')
-      .addSelect('sp.reorder_quantity', 'reorder_quantity')
+      .addSelect('sp.name', 'specification_name')
       .addSelect('sp.description', 'description')
-      .addSelect('un.symbol', 'unit_symbol')
+      .addSelect('de.details_id', 'details_id')
+      .addSelect('de.balance', 'balance')
+      .addSelect('de.reorder_point', 'reorder_point')
+      .addSelect('de.reorder_quantity', 'reorder_quantity')
+      .addSelect('de.created_at', 'created_at')
+      .addSelect('de.updated_at', 'updated_at')
       .addSelect('un.name', 'unit_name')
-      .addSelect('sp.created_at', 'created_at')
-      .addSelect('sp.updated_at', 'updated_at')
-      .from(ItemClassification, 'cl')
-      .innerJoin(ItemCharacteristic, 'ch', 'ch.characteristic_id = cl.characteristic_id_fk')
+      .addSelect('un.symbol', 'unit_symbol')
+      .from(ItemCharacteristic, 'ch')
+      .innerJoin(ItemClassification, 'cl', 'cl.characteristic_id_fk = ch.characteristic_id')
       .innerJoin(ItemCategory, 'ca', 'ca.classification_id_fk = cl.classification_id')
       .innerJoin(ItemSpecification, 'sp', 'sp.category_id_fk = ca.category_id')
-      .innerJoin(UnitOfMeasure, 'un', 'un.unit_of_measure_id = sp.unit_of_measure_id_fk'),
+      .innerJoin(ItemDetails, 'de', 'de.specification_id_fk = sp.specification_id')
+      .innerJoin(UnitOfMeasure, 'un', 'un.unit_id = sp.unit_id_fk'),
 })
-export class ItemDetailsView {
+export class ItemsView {
+  @ViewColumn()
+  details_id: string;
+
   @ViewColumn()
   characteristic_code: string;
 
@@ -49,28 +53,28 @@ export class ItemDetailsView {
   category_name: string;
 
   @ViewColumn()
-  specification_id: string;
-
-  @ViewColumn()
   specification_code: string;
 
   @ViewColumn()
-  details: string;
-
-  @ViewColumn()
-  reorder_point: number;
-
-  @ViewColumn()
-  reorder_quantity: number;
+  specification_name: string;
 
   @ViewColumn()
   description: string;
 
   @ViewColumn()
-  unit_symbol: string;
+  balance: number;
+
+  @ViewColumn()
+  reorder_point: Date;
+
+  @ViewColumn()
+  reorder_quantity: Date;
 
   @ViewColumn()
   unit_name: string;
+
+  @ViewColumn()
+  unit_symbol: string;
 
   @ViewColumn()
   created_at: Date;

@@ -1,10 +1,10 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import { UnitOfMeasure } from '../../../units';
 import { ItemCategory } from '../categories/categories.entity';
+import { UnitOfMeasure } from '../unit-of-measure';
 
 @Entity('item_specifications')
-@Unique(['code', 'details'])
+@Unique(['category', 'name'])
 export class ItemSpecification extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'specification_id' })
   id: string;
@@ -13,21 +13,15 @@ export class ItemSpecification extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'category_id_fk' })
   category: ItemCategory;
 
-  @ManyToOne(() => UnitOfMeasure, (unit) => unit.id, { nullable: false })
-  @JoinColumn({ name: 'unit_of_measure_id_fk' })
+  @ManyToOne(() => UnitOfMeasure, (unit) => unit.id)
+  @JoinColumn({ name: 'unit_id_fk' })
   unit: UnitOfMeasure;
 
   @Column({ unique: true, length: 10 })
   code: string;
 
   @Column({ length: 100 })
-  details: string;
-
-  @Column({ name: 'reorder_point' })
-  reorderPoint: number;
-
-  @Column({ name: 'reorder_quantity', nullable: true })
-  reorderQuantity: number;
+  name: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
