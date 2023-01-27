@@ -1,7 +1,14 @@
 import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { CategoriesModule, CharacteristicsModule, ClassificationsModule, SpecificationsModule } from '../components';
+import {
+  CategoriesModule,
+  CharacteristicsModule,
+  ClassificationsModule,
+  SpecificationsModule,
+  DetailsModule,
+  UnitOfMeasureModule,
+} from '../components';
 import { ItemsController } from './items.controller';
 import { ItemsService } from './items.service';
 
@@ -19,12 +26,16 @@ import { ItemsService } from './items.service';
         },
       },
     ]),
+
+    // child modules
+    UnitOfMeasureModule,
     CharacteristicsModule,
     ClassificationsModule,
     CategoriesModule,
     SpecificationsModule,
+    DetailsModule,
   ],
   controllers: [ItemsController],
   providers: [ItemsService, MicroserviceClient],
 })
-export class ItemsModue {}
+export class ItemsModule {}

@@ -1,59 +1,34 @@
 import { CreateItemCharacteristicDto, UpdateItemCharacteristicDto } from '@gscwd-api/app-entities';
-import { ItemCharacteristicsPatterns, MicroserviceClient } from '@gscwd-api/microservices';
-import { Body, Controller, Delete, Get, HttpException, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
+import { CharacteristicsService } from './characteristics.service';
 
 @Controller({ version: '1', path: 'items/info/characteristics' })
 export class CharacteristicsController {
-  constructor(private readonly microserviceClient: MicroserviceClient) {}
+  constructor(private readonly characteristicsService: CharacteristicsService) {}
 
   @Post()
   async create(@Body() data: CreateItemCharacteristicDto) {
-    return await this.microserviceClient.call({
-      action: 'send',
-      pattern: ItemCharacteristicsPatterns.CREATE,
-      payload: data,
-      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+    return await this.characteristicsService.create(data);
   }
 
   @Get()
-  async findAll(@Query() { page, limit }: IPaginationOptions) {
-    return await this.microserviceClient.call({
-      action: 'send',
-      pattern: ItemCharacteristicsPatterns.FIND_ALL,
-      payload: { page, limit },
-      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+  async findAll(@Query() options: IPaginationOptions) {
+    return await this.characteristicsService.findAll(options);
   }
 
   @Get(':id')
   async findById(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.microserviceClient.call({
-      action: 'send',
-      pattern: ItemCharacteristicsPatterns.FIND_BY_ID,
-      payload: { id },
-      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+    return await this.characteristicsService.findById(id);
   }
 
   @Patch(':id')
   async update(@Param('id', ParseUUIDPipe) id: string, @Body() data: UpdateItemCharacteristicDto) {
-    return await this.microserviceClient.call({
-      action: 'send',
-      pattern: ItemCharacteristicsPatterns.UPDATE,
-      payload: { id, data },
-      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+    return await this.characteristicsService.update(id, data);
   }
 
   @Delete(':id')
   async delete(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.microserviceClient.call({
-      action: 'send',
-      pattern: ItemCharacteristicsPatterns.DELETE,
-      payload: { id },
-      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+    return await this.characteristicsService.delete(id);
   }
 }

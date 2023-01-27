@@ -1,14 +1,19 @@
 import { MyRpcException } from '@gscwd-api/microservices';
 import { HttpException } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
-import { DeepPartial, FindManyOptions, FindOneOptions, FindOptionsWhere, SaveOptions } from 'typeorm';
+import { DeepPartial, EntityMetadata, FindManyOptions, FindOneOptions, FindOptionsWhere, SaveOptions } from 'typeorm';
 
 export const CRUD_SERVICE = 'CRUD_SERVICE';
 
 export type ErrorResult = HttpException | MyRpcException;
 
+export type ErrorOptions = {
+  error: unknown;
+  metadata: EntityMetadata;
+};
+
 export type CrudOptions = {
-  onError?: (error: Error) => ErrorResult;
+  onError?: (options: ErrorOptions) => ErrorResult;
 };
 
 export type CrudCreateOptions<T> = CrudOptions & {
@@ -37,4 +42,8 @@ export type CrudUpdateOptions<T> = CrudOptions & {
 export type CrudDeleteOptions<T> = CrudOptions & {
   deleteBy: FindOptionsWhere<T>;
   softDelete?: boolean;
+};
+
+export type CrudRestoreOptions<T> = CrudOptions & {
+  restore: FindOptionsWhere<T>;
 };

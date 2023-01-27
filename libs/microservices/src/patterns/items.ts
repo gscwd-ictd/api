@@ -1,16 +1,19 @@
-export enum ItemDetailsViewPatterns {
+export enum ItemsView {
   FIND_ALL = '31B09RDOJI',
   FIND_BY_ID = 'Y9XUILQCA3',
-}
-
-export enum PpeDetailsViewPatterns {
-  FIND_ALL = 'SZR2GZPYRD',
-  FIND_BY_ID = 'E23AGVQIPX',
 }
 
 export enum ItemPpeDetailsPatterns {
   FIND_ALL = 'WPDN914E3V',
   FIND_BY_ID = 'VGJLPPF5VU',
+}
+
+export enum UnitsOfMeasurePatterns {
+  CREATE = 'KCZS6PBIJQ',
+  FIND_ALL = 'Q6DE3F7BKE',
+  FIND_BY_ID = 'I9FHJ4LUXF',
+  UPDATE = 'MLGLELLCDC',
+  DELETE = 'VCJ1FVV90C',
 }
 
 export enum ItemCharacteristicsPatterns {
@@ -45,26 +48,10 @@ export enum ItemSpecificationsPatterns {
   DELETE = 'PHMKENG86V',
 }
 
-export enum PpeClassificationsPatterns {
-  CREATE = '7BJDJC5NO4',
-  FIND_ALL = 'PQLEKER2ZZ',
-  FIND_BY_ID = 'P3E7GC6FPX',
-  UPDATE = 'TTE756Z5CI',
-  DELETE = 'HW69HOSJF7',
-}
-
-export enum PpeCategoriesPatterns {
-  CREATE = '8RGXUVL7GH',
-  FIND_ALL = 'ZM5JPZ4SCX',
-  FIND_BY_ID = 'E0CZ5F5S00',
-  UPDATE = '9ZKUUO8ISI',
-  DELETE = 'H974ZSUIUV',
-}
-
-export enum PpeSpecificationsPatterns {
-  CREATE = 'QGFEJUBALN',
-  FIND_ALL = 'BI4B23UVOK',
-  FIND_BY_ID = 'JNBSNHBN2N',
-  UPDATE = '2CANLIYJNG',
-  DELETE = 'FOYKJ5QWSI',
+export enum ItemDetailsPatterns {
+  CREATE = 'RT0B0RAKDB',
+  FIND_ALL = 'I3F3AYA1O1',
+  FIND_BY_ID = '0UW2AMNADG',
+  UPDATE = 'M9M5X89TTK',
+  DELETE = 'SYFU2EEJMP',
 }

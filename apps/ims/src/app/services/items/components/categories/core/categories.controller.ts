@@ -1,59 +1,34 @@
 import { CreateItemCategoryDto, UpdateItemCategoryDto } from '@gscwd-api/app-entities';
-import { ItemCategoriesPatterns, MicroserviceClient } from '@gscwd-api/microservices';
-import { Body, Controller, Delete, Get, HttpException, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
+import { CategoriesService } from './categories.service';
 
 @Controller({ version: '1', path: 'items/info/categories' })
 export class CategoriesController {
-  constructor(private readonly microserviceClient: MicroserviceClient) {}
+  constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
   async create(@Body() data: CreateItemCategoryDto) {
-    return await this.microserviceClient.call({
-      action: 'send',
-      pattern: ItemCategoriesPatterns.CREATE,
-      payload: data,
-      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+    return await this.categoriesService.create(data);
   }
 
   @Get()
-  async findAll(@Query() { page, limit }: IPaginationOptions) {
-    return await this.microserviceClient.call({
-      action: 'send',
-      pattern: ItemCategoriesPatterns.FIND_ALL,
-      payload: { page, limit },
-      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+  async findAll(@Query() options: IPaginationOptions) {
+    return await this.categoriesService.findAll(options);
   }
 
   @Get(':id')
   async findById(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.microserviceClient.call({
-      action: 'send',
-      pattern: ItemCategoriesPatterns.FIND_BY_ID,
-      payload: { id },
-      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+    return await this.categoriesService.findById(id);
   }
 
   @Patch(':id')
   async update(@Param('id', ParseUUIDPipe) id: string, @Body() data: UpdateItemCategoryDto) {
-    return await this.microserviceClient.call({
-      action: 'send',
-      pattern: ItemCategoriesPatterns.UPDATE,
-      payload: { id, data },
-      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+    return await this.categoriesService.update(id, data);
   }
 
   @Delete(':id')
   async delete(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.microserviceClient.call({
-      action: 'send',
-      pattern: ItemCategoriesPatterns.DELETE,
-      payload: { id },
-      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+    return await this.categoriesService.delete(id);
   }
 }

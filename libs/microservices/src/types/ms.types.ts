@@ -3,10 +3,16 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 // message pattern type
 export type MessagePattern<T> = { msg: T };
 
+type MyError = {
+  status?: number;
+  error: string;
+  details?: object | string;
+};
+
 export type RpcError = {
-  message: string | { error: string; details: string };
+  message: string | MyError;
   code: HttpStatus;
-  details?: string | Error;
+  details?: object;
 };
 
 /**

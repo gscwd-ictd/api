@@ -10,6 +10,7 @@ import { CategoriesService } from './categories.service';
     // crud module
     CrudModule.register(ItemCategory),
 
+    // generator module
     GeneratorModule.register({ length: 5, lowercase: false }),
   ],
   controllers: [CategoriesController],

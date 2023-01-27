@@ -2,7 +2,10 @@ import { CrudService } from '../lib/crud.service';
 import { ObjectLiteral, QueryRunner } from 'typeorm';
 
 export abstract class CrudHelper<T extends ObjectLiteral> {
-  constructor(private readonly myCrud: CrudService<T>) {}
+  constructor(
+    // inject crud service
+    private readonly myCrud: CrudService<T>
+  ) {}
 
   public crud() {
     return this.myCrud;
@@ -18,5 +21,13 @@ export abstract class CrudHelper<T extends ObjectLiteral> {
 
   public queryBuilder(alias?: string, runner?: QueryRunner) {
     return this.getRepository().createQueryBuilder(alias, runner);
+  }
+
+  public getDatasource() {
+    return this.myCrud.getDatasource();
+  }
+
+  public getManager() {
+    return this.getDatasource().manager;
   }
 }
