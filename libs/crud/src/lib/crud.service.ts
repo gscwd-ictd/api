@@ -9,6 +9,7 @@ import {
   CrudFindOneByOptions,
   CrudFindAllOptions,
   CrudCreateOptions,
+  CrudRestoreOptions,
 } from '../types/crud.types';
 
 @Injectable()
@@ -41,7 +42,7 @@ export class CrudService<T extends ObjectLiteral> {
       if (!onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw onError(error);
+      throw onError({ error, metadata: this.repository.metadata });
     }
   }
 
@@ -62,7 +63,7 @@ export class CrudService<T extends ObjectLiteral> {
       if (!options.onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw options.onError(error);
+      throw options.onError({ error, metadata: this.repository.metadata });
     }
   }
 
@@ -80,7 +81,7 @@ export class CrudService<T extends ObjectLiteral> {
       if (!onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw onError(error);
+      throw onError({ error, metadata: this.repository.metadata });
     }
   }
 
@@ -98,7 +99,7 @@ export class CrudService<T extends ObjectLiteral> {
       if (!onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw onError(error);
+      throw onError({ error, metadata: this.repository.metadata });
     }
   }
 
@@ -116,7 +117,7 @@ export class CrudService<T extends ObjectLiteral> {
       if (!onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw onError(error);
+      throw onError({ error, metadata: this.repository.metadata });
     }
   }
 
@@ -134,11 +135,33 @@ export class CrudService<T extends ObjectLiteral> {
       if (!onError) throw new Error(error);
 
       // otherwise, throw the resulting error
-      throw onError(error);
+      throw onError({ error, metadata: this.repository.metadata });
+    }
+  }
+
+  async restore(options: CrudRestoreOptions<T>) {
+    // deconstruct options object
+    const { restore, onError } = options;
+
+    try {
+      // perform a restoration of a soft deleted row in a table
+      return await this.repository.restore(restore);
+
+      // catch any resulting error
+    } catch (error) {
+      // if errorResult is undefined, throw a generic error
+      if (!onError) throw new Error(error);
+
+      // otherwise, throw the resulting error
+      throw onError({ error, metadata: this.repository.metadata });
     }
   }
 
   public getRepository() {
     return this.repository;
+  }
+
+  public getDatasource() {
+    return this.datasource;
   }
 }
