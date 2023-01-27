@@ -2,35 +2,21 @@ import {
   ItemCategory,
   ItemCharacteristic,
   ItemClassification,
-  ItemDetailsView,
-  ItemPpeDetailsView,
+  ItemDetails,
   ItemSpecification,
-  PpeCategory,
-  PpeClassification,
-  PpeDetailsView,
-  PpeSpecification,
+  ItemsView,
   UnitOfMeasure,
-  UnitType,
 } from '@gscwd-api/app-entities';
 
 export const DB_ENTITIES = [
-  // items
+  // table entities
+  UnitOfMeasure,
   ItemCharacteristic,
   ItemClassification,
   ItemCategory,
   ItemSpecification,
+  ItemDetails,
 
-  // ppe
-  PpeClassification,
-  PpeCategory,
-  PpeSpecification,
-
-  // units
-  UnitType,
-  UnitOfMeasure,
-
-  // vews
-  ItemDetailsView,
-  PpeDetailsView,
-  ItemPpeDetailsView,
+  // table vews
+  ItemsView,
 ];
