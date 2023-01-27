@@ -1,6 +1,3 @@
-import { ItemsModue } from '../app/services/items';
-import { ItemsPpeModule } from '../app/services/items-ppe';
-import { PpeModule } from '../app/services/ppe/core/ppe.module';
-import { UnitsModule } from '../app/services/units';
+import { ItemsModule } from '../app/services/items';
 
-export const SERVICES_MODULES = [UnitsModule, ItemsModue, PpeModule, ItemsPpeModule];
+export const SERVICES_MODULES = [ItemsModule];
