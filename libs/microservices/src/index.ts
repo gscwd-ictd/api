@@ -7,4 +7,3 @@ export * from './lib/ms-client.service';
 export * from './types/ms.types';
 
 export * from './patterns/items';
-export * from './patterns/units';
