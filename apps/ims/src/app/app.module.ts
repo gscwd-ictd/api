@@ -13,6 +13,7 @@ import { SERVICES_MODULES } from '../constants';
     // database connection via typeorm
     TypeOrmModule.forRootAsync({ useClass: DatabaseConfig }),
 
+    // modules under microservices client
     ...SERVICES_MODULES,
   ],
 })
