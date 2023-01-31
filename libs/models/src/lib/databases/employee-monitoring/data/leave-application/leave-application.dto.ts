@@ -4,7 +4,7 @@ import { IsBoolean, IsDate, IsDateString, IsEnum, IsOptional, IsString, IsUUID }
 import { CreateLeaveBenefitsDto } from '../leave-benefits/leave-benefits.dto';
 import { LeaveBenefits } from '../leave-benefits/leave-benefits.entity';
 
-export class LeaveApplicationDto {
+export class CreateLeaveApplicationDto {
   @IsUUID(4, { message: 'Invalid Leave benefits UUID value.' })
   leaveBenefits: LeaveBenefits;
 
@@ -59,4 +59,4 @@ export class LeaveApplicationDto {
   status: LeaveApplicationStatus;
 }
 
-export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveBenefitsDto) {}
+export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) {}
