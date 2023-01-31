@@ -29,23 +29,23 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ name: 'spl_women', nullable: true })
   splWomen: string;
 
-  @Column({ name: 'masters_completion', type: 'bool' })
-  mastersCompletion: boolean;
+  @Column({ name: 'for_masters_completion', type: 'bool' })
+  forMastersCompletion: boolean;
 
-  @Column({ name: 'bar_board_review', type: 'bool' })
-  barBoardReview: boolean;
+  @Column({ name: 'for_bar_board_review', type: 'bool' })
+  forBarBoardReview: boolean;
 
   @Column({ name: 'study_leave_other' })
   studyLeaveOther: string;
 
   @Column({ type: 'bool' })
-  monetization: boolean;
+  forMonetization: boolean;
 
-  @Column({ name: 'terminal_leave', type: 'bool' })
-  terminalLeave: boolean;
+  @Column({ name: 'is_terminal_leave', type: 'bool' })
+  isTerminalLeave: boolean;
 
   @Column({ type: 'bool' })
-  commutation: boolean;
+  requestedCommutation: boolean;
 
   @Column({ type: 'enum', enum: LeaveApplicationStatus, default: LeaveApplicationStatus.ONGOING })
   status: LeaveApplicationStatus;

@@ -4,8 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { DatabaseConfig } from '../config/database.config';
 import { appModules } from '../constants/modules';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -13,7 +11,5 @@ import { AppService } from './app.service';
     TypeOrmModule.forRootAsync({ useClass: DatabaseConfig }),
     ...appModules,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

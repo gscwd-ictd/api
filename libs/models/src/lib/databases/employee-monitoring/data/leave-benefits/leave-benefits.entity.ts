@@ -20,7 +20,7 @@ export class LeaveBenefits extends DatabaseEntity implements IEntity {
   creditDistribution: CreditDistribution;
 
   @Column({ name: 'monitizeable' })
-  monitizeable: boolean;
+  isMonitizeable: boolean;
 
   @Column({ name: 'can_be_carried_over' })
   canBeCarriedOver: boolean;
