@@ -1,4 +1,4 @@
-import { CreateItemSpecificationDto, UpdateItemSpecificationDto } from '@gscwd-api/app-entities';
+import { CreateItemSpecificationDto, UpdateItemSpecificationDto } from '@gscwd-api/models';
 import { ICrudRoutes, throwRpc } from '@gscwd-api/crud';
 import { ItemSpecificationsPatterns } from '@gscwd-api/microservices';
 import { Controller } from '@nestjs/common';

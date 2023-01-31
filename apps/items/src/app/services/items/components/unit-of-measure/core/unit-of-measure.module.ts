@@ -1,4 +1,4 @@
-import { UnitOfMeasure } from '@gscwd-api/app-entities';
+import { UnitOfMeasure } from '@gscwd-api/models';
 import { CrudModule } from '@gscwd-api/crud';
 import { Module } from '@nestjs/common';
 import { UnitOfMeasureController } from './unit-of-measure.controller';

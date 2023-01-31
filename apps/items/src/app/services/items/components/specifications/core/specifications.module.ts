@@ -1,4 +1,4 @@
-import { ItemSpecification } from '@gscwd-api/app-entities';
+import { ItemSpecification } from '@gscwd-api/models';
 import { CrudModule } from '@gscwd-api/crud';
 import { GeneratorModule } from '@gscwd-api/generator';
 import { Module } from '@nestjs/common';

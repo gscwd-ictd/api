@@ -1,4 +1,4 @@
-import { ItemClassification } from '@gscwd-api/app-entities';
+import { ItemClassification } from '@gscwd-api/models';
 import { CrudModule } from '@gscwd-api/crud';
 import { Module } from '@nestjs/common';
 import { ClassificationsController } from './classifications.controller';

@@ -1,4 +1,4 @@
-import { ItemsView } from '@gscwd-api/app-entities';
+import { ItemsView } from '@gscwd-api/models';
 import { CrudModule } from '@gscwd-api/crud';
 import { Module } from '@nestjs/common';
 import {
