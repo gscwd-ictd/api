@@ -1,4 +1,4 @@
-import { ItemClassification } from '@gscwd-api/app-entities';
+import { ItemClassification } from '@gscwd-api/models';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { Injectable } from '@nestjs/common';
 

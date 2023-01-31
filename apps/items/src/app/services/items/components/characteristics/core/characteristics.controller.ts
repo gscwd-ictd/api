@@ -1,5 +1,5 @@
 import { ItemCharacteristicsPatterns } from '@gscwd-api/microservices';
-import { CreateItemCharacteristicDto, UpdateItemCharacteristicDto } from '@gscwd-api/app-entities';
+import { CreateItemCharacteristicDto, UpdateItemCharacteristicDto } from '@gscwd-api/models';
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CharacteristicsService } from './characteristics.service';

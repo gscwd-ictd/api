@@ -1,4 +1,4 @@
-import { CreateUnitOfMeasureDto, UpdateUnitOfMeasureDto } from '@gscwd-api/app-entities';
+import { CreateUnitOfMeasureDto, UpdateUnitOfMeasureDto } from '@gscwd-api/models';
 import { ICrudRoutes, throwRpc } from '@gscwd-api/crud';
 import { UnitsOfMeasurePatterns } from '@gscwd-api/microservices';
 import { Controller } from '@nestjs/common';

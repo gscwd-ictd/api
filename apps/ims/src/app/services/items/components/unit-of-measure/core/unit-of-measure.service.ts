@@ -1,4 +1,4 @@
-import { CreateUnitOfMeasureDto, UpdateUnitOfMeasureDto } from '@gscwd-api/app-entities';
+import { CreateUnitOfMeasureDto, UpdateUnitOfMeasureDto } from '@gscwd-api/models';
 import { MicroserviceClient, UnitsOfMeasurePatterns } from '@gscwd-api/microservices';
 import { HttpException, Injectable } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';

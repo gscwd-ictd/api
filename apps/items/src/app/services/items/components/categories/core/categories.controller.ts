@@ -1,4 +1,4 @@
-import { CreateItemCategoryDto, UpdateItemCategoryDto } from '@gscwd-api/app-entities';
+import { CreateItemCategoryDto, UpdateItemCategoryDto } from '@gscwd-api/models';
 import { ICrudRoutes, throwRpc } from '@gscwd-api/crud';
 import { GeneratorService } from '@gscwd-api/generator';
 import { ItemCategoriesPatterns } from '@gscwd-api/microservices';

@@ -1,4 +1,4 @@
-import { CreateItemClassificationDto, UpdateItemClassificationDto } from '@gscwd-api/app-entities';
+import { CreateItemClassificationDto, UpdateItemClassificationDto } from '@gscwd-api/models';
 import { ICrudRoutes, throwRpc } from '@gscwd-api/crud';
 import { ItemClassificationsPatterns } from '@gscwd-api/microservices';
 import { Controller } from '@nestjs/common';

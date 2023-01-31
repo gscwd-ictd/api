@@ -1,4 +1,4 @@
-import { CreateItemSpecificationDto, ItemDetails, ItemSpecification } from '@gscwd-api/app-entities';
+import { CreateItemSpecificationDto, ItemDetails, ItemSpecification } from '@gscwd-api/models';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { GeneratorService } from '@gscwd-api/generator';
 import { MyRpcException } from '@gscwd-api/microservices';

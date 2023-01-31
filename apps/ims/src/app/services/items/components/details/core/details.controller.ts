@@ -1,4 +1,4 @@
-import { CreateItemDetailsDto, UpdateItemDetailsDto } from '@gscwd-api/app-entities';
+import { CreateItemDetailsDto, UpdateItemDetailsDto } from '@gscwd-api/models';
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { DetailsService } from './details.service';

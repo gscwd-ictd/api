@@ -1,4 +1,4 @@
-import { ItemsView } from '@gscwd-api/app-entities';
+import { ItemsView } from '@gscwd-api/models';
 import { CrudService, throwRpc } from '@gscwd-api/crud';
 import { Injectable } from '@nestjs/common';
 

@@ -18,7 +18,7 @@ async function bootstrap() {
 
   await app.listen();
 
-  Logger.log(`🚀 Items microservice is running.`);
+  Logger.log(`🚀 Items microservice is listening on port ${process.env.ITEMS_REDIS_PORT}`);
 }
 
 bootstrap();

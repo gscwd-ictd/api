@@ -1,4 +1,4 @@
-import { ItemCharacteristic } from '@gscwd-api/app-entities';
+import { ItemCharacteristic } from '@gscwd-api/models';
 import { CrudModule } from '@gscwd-api/crud';
 import { Module } from '@nestjs/common';
 import { CharacteristicsController } from './characteristics.controller';

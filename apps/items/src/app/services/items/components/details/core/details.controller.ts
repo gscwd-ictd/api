@@ -1,4 +1,4 @@
-import { CreateItemDetailsDto, UpdateItemDetailsDto } from '@gscwd-api/app-entities';
+import { CreateItemDetailsDto, UpdateItemDetailsDto } from '@gscwd-api/models';
 import { throwRpc } from '@gscwd-api/crud';
 import { ItemDetailsPatterns } from '@gscwd-api/microservices';
 import { Controller } from '@nestjs/common';

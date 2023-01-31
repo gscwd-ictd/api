@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnitOfMeasureService } from './unit-of-measure.service';
+import { UnitOfMeasureService } from '../core/unit-of-measure.service';
 
 describe('UnitOfMeasureService', () => {
   let service: UnitOfMeasureService;

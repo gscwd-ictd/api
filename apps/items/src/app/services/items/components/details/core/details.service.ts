@@ -1,4 +1,4 @@
-import { ItemDetails } from '@gscwd-api/app-entities';
+import { ItemDetails } from '@gscwd-api/models';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { Injectable } from '@nestjs/common';
 

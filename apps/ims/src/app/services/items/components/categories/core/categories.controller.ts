@@ -1,4 +1,4 @@
-import { CreateItemCategoryDto, UpdateItemCategoryDto } from '@gscwd-api/app-entities';
+import { CreateItemCategoryDto, UpdateItemCategoryDto } from '@gscwd-api/models';
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { CategoriesService } from './categories.service';

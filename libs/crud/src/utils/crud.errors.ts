@@ -35,6 +35,7 @@ export const throwRpc = (errorOptions: ErrorOptions) => {
       code: HttpStatus.INTERNAL_SERVER_ERROR,
       details: error,
       message: {
+        status: 500,
         error: error.name,
         details: error.message,
       },
