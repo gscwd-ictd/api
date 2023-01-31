@@ -1,4 +1,4 @@
-import { CreateItemSpecificationDto, UpdateItemSpecificationDto } from '@gscwd-api/app-entities';
+import { CreateItemSpecificationDto, UpdateItemSpecificationDto } from '@gscwd-api/models';
 import { ItemSpecificationsPatterns, MicroserviceClient } from '@gscwd-api/microservices';
 import { HttpException, Injectable } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';

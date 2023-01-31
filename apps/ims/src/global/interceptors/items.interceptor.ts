@@ -1,4 +1,4 @@
-import { ItemsView } from '@gscwd-api/app-entities';
+import { ItemsView } from '@gscwd-api/models';
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { map, Observable } from 'rxjs';
