@@ -1,11 +1,13 @@
+import { CrudModule } from '@gscwd-api/crud';
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { LeaveApplication } from '../../../../../../../libs/models/src/lib/databases/employee-monitoring/data/leave-application/leave-application.entity';
+import { LeaveApplicationController } from './leave-application.controller';
+import { LeaveApplicationService } from './leave-application.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LeaveApplication])],
-  providers: [],
-  controllers: [],
-  exports: [],
+  imports: [CrudModule.register(LeaveApplication)],
+  providers: [LeaveApplicationService],
+  controllers: [LeaveApplicationController],
+  exports: [LeaveApplicationService],
 })
 export class LeaveApplicationModule {}
