@@ -1,7 +1,7 @@
 import { CrudService } from '@gscwd-api/crud';
-import { CreateLeaveApplicationDatesDto, CreateLeaveApplicationDto, LeaveApplicationDates } from '@gscwd-api/models';
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { LeaveApplication } from 'libs/models/src/lib/databases/employee-monitoring/data/leave-application/leave-application.entity';
+import { CreateLeaveApplicationDto, LeaveApplicationDates } from '@gscwd-api/models';
+import { Injectable } from '@nestjs/common';
+import { LeaveApplication } from '@gscwd-api/models';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
 
 @Injectable()

@@ -1,5 +1,5 @@
 import { CreateLeaveApplicationDto } from '@gscwd-api/models';
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { LeaveApplicationService } from './leave-application.service';
 
 @Controller({ version: '1', path: '/leave-application' })

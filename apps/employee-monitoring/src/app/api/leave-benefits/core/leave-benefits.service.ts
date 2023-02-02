@@ -1,5 +1,5 @@
 import { CrudService } from '@gscwd-api/crud';
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateLeaveBenefitsDto, LeaveBenefits } from '@gscwd-api/models';
 
 @Injectable()

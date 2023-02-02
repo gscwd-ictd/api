@@ -1,5 +1,4 @@
-import { CreateLeaveApplicationDatesDto } from '@gscwd-api/models';
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { LeaveApplicationDatesService } from './leave-application-dates.service';
 
 @Controller('leave-application-dates')
