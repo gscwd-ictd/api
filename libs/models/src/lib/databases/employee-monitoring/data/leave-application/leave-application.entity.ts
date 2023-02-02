@@ -8,6 +8,9 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'leave_application_id' })
   id: string;
 
+  @Column({ name: 'employee_id_fk', type: 'uuid' })
+  employeeId: string;
+
   @OneToMany(() => LeaveBenefits, (leaveBenefits) => leaveBenefits.id)
   leaveBenefits: LeaveBenefits;
 
@@ -29,22 +32,22 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ name: 'spl_women', nullable: true })
   splWomen: string;
 
-  @Column({ name: 'for_masters_completion', type: 'bool' })
+  @Column({ name: 'for_masters_completion', type: 'bool', nullable: true })
   forMastersCompletion: boolean;
 
-  @Column({ name: 'for_bar_board_review', type: 'bool' })
+  @Column({ name: 'for_bar_board_review', type: 'bool', nullable: true })
   forBarBoardReview: boolean;
 
-  @Column({ name: 'study_leave_other' })
+  @Column({ name: 'study_leave_other', nullable: true })
   studyLeaveOther: string;
 
   @Column({ type: 'bool' })
   forMonetization: boolean;
 
-  @Column({ name: 'is_terminal_leave', type: 'bool' })
+  @Column({ name: 'is_terminal_leave', type: 'bool', nullable: true })
   isTerminalLeave: boolean;
 
-  @Column({ type: 'bool' })
+  @Column({ type: 'bool', nullable: true })
   requestedCommutation: boolean;
 
   @Column({ type: 'enum', enum: LeaveApplicationStatus, default: LeaveApplicationStatus.ONGOING })

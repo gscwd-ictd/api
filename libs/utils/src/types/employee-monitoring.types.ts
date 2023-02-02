@@ -6,7 +6,7 @@ export enum LeaveTypes {
 
 export enum CreditDistribution {
   YEARLY = 'yearly',
-  ANNUAL = 'annual',
+  MONTHLY = 'monthly',
 }
 
 export enum LeaveApplicationStatus {

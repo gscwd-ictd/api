@@ -17,7 +17,7 @@ export class CreateLeaveBenefitsDto {
   creditDistribution: CreditDistribution;
 
   @IsBoolean({ message: 'isMonetizable value must only be true of false' })
-  isMonitizable: boolean;
+  isMonetizable: boolean;
 
   @IsBoolean({ message: 'canBeCarriedOver value must only be true of false' })
   canBeCarriedOver: boolean;

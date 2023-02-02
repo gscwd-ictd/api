@@ -1,6 +1,8 @@
 import { LeaveApplicationStatus } from '@gscwd-api/utils';
 import { PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsDate, IsDateString, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsDate, IsDateString, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
+import { CreateLeaveApplicationDatesDto, LeaveApplicationDates } from '../leave-application-dates';
 import { CreateLeaveBenefitsDto } from '../leave-benefits/leave-benefits.dto';
 import { LeaveBenefits } from '../leave-benefits/leave-benefits.entity';
 
@@ -8,40 +10,43 @@ export class CreateLeaveApplicationDto {
   @IsUUID(4, { message: 'Invalid Leave benefits UUID value.' })
   leaveBenefits: LeaveBenefits;
 
+  @IsUUID(4, { message: 'Invalid employeeId value.' })
+  employeeId: string;
+
   @IsDate({ message: 'Invalid Date of Filing' })
   dateOfFiling: Date;
 
   @IsOptional()
   @IsString({ message: 'Specify place if travel is in Philippines' })
-  inPhilippines: string;
+  inPhilippines?: string;
 
   @IsOptional()
   @IsString({ message: 'Specify place if travel is abroad' })
-  abroad: string;
+  abroad?: string;
 
   @IsOptional()
   @IsString({ message: 'specify illness if admitted' })
-  inHospital: string;
+  inHospital?: string;
 
   @IsOptional()
   @IsString({ message: 'specify illness if out patient' })
-  outHospital: string;
+  outHospital?: string;
 
   @IsOptional()
   @IsString({ message: 'specify in case of leave benefits for women.' })
-  splWomen: string;
+  splWomen?: string;
 
   @IsOptional()
   @IsBoolean({ message: 'For bar board review value must only be true of false' })
-  forMastersCompletion: boolean;
+  forMastersCompletion?: boolean;
 
   @IsOptional()
   @IsBoolean({ message: 'For bar board review value must only be true of false' })
-  forBarBoardReview: boolean;
+  forBarBoardReview?: boolean;
 
   @IsOptional()
   @IsString({ message: 'Specify other study leave details.' })
-  studyLeaveOther: string;
+  studyLeaveOther?: string;
 
   @IsOptional()
   @IsBoolean({ message: 'forMonetization value must only be true of false' })
@@ -57,6 +62,11 @@ export class CreateLeaveApplicationDto {
 
   @IsEnum(LeaveApplicationStatus, { message: 'Invalid leave application status' })
   status: LeaveApplicationStatus;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateLeaveApplicationDatesDto)
+  leaveApplicationDates: CreateLeaveApplicationDatesDto[];
 }
 
 export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) {}

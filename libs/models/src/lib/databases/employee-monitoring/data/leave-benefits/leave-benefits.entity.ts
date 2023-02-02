@@ -19,8 +19,8 @@ export class LeaveBenefits extends DatabaseEntity implements IEntity {
   @Column({ name: 'credit_distribution', type: 'enum', enum: CreditDistribution })
   creditDistribution: CreditDistribution;
 
-  @Column({ name: 'monitizeable' })
-  isMonitizeable: boolean;
+  @Column({ name: 'monetizable' })
+  isMonetizable: boolean;
 
   @Column({ name: 'can_be_carried_over' })
   canBeCarriedOver: boolean;

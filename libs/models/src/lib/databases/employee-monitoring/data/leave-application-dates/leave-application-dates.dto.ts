@@ -1,6 +1,8 @@
-import { LeaveApplication } from '../leave-application/leave-application.entity';
+import { IsDate, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateLeaveApplicationDatesDto {
-  leaveApplicationId: LeaveApplication;
+  leaveApplicationId: string;
+
+  @IsDate()
   leaveDate: Date;
 }
