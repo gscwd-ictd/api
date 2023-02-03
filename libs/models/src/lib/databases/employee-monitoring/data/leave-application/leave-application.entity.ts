@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { LeaveBenefits } from '../leave-benefits/leave-benefits.entity';
 import { LeaveApplicationStatus } from '@gscwd-api/utils';
@@ -11,8 +11,9 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ name: 'employee_id_fk', type: 'uuid' })
   employeeId: string;
 
-  @OneToMany(() => LeaveBenefits, (leaveBenefits) => leaveBenefits.id)
-  leaveBenefits: LeaveBenefits;
+  @JoinColumn({ name: 'leave_benefits_id_fk' })
+  @ManyToOne(() => LeaveBenefits, (leaveBenefits) => leaveBenefits.id)
+  leaveBenefitsId: LeaveBenefits;
 
   @Column({ name: 'date_of_filing' })
   dateOfFiling: Date;
@@ -41,13 +42,13 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ name: 'study_leave_other', nullable: true })
   studyLeaveOther: string;
 
-  @Column({ type: 'bool' })
+  @Column({ name: 'for_monetization', type: 'bool' })
   forMonetization: boolean;
 
   @Column({ name: 'is_terminal_leave', type: 'bool', nullable: true })
   isTerminalLeave: boolean;
 
-  @Column({ type: 'bool', nullable: true })
+  @Column({ name: 'requested_commutation', type: 'bool', nullable: true })
   requestedCommutation: boolean;
 
   @Column({ type: 'enum', enum: LeaveApplicationStatus, default: LeaveApplicationStatus.ONGOING })

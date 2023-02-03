@@ -4,7 +4,7 @@ import { LeaveApplication } from '../leave-application/leave-application.entity'
 
 @Entity()
 export class LeaveApplicationDates extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', { name: 'leave_application_date_id' })
   id: string;
 
   @JoinColumn({ name: 'leave_application_id_fk' })

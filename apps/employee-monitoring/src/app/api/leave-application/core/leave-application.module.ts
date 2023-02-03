@@ -5,6 +5,7 @@ import { LeaveApplicationController } from './leave-application.controller';
 import { LeaveApplicationService } from './leave-application.service';
 import { LeaveApplicationDatesModule } from '../../leave-application-dates/core/leave-application-dates.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     LeaveApplicationDatesModule,
     ClientsModule.register([
       {
-        name: 'EMPLOYEE_MS',
+        name: MS_CLIENT,
         transport: Transport.REDIS,
         options: {
           host: process.env.EMPLOYEE_REDIS_HOST,
@@ -21,7 +22,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       },
     ]),
   ],
-  providers: [LeaveApplicationService],
+  providers: [LeaveApplicationService, MicroserviceClient],
   controllers: [LeaveApplicationController],
   exports: [LeaveApplicationService],
 })

@@ -1,5 +1,5 @@
 import { CreateLeaveBenefitsDto } from '@gscwd-api/models';
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { LeaveBenefitsService } from './leave-benefits.service';
 
 @Controller({ version: '1', path: 'leave-benefits' })
@@ -9,5 +9,10 @@ export class LeaveBenefitsController {
   @Post()
   async createLeaveBenefits(@Body() leaveBenefitsDTO: CreateLeaveBenefitsDto) {
     return await this.leaveBenefitsService.createLeaveBenefits(leaveBenefitsDTO);
+  }
+
+  @Get()
+  async getAllLeaveBenefits() {
+    return await this.leaveBenefitsService.crud().findAll();
   }
 }

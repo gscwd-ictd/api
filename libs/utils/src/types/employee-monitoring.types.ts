@@ -15,3 +15,11 @@ export enum LeaveApplicationStatus {
   DISAPPROVED = 'disapproved',
   CANCELLED = 'cancelled',
 }
+
+export type LeaveApplicationType = {
+  id: string;
+  leaveName: string;
+  dateOfFiling: Date;
+  leaveDates: string;
+  status: LeaveApplicationStatus;
+};

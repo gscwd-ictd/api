@@ -8,7 +8,7 @@ import { LeaveBenefits } from '../leave-benefits/leave-benefits.entity';
 
 export class CreateLeaveApplicationDto {
   @IsUUID(4, { message: 'Invalid Leave benefits UUID value.' })
-  leaveBenefits: LeaveBenefits;
+  leaveBenefitId: LeaveBenefits;
 
   @IsUUID(4, { message: 'Invalid employeeId value.' })
   employeeId: string;

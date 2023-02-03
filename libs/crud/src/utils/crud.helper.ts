@@ -15,8 +15,8 @@ export abstract class CrudHelper<T extends ObjectLiteral> {
     return this.myCrud.getRepository();
   }
 
-  async rawQuery(query: string) {
-    return await this.getRepository().query(query);
+  async rawQuery<T, K>(query: string, parameters?: T[]): Promise<K> {
+    return await this.getRepository().query(query, parameters);
   }
 
   public queryBuilder(alias?: string, runner?: QueryRunner) {
