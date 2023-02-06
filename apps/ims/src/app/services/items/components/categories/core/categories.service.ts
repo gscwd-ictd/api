@@ -1,20 +1,19 @@
-import { CreateItemCategoryDto, ItemCategory, UpdateItemCategoryDto } from '@gscwd-api/models';
+import { CreateItemCategoryDto, UpdateItemCategoryDto } from '@gscwd-api/models';
 import { ItemCategoriesPatterns, MicroserviceClient } from '@gscwd-api/microservices';
 import { HttpException, Injectable } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
-import { Observable } from 'rxjs';
 
 @Injectable()
 export class CategoriesService {
   constructor(private readonly microserviceClient: MicroserviceClient) {}
 
   async create(data: CreateItemCategoryDto) {
-    return (await this.microserviceClient.call({
+    return await this.microserviceClient.call({
       action: 'send',
       pattern: ItemCategoriesPatterns.CREATE,
       payload: data,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    })) as ItemCategory;
+    });
   }
 
   async findAll({ page, limit }: IPaginationOptions) {

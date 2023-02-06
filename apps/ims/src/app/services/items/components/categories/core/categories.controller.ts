@@ -1,7 +1,6 @@
 import { CreateItemCategoryDto, UpdateItemCategoryDto } from '@gscwd-api/models';
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
-import { map } from 'rxjs';
 import { CategoriesService } from './categories.service';
 
 @Controller({ version: '1', path: 'items/info/categories' })
