@@ -15,10 +15,10 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@gscwd-api/models": ["libs/models/src/index.ts"],
       "@gscwd-api/crud": ["libs/crud/src/index.ts"],
       "@gscwd-api/generator": ["libs/generator/src/index.ts"],
       "@gscwd-api/microservices": ["libs/microservices/src/index.ts"],
+      "@gscwd-api/models": ["libs/models/src/index.ts"],
       "@gscwd-api/password": ["libs/password/src/index.ts"],
       "@gscwd-api/utils": ["libs/utils/src/index.ts"]
     }
