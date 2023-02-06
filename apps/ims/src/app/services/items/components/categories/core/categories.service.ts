@@ -2,6 +2,7 @@ import { CreateItemCategoryDto, ItemCategory, UpdateItemCategoryDto } from '@gsc
 import { ItemCategoriesPatterns, MicroserviceClient } from '@gscwd-api/microservices';
 import { HttpException, Injectable } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class CategoriesService {
