@@ -2,9 +2,7 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveApplicationDto, LeaveApplicationDates } from '@gscwd-api/models';
 import { HttpException, Injectable } from '@nestjs/common';
 import { LeaveApplication } from '@gscwd-api/models';
-import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
-import { stringify } from 'querystring';
-import { LeaveApplicationStatus, LeaveApplicationType } from '@gscwd-api/utils';
+import { LeaveApplicationType } from '@gscwd-api/utils';
 
 @Injectable()
 export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
