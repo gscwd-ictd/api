@@ -1,8 +1,8 @@
-import { IEntity } from '@gscwd-api/crud';
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'account_group' })
-export class AccountGroup extends BaseEntity implements IEntity {
+export class AccountGroup extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'account_group_id' })
   id: string;
 
