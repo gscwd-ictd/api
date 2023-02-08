@@ -4,6 +4,7 @@ import { LaborType } from '../api/budget/components/labor-type';
 import { MaterialCost } from '../api/budget/components/material-cost';
 import { ProjectDetail } from '../api/budget/components/project-detail';
 import { ValueAddedTax } from '../api/budget/components/value-added-tax';
+import { AccountGroup } from '../api/chart-of-accounts/components/account-groups';
 
 export const DB_ENTITIES = [
   // table entities
@@ -13,4 +14,7 @@ export const DB_ENTITIES = [
   ProjectDetail,
   ValueAddedTax,
   MaterialCost,
+
+  //Chart Of Accounts
+  AccountGroup,
 ];
