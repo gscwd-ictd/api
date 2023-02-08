@@ -27,14 +27,15 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
   async getPassSlips(employeeId: string) {
     const passSlips = <PassSlipApproval[]>(
-      await this.passSlipApprovalService.crud().findAll({ find: { relations: { passSlipId: true }, select: { supervisorId: true, status: true } } })
+      await this.passSlipApprovalService
+        .crud()
+        .findAll({ find: { relations: { passSlipId: true }, select: { supervisorId: true, status: true }, where: { passSlipId: { employeeId } } } })
     );
 
     const passSlipsReturn = await Promise.all(
       passSlips.map(async (passSlip) => {
         const { passSlipId, ...restOfPassSlip } = passSlip;
 
-        console.log(passSlip.passSlipId.employeeId);
         const names = <object>await this.client.call({
           action: 'send',
           payload: { employeeId: passSlip.passSlipId.employeeId, supervisorId: passSlip.supervisorId },
