@@ -36,7 +36,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       passSlips.map(async (passSlip) => {
         const { passSlipId, ...restOfPassSlip } = passSlip;
 
-        const names = <object>await this.client.call({
+        const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
           action: 'send',
           payload: { employeeId: passSlip.passSlipId.employeeId, supervisorId: passSlip.supervisorId },
           pattern: 'get_employee_supervisor_names',
