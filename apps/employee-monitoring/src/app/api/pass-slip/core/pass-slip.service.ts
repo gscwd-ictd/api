@@ -1,10 +1,16 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PassSlip, PassSlipApproval, PassSlipDto } from '@gscwd-api/models';
+import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
+import { MicroserviceClient } from '@gscwd-api/microservices';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
-  constructor(private readonly crudService: CrudService<PassSlip>) {
+  constructor(
+    private readonly crudService: CrudService<PassSlip>,
+    private readonly passSlipApprovalService: PassSlipApprovalService,
+    private readonly client: MicroserviceClient
+  ) {
     super(crudService);
   }
 
@@ -17,5 +23,30 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       return { passSlipResult, approvalResult };
     });
     return passSlip;
+  }
+
+  async getPassSlips(employeeId: string) {
+    const passSlips = <PassSlipApproval[]>(
+      await this.passSlipApprovalService
+        .crud()
+        .findAll({ find: { relations: { passSlipId: true }, select: { supervisorId: true, status: true }, where: { passSlipId: { employeeId } } } })
+    );
+
+    const passSlipsReturn = await Promise.all(
+      passSlips.map(async (passSlip) => {
+        const { passSlipId, ...restOfPassSlip } = passSlip;
+
+        const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
+          action: 'send',
+          payload: { employeeId: passSlip.passSlipId.employeeId, supervisorId: passSlip.supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        });
+
+        return { ...passSlipId, ...names, ...restOfPassSlip };
+      })
+    );
+
+    return passSlipsReturn;
   }
 }
