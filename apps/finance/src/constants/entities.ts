@@ -5,9 +5,10 @@ import { MaterialCost } from '../api/budget/components/material-cost';
 import { ProjectDetail } from '../api/budget/components/project-detail';
 import { ValueAddedTax } from '../api/budget/components/value-added-tax';
 import { AccountGroup } from '../api/chart-of-accounts/components/account-groups';
+import { MajorAccountGroup } from '../api/chart-of-accounts/components/major-account-groups';
 
 export const DB_ENTITIES = [
-  // table entities
+  //Budget
   EquipmentCost,
   LaborCost,
   LaborType,
@@ -17,4 +18,5 @@ export const DB_ENTITIES = [
 
   //Chart Of Accounts
   AccountGroup,
+  MajorAccountGroup,
 ];
