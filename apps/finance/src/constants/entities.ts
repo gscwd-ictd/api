@@ -7,6 +7,7 @@ import { ValueAddedTax } from '../api/budget/components/value-added-tax';
 import { AccountGroup } from '../api/chart-of-accounts/components/account-groups';
 import { MajorAccountGroup } from '../api/chart-of-accounts/components/major-account-groups';
 import { SubMajorAccountGroup } from '../api/chart-of-accounts/components/sub-major-account-groups';
+import { GeneralLedgerContraAccountType } from '../api/general-ledger-contra-account-types';
 
 export const DB_ENTITIES = [
   //Budget
@@ -16,6 +17,8 @@ export const DB_ENTITIES = [
   ProjectDetail,
   ValueAddedTax,
   MaterialCost,
+
+  GeneralLedgerContraAccountType,
 
   //Chart Of Accounts
   AccountGroup,
