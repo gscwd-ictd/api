@@ -13,7 +13,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { AccountGroupsService } from './account-groups.service';
+import { AccountGroupService } from './account-groups.service';
 import { CreateAccountGroupDto, UpdateAccountGroupDto } from '../data/account-groups.dto';
 import { ICrudRoutes } from '@gscwd-api/crud';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -21,12 +21,12 @@ import { UpdateResult, DeleteResult } from 'typeorm';
 import { AccountGroup } from '../data/account-groups.entity';
 
 @Controller({ version: '1', path: 'chart-of-accounts/account-groups' })
-export class AccountGroupsController implements ICrudRoutes {
-  constructor(private readonly accountGroupsService: AccountGroupsService) {}
+export class AccountGroupController implements ICrudRoutes {
+  constructor(private readonly accountGroupService: AccountGroupService) {}
 
   @Post()
   async create(@Body() data: CreateAccountGroupDto): Promise<AccountGroup> {
-    return await this.accountGroupsService.crud().create({
+    return await this.accountGroupService.crud().create({
       dto: data,
       onError: () => new BadRequestException(),
     });
@@ -37,7 +37,7 @@ export class AccountGroupsController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<AccountGroup> | AccountGroup[]> {
-    return await this.accountGroupsService.crud().findAll({
+    return await this.accountGroupService.crud().findAll({
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
     });
@@ -45,7 +45,7 @@ export class AccountGroupsController implements ICrudRoutes {
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<AccountGroup> {
-    return await this.accountGroupsService.crud().findOneBy({
+    return await this.accountGroupService.crud().findOneBy({
       findBy: { id },
       onError: () => new NotFoundException(),
     });
@@ -53,7 +53,7 @@ export class AccountGroupsController implements ICrudRoutes {
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateAccountGroupDto): Promise<UpdateResult> {
-    return await this.accountGroupsService.crud().update({
+    return await this.accountGroupService.crud().update({
       updateBy: { id },
       dto: data,
       onError: () => new BadRequestException(),
@@ -62,7 +62,7 @@ export class AccountGroupsController implements ICrudRoutes {
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.accountGroupsService.crud().delete({
+    return await this.accountGroupService.crud().delete({
       deleteBy: { id },
       onError: () => new BadRequestException(),
     });

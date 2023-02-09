@@ -13,20 +13,20 @@ import {
   NotFoundException,
   Put,
 } from '@nestjs/common';
-import { MajorAccountGroupsService } from './major-account-groups.service';
-import { CreateMajorAccountGroupDto, UpdateMajorAccountGroupDto } from '../data/major-account-group.dto';
+import { MajorAccountGroupService } from './major-account-groups.service';
+import { CreateMajorAccountGroupDto, UpdateMajorAccountGroupDto } from '../data/major-account-groups.dto';
 import { ICrudRoutes } from '@gscwd-api/crud';
-import { MajorAccountGroup } from '../data/major-account-group.entity';
+import { MajorAccountGroup } from '../data/major-account-groups.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { DeleteResult, UpdateResult } from 'typeorm';
 
 @Controller({ version: '1', path: 'chart-of-accounts/major-account-groups' })
-export class MajorAccountGroupsController implements ICrudRoutes {
-  constructor(private readonly majorAccountGroupsService: MajorAccountGroupsService) {}
+export class MajorAccountGroupController implements ICrudRoutes {
+  constructor(private readonly majorAccountGroupService: MajorAccountGroupService) {}
 
   @Post()
   async create(@Body() data: CreateMajorAccountGroupDto): Promise<MajorAccountGroup> {
-    return await this.majorAccountGroupsService.crud().create({
+    return await this.majorAccountGroupService.crud().create({
       dto: data,
       onError: () => new BadRequestException(),
     });
@@ -37,7 +37,7 @@ export class MajorAccountGroupsController implements ICrudRoutes {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<MajorAccountGroup> | MajorAccountGroup[]> {
-    return await this.majorAccountGroupsService.crud().findAll({
+    return await this.majorAccountGroupService.crud().findAll({
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
     });
@@ -45,7 +45,7 @@ export class MajorAccountGroupsController implements ICrudRoutes {
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<MajorAccountGroup> {
-    return await this.majorAccountGroupsService.crud().findOneBy({
+    return await this.majorAccountGroupService.crud().findOneBy({
       findBy: { id },
       onError: () => new NotFoundException(),
     });
@@ -53,7 +53,7 @@ export class MajorAccountGroupsController implements ICrudRoutes {
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateMajorAccountGroupDto): Promise<UpdateResult> {
-    return await this.majorAccountGroupsService.crud().update({
+    return await this.majorAccountGroupService.crud().update({
       updateBy: { id },
       dto: data,
       onError: () => new BadRequestException(),
@@ -62,7 +62,7 @@ export class MajorAccountGroupsController implements ICrudRoutes {
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return await this.majorAccountGroupsService.crud().delete({
+    return await this.majorAccountGroupService.crud().delete({
       deleteBy: { id },
       onError: () => new BadRequestException(),
     });

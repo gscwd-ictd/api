@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
-import { AccountGroupsModule } from '../components/account-groups';
-import { MajorAccountGroupsModule } from '../components/major-account-groups';
-import { ChartOfAccountsController } from './chart-of-accounts.controller';
-import { ChartOfAccountsService } from './chart-of-accounts.service';
+import { AccountGroupModule } from '../components/account-groups';
+import { MajorAccountGroupModule } from '../components/major-account-groups';
+import { SubMajorAccountGroupModule } from '../components/sub-major-account-groups';
+import { ChartOfAccountController } from './chart-of-accounts.controller';
+import { ChartOfAccountService } from './chart-of-accounts.service';
 
 @Module({
-  imports: [AccountGroupsModule, MajorAccountGroupsModule],
-  providers: [ChartOfAccountsService],
-  controllers: [ChartOfAccountsController],
+  imports: [AccountGroupModule, MajorAccountGroupModule, SubMajorAccountGroupModule],
+  providers: [ChartOfAccountService],
+  controllers: [ChartOfAccountController],
 })
-export class ChartOfAccountsModule {}
+export class ChartOfAccountModule {}

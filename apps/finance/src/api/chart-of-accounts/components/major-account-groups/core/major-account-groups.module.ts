@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { MajorAccountGroupsService } from './major-account-groups.service';
-import { MajorAccountGroupsController } from './major-account-groups.controller';
+import { MajorAccountGroupService } from './major-account-groups.service';
+import { MajorAccountGroupController } from './major-account-groups.controller';
 import { CrudModule } from '@gscwd-api/crud';
-import { MajorAccountGroup } from '../data/major-account-group.entity';
+import { MajorAccountGroup } from '../data/major-account-groups.entity';
 
 @Module({
   imports: [CrudModule.register(MajorAccountGroup)],
-  controllers: [MajorAccountGroupsController],
-  providers: [MajorAccountGroupsService],
-  exports: [MajorAccountGroupsService],
+  controllers: [MajorAccountGroupController],
+  providers: [MajorAccountGroupService],
+  exports: [MajorAccountGroupService],
 })
-export class MajorAccountGroupsModule {}
+export class MajorAccountGroupModule {}

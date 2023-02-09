@@ -1,7 +1,7 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({ name: 'account_group' })
+@Entity({ name: 'account_groups' })
 export class AccountGroup extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'account_group_id' })
   id: string;

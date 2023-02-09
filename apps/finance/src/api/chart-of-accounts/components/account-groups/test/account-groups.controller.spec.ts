@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AccountGroupsController } from '../core/account-groups.controller';
-import { AccountGroupsService } from '../core/account-groups.service';
+import { AccountGroupController } from '../core/account-groups.controller';
+import { AccountGroupService } from '../core/account-groups.service';
 
 describe('AccountGroupsController', () => {
-  let controller: AccountGroupsController;
+  let controller: AccountGroupController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AccountGroupsController],
-      providers: [AccountGroupsService],
+      controllers: [AccountGroupController],
+      providers: [AccountGroupService],
     }).compile();
 
-    controller = module.get<AccountGroupsController>(AccountGroupsController);
+    controller = module.get<AccountGroupController>(AccountGroupController);
   });
 
   it('should be defined', () => {

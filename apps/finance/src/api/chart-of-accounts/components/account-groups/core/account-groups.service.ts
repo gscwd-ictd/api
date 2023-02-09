@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AccountGroup } from '../data/account-groups.entity';
 
 @Injectable()
-export class AccountGroupsService extends CrudHelper<AccountGroup> {
+export class AccountGroupService extends CrudHelper<AccountGroup> {
   constructor(private readonly crudService: CrudService<AccountGroup>) {
     super(crudService);
   }
