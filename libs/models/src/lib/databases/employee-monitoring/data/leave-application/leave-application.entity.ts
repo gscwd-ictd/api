@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { LeaveBenefits } from '../leave-benefits/leave-benefits.entity';
 import { LeaveApplicationStatus } from '@gscwd-api/utils';
