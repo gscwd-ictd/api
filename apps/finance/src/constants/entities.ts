@@ -1,13 +1,10 @@
+import { AccountGroup, GeneralLedgerAccount, GeneralLedgerContraAccountType, MajorAccountGroup, SubMajorAccountGroup } from '@gscwd-api/models';
 import { EquipmentCost } from '../api/budget/components/equipment-cost';
 import { LaborCost } from '../api/budget/components/labor-cost';
 import { LaborType } from '../api/budget/components/labor-type';
 import { MaterialCost } from '../api/budget/components/material-cost';
 import { ProjectDetail } from '../api/budget/components/project-detail';
 import { ValueAddedTax } from '../api/budget/components/value-added-tax';
-import { AccountGroup } from '../api/chart-of-accounts/components/account-groups';
-import { MajorAccountGroup } from '../api/chart-of-accounts/components/major-account-groups';
-import { SubMajorAccountGroup } from '../api/chart-of-accounts/components/sub-major-account-groups';
-import { GeneralLedgerContraAccountType } from '../api/general-ledger-contra-account-types';
 
 export const DB_ENTITIES = [
   //Budget
@@ -18,10 +15,10 @@ export const DB_ENTITIES = [
   ValueAddedTax,
   MaterialCost,
 
-  GeneralLedgerContraAccountType,
-
   //Chart Of Accounts
   AccountGroup,
   MajorAccountGroup,
   SubMajorAccountGroup,
+  GeneralLedgerContraAccountType,
+  GeneralLedgerAccount,
 ];
