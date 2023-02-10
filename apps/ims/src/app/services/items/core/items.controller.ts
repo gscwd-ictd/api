@@ -1,5 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query, UseInterceptors } from '@nestjs/common';
-import { FindAllItemsInterceptor, FindItemByIdInterceptor } from '../../../../global/interceptors';
+import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { ItemsService } from './items.service';
 
@@ -7,15 +6,13 @@ import { ItemsService } from './items.service';
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
-  @UseInterceptors(FindAllItemsInterceptor)
   @Get()
   async findAll(@Query() options: IPaginationOptions) {
     return await this.itemsService.findAllItemsFromView(options);
   }
 
-  @UseInterceptors(FindItemByIdInterceptor)
   @Get(':id')
   async findById(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.itemsService.findItemFromViewById(id);
+    return await this.itemsService.findItemByIdFromView(id);
   }
 }

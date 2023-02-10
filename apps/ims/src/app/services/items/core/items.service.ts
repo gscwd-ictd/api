@@ -1,4 +1,4 @@
-import { ItemsView, MicroserviceClient } from '@gscwd-api/microservices';
+import { ItemsViewPatterns, MicroserviceClient } from '@gscwd-api/microservices';
 import { HttpException, Injectable } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 
@@ -9,16 +9,16 @@ export class ItemsService {
   async findAllItemsFromView({ page, limit }: IPaginationOptions) {
     return await this.microserviceClient.call({
       action: 'send',
-      pattern: ItemsView.FIND_ALL,
+      pattern: ItemsViewPatterns.FIND_ALL,
       payload: { page, limit },
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     });
   }
 
-  async findItemFromViewById(id: string) {
+  async findItemByIdFromView(id: string) {
     return await this.microserviceClient.call({
       action: 'send',
-      pattern: ItemsView.FIND_BY_ID,
+      pattern: ItemsViewPatterns.FIND_BY_ID,
       payload: { id },
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     });
