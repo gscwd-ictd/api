@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { DatabaseConfig } from '../config';
+import { API_MODULES } from '../constants';
 
 @Module({
   imports: [
@@ -11,6 +12,8 @@ import { DatabaseConfig } from '../config';
 
     // typeorm config to connect to postgres db
     TypeOrmModule.forRootAsync({ useClass: DatabaseConfig }),
+
+    ...API_MODULES,
   ],
 })
 export class AppModule {}
