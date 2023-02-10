@@ -1,3 +1,5 @@
+import { ICrudRoutes } from '@gscwd-api/crud';
+import { CreateGeneralLedgerContraAccountTypeDto, GeneralLedgerContraAccountType, UpdateGeneralLedgerContraAccountTypeDto } from '@gscwd-api/models';
 import {
   Controller,
   Get,
@@ -15,12 +17,10 @@ import {
 } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { DeleteResult, UpdateResult } from 'typeorm';
-import { CreateGeneralLedgerContraAccountTypeDto, UpdateGeneralLedgerContraAccountTypeDto } from '../data/general-ledger-contra-account-types.dto';
-import { GeneralLedgerContraAccountType } from '../data/general-ledger-contra-account-types.entity';
 import { GeneralLedgerContraAccountTypeService } from './general-ledger-contra-account-type.service';
 
 @Controller({ version: '1', path: 'general-ledger-contra-account-types' })
-export class GeneralLedgerContraAccountTypeController {
+export class GeneralLedgerContraAccountTypeController implements ICrudRoutes {
   constructor(private readonly generalLedgerContraAccountTypeService: GeneralLedgerContraAccountTypeService) {}
 
   @Post()

@@ -14,11 +14,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AccountGroupService } from './account-groups.service';
-import { CreateAccountGroupDto, UpdateAccountGroupDto } from '../data/account-groups.dto';
 import { ICrudRoutes } from '@gscwd-api/crud';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { UpdateResult, DeleteResult } from 'typeorm';
-import { AccountGroup } from '../data/account-groups.entity';
+import { AccountGroup, CreateAccountGroupDto, UpdateAccountGroupDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'chart-of-accounts/account-groups' })
 export class AccountGroupController implements ICrudRoutes {

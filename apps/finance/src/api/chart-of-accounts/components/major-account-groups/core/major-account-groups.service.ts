@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
+import { MajorAccountGroup } from '@gscwd-api/models';
 import { Injectable } from '@nestjs/common';
-import { MajorAccountGroup } from '../data/major-account-groups.entity';
 
 @Injectable()
 export class MajorAccountGroupService extends CrudHelper<MajorAccountGroup> {

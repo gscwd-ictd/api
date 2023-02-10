@@ -14,11 +14,10 @@ import {
   Put,
 } from '@nestjs/common';
 import { MajorAccountGroupService } from './major-account-groups.service';
-import { CreateMajorAccountGroupDto, UpdateMajorAccountGroupDto } from '../data/major-account-groups.dto';
 import { ICrudRoutes } from '@gscwd-api/crud';
-import { MajorAccountGroup } from '../data/major-account-groups.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { DeleteResult, UpdateResult } from 'typeorm';
+import { CreateMajorAccountGroupDto, MajorAccountGroup, UpdateMajorAccountGroupDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'chart-of-accounts/major-account-groups' })
 export class MajorAccountGroupController implements ICrudRoutes {

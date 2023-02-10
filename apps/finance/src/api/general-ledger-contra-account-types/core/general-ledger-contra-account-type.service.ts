@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
+import { GeneralLedgerContraAccountType } from '@gscwd-api/models';
 import { Injectable } from '@nestjs/common';
-import { GeneralLedgerContraAccountType } from '../data/general-ledger-contra-account-types.entity';
 
 @Injectable()
 export class GeneralLedgerContraAccountTypeService extends CrudHelper<GeneralLedgerContraAccountType> {

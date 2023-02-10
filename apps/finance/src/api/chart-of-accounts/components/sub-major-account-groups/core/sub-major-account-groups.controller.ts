@@ -1,4 +1,5 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
+import { CreateSubMajorAccountGroupDto, SubMajorAccountGroup, UpdateSubMajorAccountGroupDto } from '@gscwd-api/models';
 import {
   Controller,
   Get,
@@ -16,8 +17,6 @@ import {
 } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { DeleteResult, UpdateResult } from 'typeorm';
-import { CreateSubMajorAccountGroupDto, UpdateSubMajorAccountGroupDto } from '../data/sub-major-account-groups.dto';
-import { SubMajorAccountGroup } from '../data/sub-major-account-groups.entity';
 import { SubMajorAccountGroupService } from './sub-major-account-groups.service';
 
 @Controller({ version: '1', path: 'chart-of-accounts/sub-major-account-groups' })
