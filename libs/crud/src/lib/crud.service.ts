@@ -164,4 +164,8 @@ export class CrudService<T extends ObjectLiteral> {
   public getDatasource() {
     return this.datasource;
   }
+
+  public getManager() {
+    return this.datasource.manager;
+  }
 }

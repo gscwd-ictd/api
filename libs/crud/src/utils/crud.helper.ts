@@ -28,6 +28,6 @@ export abstract class CrudHelper<T extends ObjectLiteral> {
   }
 
   public getManager() {
-    return this.getDatasource().manager;
+    return this.myCrud.getManager();
   }
 }
