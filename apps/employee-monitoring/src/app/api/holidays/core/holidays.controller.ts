@@ -1,6 +1,5 @@
 import { HolidaysDto } from '@gscwd-api/models';
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
 import { HolidaysService } from './holidays.service';
 
 @Controller({ version: '1', path: 'holidays' })
