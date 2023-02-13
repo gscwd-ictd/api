@@ -42,3 +42,29 @@ export enum PassSlipApprovalStatus {
   ONGOING = 'ongoing',
   DISAPPROVED = 'disapproved',
 }
+
+export enum HolidayType {
+  REGULAR = 'regular',
+  SPECIAL_NON_WORKING = 'special non-working',
+}
+
+export enum ScheduleType {
+  REGULAR = 'regular',
+  PUMPING_STATION = 'pumping station',
+  FLEXIBLE = 'flexible',
+}
+
+export enum ScheduleShift {
+  MORNING = 'morning',
+  NIGHT = 'night',
+}
+
+export enum RestDays {
+  SUNDAY = 0,
+  MONDAY = 1,
+  TUESDAY = 2,
+  WEDNESDAY = 3,
+  THURSDAY = 4,
+  FRIDAY = 5,
+  SATURDAY = 6,
+}
