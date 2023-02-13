@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 import { PurchaseRequestDetails } from '../request-details';
 
 @Entity('requested_items')
+//TODO add unique constraint for 2 columns => details & itemId
 export class RequestedItem extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'requested_item_id' })
   id: string;
@@ -11,6 +12,7 @@ export class RequestedItem extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'request_details_id_fk' })
   details: PurchaseRequestDetails;
 
+  //! this should not be unique
   @Column({ name: 'item_id', type: 'uuid', unique: true })
   itemId: string;
 

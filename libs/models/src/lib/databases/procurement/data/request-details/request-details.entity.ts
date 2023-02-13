@@ -6,6 +6,7 @@ export class PurchaseRequestDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'request_details_id' })
   id: string;
 
+  //! add a unique constraint for this column
   @Column()
   code: string;
 
