@@ -38,6 +38,10 @@ export class GeneralLedgerAccountController implements ICrudRoutes {
   ): Promise<Pagination<GeneralLedgerAccount> | GeneralLedgerAccount[]> {
     return await this.generalLedgerAccountService.crud().findAll({
       pagination: { page, limit },
+      find: {
+        relations: { subMajorAccountGroup: true, generalLedgerContraAccountType: true },
+        select: { subMajorAccountGroup: { id: true, code: true, name: true }, generalLedgerContraAccountType: { id: true, code: true, name: true } },
+      },
       onError: () => new InternalServerErrorException(),
     });
   }

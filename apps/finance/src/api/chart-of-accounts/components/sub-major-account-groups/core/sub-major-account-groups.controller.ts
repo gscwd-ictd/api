@@ -38,6 +38,7 @@ export class SubMajorAccountGroupController implements ICrudRoutes {
   ): Promise<Pagination<SubMajorAccountGroup> | SubMajorAccountGroup[]> {
     return await this.subMajorAccountGroupsService.crud().findAll({
       pagination: { page, limit },
+      find: { relations: { majorAccountGroup: true }, select: { majorAccountGroup: { id: true, code: true, name: true } } },
       onError: () => new InternalServerErrorException(),
     });
   }

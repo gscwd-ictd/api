@@ -38,6 +38,7 @@ export class MajorAccountGroupController implements ICrudRoutes {
   ): Promise<Pagination<MajorAccountGroup> | MajorAccountGroup[]> {
     return await this.majorAccountGroupService.crud().findAll({
       pagination: { page, limit },
+      find: { relations: { accountGroup: true }, select: { accountGroup: { id: true, code: true, name: true } } },
       onError: () => new InternalServerErrorException(),
     });
   }
