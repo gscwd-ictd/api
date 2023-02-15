@@ -23,11 +23,21 @@ export abstract class CrudHelper<T extends ObjectLiteral> {
     return this.getRepository().createQueryBuilder(alias, runner);
   }
 
+  /**
+   * @deprecated Use a DataSource object directly
+   */
   public getDatasource() {
     return this.myCrud.getDatasource();
   }
 
+  /**
+   * @deprecated Access EntityManager from DataSource object directly
+   */
   public getManager() {
     return this.myCrud.getManager();
+  }
+
+  public getEntityTarget() {
+    return this.myCrud.getEntityTarget();
   }
 }
