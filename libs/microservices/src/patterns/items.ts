@@ -2,6 +2,7 @@ export enum ItemsViewPatterns {
   FIND_ALL = '31B09RDOJI',
   FIND_BY_ID = 'Y9XUILQCA3',
   FIND_SUMMARY_BY_ID = 'IFLKQMRFJA',
+  GET_ITEM_BALANCE = 'LPDQJDREVL',
 }
 
 export enum ItemPpeDetailsPatterns {
