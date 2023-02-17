@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { DataSource, EntityManager, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import {
   CRUD_SERVICE,
   CrudUpdateOptions,
@@ -243,7 +244,7 @@ export class CrudService<T extends ObjectLiteral> {
 
         try {
           // update a record in the database
-          return await entityManager.getRepository(this.getEntityTarget()).update(updateBy, dto);
+          return await entityManager.getRepository(TargetEntity).update(updateBy, dto as QueryDeepPartialEntity<T>);
 
           // catch the resulting error
         } catch (error) {
