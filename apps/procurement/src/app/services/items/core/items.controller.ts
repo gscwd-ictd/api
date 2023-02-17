@@ -17,4 +17,9 @@ export class ItemsController {
   async getItemById(@Param('id') id: string) {
     return await this.itemsService.getItemById(id);
   }
+
+  @Get('balance/:id')
+  async getItemBalance(@Param('id') id: string) {
+    return await this.itemsService.getItemBalance(id);
+  }
 }
