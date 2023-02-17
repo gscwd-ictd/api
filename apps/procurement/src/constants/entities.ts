@@ -1,3 +1,3 @@
-import { PurchaseRequestDetails, RequestedItem } from '@gscwd-api/models';
+import { PurchaseRequest, RequestForQuotation, RequestedItem } from '@gscwd-api/models';
 
-export const DB_ENTITIES = [PurchaseRequestDetails, RequestedItem];
+export const DB_ENTITIES = [PurchaseRequest, RequestedItem, RequestForQuotation];
