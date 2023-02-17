@@ -6,7 +6,7 @@ export class OrgStructureController {
   constructor(private readonly orgStructService: OrgStructureService) {}
 
   @Get()
-  async getOrganizationalStructure() {
+  async getAllOrgUnits() {
     return await this.orgStructService.getAllOrgUnits();
   }
 
