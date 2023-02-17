@@ -36,24 +36,24 @@ export type Item = Omit<RawItem, 'name' | 'createdAt' | 'updatedAt'> &
     category: string;
   };
 
-export type ItemDetails = Pick<Item, 'id' | 'code' | 'category'> & {
-  characteristic: string;
-  classification: string;
-  specifications: Omit<RawItemSpecification, 'reorderPoint' | 'reorderQuantity'> & {
-    unit: string;
-    reorder: {
-      point: number;
-      quantity: number;
+export type ItemDetails = Pick<Item, 'id' | 'code' | 'category'> &
+  Pick<RawItem, 'createdAt' | 'updatedAt'> & {
+    characteristic: string;
+    classification: string;
+    specifications: Omit<RawItemSpecification, 'reorderPoint' | 'reorderQuantity'> & {
+      unit: string;
+      reorder: {
+        point: number;
+        quantity: number;
+      };
     };
   };
-  meta: Pick<RawItem, 'createdAt' | 'updatedAt'>;
-};
 
 export type UnitDetails = Pick<RawUnitOfMeasure, 'name' | 'symbol'> & {
   type: string;
 };
 
-export type ItemSummary = {
+export type ItemInformation = {
   id: string;
   code: string;
   classification: string;
@@ -62,17 +62,18 @@ export type ItemSummary = {
   description: string;
 };
 
-export type ItemInformation = Pick<ItemSummary, 'id' | 'code' | 'classification'> &
-  Pick<ItemDetails, 'meta'> & {
-    characteristic: string;
-    specifications: {
-      item: string;
-      details: string;
-      description: string;
-      balance: string;
-      reorder: {
-        point: number;
-        quantity: number;
-      };
-    };
+export type ItemSummary = ItemInformation & {
+  balance: number;
+  unit: string;
+  reorder: {
+    point: number;
+    quantity: number;
   };
+};
+
+export type ItemBalance = {
+  code: string;
+  item: string;
+  details: string;
+  balance: number;
+};
