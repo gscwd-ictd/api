@@ -7,7 +7,7 @@ export class OrgStructureController {
 
   @Get()
   async getOrganizationalStructure() {
-    return await this.orgStructService.getOrganizationalStructure();
+    return await this.orgStructService.getAllOrgUnits();
   }
 
   @Get(':id')
