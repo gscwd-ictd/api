@@ -4,7 +4,7 @@ import { PurchaseRequest } from '../purchase-request';
 import { RequestForQuotation } from '../request-for-quotation';
 
 @Entity('requested_items')
-@Unique(['purchaseRequest', 'itemId'])
+@Unique(['purchaseRequest', 'itemId', 'requestForQuotation'])
 export class RequestedItem extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'requested_item_id' })
   id: string;
