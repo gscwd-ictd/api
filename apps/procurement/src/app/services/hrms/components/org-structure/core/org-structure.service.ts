@@ -6,7 +6,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 export class OrgStructureService {
   constructor(private readonly microserviceClient: MicroserviceClient) {}
 
-  async getOrganizationalStructure() {
+  async getAllOrgUnits() {
     return (await this.microserviceClient.call({
       action: 'send',
       pattern: OrganizationalStructurePatterns.GET_ORG,
