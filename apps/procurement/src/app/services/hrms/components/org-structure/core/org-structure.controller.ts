@@ -1,0 +1,17 @@
+import { Controller, Get, Param } from '@nestjs/common';
+import { OrgStructureService } from './org-structure.service';
+
+@Controller({ version: '1', path: 'org' })
+export class OrgStructureController {
+  constructor(private readonly orgStructService: OrgStructureService) {}
+
+  @Get()
+  async getOrganizationalStructure() {
+    return await this.orgStructService.getOrganizationalStructure();
+  }
+
+  @Get(':id')
+  async getOrgEntityById(@Param('id') id: string) {
+    return await this.orgStructService.getOrgUnitById(id);
+  }
+}

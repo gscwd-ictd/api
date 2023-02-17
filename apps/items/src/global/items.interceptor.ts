@@ -4,7 +4,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { map, Observable } from 'rxjs';
 
 @Injectable()
-export class FindAllItemsInterceptor implements NestInterceptor {
+export class FindAllItemSummariesInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
     return next.handle().pipe(
       map((result: Pagination<ItemsView>) => {
@@ -24,7 +24,29 @@ export class FindAllItemsInterceptor implements NestInterceptor {
 }
 
 @Injectable()
-export class FindItemByIdInterceptor implements NestInterceptor {
+export class FindItemSummaryInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
+    return next.handle().pipe(
+      map((item: ItemsView) => ({
+        id: item.details_id,
+        code: `${item.characteristic_code}-${item.classification_code}-${item.category_code}-${item.specification_code}`,
+        classification: item.classification_name,
+        item: item.category_name,
+        unit: item.unit_symbol,
+        details: item.specification_name,
+        description: item.description,
+        balance: item.balance,
+        reorder: {
+          point: item.reorder_point,
+          quantity: item.reorder_quantity,
+        },
+      }))
+    );
+  }
+}
+
+@Injectable()
+export class FindItemInfoByIdInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
     return next.handle().pipe(
       map((item: ItemsView) => ({
@@ -42,10 +64,22 @@ export class FindItemByIdInterceptor implements NestInterceptor {
             quantity: item.reorder_quantity,
           },
         },
-        meta: {
-          createdAt: item.created_at,
-          updatedAt: item.updated_at,
-        },
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+      }))
+    );
+  }
+}
+
+@Injectable()
+export class GetItemBalanceInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
+    return next.handle().pipe(
+      map((item: ItemsView) => ({
+        code: `${item.characteristic_code}-${item.classification_code}-${item.category_code}-${item.specification_code}`,
+        item: item.category_name,
+        details: item.specification_name,
+        balance: item.balance,
       }))
     );
   }
