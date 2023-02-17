@@ -6,8 +6,8 @@ export class OrgStructureController {
   constructor(private readonly orgStructService: OrgStructureService) {}
 
   @Get()
-  async getOrganizationalStructure() {
-    return await this.orgStructService.getOrganizationalStructure();
+  async getAllOrgUnits() {
+    return await this.orgStructService.getAllOrgUnits();
   }
 
   @Get(':id')
