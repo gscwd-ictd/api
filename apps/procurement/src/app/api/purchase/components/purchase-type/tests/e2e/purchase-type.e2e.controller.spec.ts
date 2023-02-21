@@ -31,7 +31,7 @@ describe('PurchaseTypeController', () => {
 
     app = await module.createNestApplication().init();
 
-    console.log(app);
+    console.log(app, 'add this');
 
     datasource = app.get(DataSource) as DataSource;
   });
