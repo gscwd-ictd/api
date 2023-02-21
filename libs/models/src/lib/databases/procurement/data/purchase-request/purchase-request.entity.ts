@@ -1,10 +1,22 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { PurchaseType } from '../purchase-type';
+
+enum Status {
+  PENDING = 'Pending',
+  APPROVED = 'Approved',
+  DISAPPROVED = 'Disapproved',
+  CANCELLED = 'Cancelled',
+}
 
 @Entity('purchase_requests')
 export class PurchaseRequest extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'pr_details_id' })
   id: string;
+
+  @ManyToOne(() => PurchaseType, (type) => type.id, { nullable: false })
+  @JoinColumn({ name: 'purchase_type_id_fk' })
+  purchaseType: PurchaseType;
 
   // TODO decide on purchase request code format
   @Column({ unique: true })
@@ -27,11 +39,6 @@ export class PurchaseRequest extends DatabaseEntity implements IEntity {
   @Column({ name: 'place_of_delivery' })
   deliveryPlace: string;
 
-  // TODO this is defined column -> shopping, svp, bidding
-  @Column()
-  type: string;
-
-  // TODO this is a defined column -> pending, approved, disapproved, cancelled
-  @Column({ default: 'Pending' })
-  status: string;
+  @Column({ type: 'enum', enum: Status, default: Status.PENDING })
+  status: Status;
 }

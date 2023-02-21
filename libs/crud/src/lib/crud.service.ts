@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { paginate } from 'nestjs-typeorm-paginate';
-import { DataSource, EntityManager, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { DataSource, DeleteResult, EntityManager, EntityTarget, ObjectLiteral, Repository, UpdateResult } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import {
   CRUD_SERVICE,
@@ -181,7 +181,7 @@ export class CrudService<T extends ObjectLiteral> {
         }
       },
 
-      findAll: async (options?: CrudFindAllOptions<T>) => {
+      findAll: async (options?: CrudFindAllOptions<T>): Promise<Pagination<T> | T[]> => {
         try {
           // check if options is not defined.
           if (options === undefined) return await entityManager.getRepository(TargetEntity).find();
@@ -202,7 +202,7 @@ export class CrudService<T extends ObjectLiteral> {
         }
       },
 
-      async findOne(options: CrudFindOneOptions<T>) {
+      async findOne(options: CrudFindOneOptions<T>): Promise<T> {
         // deconstruct options object
         const { find, onError } = options;
 
@@ -220,7 +220,7 @@ export class CrudService<T extends ObjectLiteral> {
         }
       },
 
-      findOneBy: async (options: CrudFindOneByOptions<T>) => {
+      findOneBy: async (options: CrudFindOneByOptions<T>): Promise<T> => {
         // deconstruct transactional find one by object
         const { findBy, onError } = options;
 
@@ -238,7 +238,7 @@ export class CrudService<T extends ObjectLiteral> {
         }
       },
 
-      async update(options: CrudUpdateOptions<T>) {
+      async update(options: CrudUpdateOptions<T>): Promise<UpdateResult> {
         // deconstruct options object
         const { updateBy, dto, onError } = options;
 
@@ -256,7 +256,7 @@ export class CrudService<T extends ObjectLiteral> {
         }
       },
 
-      async delete(options: CrudDeleteOptions<T>) {
+      async delete(options: CrudDeleteOptions<T>): Promise<DeleteResult> {
         // deconstruct options object
         const { deleteBy, softDelete = true, onError } = options;
 

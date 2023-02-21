@@ -26,18 +26,17 @@ export class PurchaseRequestService extends CrudHelper<PurchaseRequest> {
   }
 
   async tx_create(manager: EntityManager, prDto: CreatePrDto) {
-    return await this.crud()
-      .transact<PurchaseRequest>(manager)
-      .create({ dto: prDto, onError: () => new BadRequestException() });
+    return await this.crudService.transact<PurchaseRequest>(manager).create({
+      dto: prDto,
+      onError: () => new BadRequestException(),
+    });
   }
 
   async tx_findById(manager: EntityManager, id: string) {
-    return await this.crud()
-      .transact<PurchaseRequest>(manager)
-      .findOneBy({
-        findBy: { id },
-        onError: () => new NotFoundException(),
-      });
+    return await this.crudService.transact<PurchaseRequest>(manager).findOneBy({
+      findBy: { id },
+      onError: () => new NotFoundException(),
+    });
   }
 
   async createPr(purchaseRequest: CreatePurchaseRequestDto) {
@@ -61,11 +60,12 @@ export class PurchaseRequestService extends CrudHelper<PurchaseRequest> {
     const pr = (await this.crud().findAll({
       pagination: { page, limit },
       find: {
+        relations: { purchaseType: true },
         select: {
           id: true,
           code: true,
           purpose: true,
-          type: true,
+          purchaseType: { type: true },
           status: true,
           createdAt: true,
           updatedAt: true,
@@ -87,7 +87,7 @@ export class PurchaseRequestService extends CrudHelper<PurchaseRequest> {
       const items = await this.requestedItemService.tx_findItemsByPrDetailsId(manager, id);
 
       // get item info via items microservice
-      const itemInfo = await this.requestedItemService.ms_getItemInfo(items);
+      const itemInfo = await this.requestedItemService.ms_getItemsInfo(items);
 
       // get org name via hrms microservice
       const { name } = await this.orgStructureService.getOrgUnitById(pr.requestingOffice);

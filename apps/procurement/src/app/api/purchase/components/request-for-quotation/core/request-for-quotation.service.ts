@@ -22,18 +22,14 @@ export class RequestForQuotationService extends CrudHelper<RequestForQuotation> 
   }
 
   async tx_create(manager: EntityManager, rfqDto: CreateRfqDto) {
-    return await this.crud()
-      .transact<RequestForQuotation>(manager)
-      .create({
-        dto: rfqDto,
-        onError: () => new BadRequestException(),
-      });
+    return await this.crudService.transact<RequestForQuotation>(manager).create({
+      dto: rfqDto,
+      onError: () => new BadRequestException(),
+    });
   }
 
   async tx_findById(manager: EntityManager, id: string) {
-    return await this.crud()
-      .transact<RequestForQuotation>(manager)
-      .findOneBy({ findBy: { id }, onError: () => new NotFoundException() });
+    return await this.crudService.transact<RequestForQuotation>(manager).findOneBy({ findBy: { id }, onError: () => new NotFoundException() });
   }
 
   async createRfq(rfqDto: CreateQuotationRequestDto) {
@@ -61,14 +57,14 @@ export class RequestForQuotationService extends CrudHelper<RequestForQuotation> 
   }
 
   async findAllRfqs({ page, limit }: IPaginationOptions) {
-    return await this.crud().findAll({
+    return await this.crudService.findAll({
       pagination: { page, limit },
       find: {
-        relations: { purchaseRequest: true },
+        relations: { purchaseRequest: { purchaseType: true } },
         select: {
           purchaseRequest: {
             code: true,
-            type: true,
+            purchaseType: { type: true },
             status: true,
           },
         },
@@ -85,7 +81,7 @@ export class RequestForQuotationService extends CrudHelper<RequestForQuotation> 
       const items = await this.requestedItemService.tx_findItemsByRfqDetailsId(manager, id);
 
       // get item info via items microservice
-      const itemInfo = await this.requestedItemService.ms_getItemInfo(items);
+      const itemInfo = await this.requestedItemService.ms_getItemsInfo(items);
 
       // return resulting values
       return { rfq, items: itemInfo };

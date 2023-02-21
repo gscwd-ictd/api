@@ -2,6 +2,12 @@ import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { PurchaseRequest } from '../purchase-request';
 
+enum Status {
+  FOR_CANVASS = 'For Canvass',
+  CANCELLED = 'Cancelled',
+  CLOSED = 'Closed',
+}
+
 @Entity('request_for_quotations')
 export class RequestForQuotation extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'rfq_details_id' })
@@ -18,7 +24,6 @@ export class RequestForQuotation extends DatabaseEntity implements IEntity {
   @Column({ name: 'submit_within', type: 'integer', default: 7 })
   submitWithin: number;
 
-  // TODO this is a defined column -> Open, Closed, Re-Canvass
-  @Column({ default: 'Open' })
-  status: string;
+  @Column({ type: 'enum', enum: Status, default: Status.FOR_CANVASS })
+  status: Status;
 }
