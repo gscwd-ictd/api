@@ -16,57 +16,47 @@ export class RequestedItemService extends CrudHelper<RequestedItem> {
     super(crudService);
   }
 
-  async ms_getItemInfo(items: RequestedItem[]) {
+  async ms_getItemsInfo(items: RequestedItem[]) {
     return await Promise.all(items.map(async (item) => ({ ...item, info: await this.itemsService.getItemById(item.itemId) })));
   }
 
   async tx_addRequestedItem(manager: EntityManager, itemsDto: CreateRequestedItemDto[], purchaseRequest: PurchaseRequest) {
     return await Promise.all(
       itemsDto.map(async (item) => {
-        return await this.crud()
-          .transact<RequestedItem>(manager)
-          .create({
-            dto: { ...item, purchaseRequest },
-            onError: () => new BadRequestException(),
-          });
+        return await this.crudService.transact<RequestedItem>(manager).create({
+          dto: { ...item, purchaseRequest },
+          onError: () => new BadRequestException(),
+        });
       })
     );
   }
 
   async tx_findItemById(manager: EntityManager, id: string) {
-    return await this.crud()
-      .transact<RequestedItem>(manager)
-      .findOneBy({
-        findBy: { id },
-        onError: () => new NotFoundException(),
-      });
+    return await this.crudService.transact<RequestedItem>(manager).findOneBy({
+      findBy: { id },
+      onError: () => new NotFoundException(),
+    });
   }
 
   async tx_findItemsByPrDetailsId(manager: EntityManager, prId: string) {
-    return (await this.crud()
-      .transact<RequestedItem>(manager)
-      .findAll({
-        find: { where: { purchaseRequest: { id: prId } } },
-        onError: () => new InternalServerErrorException(),
-      })) as RequestedItem[];
+    return (await this.crudService.transact<RequestedItem>(manager).findAll({
+      find: { where: { purchaseRequest: { id: prId } } },
+      onError: () => new InternalServerErrorException(),
+    })) as RequestedItem[];
   }
 
   async tx_findItemsByRfqDetailsId(manager: EntityManager, rfqId: string) {
-    return (await this.crud()
-      .transact<RequestedItem>(manager)
-      .findAll({
-        find: { where: { requestForQuotation: { id: rfqId } } },
-        onError: () => new InternalServerErrorException(),
-      })) as RequestedItem[];
+    return (await this.crudService.transact<RequestedItem>(manager).findAll({
+      find: { where: { requestForQuotation: { id: rfqId } } },
+      onError: () => new InternalServerErrorException(),
+    })) as RequestedItem[];
   }
 
   async tx_setItemForRfq(manager: EntityManager, requestedItem: RequestedItem, requestForQuotation: RequestForQuotation) {
-    return await this.crud()
-      .transact<RequestedItem>(manager)
-      .update({
-        updateBy: { id: requestedItem.id },
-        dto: { ...requestedItem, requestForQuotation },
-        onError: () => new BadRequestException(),
-      });
+    return await this.crudService.transact<RequestedItem>(manager).update({
+      updateBy: { id: requestedItem.id },
+      dto: { ...requestedItem, requestForQuotation },
+      onError: () => new BadRequestException(),
+    });
   }
 }

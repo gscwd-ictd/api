@@ -1,13 +1,13 @@
 import { ItemsViewPatterns } from '@gscwd-api/microservices';
 import { Controller, UseInterceptors } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ItemsService } from './items.service';
 import {
   FindAllItemSummariesInterceptor,
   FindItemInfoByIdInterceptor,
   FindItemSummaryInterceptor,
   GetItemBalanceInterceptor,
-} from '../../../../global/';
-import { ItemsService } from './items.service';
+} from '../misc/interceptors';
 
 @Controller()
 export class ItemsController {
