@@ -9,7 +9,7 @@ export class TermsofPayment extends DatabaseEntity implements IEntity {
 
   @ManyToOne(() => ModeofPayment, (modeOfPayment) => modeOfPayment.id, { nullable: false })
   @JoinColumn({ name: 'mode_of_payment_id_fk' })
-  modeofPayment: ModeofPayment;
+  modeofPaymentID: ModeofPayment;
 
   @Column({ name: 'no_of_days', type: 'integer' })
   noOfDays: number;
