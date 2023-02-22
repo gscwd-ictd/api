@@ -33,11 +33,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     return result;
   }
 
-  async getLeaveApplicationByEmployeeId(employeeId: string): Promise<LeaveApplicationType[]> {
+  async getLeaveApplicationByEmployeeId(employeeId: string) {
     try {
       return await this.rawQuery<string, LeaveApplicationType[]>(
-        `
-          SELECT
+        `SELECT
             la.leave_application_id id,
             lb.leave_name leaveName,
             DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
@@ -47,8 +46,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
               INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id 
           WHERE la.employee_id_fk = ? 
-          GROUP BY leave_application_id ORDER BY la.date_of_filing DESC;
-      `,
+          GROUP BY leave_application_id ORDER BY la.date_of_filing DESC;`,
         [employeeId]
       );
     } catch (error) {

@@ -9,12 +9,12 @@
   },
   "private": true,
   "dependencies": {
-    "@nestjs/common": "^9.2.1",
+    "@nestjs/common": "^9.3.8",
     "@nestjs/config": "^2.2.0",
-    "@nestjs/core": "^9.2.1",
-    "@nestjs/microservices": "^9.2.1",
-    "@nestjs/platform-express": "^9.2.1",
-    "@nestjs/swagger": "^6.1.4",
+    "@nestjs/core": "^9.3.8",
+    "@nestjs/microservices": "^9.3.8",
+    "@nestjs/platform-express": "^9.3.8",
+    "@nestjs/swagger": "^6.2.1",
     "@nestjs/typeorm": "^9.0.1",
     "argon2": "^0.30.2",
     "class-transformer": "^0.5.1",
@@ -25,12 +25,12 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.0.0",
     "tslib": "^2.3.0",
-    "typeorm": "^0.3.11"
+    "typeorm": "^0.3.12"
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
     "@nestjs/schematics": "^9.0.3",
-    "@nestjs/testing": "^9.2.1",
+    "@nestjs/testing": "^9.3.8",
     "@nrwl/cli": "15.2.1",
     "@nrwl/eslint-plugin-nx": "15.2.1",
     "@nrwl/jest": "15.2.1",
@@ -40,6 +40,7 @@
     "@nrwl/workspace": "15.2.1",
     "@types/jest": "28.1.1",
     "@types/node": "18.7.1",
+    "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.36.1",
     "@typescript-eslint/parser": "^5.36.1",
     "eslint": "~8.15.0",
@@ -48,6 +49,7 @@
     "jest-environment-jsdom": "28.1.1",
     "nx": "15.2.1",
     "prettier": "^2.6.2",
+    "supertest": "^6.3.3",
     "ts-jest": "28.0.5",
     "ts-node": "10.9.1",
     "typescript": "~4.8.2"
