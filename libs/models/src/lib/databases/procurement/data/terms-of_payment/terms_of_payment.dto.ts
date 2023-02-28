@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsNumber, IsUUID } from 'class-validator';
-import { ModeofPayment } from '../../mode-of-payment';
+import { ModeofPayment } from '../mode-of-payment';
 
 export class CreateTermsofPaymentDto {
   @IsUUID()

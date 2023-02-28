@@ -8,5 +8,9 @@
     "target": "es2015"
   },
   "exclude": ["jest.config.ts", "**/*.spec.ts", "**/*.test.ts"],
-  "include": ["**/*.ts"]
+  "include": [
+    "**/*.ts",
+    "../../libs/models/src/lib/databases/procurement/data/terms-of_payment/terms_of_payment.dto.ts",
+    "../../libs/models/src/lib/databases/procurement/data/mode-of-payment/mode-of-payment.dto.ts"
+  ]
 }

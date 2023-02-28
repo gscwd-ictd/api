@@ -1,8 +1,8 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { ModeofPayment } from '../../mode-of-payment';
+import { ModeofPayment } from '../mode-of-payment';
 
-@Entity({ name: 'terms_of_payment' })
+@Entity('terms_of_payment')
 export class TermsofPayment extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'terms_of_payment_id' })
   id: string;
