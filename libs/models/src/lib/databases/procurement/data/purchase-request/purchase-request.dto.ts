@@ -3,7 +3,7 @@ import { PurchaseType } from '../purchase-type';
 
 // TODO add class validator
 export class CreatePrDto {
-  type: PurchaseType;
+  purchaseType: PurchaseType;
   code: string;
   accountId: string;
   projectId: string;

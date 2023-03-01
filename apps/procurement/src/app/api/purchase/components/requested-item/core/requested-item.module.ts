@@ -3,7 +3,7 @@ import { RequestedItemService } from './requested-item.service';
 import { RequestedItemController } from './requested-item.controller';
 import { CrudModule } from '@gscwd-api/crud';
 import { RequestedItem } from '@gscwd-api/models';
-import { ItemsModule } from 'apps/procurement/src/app/services/items';
+import { ItemsModule } from '../../../../../services/items';
 
 @Module({
   imports: [CrudModule.register(RequestedItem), ItemsModule],

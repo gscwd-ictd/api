@@ -63,12 +63,9 @@ async function bootstrap() {
   //   })
   // );
 
-  const environment = process.env.NODE_ENV;
-  console.log(environment);
-
   await app.listen(PORT);
 
-  Logger.log(`🚀 Procurement is running on: http://localhost:${PORT}/${GLOBAL_PREFIX}`);
+  Logger.log(`🚀 Application is running on: http://localhost:${PORT}/${GLOBAL_PREFIX}`, 'Procurement');
 }
 
 bootstrap();

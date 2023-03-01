@@ -1,4 +1,4 @@
 import { Controller } from '@nestjs/common';
 
-@Controller('requested-item')
+@Controller()
 export class RequestedItemController {}
