@@ -25,9 +25,11 @@ export class PurchaseRequestService extends CrudHelper<PurchaseRequest> {
     super(crudService);
   }
 
-  async tx_create(manager: EntityManager, prDto: CreatePrDto) {
+  async tx_createPrDetails(manager: EntityManager, prDto: CreatePrDto) {
+    // insert purchase request details
     return await this.crudService.transact<PurchaseRequest>(manager).create({
-      dto: prDto,
+      // generate pr_code
+      dto: { ...prDto, code: await this.generatePrCode(manager) },
       onError: () => new BadRequestException(),
     });
   }
@@ -45,7 +47,7 @@ export class PurchaseRequestService extends CrudHelper<PurchaseRequest> {
 
     return await this.datasource.manager.transaction(async (manager) => {
       // create new purchase request
-      const pr = await this.tx_create(manager, details);
+      const pr = await this.tx_createPrDetails(manager, details);
 
       // add requested items
       const requestedItems = await this.requestedItemService.tx_addRequestedItem(manager, items, pr);
@@ -57,7 +59,7 @@ export class PurchaseRequestService extends CrudHelper<PurchaseRequest> {
 
   async findAllPrs({ page, limit }: IPaginationOptions) {
     // find all purchase details from database
-    const pr = (await this.crud().findAll({
+    const purchaseRequests = (await this.crud().findAll({
       pagination: { page, limit },
       find: {
         relations: { purchaseType: true },
@@ -75,7 +77,7 @@ export class PurchaseRequestService extends CrudHelper<PurchaseRequest> {
     })) as Pagination<PurchaseRequest>;
 
     // return value
-    return { ...pr };
+    return purchaseRequests;
   }
 
   async findPrById(id: string) {
@@ -95,5 +97,46 @@ export class PurchaseRequestService extends CrudHelper<PurchaseRequest> {
       // return resulting value
       return { ...pr, purpose: pr.purpose, placeOfDelivery: pr.deliveryPlace, requestingOffice: name, items: itemInfo };
     });
+  }
+
+  /**
+   * Generates a `pr_code` with the specified format.
+   */
+  private async generatePrCode(manager: EntityManager) {
+    const code = await manager.query('SELECT gen_pr_code()');
+    return code[0].gen_pr_code;
+  }
+
+  /**
+   * Retrieve most recent `curr_val` and `curr_year` from `util_pr_code_seq`.
+   *
+   * Note that this is used for development purposes only. Using it for production may cause
+   * inconsistencies in data.
+   */
+  async getRecentPrCodeSequenceValues() {
+    const result = await this.datasource.query('SELECT * FROM dev_pr_get_val()');
+    return result[0];
+  }
+
+  /**
+   * Increment the `curr_value` in the `util_pr_code_seq` table.
+   *
+   * Note that this is used for development purposes only. Using it for production may cause
+   * inconsistencies in data.
+   */
+  async incrementPrCodeCurrValue() {
+    const result = await this.datasource.query('SELECT * FROM dev_pr_next_val()');
+    return result[0];
+  }
+
+  /**
+   * Resets the `curr_value` back to `1`, and sets `curr_year` to actual current year in the `util_pr_code_seq` table.
+   *
+   * Note that this is used for development purposes only. Using it for production may cause
+   * inconsistencies in data.
+   */
+  async resetPrCodeSequenceValues() {
+    const result = await this.datasource.query('SELECT * FROM dev_pr_reset_val()');
+    return result[0];
   }
 }
