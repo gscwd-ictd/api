@@ -12,5 +12,5 @@ export abstract class DatabaseEntity {
 }
 
 export interface IEntity {
-  id: string;
+  id: string | number;
 }

@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import * as request from 'supertest';
 import { PurchaseTypeModule } from '../../core/purchase-type.module';
-import { PurchaseTypeStub, UpdatePurchaseTypeDtoStub, PurchaseTypeMutationResult } from './purchase-type.stub';
+import { PurchaseTypeStub, UpdatePurchaseTypeDtoStub, PurchaseTypeMutationResult } from './purchase-type.stubs';
 
 let app: INestApplication;
 let datasource: DataSource;
@@ -25,20 +25,17 @@ describe('PurchaseTypeController', () => {
           synchronize: true,
         }),
       ],
-      providers: [],
-      controllers: [],
     }).compile();
 
     app = await module.createNestApplication().init();
 
-    datasource = app.get(DataSource) as DataSource;
+    datasource = app.get(DataSource);
   });
 
   afterAll(async () => {
     const entities = datasource.entityMetadatas;
-
     await Promise.all(entities.map(async (entity) => await datasource.query(`TRUNCATE ${entity.tableName} CASCADE;`)));
-
+    await datasource.destroy();
     await app.close();
   });
 

@@ -1,9 +1,13 @@
 import { PurchaseRequestModule, RequestForQuotationModule } from '../app/api/purchase/components/';
 import { PurchaseTypeModule } from '../app/api/purchase/components/purchase-type';
+import { PrCodeModule } from '../app/api/utilities/pr-code/pr-code.module';
 import { OrgStructureModule } from '../app/services/hrms/components/org-structure';
 import { ItemsModule } from '../app/services/items';
 
 export const API_MODULES = [
+  // utility modules
+  PrCodeModule,
+
   // api modules
   PurchaseRequestModule,
   RequestForQuotationModule,
