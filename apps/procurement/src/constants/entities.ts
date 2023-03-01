@@ -1,4 +1,4 @@
-import { PurchaseRequest, RequestForQuotation, RequestedItem, PurchaseType, PrCodeSequence } from '@gscwd-api/models';
+import { PurchaseRequest, RequestForQuotation, RequestedItem, PurchaseType } from '@gscwd-api/models';
 
 export const DB_ENTITIES = [
   // entities
@@ -6,7 +6,4 @@ export const DB_ENTITIES = [
   RequestedItem,
   RequestForQuotation,
   PurchaseType,
-
-  // utility tables
-  PrCodeSequence,
 ];
