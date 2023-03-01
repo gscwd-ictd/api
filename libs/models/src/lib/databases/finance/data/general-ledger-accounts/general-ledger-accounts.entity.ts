@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import { GeneralLedgerContraAccountType } from '../general-ledger-contra-account-types';
+import { ContraAccount } from '../contra-accounts';
 import { SubMajorAccountGroup } from '../sub-major-account-groups';
 
 @Entity({ name: 'general_ledger_accounts' })
@@ -12,9 +12,9 @@ export class GeneralLedgerAccount {
   @JoinColumn({ name: 'sub_major_account_group_id_fk' })
   subMajorAccountGroup: SubMajorAccountGroup;
 
-  @ManyToOne(() => GeneralLedgerContraAccountType, (generalLedgerContraAccountType) => generalLedgerContraAccountType.id, { nullable: false })
+  @ManyToOne(() => ContraAccount, (contraAccountType) => contraAccountType.id, { nullable: false })
   @JoinColumn({ name: 'general_ledger_contra_account_group_id_fk' })
-  generalLedgerContraAccountType: GeneralLedgerContraAccountType;
+  contraAccountType: ContraAccount;
 
   @Column({ length: 2 })
   code: string;

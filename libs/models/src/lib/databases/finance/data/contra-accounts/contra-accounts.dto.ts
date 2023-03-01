@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsOptional, IsString, Length } from 'class-validator';
 
-export class CreateGeneralLedgerContraAccountTypeDto {
+export class CreateContraAccountDto {
   @IsString({ message: 'general ledger cotra account type code must be a string' })
   @Length(1, 1, { message: 'account group code must be 2 characters long' })
   code: string;
@@ -15,4 +15,4 @@ export class CreateGeneralLedgerContraAccountTypeDto {
   description: string;
 }
 
-export class UpdateGeneralLedgerContraAccountTypeDto extends PartialType(CreateGeneralLedgerContraAccountTypeDto) {}
+export class UpdateContraAccountDto extends PartialType(CreateContraAccountDto) {}

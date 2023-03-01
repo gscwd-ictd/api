@@ -1,14 +1,14 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID, Length } from 'class-validator';
-import { GeneralLedgerContraAccountType } from '../general-ledger-contra-account-types';
+import { ContraAccount } from '../contra-accounts';
 import { SubMajorAccountGroup } from '../sub-major-account-groups';
 
 export class CreateGeneralLedgerAccountDto {
   @IsUUID(4, { message: 'sub major account group id is not valid' })
   subMajorAccountGroup: SubMajorAccountGroup;
 
-  @IsUUID(4, { message: 'general ledger contra account type id is not valid' })
-  generalLedgerContraAccountType: GeneralLedgerContraAccountType;
+  @IsUUID(4, { message: 'contra account id is not valid' })
+  contraAccount: ContraAccount;
 
   @IsString({ message: 'general ledger account code must be a string' })
   @Length(2, 2, { message: 'major account group code must be 2 characters long' })
