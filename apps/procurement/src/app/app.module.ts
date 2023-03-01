@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
+import { UtilityDbStoredFunctions } from '../common';
 import { DatabaseConfig } from '../config';
 import { API_MODULES } from '../constants';
 
@@ -15,5 +16,10 @@ import { API_MODULES } from '../constants';
 
     ...API_MODULES,
   ],
+  providers: [UtilityDbStoredFunctions],
 })
-export class AppModule {}
+export class AppModule implements OnApplicationBootstrap {
+  onApplicationBootstrap() {
+    Logger.log('All postgres functions have been initialized', 'Postgres Function');
+  }
+}
