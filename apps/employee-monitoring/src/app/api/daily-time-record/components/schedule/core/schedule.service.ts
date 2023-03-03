@@ -23,4 +23,8 @@ export class ScheduleService extends CrudHelper<Schedule> {
 
     return scheduleResult;
   }
+
+  async getSchedules(schedule_id: string) {
+    return schedule_id;
+  }
 }

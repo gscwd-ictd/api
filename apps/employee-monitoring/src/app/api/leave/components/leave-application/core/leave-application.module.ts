@@ -6,11 +6,13 @@ import { LeaveApplicationService } from './leave-application.service';
 import { LeaveApplicationDatesModule } from '../../leave-application-dates/core/leave-application-dates.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     CrudModule.register(LeaveApplication),
     LeaveApplicationDatesModule,
+    ScheduleModule.forRoot(),
     ClientsModule.register([
       {
         name: MS_CLIENT,
