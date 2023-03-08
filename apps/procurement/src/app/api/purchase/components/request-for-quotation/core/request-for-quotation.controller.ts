@@ -1,14 +1,19 @@
-import { Body, Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
-import { CreateQuotationRequestDto } from '../data/rfq.dto';
+import { CreateRfqDto } from '@gscwd-api/models';
+import { Body, Controller, DefaultValuePipe, Get, ParseIntPipe, Post, Query, UseInterceptors } from '@nestjs/common';
+import { RequestForQuotationInterceptor } from '../misc/rfq.interceptor';
 import { RequestForQuotationService } from './request-for-quotation.service';
 
 @Controller({ version: '1', path: 'rfq' })
 export class RequestForQuotationController {
-  constructor(private readonly rfqService: RequestForQuotationService) {}
+  constructor(
+    // inject rfq service
+    private readonly rfqService: RequestForQuotationService
+  ) {}
 
+  @UseInterceptors(RequestForQuotationInterceptor)
   @Post()
-  async create(@Body() rfqDto: CreateQuotationRequestDto) {
-    return await this.rfqService.createRfq(rfqDto);
+  async create(@Body() rfqDto: CreateRfqDto) {
+    return await this.rfqService.createRawRfq(rfqDto);
   }
 
   @Get()
@@ -16,11 +21,6 @@ export class RequestForQuotationController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ) {
-    return await this.rfqService.findAllRfqs({ page, limit });
-  }
-
-  @Get(':id')
-  async findOneBy(@Param('id') id: string) {
-    return await this.rfqService.findRfqById(id);
+    return await this.rfqService.crud().findAll({ pagination: { page, limit } });
   }
 }
