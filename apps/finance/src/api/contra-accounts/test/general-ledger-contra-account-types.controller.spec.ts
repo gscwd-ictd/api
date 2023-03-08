@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GeneralLedgerContraAccountTypeController } from '../core/general-ledger-contra-account-type.controller';
-import { GeneralLedgerContraAccountTypeService } from '../core/general-ledger-contra-account-type.service';
+import { GeneralLedgerContraAccountTypeController } from '../core/contra-accounts.controller';
+import { GeneralLedgerContraAccountTypeService } from '../core/contra-accounts.service';
 
 describe('GeneralLedgerContraAccountTypeController', () => {
   let controller: GeneralLedgerContraAccountTypeController;

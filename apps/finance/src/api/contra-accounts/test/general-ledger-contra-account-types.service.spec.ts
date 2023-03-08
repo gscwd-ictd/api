@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GeneralLedgerContraAccountTypeService } from '../core/general-ledger-contra-account-type.service';
+import { GeneralLedgerContraAccountTypeService } from '../core/contra-accounts.service';
 
 describe('GeneralLedgerContraAccountTypeService', () => {
   let service: GeneralLedgerContraAccountTypeService;
