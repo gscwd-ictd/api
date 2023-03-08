@@ -5,7 +5,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { DetailsService } from './details.service';
 
-@Controller('details')
+@Controller()
 export class DetailsController {
   constructor(private readonly detailsService: DetailsService) {}
 

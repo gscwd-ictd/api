@@ -32,4 +32,22 @@ export class ItemsService {
       onError: (error) => throwRpc(error),
     });
   }
+
+  async getItemBalance(id: string) {
+    return await this.crudService.findOne({
+      find: {
+        select: {
+          characteristic_code: true,
+          classification_code: true,
+          category_code: true,
+          specification_code: true,
+          category_name: true,
+          specification_name: true,
+          balance: true,
+        },
+        where: { details_id: id },
+      },
+      onError: (error) => throwRpc(error),
+    });
+  }
 }
