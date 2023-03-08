@@ -41,6 +41,9 @@ export class MicroserviceClient {
 
       // catch any resulting error
     } catch (error) {
+      // log the error in the console
+      console.log(error);
+
       // if onError callback is not specified, throw an error
       if (!onError) throw new Error(error);
 

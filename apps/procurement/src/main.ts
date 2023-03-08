@@ -1,8 +1,7 @@
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
-
 import { AppModule } from './app/app.module';
-import { GLOBAL_PREFIX } from './constants';
+import { GLOBAL_PREFIX } from './utils/constants';
 
 async function bootstrap() {
   /**
@@ -66,7 +65,7 @@ async function bootstrap() {
 
   await app.listen(PORT);
 
-  Logger.log(`🚀 Application is running on: http://localhost:${PORT}/${GLOBAL_PREFIX}`);
+  Logger.log(`🚀 Application is running on: http://localhost:${PORT}/${GLOBAL_PREFIX}`, 'Procurement');
 }
 
 bootstrap();

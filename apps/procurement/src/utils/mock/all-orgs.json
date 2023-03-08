@@ -1,0 +1,140 @@
+{
+  "offices": [
+    {
+      "id": "904357af-f048-11ec-8d31-c4bde5a04065",
+      "name": "Office of the Assistant General Manager for Administration"
+    },
+    {
+      "id": "8f821209-f048-11ec-8d31-c4bde5a04065",
+      "name": "Office of the Assistant General Manager for Finance"
+    },
+    {
+      "id": "923f51d6-f048-11ec-8d31-c4bde5a04065",
+      "name": "Office of the Assistant General Manager for Operations and Technical Services"
+    },
+    {
+      "id": "95985c05-f048-11ec-8d31-c4bde5a04065",
+      "name": "Office of the Board of Directors"
+    },
+    {
+      "id": "90f823e4-f048-11ec-8d31-c4bde5a04065",
+      "name": "Office of the General Manager"
+    }
+  ],
+  "departments": [
+    {
+      "id": "8f826d72-f048-11ec-8d31-c4bde5a04065",
+      "name": "Accounting and Financial Management Department"
+    },
+    {
+      "id": "9142d5c5-f048-11ec-8d31-c4bde5a04065",
+      "name": "Commercial Services Department"
+    },
+    {
+      "id": "90f862c3-f048-11ec-8d31-c4bde5a04065",
+      "name": "Corporate Planning, Internal Audit, Community Relations, Environment Management and Legal Services Department"
+    },
+    {
+      "id": "923f93eb-f048-11ec-8d31-c4bde5a04065",
+      "name": "Engineering and Construction Department"
+    },
+    {
+      "id": "90a21cc8-f048-11ec-8d31-c4bde5a04065",
+      "name": "General Services, Property and Materials Management Department"
+    },
+    {
+      "id": "9043af2a-f048-11ec-8d31-c4bde5a04065",
+      "name": "Human Resource Department"
+    },
+    {
+      "id": "91ddae79-f048-11ec-8d31-c4bde5a04065",
+      "name": "Information and Communication Technology Department"
+    },
+    {
+      "id": "926d29b4-f048-11ec-8d31-c4bde5a04065",
+      "name": "Pipeline and Appurtenances Maintenance Department"
+    },
+    {
+      "id": "92a863e5-f048-11ec-8d31-c4bde5a04065",
+      "name": "Production and Sanitation Department"
+    }
+  ],
+  "divisions": [
+    {
+      "id": "91432a70-f048-11ec-8d31-c4bde5a04065",
+      "name": "Billing and Accounts Division"
+    },
+    {
+      "id": "90bfbeb7-f048-11ec-8d31-c4bde5a04065",
+      "name": "Building and Grounds, Transportation and Water Meter Maintenance Division"
+    },
+    {
+      "id": "90f8bdc2-f048-11ec-8d31-c4bde5a04065",
+      "name": "Corporate Planning, Public Information and Community Relations Division"
+    },
+    {
+      "id": "919778a2-f048-11ec-8d31-c4bde5a04065",
+      "name": "Customer Care and New Service Connection Division"
+    },
+    {
+      "id": "936e3d85-f048-11ec-8d31-c4bde5a04065",
+      "name": "Environment and Watershed Protection Division"
+    },
+    {
+      "id": "8f82bf47-f048-11ec-8d31-c4bde5a04065",
+      "name": "General Accounting and Payroll Division"
+    },
+    {
+      "id": "9219158f-f048-11ec-8d31-c4bde5a04065",
+      "name": "Geographical Information System Division"
+    },
+    {
+      "id": "926d68d3-f048-11ec-8d31-c4bde5a04065",
+      "name": "Leakage Control and Non-revenue Water Management Division"
+    },
+    {
+      "id": "9124c729-f048-11ec-8d31-c4bde5a04065",
+      "name": "Legal Services, Management and Operation Audit Division"
+    },
+    {
+      "id": "928bb2b7-f048-11ec-8d31-c4bde5a04065",
+      "name": "Mainline Expansion, Rehabitation and Civil Works Division"
+    },
+    {
+      "id": "923fec30-f048-11ec-8d31-c4bde5a04065",
+      "name": "Planning and Design Division"
+    },
+    {
+      "id": "90a25fcc-f048-11ec-8d31-c4bde5a04065",
+      "name": "Procurement, Quality Control and Property Division"
+    },
+    {
+      "id": "90440de1-f048-11ec-8d31-c4bde5a04065",
+      "name": "Recruitment and Personnel Welfare Division"
+    },
+    {
+      "id": "92a8fe86-f048-11ec-8d31-c4bde5a04065",
+      "name": "Sanitation Division"
+    },
+    {
+      "id": "91ddf4e0-f048-11ec-8d31-c4bde5a04065",
+      "name": "Systems Development and Application Division"
+    },
+    {
+      "id": "906d12fd-f048-11ec-8d31-c4bde5a04065",
+      "name": "Training and Development Division"
+    },
+    {
+      "id": "8ff65278-f048-11ec-8d31-c4bde5a04065",
+      "name": "Treasure and Budget Division"
+    },
+    {
+      "id": "927ab360-f048-11ec-8d31-c4bde5a04065",
+      "name": "Water Distribution and Restoration Division"
+    },
+    {
+      "id": "92a8a457-f048-11ec-8d31-c4bde5a04065",
+      "name": "Water Quality, Production and Electromechanical Division"
+    }
+  ]
+}
