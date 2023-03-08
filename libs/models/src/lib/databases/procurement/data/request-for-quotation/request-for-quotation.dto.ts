@@ -1,14 +1,14 @@
-import { PartialType } from '@nestjs/swagger';
-import { PurchaseRequest } from '../purchase-request';
+import { Type } from 'class-transformer';
+import { ArrayNotEmpty, IsArray, IsUUID, ValidateNested } from 'class-validator';
+import { UpdateRequestedItemForRfqDto } from '../requested-item';
 
-// TODO add class validator
 export class CreateRfqDto {
-  purchaseRequest: PurchaseRequest;
+  @IsUUID(4, { message: 'purchase request id is not valid' })
+  prId: string;
 
-  // TODO remove this once format is finalized
-  code?: string;
-
-  submitWithin?: number;
+  @ValidateNested({ each: true })
+  @IsArray()
+  @ArrayNotEmpty()
+  @Type(() => UpdateRequestedItemForRfqDto)
+  items: UpdateRequestedItemForRfqDto[];
 }
-
-export class UpdateRfqDto extends PartialType(CreateRfqDto) {}

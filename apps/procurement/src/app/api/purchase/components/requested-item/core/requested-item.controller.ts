@@ -1,4 +1,7 @@
 import { Controller } from '@nestjs/common';
+import { RequestedItemService } from './requested-item.service';
 
-@Controller()
-export class RequestedItemController {}
+@Controller({ version: '1', path: '/requested-items' })
+export class RequestedItemController {
+  constructor(private readonly requestedItemService: RequestedItemService) {}
+}
