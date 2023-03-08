@@ -1,6 +1,6 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { AccountGroup } from '@gscwd-api/models';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { AccountGroup } from '../account-groups';
 
 @Entity({ name: 'major_account_groups' })
 @Unique(['accountGroup', 'code'])

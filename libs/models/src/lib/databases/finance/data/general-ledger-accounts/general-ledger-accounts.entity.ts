@@ -3,7 +3,7 @@ import { ContraAccount } from '../contra-accounts';
 import { SubMajorAccountGroup } from '../sub-major-account-groups';
 
 @Entity({ name: 'general_ledger_accounts' })
-@Unique(['subMajorAccountGroup', 'code', 'generalLedgerContraAccountType'])
+@Unique(['subMajorAccountGroup', 'code', 'contraAccount'])
 export class GeneralLedgerAccount {
   @PrimaryGeneratedColumn('uuid', { name: 'general_ledger_account_id' })
   id: string;
@@ -12,9 +12,9 @@ export class GeneralLedgerAccount {
   @JoinColumn({ name: 'sub_major_account_group_id_fk' })
   subMajorAccountGroup: SubMajorAccountGroup;
 
-  @ManyToOne(() => ContraAccount, (contraAccountType) => contraAccountType.id, { nullable: false })
-  @JoinColumn({ name: 'general_ledger_contra_account_group_id_fk' })
-  contraAccountType: ContraAccount;
+  @ManyToOne(() => ContraAccount, (contraAccount) => contraAccount.id, { nullable: false })
+  @JoinColumn({ name: 'contra_account_id_fk' })
+  contraAccount: ContraAccount;
 
   @Column({ length: 2 })
   code: string;

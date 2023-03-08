@@ -39,8 +39,8 @@ export class GeneralLedgerAccountController implements ICrudRoutes {
     return await this.generalLedgerAccountService.crud().findAll({
       pagination: { page, limit },
       find: {
-        relations: { subMajorAccountGroup: true, contraAccountType: true },
-        select: { subMajorAccountGroup: { id: true, code: true, name: true }, contraAccountType: { id: true, code: true, name: true } },
+        relations: { subMajorAccountGroup: true, contraAccount: true },
+        select: { subMajorAccountGroup: { id: true, code: true, name: true }, contraAccount: { id: true, code: true, name: true } },
       },
       onError: () => new InternalServerErrorException(),
     });

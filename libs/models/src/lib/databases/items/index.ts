@@ -1,2 +1,2 @@
 export * from './data';
-//export * from './views/items.view';
+export * from './views/items.view';
