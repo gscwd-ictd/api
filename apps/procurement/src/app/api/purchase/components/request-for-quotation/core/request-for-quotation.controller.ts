@@ -1,6 +1,6 @@
 import { CreateRfqDto } from '@gscwd-api/models';
 import { Body, Controller, DefaultValuePipe, Get, ParseIntPipe, Post, Query, UseInterceptors } from '@nestjs/common';
-import { RequestForQuotationInterceptor } from '../misc/rfq.interceptor';
+import { CreateRequestForQuotationInterceptor } from '../misc/create-rfq.interceptor';
 import { RequestForQuotationService } from './request-for-quotation.service';
 
 @Controller({ version: '1', path: 'rfq' })
@@ -10,7 +10,7 @@ export class RequestForQuotationController {
     private readonly rfqService: RequestForQuotationService
   ) {}
 
-  @UseInterceptors(RequestForQuotationInterceptor)
+  @UseInterceptors(CreateRequestForQuotationInterceptor)
   @Post()
   async create(@Body() rfqDto: CreateRfqDto) {
     return await this.rfqService.createRawRfq(rfqDto);
