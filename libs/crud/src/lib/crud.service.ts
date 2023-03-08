@@ -216,7 +216,7 @@ export class CrudService<T extends ObjectLiteral> {
           if (!onError) throw new Error(error);
 
           // otherwise, throw the resulting error
-          throw onError({ error, metadata: this.repository.metadata });
+          throw onError(error);
         }
       },
 
@@ -289,14 +289,16 @@ export class CrudService<T extends ObjectLiteral> {
   }
 
   /**
-   * @deprecated Use a DataSource object directly
+   *
+   * @deprecated use `getRepository()` or a DataSource object instead
    */
   public getDatasource() {
     return this.datasource;
   }
 
   /**
-   * @deprecated Access EntityManager from DataSource object directly
+   *
+   * @deprecated use `getRepository()` or a DataSource object instead
    */
   public getManager() {
     return this.datasource.manager;
