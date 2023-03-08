@@ -1,3 +1,3 @@
 export * from './modules';
-export * from './entities';
+export * from '../../connections/database/constants/entities';
 export * from './app';

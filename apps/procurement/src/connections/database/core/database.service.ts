@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import { init } from '../constants/queries';
 
 @Injectable()
-export class ConnectionService implements OnModuleInit {
+export class DatabaseService implements OnModuleInit {
   constructor(private readonly datasource: DataSource) {}
 
   async onModuleInit() {

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
-import { ConnectionModule } from '../database/connection/connection.module';
+import { DatabaseModule } from '../connections/';
 import { API_MODULES } from '../utils/constants';
 
 @Module({
@@ -9,7 +9,7 @@ import { API_MODULES } from '../utils/constants';
     // config module setup for reading env variables
     ConfigModule.forRoot({ isGlobal: true, envFilePath: join(__dirname, '../../../apps/procurement/.env') }),
 
-    ConnectionModule,
+    DatabaseModule,
 
     ...API_MODULES,
   ],
