@@ -3,7 +3,6 @@ import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app/app.module';
-import { GLOBAL_PREFIX } from './constants';
 
 async function bootstrap() {
   /**
@@ -29,7 +28,7 @@ async function bootstrap() {
   /**
    *  apply the global prefix
    */
-  app.setGlobalPrefix(GLOBAL_PREFIX);
+  app.setGlobalPrefix('api/ims');
 
   /**
    * enable validation
@@ -103,7 +102,7 @@ async function bootstrap() {
   /**
    * application logger
    */
-  Logger.log(`🚀 Inventory is running on: http://localhost:${PORT}/${GLOBAL_PREFIX}`);
+  Logger.log(`🚀 Inventory is running on: http://localhost:${PORT}/api/ims`);
 }
 
 /**

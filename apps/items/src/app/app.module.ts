@@ -1,19 +1,22 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
-import { DatabaseConfig } from '../config';
-import { APP_MODULES } from '../constants/modules';
+import { ItemsModule } from '../app/services/items/core/items.module';
+import { DatabaseModule } from '../connections';
 
 @Module({
   imports: [
     // config module for reading enironment variables
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: join(__dirname, '../../../apps/items/.env') }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: join(__dirname, '../../../apps/items/.env'),
+    }),
 
     // database connection using typeorm
-    TypeOrmModule.forRootAsync({ useClass: DatabaseConfig }),
+    DatabaseModule,
 
-    ...APP_MODULES,
+    // microservice modules
+    ItemsModule,
   ],
 })
 export class AppModule {}
