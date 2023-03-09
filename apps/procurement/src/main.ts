@@ -1,12 +1,15 @@
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
+import { initializeOpenApiDocumentation } from './utils/docs/open-api';
 
 async function bootstrap() {
   /**
    * initialize a nest application
    */
   const app = await NestFactory.create<NestApplication>(AppModule);
+
+  initializeOpenApiDocumentation(app);
 
   /**
    * set application port
