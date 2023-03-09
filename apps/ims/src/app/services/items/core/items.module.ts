@@ -1,7 +1,5 @@
-import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ItemsMicroserviceClientModule } from '../../../../connections';
 import {
   CategoriesModule,
   CharacteristicsModule,
@@ -15,23 +13,8 @@ import { ItemsService } from './items.service';
 
 @Module({
   imports: [
-    // client module
-    ClientsModule.registerAsync([
-      {
-        name: MS_CLIENT,
-        inject: [ConfigService],
-        useFactory: (configService: ConfigService) => {
-          return {
-            transport: Transport.REDIS,
-            options: {
-              host: configService.getOrThrow<string>('ITEMS_REDIS_HOST'),
-              port: parseInt(configService.getOrThrow<string>('ITEMS_REDIS_PORT')),
-              password: configService.getOrThrow<string>('ITEMS_REDIS_PASS'),
-            },
-          };
-        },
-      },
-    ]),
+    // items microservice client module
+    ItemsMicroserviceClientModule,
 
     // child modules
     UnitOfMeasureModule,
@@ -42,6 +25,6 @@ import { ItemsService } from './items.service';
     DetailsModule,
   ],
   controllers: [ItemsController],
-  providers: [ItemsService, MicroserviceClient],
+  providers: [ItemsService],
 })
 export class ItemsModule {}
