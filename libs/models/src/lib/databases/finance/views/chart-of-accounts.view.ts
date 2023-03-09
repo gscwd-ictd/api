@@ -6,17 +6,27 @@ import { AccountGroup, ContraAccount, GeneralLedgerAccount, MajorAccountGroup, S
   expression: (datasource) =>
     datasource
       .createQueryBuilder()
-      .select('ag.code', 'account_group_code')
+      .select('gl.general_ledger_account_id', 'general_ledger_account_id')
+      .addSelect('ag.code', 'account_group_code')
       .addSelect('ag.name', 'account_group_name')
       .addSelect('ma.code', 'major_account_group_code')
       .addSelect('ma.name', 'major_account_group_name')
+      .addSelect('sm.name', 'sub_major_account_group_name')
+      .addSelect('sm.name', 'sub_major_account_group_code')
+      .addSelect('gl.code', 'general_ledger_account_code')
+      .addSelect('gl.name', 'general_ledger_account_name')
+      .addSelect('ca.code', 'contra_account_code')
+      .addSelect('ca.name', 'contra_account_name')
       .from(AccountGroup, 'ag')
-      .leftJoin(MajorAccountGroup, 'ma', 'cl.characteristic_id_fk = ch.characteristic_id')
-      .innerJoin(SubMajorAccountGroup, 'sm', 'ca.classification_id_fk = cl.classification_id')
-      .innerJoin(GeneralLedgerAccount, 'gl', 'sp.category_id_fk = ca.category_id')
-      .innerJoin(ContraAccount, 'ca', 'sp.category_id_fk = ca.category_id'),
+      .innerJoin(MajorAccountGroup, 'ma', 'ma.account_group_id_fk = ag.account_group_id')
+      .innerJoin(SubMajorAccountGroup, 'sm', 'sm.major_account_group_id_fk = ma.major_account_group_id')
+      .innerJoin(GeneralLedgerAccount, 'gl', 'gl.sub_major_account_group_id_fk = sm.sub_major_account_group_id')
+      .innerJoin(ContraAccount, 'ca', 'ca.contra_account_id = gl.contra_account_id_fk'),
 })
 export class ChartOfAccountsView {
+  @ViewColumn()
+  general_ledger_account_id: string;
+
   @ViewColumn()
   account_group_code: string;
 

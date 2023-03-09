@@ -1,4 +1,4 @@
-import { AccountGroup, GeneralLedgerAccount, ContraAccount, MajorAccountGroup, SubMajorAccountGroup } from '@gscwd-api/models';
+import { AccountGroup, GeneralLedgerAccount, ContraAccount, MajorAccountGroup, SubMajorAccountGroup, ChartOfAccountsView } from '@gscwd-api/models';
 import { EquipmentCost } from '../api/budget/components/equipment-cost';
 import { LaborCost } from '../api/budget/components/labor-cost';
 import { LaborType } from '../api/budget/components/labor-type';
@@ -21,4 +21,5 @@ export const DB_ENTITIES = [
   SubMajorAccountGroup,
   ContraAccount,
   GeneralLedgerAccount,
+  ChartOfAccountsView,
 ];

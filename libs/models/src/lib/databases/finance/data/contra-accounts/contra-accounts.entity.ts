@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'contra_accounts' })
 export class ContraAccount extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'contra_account_type_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'contra_account_id' })
   id: string;
 
   @Column({ unique: true, length: 1 })

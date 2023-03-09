@@ -2,7 +2,7 @@ import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { MajorAccountGroup } from '../major-account-groups';
 
-@Entity({ name: 'sub_major_accounts' })
+@Entity({ name: 'sub_major_account_groups' })
 @Unique(['majorAccountGroup', 'code'])
 export class SubMajorAccountGroup extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'sub_major_account_group_id' })

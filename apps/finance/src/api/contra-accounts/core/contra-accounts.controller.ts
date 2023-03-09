@@ -19,7 +19,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { ContraAccountService } from './contra-accounts.service';
 
-@Controller({ version: '1', path: 'general-ledger-contra-account-types' })
+@Controller({ version: '1', path: 'contra-accounts' })
 export class ContraAccountController implements ICrudRoutes {
   constructor(private readonly contraAccountService: ContraAccountService) {}
 
