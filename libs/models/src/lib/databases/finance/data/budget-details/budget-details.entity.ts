@@ -1,16 +1,10 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
+import { BudgetStatus } from '@gscwd-api/utils';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { BudgetType } from '../budget-types';
 
-enum Status {
-  PENDING = 'Pending',
-  APPROVED = 'Approved',
-  DISAPPROVED = 'Disapproved',
-  CANCELLED = 'Cancelled',
-}
-
 @Entity({ name: 'budget-details' })
-export class BudgetDetail extends DatabaseEntity implements IEntity {
+export class BudgetDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'budget_detail_id' })
   id: string;
 
@@ -18,6 +12,6 @@ export class BudgetDetail extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'budget_type_id_fk' })
   budgetType: BudgetType;
 
-  @Column({ type: 'enum', enum: Status, default: Status.PENDING })
-  status: Status;
+  @Column({ type: 'enum', enum: BudgetStatus, default: BudgetStatus.PENDING })
+  status: BudgetStatus;
 }

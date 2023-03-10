@@ -1,5 +1,5 @@
 import { ICrudRoutes } from '@gscwd-api/crud';
-import { BudgetDetail, CreateBudgetDetailDto, UpdateBudgetDetailDto } from '@gscwd-api/models';
+import { BudgetDetails, CreateBudgetDetailsDto, UpdateBudgetDetailsDto } from '@gscwd-api/models';
 import {
   BadRequestException,
   Body,
@@ -17,14 +17,14 @@ import {
 } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { DeleteResult, UpdateResult } from 'typeorm';
-import { BudgetDetailService } from './budget-details.service';
+import { BudgetDetailsService } from './budget-details.service';
 
-@Controller({ version: '1', path: 'budget/budget-details' })
-export class BudgetDetailController implements ICrudRoutes {
-  constructor(private readonly budgetDetailService: BudgetDetailService) {}
+@Controller({ version: '1', path: 'cost-estimates/budget-details' })
+export class BudgetDetailsController implements ICrudRoutes {
+  constructor(private readonly budgetDetailService: BudgetDetailsService) {}
 
   @Post()
-  async create(@Body() data: CreateBudgetDetailDto): Promise<BudgetDetail> {
+  async create(@Body() data: CreateBudgetDetailsDto): Promise<BudgetDetails> {
     return await this.budgetDetailService.crud().create({
       dto: data,
       onError: () => new BadRequestException(),
@@ -35,7 +35,7 @@ export class BudgetDetailController implements ICrudRoutes {
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<BudgetDetail> | BudgetDetail[]> {
+  ): Promise<Pagination<BudgetDetails> | BudgetDetails[]> {
     return await this.budgetDetailService.crud().findAll({
       pagination: { page, limit },
       find: {
@@ -47,7 +47,7 @@ export class BudgetDetailController implements ICrudRoutes {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<BudgetDetail> {
+  async findById(@Param('id') id: string): Promise<BudgetDetails> {
     return await this.budgetDetailService.crud().findOneBy({
       findBy: { id },
       onError: () => new NotFoundException(),
@@ -55,7 +55,7 @@ export class BudgetDetailController implements ICrudRoutes {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() data: UpdateBudgetDetailDto): Promise<UpdateResult> {
+  async update(@Param('id') id: string, @Body() data: UpdateBudgetDetailsDto): Promise<UpdateResult> {
     return await this.budgetDetailService.crud().update({
       updateBy: { id },
       dto: data,

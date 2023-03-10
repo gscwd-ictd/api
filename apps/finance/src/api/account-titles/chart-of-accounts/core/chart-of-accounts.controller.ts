@@ -3,7 +3,7 @@ import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query } from '@
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ChartOfAccountService } from './chart-of-accounts.service';
 
-@Controller({ version: '1', path: 'chart-of-accounts' })
+@Controller({ version: '1', path: 'account-titles' })
 export class ChartOfAccountController {
   constructor(private readonly chartOfAccountsService: ChartOfAccountService) {}
 

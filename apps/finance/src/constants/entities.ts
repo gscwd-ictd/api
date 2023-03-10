@@ -6,19 +6,19 @@ import {
   SubMajorAccountGroup,
   ChartOfAccountsView,
   BudgetType,
-  BudgetDetail,
+  BudgetDetails,
 } from '@gscwd-api/models';
-import { EquipmentCost } from '../api/budget/components/equipment-cost';
-import { LaborCost } from '../api/budget/components/labor-cost';
-import { LaborType } from '../api/budget/components/labor-type';
-import { MaterialCost } from '../api/budget/components/material-cost';
-import { ProjectDetail } from '../api/budget/components/project-detail';
-import { ValueAddedTax } from '../api/budget/components/value-added-tax';
+import { EquipmentCost } from '../api/budgets/cost-estimates/components/equipment-cost';
+import { LaborCost } from '../api/budgets/cost-estimates/components/labor-cost';
+import { LaborType } from '../api/budgets/cost-estimates/components/labor-type';
+import { MaterialCost } from '../api/budgets/cost-estimates/components/material-cost';
+import { ProjectDetail } from '../api/budgets/cost-estimates/components/project-detail';
+import { ValueAddedTax } from '../api/budgets/cost-estimates/components/value-added-tax';
 
 export const DB_ENTITIES = [
   //Budget
   BudgetType,
-  BudgetDetail,
+  BudgetDetails,
 
   EquipmentCost,
   LaborCost,
