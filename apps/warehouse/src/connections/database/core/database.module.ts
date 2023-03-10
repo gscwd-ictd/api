@@ -20,7 +20,7 @@ import { DatabaseService } from './database.service';
             port: parseInt(configService.getOrThrow<string>(Environment.MASTER_DB_PORT)),
             username: configService.getOrThrow<string>(Environment.MASTER_DB_USER),
             password: configService.getOrThrow<string>(Environment.MASTER_DB_PASS),
-            database: configService.getOrThrow<string>(Environment.DB_IMS),
+            database: configService.getOrThrow<string>(Environment.DB_WAREHOUSE),
           },
           slaves: [
             {
@@ -28,7 +28,7 @@ import { DatabaseService } from './database.service';
               port: parseInt(configService.getOrThrow<string>(Environment.SLAVE_DB_PORT)),
               username: configService.getOrThrow<string>(Environment.SLAVE_DB_USER),
               password: configService.getOrThrow<string>(Environment.SLAVE_DB_PASS),
-              database: configService.getOrThrow<string>(Environment.DB_IMS),
+              database: configService.getOrThrow<string>(Environment.DB_WAREHOUSE),
             },
           ],
         },
