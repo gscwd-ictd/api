@@ -6,6 +6,7 @@ import {
   SubMajorAccountGroup,
   ChartOfAccountsView,
   BudgetType,
+  BudgetDetail,
 } from '@gscwd-api/models';
 import { EquipmentCost } from '../api/budget/components/equipment-cost';
 import { LaborCost } from '../api/budget/components/labor-cost';
@@ -17,6 +18,7 @@ import { ValueAddedTax } from '../api/budget/components/value-added-tax';
 export const DB_ENTITIES = [
   //Budget
   BudgetType,
+  BudgetDetail,
 
   EquipmentCost,
   LaborCost,
