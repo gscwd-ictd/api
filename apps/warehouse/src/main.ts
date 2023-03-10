@@ -1,5 +1,6 @@
 import { HybridApp } from '@gscwd-api/microservices';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestApplication, NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app/app.module';
@@ -10,10 +11,12 @@ async function bootstrap() {
    */
   const app = await NestFactory.create<NestApplication>(AppModule);
 
+  const configService = app.get<ConfigService>(ConfigService);
+
   /**
    * set application port
    */
-  const PORT = process.env.IMS_PORT;
+  const PORT = configService.getOrThrow<string>('WAREHOUSE_PORT');
 
   /**
    * enable cors policy to allow browser access
@@ -28,7 +31,7 @@ async function bootstrap() {
   /**
    *  apply the global prefix
    */
-  app.setGlobalPrefix('api/ims');
+  app.setGlobalPrefix('api/warehouse');
 
   /**
    * enable validation
@@ -80,17 +83,17 @@ async function bootstrap() {
       /**
        * identify redis host
        */
-      host: process.env.IMS_REDIS_HOST,
+      host: configService.getOrThrow<string>('WAREHOUSE_REDIS_HOST'),
 
       /**
        * identify redis port
        */
-      port: parseInt(process.env.IMS_REDIS_PORT),
+      port: parseInt(configService.getOrThrow<string>('WAREHOUSE_REDIS_PORT')),
 
       /**
        * identify redis password
        */
-      password: process.env.IMS_REDIS_PASS,
+      password: configService.getOrThrow<string>('WAREHOUSE_REDIS_PASS'),
     },
   });
 
@@ -102,7 +105,7 @@ async function bootstrap() {
   /**
    * application logger
    */
-  Logger.log(`🚀 Inventory is running on: http://localhost:${PORT}/api/ims`);
+  Logger.log(`🚀 Warehouse application server is running on: http://localhost:${PORT}/api/warehouse`, 'WarehouseServer');
 }
 
 /**

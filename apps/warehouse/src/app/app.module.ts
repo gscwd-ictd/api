@@ -4,12 +4,14 @@ import { join } from 'path';
 import { ItemsModule } from './services/items';
 import { DatabaseModule } from '../connections';
 
+console.log(join(__dirname, '../../../apps/warehouse/.env'));
+
 @Module({
   imports: [
     // config module for reading enironment variables
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: join(__dirname, '../../../apps/ims/.env'),
+      envFilePath: join(__dirname, '../../../apps/warehouse/.env'),
     }),
 
     // database connection via typeorm
