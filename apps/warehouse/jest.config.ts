@@ -1,6 +1,6 @@
 /* eslint-disable */
 export default {
-  displayName: 'ims',
+  displayName: 'warehouse',
   preset: '../../jest.preset.js',
   globals: {},
   testEnvironment: 'node',
@@ -13,5 +13,5 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/apps/ims',
+  coverageDirectory: '../../coverage/apps/warehouse',
 };
