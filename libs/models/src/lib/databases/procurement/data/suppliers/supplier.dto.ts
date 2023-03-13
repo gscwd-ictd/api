@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsBoolean, isBoolean, IsEmail, IsEnum, IsOptional, IsString, isString } from 'class-validator';
+import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class CreateSupplierDto {
   @IsString()
