@@ -8,3 +8,9 @@ export * from './general-ledger-accounts';
 //Budget Details
 export * from './budget-types';
 export * from './budget-details';
+export * from './project-details';
+export * from './material-costs';
+export * from './contingencies';
+export * from './labor-costs';
+export * from './equipment-costs';
+export * from './value-added-tax';
