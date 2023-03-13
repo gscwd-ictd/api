@@ -82,7 +82,7 @@ describe('Purchase Module e2e test', () => {
     await app.close();
   });
 
-  describe('Purchase Flow', () => {
+  describe('Procurement Flow', () => {
     let prType = {} as PurchaseType;
     let pr = {} as PurchaseRequest;
     let requestedItems = [] as RequestedItem[];
