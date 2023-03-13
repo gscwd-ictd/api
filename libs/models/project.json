@@ -1,21 +1,21 @@
 {
-  "name": "app-entities",
+  "name": "models",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "libs/app-entities/src",
+  "sourceRoot": "libs/models/src",
   "projectType": "library",
   "targets": {
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["libs/app-entities/**/*.ts"]
+        "lintFilePatterns": ["libs/models/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "libs/app-entities/jest.config.ts",
+        "jestConfig": "libs/models/jest.config.ts",
         "passWithNoTests": true
       }
     }
