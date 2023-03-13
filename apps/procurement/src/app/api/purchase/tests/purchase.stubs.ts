@@ -25,7 +25,7 @@ export const CreatePrDtoStub = {
 
 export const PurchaseRequestStub = {
   deletedAt: null,
-  code: 'PR-MAR-2023-1',
+  code: 'PR-MAR-2023-12',
   account: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
   project: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
   requestor: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
