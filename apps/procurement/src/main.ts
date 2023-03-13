@@ -1,13 +1,15 @@
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
-import { GLOBAL_PREFIX } from './utils/constants';
+import { initializeOpenApiDocumentation } from './utils/docs/open-api';
 
 async function bootstrap() {
   /**
    * initialize a nest application
    */
   const app = await NestFactory.create<NestApplication>(AppModule);
+
+  initializeOpenApiDocumentation(app);
 
   /**
    * set application port
@@ -27,7 +29,7 @@ async function bootstrap() {
   /**
    *  apply the global prefix
    */
-  app.setGlobalPrefix(GLOBAL_PREFIX);
+  app.setGlobalPrefix('api/procurement');
 
   /**
    * enable validation
@@ -65,7 +67,7 @@ async function bootstrap() {
 
   await app.listen(PORT);
 
-  Logger.log(`🚀 Application is running on: http://localhost:${PORT}/${GLOBAL_PREFIX}`, 'Procurement');
+  Logger.log(`🚀 Application is running on: http://localhost:${PORT}/api/procurement`, 'Procurement');
 }
 
 bootstrap();
