@@ -15,8 +15,11 @@ import {
 } from '@nestjs/common';
 import { ICrudRoutes } from '@gscwd-api/crud';
 import { ProjectDetailService } from './project-detail.service';
-import { CreateProjectDetailDto, UpdateProjectDetailDto } from '../data/project-detail.dto';
-import { ProjectDetail } from '../data/project-detail.entity';
+import {
+  CreateProjectDetailDto,
+  UpdateProjectDetailDto,
+} from '../../../../../../../../../libs/models/src/lib/databases/finance/data/project-details/project-detail.dto';
+import { ProjectDetail } from '../../../../../../../../../libs/models/src/lib/databases/finance/data/project-details/project-detail.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { DeleteResult, UpdateResult } from 'typeorm';
 

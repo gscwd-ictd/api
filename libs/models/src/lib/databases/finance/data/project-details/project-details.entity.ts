@@ -1,19 +1,21 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { BudgetDetails } from '../budget-details';
 
 @Entity({ name: 'project_details' })
-export class ProjectDetail extends DatabaseEntity implements IEntity {
+export class ProjectDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'project_details_id' })
   id: string;
+
+  @ManyToOne(() => BudgetDetails, (budgetDetails) => budgetDetails.id, { nullable: false })
+  @JoinColumn({ name: 'budget_detail_id_fk' })
+  budgetDetails: BudgetDetails;
 
   @Column({ name: 'project_name', type: 'text', nullable: true })
   projectName: string;
 
   @Column({ name: 'location', type: 'text', nullable: true })
   location: string;
-
-  @Column({ name: 'item_number', type: 'text', nullable: true })
-  itemNumber: string;
 
   @Column({ name: 'work_description', type: 'text', nullable: true })
   workDescription: string;
@@ -23,4 +25,7 @@ export class ProjectDetail extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'output_per_day', type: 'integer' })
   outputPerDay: number;
+
+  @Column({ name: 'total_estimate_cost', type: 'integer' })
+  totalEstimatedCost: number;
 }

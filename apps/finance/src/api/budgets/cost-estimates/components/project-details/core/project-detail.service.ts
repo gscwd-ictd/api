@@ -1,9 +1,9 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { Injectable } from '@nestjs/common';
-import { ProjectDetail } from '../data/project-detail.entity';
+import { ProjectDetails } from '..';
 
 @Injectable()
-export class ProjectDetailService extends CrudHelper<ProjectDetail> {
+export class ProjectDetailService extends CrudHelper<ProjectDetails> {
   constructor(private readonly crudService: CrudService<ProjectDetail>) {
     super(crudService);
   }

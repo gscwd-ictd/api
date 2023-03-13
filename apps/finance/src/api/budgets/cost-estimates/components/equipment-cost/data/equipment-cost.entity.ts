@@ -1,15 +1,15 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { ProjectDetail } from '../../project-detail';
+import { ProjectDetails } from '../../project-details';
 
 @Entity({ name: 'equipment_costs' })
 export class EquipmentCost extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'equipment_cost_id' })
   id: string;
 
-  @ManyToOne(() => ProjectDetail, (projectDetail) => projectDetail.id, { nullable: false })
+  @ManyToOne(() => ProjectDetails, (projectDetail) => projectDetail.id, { nullable: false })
   @JoinColumn({ name: 'project_detail_id_fk' })
-  projectDetail: ProjectDetail;
+  projectDetail: ProjectDetails;
 
   @Column({ name: 'equipment_description', unique: true, type: 'text', nullable: true })
   equipmentDescription: string;

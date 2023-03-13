@@ -1,10 +1,10 @@
 import { OmitType, PartialType } from '@nestjs/swagger';
 import { IsDecimal, IsInt, IsString, IsUUID, MaxLength } from 'class-validator';
-import { ProjectDetail } from '../../project-detail';
+import { ProjectDetails } from '../../project-details';
 
 export class CreateEquipmentCostDto {
   @IsUUID()
-  projectDetail: ProjectDetail;
+  projectDetail: ProjectDetails;
 
   @IsString()
   @MaxLength(50, { message: 'Equipment description name is too long.' })

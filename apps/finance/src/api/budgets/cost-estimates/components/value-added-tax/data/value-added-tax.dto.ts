@@ -1,10 +1,10 @@
 import { OmitType, PartialType } from '@nestjs/swagger';
 import { IsDecimal, IsUUID } from 'class-validator';
-import { ProjectDetail } from '../../project-detail';
+import { ProjectDetails } from '../../project-details';
 
 export class CreateValueAddedTaxDto {
   @IsUUID()
-  projectDetail: ProjectDetail;
+  projectDetail: ProjectDetails;
 
   @IsDecimal()
   percentage: number;

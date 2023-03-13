@@ -1,10 +1,10 @@
 import { OmitType, PartialType } from '@nestjs/swagger';
 import { IsCurrency, IsDecimal, IsInt, IsUUID } from 'class-validator';
-import { ProjectDetail } from '../../project-detail';
+import { ProjectDetails } from '../../project-details';
 
 export class CreateLaborCostDto {
   @IsUUID()
-  projectDetail: ProjectDetail;
+  projectDetail: ProjectDetails;
 
   @IsInt()
   numberOfPerson: number;

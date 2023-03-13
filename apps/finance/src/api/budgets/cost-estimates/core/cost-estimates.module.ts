@@ -4,7 +4,7 @@ import { EquipmentCostModule } from '../components/equipment-cost';
 import { LaborCostModule } from '../components/labor-cost';
 import { LaborTypeModule } from '../components/labor-type';
 import { MaterialCostModule } from '../components/material-cost';
-import { ProjectDetailModule } from '../components/project-detail';
+import { ProjectDetailModule } from '../components/project-details';
 import { ValueAddedTaxModule } from '../components/value-added-tax';
 import { CostEstimateController } from './cost-estimates.controller';
 import { CostEstimateService } from './cost-estimates.service';

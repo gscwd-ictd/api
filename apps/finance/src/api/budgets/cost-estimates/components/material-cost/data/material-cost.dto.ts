@@ -1,10 +1,10 @@
 import { OmitType, PartialType } from '@nestjs/swagger';
 import { IsCurrency, IsInt, IsUUID } from 'class-validator';
-import { ProjectDetail } from '../../project-detail';
+import { ProjectDetails } from '../../project-details';
 
 export class CreateMaterialCostDto {
   @IsUUID()
-  projectDetail: ProjectDetail;
+  projectDetail: ProjectDetails;
 
   @IsUUID()
   specificationId: string;
