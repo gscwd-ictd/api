@@ -15,7 +15,6 @@ export const CreatePrDtoStub = {
     requestingOffice: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
     purpose: 'for office tasks',
     deliveryPlace: 'gensan',
-    // purchaseType: '0b296418-8cb2-4de4-b0e4-3471b163906f',
   },
   items: [
     { itemId: 'c630c768-bb54-48e3-a21e-cb405dcbe0ac', quantity: 3, remarks: 'to be used for something' },
@@ -25,7 +24,7 @@ export const CreatePrDtoStub = {
 
 export const PurchaseRequestStub = {
   deletedAt: null,
-  code: 'PR-MAR-2023-2',
+  code: 'PR-MAR-2023-1',
   account: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
   project: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
   requestor: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
