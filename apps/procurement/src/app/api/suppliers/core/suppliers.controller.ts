@@ -38,7 +38,7 @@ export class SuppliersController implements ICrudRoutes {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Supplier[] | Pagination<Supplier, IPaginationMeta>> {
     return await this.purchaseTypeService.crud().findAll({
-      find: { order: { supplier_name: 'ASC' } },
+      find: { order: { name: 'ASC' } },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
     });
