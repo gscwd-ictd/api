@@ -11,6 +11,13 @@ export class ScheduleController {
     return await this.scheduleService.addSchedule(scheduleDto);
   }
 
+  @Get()
+  async getSchedules() {
+    return await this.scheduleService.getSchedules();
+  }
+
   @Get(':schedule_id')
-  async getSchedule(@Param('schedule_id') scheduleId: string) {}
+  async getSchedule(@Param('schedule_id') scheduleId: string) {
+    //return await this.scheduleService.getSchedules(scheduleId);
+  }
 }

@@ -20,11 +20,36 @@ export class ScheduleService extends CrudHelper<Schedule> {
       );
       return { schedule, scheduleRestDays };
     });
-
     return scheduleResult;
   }
 
-  async getSchedules(schedule_id: string) {
-    return schedule_id;
+  async getSchedules() {
+    const schedules = await this.rawQuery(`
+    SELECT 
+      schedule_id id, 
+      name, 
+      schedule_type scheduleType, 
+      time_in timeIn, 
+      time_out timeOut, 
+      lunch_in lunchIn, 
+      lunch_out lunchOut, 
+      shift
+    FROM schedule 
+    `);
+
+    const schedulesWithRestDays = await Promise.all(
+      schedules.map(async (schedule) => {
+        const restDays = await this.rawQuery(`SELECT rest_day restDay FROM schedule_rest_day WHERE schedule_id_fk = ? `, [schedule.id]);
+
+        const restDaysResult = await Promise.all(
+          restDays.map(async (restDay) => {
+            return parseInt(restDay.restDay);
+          })
+        );
+        return { ...schedule, restDays: restDaysResult };
+      })
+    );
+
+    return schedulesWithRestDays;
   }
 }

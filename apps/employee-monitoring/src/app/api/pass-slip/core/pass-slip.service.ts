@@ -4,29 +4,31 @@ import { EmployeeSchedule, PassSlip, PassSlipApproval, PassSlipDto } from '@gscw
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { PassSlipApprovalStatus } from '@gscwd-api/utils';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
   constructor(
     private readonly crudService: CrudService<PassSlip>,
     private readonly passSlipApprovalService: PassSlipApprovalService,
-    private readonly client: MicroserviceClient
+    private readonly client: MicroserviceClient,
+    private readonly dataSource: DataSource
   ) {
     super(crudService);
   }
 
   async addPassSlip(passSlipDto: PassSlipDto) {
-    const repo = this.getDatasource();
-    const passSlip = await repo.transaction(async (transactionEntityManager) => {
+    //
+    //const repo = this.getDatasource();
+    const passSlip = await this.dataSource.transaction(async (transactionEntityManager) => {
       const { approval, ...rest } = passSlipDto;
-
       const supervisorId = await this.client.call<string, string, string>({
         action: 'send',
         payload: rest.employeeId,
         pattern: 'get_employee_supervisor_id',
         onError: (error) => new NotFoundException(error),
       });
-
+      //this.crudService.transact<PassSlip>(transactionEntityManager).create();
       const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save(rest);
       const approvalResult = await transactionEntityManager
         .getRepository(PassSlipApproval)
@@ -65,6 +67,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true },
         where: { passSlipId: { employeeId }, status: PassSlipApprovalStatus.ONGOING },
+        order: { createdAt: 'DESC' },
       },
     });
 
@@ -81,14 +84,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         return { ...passSlipId, ...names, ...restOfPassSlip };
       })
     );
-
-    // const passSlipsDisapproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
-    //   find: {
-    //     relations: { passSlipId: true },
-    //     select: { supervisorId: true, status: true },
-    //     where: { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED },
-    //   },
-    // });
 
     const passSlipsApprovedDisapproved = <PassSlipApproval[]>await this.rawQuery(
       `
@@ -127,9 +122,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       })
     );
 
-    return {
-      ongoing,
-      completed: appovedDisapproved,
-    };
+    const passSlips = { ongoing, completed: appovedDisapproved };
+    console.log(passSlips);
+    return passSlips;
   }
 }

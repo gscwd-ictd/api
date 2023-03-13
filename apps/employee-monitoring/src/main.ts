@@ -11,7 +11,14 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app/app.module';
 
-const whitelist = ['http://192.168.137.249:4103', 'http://192.168.137.249:6102'];
+const whitelist = [
+  'http://192.168.137.249:4103',
+  'http://192.168.137.249:6102',
+  'http://192.168.99.122:3109',
+  'http://localhost:3109',
+  'http://192.168.99.120:3109',
+  'http://192.168.99.123:3102',
+];
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

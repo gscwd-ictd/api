@@ -24,17 +24,22 @@ export type LeaveApplicationType = {
   status: LeaveApplicationStatus;
 };
 
+export type DtrPayload = {
+  dateFrom: Date;
+  dateTo: Date;
+};
+
 export enum NatureOfBusiness {
-  PERSONAL = 'personal',
-  HALF_DAY = 'half day',
-  UNDERTIME = 'undertime',
-  OFFICIAL_BUSINESS = 'official business',
+  PERSONAL = 'Personal Business',
+  HALF_DAY = 'Half Day',
+  UNDERTIME = 'Undertime',
+  OFFICIAL_BUSINESS = 'Official Business',
 }
 
 export enum ObTransportation {
-  OFFICIAL_VEHICLE = 'official vehicle',
-  PRIVATE_PERSONAL = 'private/personal',
-  PUBLIC = 'public',
+  OFFICIAL_VEHICLE = 'Office Vehicle',
+  PRIVATE_PERSONAL = 'Private/Personal Vehicle',
+  PUBLIC = 'Public Vehicle',
 }
 
 export enum PassSlipApprovalStatus {
@@ -45,7 +50,7 @@ export enum PassSlipApprovalStatus {
 
 export enum HolidayType {
   REGULAR = 'regular',
-  SPECIAL_NON_WORKING = 'special non-working',
+  SPECIAL_NON_WORKING = 'special',
 }
 
 export enum ScheduleType {

@@ -6,3 +6,5 @@ export * from './data/pass-slip-approval';
 export * from './data/holidays';
 export * from './data/schedule';
 export * from './data/schedule-rest-day';
+export * from './data/employee-schedule';
+export * from './data/daily-time-record';

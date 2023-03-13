@@ -7,6 +7,8 @@ import {
   LeaveApplication,
   Schedule,
   ScheduleRestDay,
+  EmployeeSchedule,
+  DailyTimeRecord,
 } from '@gscwd-api/models';
 
 export const typeOrmEntities = [
@@ -18,4 +20,6 @@ export const typeOrmEntities = [
   Holidays,
   Schedule,
   ScheduleRestDay,
+  EmployeeSchedule,
+  DailyTimeRecord,
 ];
