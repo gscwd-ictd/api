@@ -1,7 +1,9 @@
+import { HybridApp } from '@gscwd-api/microservices';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestApplication, NestFactory } from '@nestjs/core';
+import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app/app.module';
-import { initializeOpenApiDocumentation } from './utils/docs/open-api';
 
 async function bootstrap() {
   /**
@@ -9,12 +11,12 @@ async function bootstrap() {
    */
   const app = await NestFactory.create<NestApplication>(AppModule);
 
-  initializeOpenApiDocumentation(app);
+  const configService = app.get<ConfigService>(ConfigService);
 
   /**
    * set application port
    */
-  const PORT = process.env.PROCUREMENT_PORT;
+  const PORT = configService.getOrThrow<string>('WAREHOUSE_PORT');
 
   /**
    * enable cors policy to allow browser access
@@ -29,7 +31,7 @@ async function bootstrap() {
   /**
    *  apply the global prefix
    */
-  app.setGlobalPrefix('api/procurement');
+  app.setGlobalPrefix('api/warehouse');
 
   /**
    * enable validation
@@ -65,9 +67,48 @@ async function bootstrap() {
     })
   );
 
+  /**
+   *  enable hybrid application to listen to microservice requests
+   */
+  HybridApp.startMicroservice(app, {
+    /**
+     * set redis as the transport broker for this microservice
+     */
+    transport: Transport.REDIS,
+
+    /**
+     * provide connection settings
+     */
+    options: {
+      /**
+       * identify redis host
+       */
+      host: configService.getOrThrow<string>('WAREHOUSE_REDIS_HOST'),
+
+      /**
+       * identify redis port
+       */
+      port: parseInt(configService.getOrThrow<string>('WAREHOUSE_REDIS_PORT')),
+
+      /**
+       * identify redis password
+       */
+      password: configService.getOrThrow<string>('WAREHOUSE_REDIS_PASS'),
+    },
+  });
+
+  /**
+   * start the application
+   */
   await app.listen(PORT);
 
-  Logger.log(`🚀 Application is running on: http://localhost:${PORT}/api/procurement`, 'Procurement');
+  /**
+   * application logger
+   */
+  Logger.log(`🚀 Warehouse application server is running on: http://localhost:${PORT}/api/warehouse`, 'WarehouseServer');
 }
 
+/**
+ * run the application
+ */
 bootstrap();
