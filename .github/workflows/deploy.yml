@@ -26,4 +26,6 @@ jobs:
     steps:
       # Runs a single command using the runners shell
       - name: Send greeting
-        run: pwd
+        run: |
+          pwd
+          echo "Hello World"
