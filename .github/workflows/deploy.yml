@@ -8,5 +8,9 @@ jobs:
     if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     steps:
-      # - working-directory: ${{ inputs.working-directory }}
-      - run: pwd
+      - run: |
+          echo "checkout to local main branch"
+          git checkout main
+          echo "pulling latest code from remote repository"
+          git pull origin main
+          echo "got the latest code now"
