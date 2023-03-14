@@ -1,0 +1,19 @@
+name: CD
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  main:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: |
+        cd ~
+        cd gscwd-projects/ims/api
+        echo "pulling latest code base from main branch"
+        git checkout main
+        git pull origin main
+        echo "run pm2 now"
