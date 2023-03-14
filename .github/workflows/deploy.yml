@@ -28,4 +28,4 @@ jobs:
       - name: Send greeting
         run: |
           pwd
-          echo "Hello World"
+          git checkout main
