@@ -26,3 +26,10 @@ jobs:
           npx nx build items
           npx nx build procurement
           npx nx build warehouse
+      - name: PM2 deployment
+        working-directory: /home/ictd2022/actions-runner/_work/api
+        run: |
+          pm2 delete procurement
+          pm2 delete items
+          pm2 delete warehouse
+          pm2 start ecosystem.config.js
