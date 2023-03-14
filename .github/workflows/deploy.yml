@@ -10,10 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: run some commands
       - run: |
-        cd ~
-        cd gscwd-projects/ims/api
-        echo "pulling latest code base from main branch"
-        git checkout main
-        git pull origin main
-        echo "run pm2 now"
+          cd ~
+          cd gscwd-projects/ims/api
+          echo "pulling latest code base from main branch"
+          git checkout main
+          git pull origin main
+          echo "run pm2 now"
