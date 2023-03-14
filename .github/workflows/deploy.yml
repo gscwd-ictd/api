@@ -8,9 +8,5 @@ jobs:
     if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          cd ~/gscwd-projects/ims/api
-          git checkout main
-          echo "Pulling latest codebase from remote repository"
-          git pull origin main
-          echo "Ready to deploy the monorepo"
+      # - working-directory: ${{ inputs.working-directory }}
+      - run: pwd
