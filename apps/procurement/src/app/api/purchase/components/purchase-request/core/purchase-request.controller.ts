@@ -23,8 +23,8 @@ export class PurchaseRequestController {
     return 'Testing';
   }
 
-  @Get('tes')
+  @Get('tests')
   async tes() {
-    return 'tes';
+    return 'tests';
   }
 }

@@ -21,11 +21,18 @@ jobs:
           pwd
           git checkout main
           git pull origin main
+
+      - name: Removing previous dist directory
+        working-directory: /home/ictd2022/actions-runner/_work/api/api/
+        run: |
+          rm -rf dist
+
       - name: Building projects
         run: |
           npx nx build items
           npx nx build procurement
           npx nx build warehouse
+
       - name: PM2 deployment
         working-directory: /home/ictd2022/actions-runner/_work/api
         run: |
