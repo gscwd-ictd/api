@@ -108,7 +108,7 @@ describe('Purchase Module e2e test', () => {
       expect(response.body).toMatchObject(PurchaseRequestStub);
     });
 
-    it('should find all requested items from purchase request', async () => {
+    it('should find all the requested items from purchase request', async () => {
       const response = await request(app.getHttpServer()).get(`/requested-items/pr/${pr.id}`);
 
       requestedItems = response.body;
