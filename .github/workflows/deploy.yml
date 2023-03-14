@@ -15,6 +15,6 @@ jobs:
           pwd
           echo "checkout to local main branch"
           git checkout main
-          echo "pulling latest code from remote repository"
+          echo "pulling the latest code from remote repository"
           git pull origin main
           echo "got the latest code now"
