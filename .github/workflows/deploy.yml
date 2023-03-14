@@ -21,3 +21,8 @@ jobs:
           pwd
           git checkout main
           git pull origin main
+      - name: Building projects
+        run: |
+          npx nx build items
+          npx nx build procurement
+          npx nx build warehouse
