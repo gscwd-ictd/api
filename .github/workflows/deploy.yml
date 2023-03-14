@@ -1,20 +1,11 @@
 name: CD
 on:
-  push:
-    branches:
-      - main
+  pull_request_review:
+    types: [submitted]
 
 jobs:
-  main:
-    runs-on: self-hosted
+  approved:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: run some commands
-      - run: |
-          cd ~
-          cd gscwd-projects/ims/api
-          echo "pulling latest code base from main branch"
-          git checkout main
-          git pull origin main
-          echo "run pm2 now"
+      - run: echo "This PR was approved"
