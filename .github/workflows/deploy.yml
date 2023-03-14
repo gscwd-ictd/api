@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          pwd
           echo "checkout to local main branch"
           git checkout main
           echo "pulling latest code from remote repository"
           git pull origin main
           echo "got the latest code now"
+        working-directory: /home/runner/work/api/api
