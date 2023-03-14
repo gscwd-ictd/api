@@ -15,16 +15,6 @@ export class PurchaseRequestController {
 
   @Get('test')
   async test() {
-    return 'Deployment test';
-  }
-
-  @Get('testing')
-  async testing() {
-    return 'Testing';
-  }
-
-  @Get('tests')
-  async tes() {
-    return 'tests';
+    return 'test';
   }
 }
