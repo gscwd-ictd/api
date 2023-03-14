@@ -6,10 +6,11 @@ on:
 jobs:
   approved:
     if: github.event.review.state == 'approved'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Git actions
-        working-directory: ${{ inputs.working-directory }}
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
         run: |
           pwd
           echo "checkout to local main branch"
