@@ -16,7 +16,7 @@ jobs:
         shell: bash
         run: |
           pwd
-          echo "testings"
+          echo "testingss"
         ## echo "checkout to local main branch"
         # git checkout main
         # echo "pulling the latest code from remote repository"
