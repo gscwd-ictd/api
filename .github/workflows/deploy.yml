@@ -8,10 +8,13 @@ jobs:
     if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo "checkout to local main branch"
-          git checkout main
-          echo "pulling latest code from remote repository"
-          git pull origin main
-          echo "got the latest code now"
-        working-directory: /home/runner/work/api/api
+      - name: Git actions
+        working-directory: /home/ictd2022/gscwd-projects/ims/api
+        run: |
+          pwd
+        # run: |
+        #   # echo "checkout to local main branch"
+        #   # git checkout main
+        #   # echo "pulling latest code from remote repository"
+        #   # git pull origin main
+        #   # echo "got the latest code now"
