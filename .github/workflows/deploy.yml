@@ -1,11 +1,11 @@
 name: CD
 on:
-  pull_request_review:
-    types: [submitted]
+  push:
+    branches:
+      - main
 
 jobs:
-  approved:
-    if: github.event.review.state == 'approved'
+  merge:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
@@ -13,8 +13,8 @@ jobs:
           fetch-depth: 0
         run: |
           pwd
-          echo "checkout to local main branch"
-          git checkout main
-          echo "pulling the latest code from remote repository"
-          git pull origin main
-          echo "got the latest code now"
+        ## echo "checkout to local main branch"
+        # git checkout main
+        # echo "pulling the latest code from remote repository"
+        # git pull origin main
+        # echo "got the latest code now"
