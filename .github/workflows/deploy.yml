@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git actions
-        working-directory: /home/ictd2022/gscwd-projects/ims/api
+        working-directory: ${{ inputs.working-directory }}
         run: |
           pwd
         # run: |
