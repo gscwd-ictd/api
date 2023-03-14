@@ -8,4 +8,5 @@ jobs:
     if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     steps:
-      - run: echo "This PR was approved"
+      - run: |
+          echo "Test running terminal script"
