@@ -13,8 +13,8 @@ export class PurchaseRequestController {
     return await this.prService.createRawPr(prDto);
   }
 
-  @Get('my-test')
-  async mytest() {
-    return 'my test';
+  @Get('test')
+  async test() {
+    return 'test';
   }
 }
