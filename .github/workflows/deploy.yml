@@ -13,4 +13,4 @@ jobs:
           git checkout main
           echo "Pulling latest codebase from remote repository"
           git pull origin main
-          echo "Ready to deploy"
+          echo "Ready to deploy the monorepo"
