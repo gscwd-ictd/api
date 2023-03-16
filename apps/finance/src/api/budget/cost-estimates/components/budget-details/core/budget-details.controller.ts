@@ -39,8 +39,8 @@ export class BudgetDetailsController implements ICrudRoutes {
     return await this.budgetDetailsService.crud().findAll({
       pagination: { page, limit },
       find: {
-        relations: { budgetType: true },
-        select: { budgetType: { id: true, name: true } },
+        relations: { budgetType: true, generalLedgerAccount: true },
+        select: { budgetType: { id: true, name: true }, generalLedgerAccount: { id: true, code: true } },
       },
       onError: () => new InternalServerErrorException(),
     });
