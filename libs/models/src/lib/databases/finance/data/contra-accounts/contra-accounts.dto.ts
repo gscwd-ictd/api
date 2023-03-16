@@ -3,7 +3,7 @@ import { IsOptional, IsString, Length } from 'class-validator';
 
 export class CreateContraAccountDto {
   @IsString({ message: 'contra account code must be a string' })
-  @Length(1, 1, { message: 'contra account code must be 2 characters long' })
+  @Length(1, 1, { message: 'contra account code must be 1 character long' })
   code: string;
 
   @IsString({ message: 'contra account type name must be a string' })

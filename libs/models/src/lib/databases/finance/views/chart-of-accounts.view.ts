@@ -12,7 +12,7 @@ import { AccountGroup, ContraAccount, GeneralLedgerAccount, MajorAccountGroup, S
       .addSelect('ma.code', 'major_account_group_code')
       .addSelect('ma.name', 'major_account_group_name')
       .addSelect('sm.name', 'sub_major_account_group_name')
-      .addSelect('sm.name', 'sub_major_account_group_code')
+      .addSelect('sm.code', 'sub_major_account_group_code')
       .addSelect('gl.code', 'general_ledger_account_code')
       .addSelect('gl.name', 'general_ledger_account_name')
       .addSelect('ca.code', 'contra_account_code')

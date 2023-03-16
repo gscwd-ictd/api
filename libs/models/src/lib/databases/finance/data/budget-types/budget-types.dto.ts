@@ -7,7 +7,7 @@ export class CreateBudgetTypeDto {
   name: string;
 
   @IsOptional()
-  @IsString({ message: 'unit description must be a string' })
+  @IsString({ message: 'budget type description must be a string' })
   description: string;
 }
 

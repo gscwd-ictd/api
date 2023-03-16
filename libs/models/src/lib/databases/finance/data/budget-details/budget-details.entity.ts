@@ -4,9 +4,9 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 import { BudgetType } from '../budget-types';
 import { GeneralLedgerAccount } from '../general-ledger-accounts';
 
-@Entity({ name: 'budget-details' })
+@Entity({ name: 'budget_details' })
 export class BudgetDetails extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'budget_detail_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'budget_details_id' })
   id: string;
 
   @ManyToOne(() => BudgetType, (budgetType) => budgetType.id, { nullable: false })
