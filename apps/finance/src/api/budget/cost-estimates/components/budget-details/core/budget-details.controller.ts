@@ -40,7 +40,7 @@ export class BudgetDetailsController implements ICrudRoutes {
       pagination: { page, limit },
       find: {
         relations: { budgetType: true, generalLedgerAccount: true },
-        select: { budgetType: { id: true, name: true }, generalLedgerAccount: { id: true, code: true } },
+        select: { budgetType: { id: true, name: true }, generalLedgerAccount: { id: true, code: true, name: true } },
       },
       onError: () => new InternalServerErrorException(),
     });
