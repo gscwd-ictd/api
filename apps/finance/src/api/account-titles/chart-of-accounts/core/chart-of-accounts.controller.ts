@@ -1,12 +1,14 @@
 import { ChartOfAccountsView } from '@gscwd-api/models';
-import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query, UseInterceptors } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { FindAllChartOfAccountsInterceptor } from '../misc/interceptors';
 import { ChartOfAccountService } from './chart-of-accounts.service';
 
 @Controller({ version: '1', path: 'account-titles' })
 export class ChartOfAccountController {
   constructor(private readonly chartOfAccountsService: ChartOfAccountService) {}
 
+  @UseInterceptors(FindAllChartOfAccountsInterceptor)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
