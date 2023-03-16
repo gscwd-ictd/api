@@ -8,12 +8,12 @@ export class FindAllChartOfAccountsInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
     return next.handle().pipe(
       map((result: Pagination<ChartOfAccountsView>) => {
-        const items = result.items.map((item: ChartOfAccountsView) => ({
-          id: item.general_ledger_account_id,
-          code: `${item.account_group_code}-${item.major_account_group_code}-${item.sub_major_account_group_code}-${
-            item.general_ledger_account_code + item.contra_account_code
+        const items = result.items.map((chartOfAccount: ChartOfAccountsView) => ({
+          id: chartOfAccount.general_ledger_account_id,
+          code: `${chartOfAccount.account_group_code}-${chartOfAccount.major_account_group_code}-${chartOfAccount.sub_major_account_group_code}-${
+            chartOfAccount.general_ledger_account_code + chartOfAccount.contra_account_code
           }`,
-          name: item.general_ledger_account_name,
+          name: chartOfAccount.general_ledger_account_name,
         }));
         return { ...result, items };
       })
