@@ -8,7 +8,7 @@ export class ProjectDetails extends DatabaseEntity implements IEntity {
   id: string;
 
   @ManyToOne(() => BudgetDetails, (budgetDetails) => budgetDetails.id, { nullable: false })
-  @JoinColumn({ name: 'budget_detail_id_fk' })
+  @JoinColumn({ name: 'budget_details_id_fk' })
   budgetDetails: BudgetDetails;
 
   @Column({ name: 'project_name', type: 'text', nullable: true })
@@ -16,6 +16,9 @@ export class ProjectDetails extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'location', type: 'text', nullable: true })
   location: string;
+
+  @Column({ name: 'subject', type: 'text', nullable: true })
+  subject: string;
 
   @Column({ name: 'work_description', type: 'text', nullable: true })
   workDescription: string;

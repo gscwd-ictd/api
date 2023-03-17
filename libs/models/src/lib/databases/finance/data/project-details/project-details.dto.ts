@@ -14,7 +14,7 @@ export class CreateProjectDetailsDto {
   location: string;
 
   @IsString()
-  itemNumber: string;
+  subject: string;
 
   @IsString()
   workDescription: string;
@@ -24,6 +24,9 @@ export class CreateProjectDetailsDto {
 
   @IsInt()
   outputPerDay: number;
+
+  @IsInt()
+  totalEstimatedCost: number;
 }
 
 export class UpdateProjectDetailsDto extends PartialType(CreateProjectDetailsDto) {}
