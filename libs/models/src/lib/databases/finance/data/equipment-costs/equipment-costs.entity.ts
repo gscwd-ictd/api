@@ -1,6 +1,7 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Contigency, ProjectDetails } from '@gscwd-api/models';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Contigency } from '../contingencies';
+import { ProjectDetails } from '../project-details';
 
 @Entity({ name: 'equipment_costs' })
 export class EquipmentCost extends DatabaseEntity implements IEntity {
@@ -9,9 +10,9 @@ export class EquipmentCost extends DatabaseEntity implements IEntity {
 
   @ManyToOne(() => ProjectDetails, (projectDetail) => projectDetail.id, { nullable: false })
   @JoinColumn({ name: 'project_detail_id_fk' })
-  projectDetail: ProjectDetails;
+  projectDetails: ProjectDetails;
 
-  @ManyToOne(() => Contigency, (contingency) => contingency.id, { nullable: false })
+  @ManyToOne(() => Contigency, (contingency) => contingency.id, { nullable: true })
   @JoinColumn({ name: 'contigency_id_fk' })
   contingency: Contigency;
 
@@ -24,9 +25,6 @@ export class EquipmentCost extends DatabaseEntity implements IEntity {
   @Column({ name: 'number_of_day', type: 'integer' })
   numberOfDays: number;
 
-  @Column({ name: 'unit_cost', type: 'decimal' })
+  @Column({ name: 'unit_cost', type: 'integer' })
   unitCost: number;
-
-  @Column({ name: 'amount', type: 'decimal' })
-  amount: number;
 }

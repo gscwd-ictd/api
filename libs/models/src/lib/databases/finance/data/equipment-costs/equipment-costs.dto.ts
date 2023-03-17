@@ -1,10 +1,14 @@
-import { ProjectDetails } from '@gscwd-api/models';
 import { PartialType } from '@nestjs/swagger';
-import { IsDecimal, IsInt, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsInt, IsString, IsUUID, MaxLength } from 'class-validator';
+import { Contigency } from '../contingencies';
+import { ProjectDetails } from '../project-details';
 
 export class CreateEquipmentCostDto {
   @IsUUID()
-  projectDetail: ProjectDetails;
+  projectDetails: ProjectDetails;
+
+  @IsUUID()
+  contingency: Contigency;
 
   @IsString()
   @MaxLength(50, { message: 'Equipment description name is too long.' })
@@ -16,11 +20,8 @@ export class CreateEquipmentCostDto {
   @IsInt()
   numberOfDays: number;
 
-  @IsDecimal()
+  @IsInt()
   unitCost: number;
-
-  @IsDecimal()
-  amount: number;
 }
 
 export class UpdateEquipmentCostDto extends PartialType(CreateEquipmentCostDto) {}
