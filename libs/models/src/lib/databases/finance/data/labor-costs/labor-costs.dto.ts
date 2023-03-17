@@ -1,10 +1,11 @@
-import { Contigency, ProjectDetails } from '@gscwd-api/models';
-import { OmitType, PartialType } from '@nestjs/swagger';
-import { IsCurrency, IsDecimal, IsInt, IsUUID } from 'class-validator';
+import { PartialType } from '@nestjs/swagger';
+import { IsInt, IsUUID } from 'class-validator';
+import { Contigency } from '../contingencies';
+import { ProjectDetails } from '../project-details';
 
 export class CreateLaborCostDto {
   @IsUUID()
-  projectDetail: ProjectDetails;
+  projectDetails: ProjectDetails;
 
   @IsUUID()
   contingency: Contigency;
@@ -16,13 +17,10 @@ export class CreateLaborCostDto {
   numberOfPerson: number;
 
   @IsInt()
-  numberOfDay: number;
+  numberOfDays: number;
 
-  @IsDecimal()
+  @IsInt()
   unitCost: number;
-
-  @IsCurrency()
-  amount: number;
 }
 
-export class UpdateLaborCostDto extends PartialType(OmitType(CreateLaborCostDto, ['projectDetail'] as const)) {}
+export class UpdateLaborCostDto extends PartialType(CreateLaborCostDto) {}
