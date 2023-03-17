@@ -1,6 +1,7 @@
-import { Contigency, ProjectDetails } from '@gscwd-api/models';
 import { PartialType } from '@nestjs/swagger';
-import { IsCurrency, IsInt, IsUUID } from 'class-validator';
+import { IsInt, IsNumber, IsUUID } from 'class-validator';
+import { Contigency } from '../contingencies';
+import { ProjectDetails } from '../project-details';
 
 export class CreateMaterialCostDto {
   @IsUUID()
@@ -15,11 +16,8 @@ export class CreateMaterialCostDto {
   @IsInt()
   quantity: number;
 
-  @IsCurrency()
+  @IsNumber()
   unitCost: number;
-
-  @IsCurrency()
-  amount: number;
 }
 
 export class UpdateMaterialCostDto extends PartialType(CreateMaterialCostDto) {}
