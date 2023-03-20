@@ -8,6 +8,9 @@ tmp
 # environments
 .env
 
+# files
+ecosystem.config.js
+
 # dependencies
 node_modules
 

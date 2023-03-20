@@ -1,20 +1,19 @@
-name: CI
+name: Staging
 on:
   pull_request:
     branches:
       - main
-
 jobs:
-  main:
+  staging:
+    name: Staging
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - uses: nrwl/nx-set-shas@v3
-      - run: npm i
+      - run: npm ci
 
       - run: npx nx format:check
       - run: npx nx affected --target=lint --parallel=3
       - run: npx nx affected --target=test --parallel=3 --configuration=ci
-      - run: npx nx affected --target=build --parallel=3
