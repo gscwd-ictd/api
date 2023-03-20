@@ -22,7 +22,9 @@ jobs:
         with:
           fetch-depth: 0
       - uses: nrwl/nx-set-shas@v3
-      - run: npx nx affected --target=build --parallel=3
+      - run: |
+          pwd
+          npx nx affected --target=build --parallel=3
 
   deployment:
     name: Deployment
