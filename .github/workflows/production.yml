@@ -33,5 +33,6 @@ jobs:
       - name: Deploying application using pm2
         working-directory: /home/ictd2022/actions-runner/_work/api/api/
         run: |
+          pwd
           pm2 start ecosystem.config.js
           pm2 save
