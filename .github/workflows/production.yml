@@ -1,0 +1,37 @@
+name: Production
+on:
+  push:
+    branches:
+      - main
+jobs:
+  sync:
+    name: Synching
+    runs-on: self-hosted
+    steps:
+      - name: Pulling latest code from remote repository's production branch
+        run: |
+          git checkout main
+          git pull origin main
+
+  building:
+    name: Building
+    needs: sync
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: nrwl/nx-set-shas@v3
+      - run: npm i
+      - run: npx nx affected --target=build --parallel=3
+
+  deployment:
+    name: Deployment
+    needs: building
+    runs-on: self-hosted
+    steps:
+      - name: Deploying application using pm2
+        working-directory: /home/ictd2022/actions-runner/_work/api/api/
+        run: |
+          pm2 start ecosystem.config.js
+          pm2 save
