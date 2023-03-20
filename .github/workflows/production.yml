@@ -23,9 +23,7 @@ jobs:
           fetch-depth: 0
       - uses: nrwl/nx-set-shas@v3
       - run: npm i
-      - run: |
-          pwd
-          npx nx affected --target=build --parallel=3
+      - run: npx nx affected --target=build --parallel=3
 
   deployment:
     name: Deployment
@@ -33,8 +31,9 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Deploying application using pm2
-        working-directory: /home/ictd2022/actions-runner/_work/api/api/
+        working-directory: /home/ictd2022/actions-runner/_work/api/
         run: |
           pwd
+          ls
           pm2 start ecosystem.config.js
           pm2 save
