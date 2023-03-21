@@ -1,6 +1,6 @@
 import { IEntity } from '@gscwd-api/crud';
-import { ProjectDetails } from '@gscwd-api/models';
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { ProjectDetails } from '../project-details';
 
 @Entity({ name: 'value_added_tax' })
 export class ValueAddedTax extends BaseEntity implements IEntity {

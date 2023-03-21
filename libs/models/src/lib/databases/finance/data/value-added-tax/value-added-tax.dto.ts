@@ -1,6 +1,6 @@
-import { ProjectDetails } from '@gscwd-api/models';
 import { PartialType } from '@nestjs/swagger';
 import { IsDecimal, IsUUID } from 'class-validator';
+import { ProjectDetails } from '../project-details';
 
 export class CreateValueAddedTaxDto {
   @IsUUID()
