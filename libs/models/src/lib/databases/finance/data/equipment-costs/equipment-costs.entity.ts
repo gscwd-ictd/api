@@ -22,7 +22,7 @@ export class EquipmentCost extends DatabaseEntity implements IEntity {
   @Column({ name: 'number_of_unit', type: 'integer' })
   numberOfUnit: number;
 
-  @Column({ name: 'number_of_day', type: 'integer' })
+  @Column({ name: 'number_of_days', type: 'integer' })
   numberOfDays: number;
 
   @Column({ name: 'unit_cost', type: 'integer' })

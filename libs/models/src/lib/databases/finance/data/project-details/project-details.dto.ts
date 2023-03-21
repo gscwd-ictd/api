@@ -24,9 +24,6 @@ export class CreateProjectDetailsDto {
 
   @IsInt()
   outputPerDay: number;
-
-  @IsInt()
-  totalEstimatedCost: number;
 }
 
 export class UpdateProjectDetailsDto extends PartialType(CreateProjectDetailsDto) {}

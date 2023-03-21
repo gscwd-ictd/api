@@ -28,7 +28,4 @@ export class ProjectDetails extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'output_per_day', type: 'integer' })
   outputPerDay: number;
-
-  @Column({ name: 'total_estimate_cost', type: 'integer' })
-  totalEstimatedCost: number;
 }
