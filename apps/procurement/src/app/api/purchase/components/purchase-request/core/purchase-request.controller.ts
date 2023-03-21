@@ -17,4 +17,9 @@ export class PurchaseRequestController {
   async test() {
     return 'test';
   }
+
+  @Get('test1')
+  async test1() {
+    return 'test1';
+  }
 }
