@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
       - uses: nrwl/nx-set-shas@v3
       - run: npm i
-      - run: nx run-many --target=build --parallel=3
+      - run: npx nx run-many --target=build --parallel=3
 
   deployment:
     name: Deployment
