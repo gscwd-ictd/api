@@ -1,8 +1,11 @@
 name: Staging
 on:
   pull_request:
+    paths-ignore:
+      - dist
     branches:
       - main
+
 jobs:
   analyze:
     name: Analyze
