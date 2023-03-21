@@ -11,7 +11,7 @@ import { ItemModule } from './api/item';
 @Module({
   imports: [
     // config module for reading enironment variables
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: join(__dirname, '../../../apps/finance/.env') }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: join(__dirname, '../../../.env') }),
 
     // database connection via typeorm
     DatabaseModule,
