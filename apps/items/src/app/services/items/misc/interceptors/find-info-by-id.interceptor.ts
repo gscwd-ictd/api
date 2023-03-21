@@ -16,6 +16,10 @@ export class FindItemInfoByIdInterceptor implements NestInterceptor {
           details: item.specification_name,
           description: item.description,
           balance: item.balance,
+          unit: {
+            name: item.unit_name,
+            symbol: item.unit_symbol,
+          },
           reorder: {
             point: item.reorder_point,
             quantity: item.reorder_quantity,

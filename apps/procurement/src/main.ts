@@ -1,4 +1,5 @@
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestApplication, NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { initializeOpenApiDocumentation } from './utils/docs/open-api';
@@ -14,7 +15,9 @@ async function bootstrap() {
   /**
    * set application port
    */
-  const PORT = process.env.PROCUREMENT_PORT;
+  const configService = app.get<ConfigService>(ConfigService);
+
+  const port = configService.getOrThrow<string>('PROCUREMENT_PORT');
 
   /**
    * enable cors policy to allow browser access
@@ -65,9 +68,9 @@ async function bootstrap() {
     })
   );
 
-  await app.listen(PORT);
+  await app.listen(port);
 
-  Logger.log(`🚀 Application is running on: http://localhost:${PORT}/api/procurement`, 'Procurement');
+  Logger.log(`🚀 Application is running on: http://localhost:${port}/api/procurement`, 'Procurement');
 }
 
 bootstrap();

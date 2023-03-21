@@ -25,7 +25,6 @@ export class PurchaseTypeController implements ICrudRoutes {
 
   @Post()
   async create(@Body() data: CreatePurchaseTypeDto): Promise<PurchaseType> {
-    console.log(data);
     return await this.purchaseTypeService.crud().create({
       dto: data,
       onError: () => new BadRequestException(),

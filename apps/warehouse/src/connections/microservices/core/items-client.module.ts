@@ -12,9 +12,9 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         useFactory: (configService: ConfigService) => ({
           transport: Transport.REDIS,
           options: {
-            host: configService.getOrThrow<string>('ITEMS_REDIS_HOST'),
-            port: parseInt(configService.getOrThrow<string>('ITEMS_REDIS_PORT')),
-            password: configService.getOrThrow<string>('ITEMS_REDIS_PASS'),
+            host: configService.getOrThrow<string>('REDIS_HOST'),
+            port: parseInt(configService.getOrThrow<string>('REDIS_PORT')),
+            password: configService.getOrThrow<string>('REDIS_PASS'),
           },
         }),
       },

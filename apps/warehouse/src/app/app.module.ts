@@ -11,7 +11,7 @@ console.log(join(__dirname, '../../../apps/warehouse/.env'));
     // config module for reading enironment variables
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: join(__dirname, '../../../apps/warehouse/.env'),
+      envFilePath: join(__dirname, '../../../.env'),
     }),
 
     // database connection via typeorm
