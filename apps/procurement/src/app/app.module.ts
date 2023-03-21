@@ -9,7 +9,10 @@ import { ItemsModule } from './services/items';
 @Module({
   imports: [
     // config module setup for reading env variables
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: join(__dirname, '../../../apps/procurement/.env') }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: join(__dirname, '../../../.env'),
+    }),
 
     // initialize database connection
     DatabaseModule,

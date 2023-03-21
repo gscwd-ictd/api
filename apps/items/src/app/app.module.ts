@@ -9,7 +9,7 @@ import { DatabaseModule } from '../connections';
     // config module for reading enironment variables
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: join(__dirname, '../../../apps/items/.env'),
+      envFilePath: join(__dirname, '../../../.env'),
     }),
 
     // database connection using typeorm
