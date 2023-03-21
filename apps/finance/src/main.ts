@@ -1,6 +1,6 @@
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestApplication, NestFactory } from '@nestjs/core';
-import { AppModule } from './api/app.module';
+import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   // initialize a nest application
