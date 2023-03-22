@@ -45,15 +45,20 @@ jobs:
     strategy:
       matrix:
         node: [18.x]
+    permissions:
+      contents: 'read'
+      actions: 'read'
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           clean: false
-      - name: Setup node
+
+      - name: Setting up node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+
       - uses: nrwl/nx-set-shas@v3
 
       - run: npx nx format:check
