@@ -14,7 +14,7 @@ jobs:
           clean: false
       - uses: nrwl/nx-set-shas@v3
       - run: npm i
-      - run: npx nx run-many --target=build --parallel=3
+      - run: npx nx affected --target=build --parallel=3
 
   deployment:
     name: Deployment
