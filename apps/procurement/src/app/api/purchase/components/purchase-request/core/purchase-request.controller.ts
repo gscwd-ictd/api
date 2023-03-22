@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseInterceptors } from '@nestjs/common';
 import { CreatePrDto } from '../data/pr.dto';
 import { CreatePurchaseRequestInterceptor } from '../misc/create-pr.interceptor';
 import { PurchaseRequestService } from './purchase-request.service';
@@ -11,5 +11,10 @@ export class PurchaseRequestController {
   @Post()
   async create(@Body() prDto: CreatePrDto) {
     return await this.prService.createRawPr(prDto);
+  }
+
+  @Get()
+  test() {
+    return 'test';
   }
 }
