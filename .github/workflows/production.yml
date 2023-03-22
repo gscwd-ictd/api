@@ -7,22 +7,27 @@ jobs:
   building:
     name: Building
     runs-on: self-hosted
+    strategy:
+      matrix:
+        node: [18.x]
+    permissions:
+      contents: 'read'
+      actions: 'read'
     steps:
-      - uses: actions/checkout@v3
+      - name: Checking out repository
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           clean: false
+      - name: Setting up node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
       - uses: nrwl/nx-set-shas@v3
       - run: npm i
       - run: npx nx affected --target=build --parallel=3
-
-  deployment:
-    name: Deployment
-    needs: building
-    runs-on: self-hosted
-    steps:
-      - name: Deploying application using pm2
-        working-directory: /home/ictd2022/actions-runner/_work/api/
+      - name: Reload pm2 configuration
         run: |
-          pm2 start ecosystem.config.js
-          pm2 save
+          cd ..
+          pwd
+          pm2 reload ecosystem.config.js
