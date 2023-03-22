@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { DatabaseModule } from '../connections/';
-import { PurchaseRequestModule, RequestForQuotationModule, PurchaseTypeModule } from './api/purchase/components';
+import { PurchaseRequestModule, RequestForQuotationModule, PurchaseTypeModule, RequestedItemModule } from './api/purchase/components';
 import { OrgStructureModule } from './services/hrms/components/org-structure';
 import { ItemsModule } from './services/items';
 
@@ -21,6 +21,7 @@ import { ItemsModule } from './services/items';
     PurchaseRequestModule,
     RequestForQuotationModule,
     PurchaseTypeModule,
+    RequestedItemModule,
 
     // microservice modules
     OrgStructureModule,
