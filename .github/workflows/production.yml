@@ -4,18 +4,8 @@ on:
     branches:
       - main
 jobs:
-  # sync:
-  #   name: Synching
-  #   runs-on: self-hosted
-  #   steps:
-  #     - name: Pulling latest code from remote repository's production branch
-  #       run: |
-  #         git checkout main
-  #         git pull origin main
-
   building:
     name: Building
-    # needs: sync
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
