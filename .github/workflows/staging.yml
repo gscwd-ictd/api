@@ -20,12 +20,16 @@ jobs:
       - run: npx nx affected --target=lint --parallel=3
       - run: npx nx affected --target=test --parallel=3 --configuration=ci
       - run: npx nx affected --target=build --parallel=3
-  reload:
-    name: Reload pm2
-    needs: staging
-    runs-on: self-hosted
-    steps:
-      - name: Deploying application using pm2
-        working-directory: /home/ictd2022/actions-runner/_work/api/
-        run: |
+      - run: |
+          cd ..
+          pwd
           pm2 reload ecosystem.config.js
+  # reload:
+  #   name: Reload pm2
+  #   needs: staging
+  #   runs-on: self-hosted
+  #   steps:
+  #     - name: Deploying application using pm2
+  #       working-directory: /home/ictd2022/actions-runner/_work/api/
+  #       run: |
+  #         pm2 reload ecosystem.config.js
