@@ -41,7 +41,6 @@ jobs:
   staging:
     name: Staging
     runs-on: self-hosted
-    needs: analyze
     steps:
       - uses: actions/checkout@v3
         with:
