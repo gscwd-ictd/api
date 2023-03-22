@@ -15,6 +15,6 @@ export class PurchaseRequestController {
 
   @Get()
   test() {
-    return 'test - revision 5';
+    return 'test - revision 6';
   }
 }

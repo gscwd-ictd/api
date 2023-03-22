@@ -19,15 +19,23 @@ jobs:
         with:
           fetch-depth: 0
           clean: false
+
       - name: Setting up node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
-      - uses: nrwl/nx-set-shas@v3
-      - run: npm i
-      - run: npx nx affected --target=build --parallel=3
+
+      - name: Comparing Base and Head positions
+        uses: nrwl/nx-set-shas@v3
+
+      - name: Building the project
+        run: |
+          npm i
+          npx nx affected --target=build --parallel=3
+
       - name: Reload pm2 configuration
         run: |
           cd ..
           pwd
           pm2 reload ecosystem.config.js
+          pm2 ls
