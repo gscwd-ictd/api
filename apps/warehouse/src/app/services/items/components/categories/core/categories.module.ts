@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ItemsMicroserviceClientModule } from '../../../../../../connections';
+import { ItemsMicroserviceClientModule } from '@gscwd-api/microservices';
 import { CategoriesController } from './categories.controller';
 import { CategoriesService } from './categories.service';
 
