@@ -103,5 +103,5 @@ jobs:
         run: |
           cd /home/ictd2022/actions-runner/_work/api
           pwd
-          pm2 reload ecosystem.config.js
+          pm2 start ecosystem.config.js && pm2 save || pm2 reload ecosystem.config.js
           pm2 ls
