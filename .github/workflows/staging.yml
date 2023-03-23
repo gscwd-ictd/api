@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-  format:
+  formatting:
     name: Perform format checking
     runs-on: self-hosted
     steps:
@@ -34,6 +34,9 @@ jobs:
         with:
           fetch-depth: 0
           clean: false
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Comparing Base and Head positions
         uses: nrwl/nx-set-shas@v3
@@ -50,6 +53,9 @@ jobs:
           fetch-depth: 0
           clean: false
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Comparing Base and Head positions
         uses: nrwl/nx-set-shas@v3
 
@@ -65,41 +71,10 @@ jobs:
           fetch-depth: 0
           clean: false
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Comparing Base and Head positions
         uses: nrwl/nx-set-shas@v3
 
       - run: npx nx affected --target=test --parallel=3 --configuration=ci
-
-  # staging:
-  #   name: Staging
-  #   runs-on: self-hosted
-  #   needs: analyze
-  #   strategy:
-  #     matrix:
-  #       node: [18.x]
-  #   permissions:
-  #     contents: 'read'
-  #     actions: 'read'
-  #   steps:
-  #     - name: Checking out repository
-  #       uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0
-  #         clean: false
-
-  #     - name: Setting up node
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: ${{ matrix.node }}
-
-  #     - name: Comparing Base and Head positions
-  #       uses: nrwl/nx-set-shas@v3
-
-  #     - name: Perform format check
-  #       run: npx nx format:check
-
-  #     - name: Perform code linting
-  #       run: npx nx affected --target=lint --parallel=3
-
-  #     - name: Perform code testing
-  #       run: npx nx affected --target=test --parallel=3 --configuration=ci
