@@ -12,11 +12,11 @@ import { PurchaseRequest } from '@gscwd-api/utils';
 import { RequestForQuotationModule } from '../components/request-for-quotation/core/request-for-quotation.module';
 import { RequestedItemModule } from '../../../api/purchase/components/requested-item';
 import { ConfigModule } from '@nestjs/config';
-import { MS_CLIENT } from '@gscwd-api/microservices';
-import { Transport } from '@nestjs/microservices';
+import { join } from 'path';
 
 let app: INestApplication;
 let datasource: DataSource;
+// let client: ClientProxy;
 
 describe('Purchase Module e2e test', () => {
   beforeAll(async () => {
@@ -26,7 +26,7 @@ describe('Purchase Module e2e test', () => {
         PurchaseTypeModule,
         RequestForQuotationModule,
         RequestedItemModule,
-        ConfigModule.forRoot({ isGlobal: true }),
+        ConfigModule.forRoot({ isGlobal: true, envFilePath: join(__dirname, '../../../../../../../test/.env') }),
         TypeOrmModule.forRoot({
           type: 'postgres',
           host: '10.10.1.5',
@@ -38,19 +38,23 @@ describe('Purchase Module e2e test', () => {
           synchronize: true,
         }),
       ],
-    })
-      .overrideProvider(MS_CLIENT)
-      .useValue({
-        transport: Transport.REDIS,
-        options: {
-          host: 'localhost',
-          port: 6281,
-          password: 'password',
-        },
-      })
-      .compile();
+      // providers: [
+      //   {
+      //     provide: MS_CLIENT,
+      //     useValue: { transport: Transport.REDIS },
+      //   },
+      //   MicroserviceClient,
+      // ],
+    }).compile();
 
-    app = await module.createNestApplication().init();
+    app = module.createNestApplication();
+    // app.connectMicroservice({ transport: Transport.REDIS });
+
+    // await app.startAllMicroservices();
+    await app.init();
+
+    // client = app.get(MS_CLIENT);
+    // await client.connect();
 
     datasource = app.get(DataSource);
 
@@ -122,8 +126,20 @@ describe('Purchase Module e2e test', () => {
       expect(response.body).toMatchObject(PurchaseRequestStub);
     });
 
+    it('should get all created purchase requests', async () => {
+      const response = await request(app.getHttpServer()).get('/pr');
+
+      expect(response.status).toBe(200);
+    });
+
+    it('should get purchase request details based on id', async () => {
+      const response = await request(app.getHttpServer()).get(`/pr/${pr.id}`);
+
+      expect(response.status).toBe(200);
+    });
+
     it('should find all the requested items from purchase request', async () => {
-      const response = await request(app.getHttpServer()).get(`/requested-items/pr/${pr.id}`);
+      const response = await request(app.getHttpServer()).get('/requested-items/pr/').query({ id: pr.id });
 
       requestedItems = response.body;
 

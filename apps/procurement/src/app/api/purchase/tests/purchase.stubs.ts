@@ -18,8 +18,8 @@ export const CreatePrDtoStub = {
     // purchaseType: '0b296418-8cb2-4de4-b0e4-3471b163906f',
   },
   items: [
-    { itemId: 'c630c768-bb54-48e3-a21e-cb405dcbe0ac', quantity: 3, remarks: 'to be used for something' },
-    { itemId: 'c29f9b1d-a052-4c34-9afa-9af6915f6985', quantity: 5 },
+    { itemId: '84195b95-96a4-4381-8bf1-95eaba359c59', quantity: 3, remarks: 'to be used for something' },
+    { itemId: '238e5a78-4204-4d3e-9f62-ac891d7850a1', quantity: 5 },
   ],
 } as CreatePrDto;
 
