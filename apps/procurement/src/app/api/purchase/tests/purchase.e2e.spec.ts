@@ -11,6 +11,9 @@ import { PurchaseTypeModule } from '../components/purchase-type/core/purchase-ty
 import { PurchaseRequest } from '@gscwd-api/utils';
 import { RequestForQuotationModule } from '../components/request-for-quotation/core/request-for-quotation.module';
 import { RequestedItemModule } from '../../../api/purchase/components/requested-item';
+import { ConfigModule } from '@nestjs/config';
+import { MS_CLIENT } from '@gscwd-api/microservices';
+import { Transport } from '@nestjs/microservices';
 
 let app: INestApplication;
 let datasource: DataSource;
@@ -23,6 +26,7 @@ describe('Purchase Module e2e test', () => {
         PurchaseTypeModule,
         RequestForQuotationModule,
         RequestedItemModule,
+        ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRoot({
           type: 'postgres',
           host: '10.10.1.5',
@@ -34,7 +38,17 @@ describe('Purchase Module e2e test', () => {
           synchronize: true,
         }),
       ],
-    }).compile();
+    })
+      .overrideProvider(MS_CLIENT)
+      .useValue({
+        transport: Transport.REDIS,
+        options: {
+          host: 'localhost',
+          port: 6281,
+          password: 'password',
+        },
+      })
+      .compile();
 
     app = await module.createNestApplication().init();
 
