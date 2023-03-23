@@ -101,7 +101,7 @@ jobs:
 
       - name: Reload pm2 configuration
         run: |
-          cd ..
+          cd /home/ictd2022/actions-runner/_work/api
           pwd
           pm2 reload ecosystem.config.js
           pm2 ls
