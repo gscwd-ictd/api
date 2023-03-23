@@ -4,8 +4,69 @@ on:
     branches:
       - main
 jobs:
+  formatting:
+    name: Perform format checking
+    runs-on: self-hosted
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          clean: false
+
+      - name: Comparing Base and Head positions
+        uses: nrwl/nx-set-shas@v3
+
+      - run: npx nx format:check
+
+  linting:
+    name: Execute code linter
+    runs-on: self-hosted
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          clean: false
+
+      - name: Comparing Base and Head positions
+        uses: nrwl/nx-set-shas@v3
+
+      - run: npx nx affected --target=lint --parallel=3
+
+  testing:
+    name: Execute code tests
+    runs-on: self-hosted
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          clean: false
+
+      - name: Comparing Base and Head positions
+        uses: nrwl/nx-set-shas@v3
+
+      - run: npx nx affected --target=test --parallel=3 --configuration=ci
+
   building:
-    name: Building
+    name: Building application
+    runs-on: self-hosted
+    needs: ['formatting', 'linting', 'testing']
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          clean: false
+
+      - name: Comparing Base and Head positions
+        uses: nrwl/nx-set-shas@v3
+
+      - run: npx nx affected --target=build --parallel=3
+
+  deploy:
+    name: Deploying the application
     runs-on: self-hosted
     strategy:
       matrix:
@@ -24,14 +85,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
-
-      - name: Comparing Base and Head positions
-        uses: nrwl/nx-set-shas@v3
-
-      - name: Building the project
-        run: |
-          npm i
-          npx nx affected --target=build --parallel=3
 
       - name: Reload pm2 configuration
         run: |
