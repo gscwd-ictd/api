@@ -16,7 +16,7 @@ export class PurchaseRequestService {
     private readonly requestedItemService: RequestedItemService
   ) {}
 
-  async createRawPr(prDto: CreatePrDto): Promise<RawPurchaseRequest> {
+  async createPr(prDto: CreatePrDto): Promise<RawPurchaseRequest> {
     // deconstruct the prDto object to extract each field
     const {
       details: { accountId, projectId, requestingOffice, purpose, deliveryPlace, purchaseType },
