@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ItemsMicroserviceClientModule } from '../../../../connections';
+import { ItemsMicroserviceClientModule } from '@gscwd-api/microservices';
 import {
   CategoriesModule,
   CharacteristicsModule,
@@ -13,7 +13,6 @@ import { ItemsService } from './items.service';
 
 @Module({
   imports: [
-    // items microservice client module
     ItemsMicroserviceClientModule,
 
     // child modules

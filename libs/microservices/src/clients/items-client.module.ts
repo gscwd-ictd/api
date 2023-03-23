@@ -1,26 +1,27 @@
-import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ClientProxyFactory, Transport } from '@nestjs/microservices';
+import { MicroserviceClient } from '../lib/ms-client.service';
+import { MS_CLIENT } from '../utils/ms-provider';
 
 @Module({
-  imports: [
-    ClientsModule.registerAsync([
-      {
-        name: MS_CLIENT,
-        inject: [ConfigService],
-        useFactory: (configService: ConfigService) => ({
+  providers: [
+    {
+      provide: MS_CLIENT,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return ClientProxyFactory.create({
           transport: Transport.REDIS,
           options: {
             host: configService.getOrThrow<string>('REDIS_HOST'),
             port: parseInt(configService.getOrThrow<string>('REDIS_PORT')),
             password: configService.getOrThrow<string>('REDIS_PASS'),
           },
-        }),
+        });
       },
-    ]),
+    },
+    MicroserviceClient,
   ],
-  providers: [MicroserviceClient],
   exports: [MicroserviceClient],
 })
 export class ItemsMicroserviceClientModule {}

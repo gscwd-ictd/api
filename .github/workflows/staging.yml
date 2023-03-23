@@ -5,47 +5,76 @@ on:
       - main
 
 jobs:
-  analyze:
-    name: Analyze
+  node:
+    name: Seeting up Node
     runs-on: self-hosted
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
     strategy:
-      fail-fast: false
       matrix:
-        language: ['javascript']
-
+        node: [18.x]
+    permissions:
+      contents: 'read'
+      actions: 'read'
     steps:
-      - name: Checkout repository
+      - name: Checking out repository
         uses: actions/checkout@v3
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: ${{ matrix.language }}
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: '/language:${{matrix.language}}'
-
-  staging:
-    name: Staging
-    runs-on: self-hosted
-    needs: analyze
-    steps:
-      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: nrwl/nx-set-shas@v3
-      - run: npm ci
+          clean: false
+      - name: Node environment setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+
+  formatting:
+    name: Perform format checking
+    runs-on: self-hosted
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          clean: false
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Comparing Base and Head positions
+        uses: nrwl/nx-set-shas@v3
 
       - run: npx nx format:check
+
+  linting:
+    name: Execute code linter
+    runs-on: self-hosted
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          clean: false
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Comparing Base and Head positions
+        uses: nrwl/nx-set-shas@v3
+
       - run: npx nx affected --target=lint --parallel=3
+
+  testing:
+    name: Execute code tests
+    runs-on: self-hosted
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          clean: false
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Comparing Base and Head positions
+        uses: nrwl/nx-set-shas@v3
+
       - run: npx nx affected --target=test --parallel=3 --configuration=ci

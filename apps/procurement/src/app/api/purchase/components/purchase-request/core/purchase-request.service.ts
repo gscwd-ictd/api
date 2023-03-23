@@ -1,11 +1,20 @@
+import { PurchaseRequestDetails } from '@gscwd-api/models';
 import { RawPurchaseRequest } from '@gscwd-api/utils';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { DataSource } from 'typeorm';
+import { RequestedItemService } from '../../requested-item';
 import { CreatePrDto } from '../data/pr.dto';
 
 @Injectable()
 export class PurchaseRequestService {
-  constructor(private readonly datasource: DataSource) {}
+  constructor(
+    // inject datasource
+    private readonly datasource: DataSource,
+
+    // inject requested items service
+    private readonly requestedItemService: RequestedItemService
+  ) {}
 
   async createRawPr(prDto: CreatePrDto): Promise<RawPurchaseRequest> {
     // deconstruct the prDto object to extract each field
@@ -32,6 +41,35 @@ export class PurchaseRequestService {
       // catch resulting error
     } catch (error) {
       throw new BadRequestException(error, { cause: new Error() });
+    }
+  }
+
+  async findAllPrs({ page, limit }: IPaginationOptions) {
+    return await paginate(
+      this.datasource.getRepository(PurchaseRequestDetails),
+      { page, limit },
+      {
+        select: {
+          id: true,
+          code: true,
+          requestingOffice: true,
+          purpose: true,
+          deliveryPlace: true,
+          status: true,
+        },
+      }
+    );
+  }
+
+  async getPrDetails(id: string) {
+    try {
+      const prDetails = await this.datasource.getRepository(PurchaseRequestDetails).findOneByOrFail({ id });
+
+      const requestedItems = await this.requestedItemService.findAllItemsByPr(prDetails.id);
+
+      return { ...prDetails, requestedItems };
+    } catch (error) {
+      throw new NotFoundException();
     }
   }
 }
