@@ -4,3 +4,9 @@ export enum BudgetStatus {
   DISAPPROVED = 'Disapproved',
   CANCELLED = 'Cancelled',
 }
+
+export type RawCostEstimate = {
+  budgetType: string;
+  generalLedgerAccount: string;
+  status: BudgetStatus;
+};
