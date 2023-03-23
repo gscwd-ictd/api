@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Post, Query, UseInterceptors } from '@nestjs/common';
 import { CreatePrDto } from '../data/pr.dto';
 import { CreatePurchaseRequestInterceptor } from '../misc/create-pr.interceptor';
 import { PurchaseRequestService } from './purchase-request.service';
@@ -11,5 +11,18 @@ export class PurchaseRequestController {
   @Post()
   async create(@Body() prDto: CreatePrDto) {
     return await this.prService.createRawPr(prDto);
+  }
+
+  @Get()
+  async findAllPrs(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ) {
+    return await this.prService.findAllPrs({ page, limit });
+  }
+
+  @Get(':id')
+  async findPrById(@Param('id') id: string) {
+    return await this.prService.getPrDetails(id);
   }
 }
