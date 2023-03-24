@@ -1,7 +1,7 @@
 {
   "name": "gscwd-api",
   "version": "0.0.0",
-  "license": "SEE LICENSE IN license.txt",
+  "license": "SEE LICENSE IN LICENSE",
   "scripts": {
     "start": "nx serve",
     "build": "nx build",
