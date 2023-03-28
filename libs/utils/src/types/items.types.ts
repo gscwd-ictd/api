@@ -53,23 +53,33 @@ export type UnitDetails = Pick<RawUnitOfMeasure, 'name' | 'symbol'> & {
   type: string;
 };
 
-export type ItemInformation = {
+export type ItemSummary = {
   id: string;
   code: string;
   classification: string;
   item: string;
+  unit: string;
   details: string;
   description: string;
 };
 
-export type ItemSummary = ItemInformation & {
-  balance: number;
-  unit: string;
-  reorder: {
-    point: number;
-    quantity: number;
+export type ItemInformation = Pick<RawItem, 'id' | 'code' | 'createdAt' | 'updatedAt'> &
+  Pick<ItemDetails, 'characteristic' | 'classification'> & {
+    specifications: {
+      item: string;
+      details: string;
+      description: string;
+      balance: number;
+      unit: {
+        name: string;
+        symbol: string;
+      };
+      reorder: {
+        point: number;
+        quantity: number;
+      };
+    };
   };
-};
 
 export type ItemBalance = {
   code: string;

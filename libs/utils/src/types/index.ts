@@ -3,3 +3,4 @@ export * from './items.types';
 export * from './procurement.types';
 export * from './hrms.types';
 export * from './employee-monitoring.types';
+export * from './finance.types';

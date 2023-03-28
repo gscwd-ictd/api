@@ -20,6 +20,7 @@ export class ItemsService {
           specification_code: true,
           specification_name: true,
           description: true,
+          unit_symbol: true,
         },
       },
       onError: (error) => throwRpc(error),

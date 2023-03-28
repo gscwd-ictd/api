@@ -9,9 +9,33 @@ export class RequestedItemService extends CrudHelper<RequestedItem> {
     // inject crud service
     private readonly crudService: CrudService<RequestedItem>,
 
-    // inject items service
+    // inject microservice client
     private readonly itemsService: ItemsService
   ) {
     super(crudService);
+  }
+
+  async findAllItemsByPr(id: string) {
+    const items = (await this.crudService.findAll({
+      find: {
+        where: { prDetails: { id } },
+      },
+    })) as RequestedItem[];
+
+    return await Promise.all(items.map(async (item) => ({ ...item, details: await this.getItemDetails(item.itemId) })));
+  }
+
+  async findAllItemsByRfq(id: string) {
+    const items = (await this.crudService.findAll({
+      find: {
+        where: { requestForQuotation: { id } },
+      },
+    })) as RequestedItem[];
+
+    return await Promise.all(items.map(async (item) => ({ ...item, details: await this.getItemDetails(item.itemId) })));
+  }
+
+  async getItemDetails(id: string) {
+    return await this.itemsService.getItemById(id);
   }
 }

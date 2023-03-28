@@ -157,7 +157,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
         WHERE la.employee_id_fk = ?  AND (la.status = 'approved' OR la.status='ongoing'))
       UNION 
-      (SELECT DATE_FORMAT(holiday_date, '%Y-%m-%d') unavailableDate,'Holiday' AS type  FROM holidays WHERE holiday_date > now()) ) AS unavailableDates 
+      (SELECT DATE_FORMAT(holiday_date, '%Y-%m-%d') unavailableDate,'Holiday' AS type  FROM holidays WHERE holiday_date > now())) AS unavailableDates 
       ORDER BY unavailableDates.unavailableDate ASC`,
       [employeeId]
     );

@@ -3,10 +3,9 @@
   "npmScope": "gscwd-api",
   "tasksRunnerOptions": {
     "default": {
-      "runner": "@nrwl/nx-cloud",
+      "runner": "nx/tasks-runners/default",
       "options": {
-        "cacheableOperations": ["build", "lint", "test", "e2e"],
-        "accessToken": "NmQzYWY3YWEtMzYyMS00MDViLWFkZGItYjNhMzI5NmIzYzM5fHJlYWQtd3JpdGU="
+        "cacheableOperations": ["build", "lint", "test", "e2e"]
       }
     }
   },
@@ -32,6 +31,5 @@
       "!{projectRoot}/.eslintrc.json"
     ],
     "sharedGlobals": []
-  },
-  "defaultProject": "auth"
+  }
 }

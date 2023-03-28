@@ -19,7 +19,7 @@ export class ItemsService {
   async getItemById(id: string) {
     return (await this.microserviceClient.call({
       action: 'send',
-      pattern: ItemsViewPatterns.FIND_SUMMARY_BY_ID,
+      pattern: ItemsViewPatterns.FIND_BY_ID,
       payload: { id },
       onError: (error) => new NotFoundException(error),
     })) as ItemSummary;

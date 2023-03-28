@@ -16,7 +16,7 @@ async function bootstrap() {
   /**
    * set application port
    */
-  const PORT = configService.getOrThrow<string>('WAREHOUSE_PORT');
+  const port = configService.getOrThrow<string>('WAREHOUSE_PORT');
 
   /**
    * enable cors policy to allow browser access
@@ -83,29 +83,29 @@ async function bootstrap() {
       /**
        * identify redis host
        */
-      host: configService.getOrThrow<string>('WAREHOUSE_REDIS_HOST'),
+      host: configService.getOrThrow<string>('REDIS_HOST'),
 
       /**
        * identify redis port
        */
-      port: parseInt(configService.getOrThrow<string>('WAREHOUSE_REDIS_PORT')),
+      port: parseInt(configService.getOrThrow<string>('REDIS_PORT')),
 
       /**
        * identify redis password
        */
-      password: configService.getOrThrow<string>('WAREHOUSE_REDIS_PASS'),
+      password: configService.getOrThrow<string>('REDIS_PASS'),
     },
   });
 
   /**
    * start the application
    */
-  await app.listen(PORT);
+  await app.listen(port);
 
   /**
    * application logger
    */
-  Logger.log(`🚀 Warehouse application server is running on: http://localhost:${PORT}/api/warehouse`, 'WarehouseServer');
+  Logger.log(`🚀 Warehouse application server is running on: http://localhost:${port}/api/warehouse`, 'WarehouseServer');
 }
 
 /**

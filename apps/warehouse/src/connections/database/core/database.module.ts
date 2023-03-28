@@ -11,7 +11,7 @@ import { DatabaseService } from './database.service';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        logging: true,
+        logging: false,
         synchronize: true,
         entities: DB_ENTITIES,
         replication: {
