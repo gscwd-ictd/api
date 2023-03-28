@@ -15,4 +15,14 @@ export class LeaveApplicationController {
   async getLeaveApplicationByEmployeeId(@Param('employee_id') employeeId: string) {
     return await this.leaveApplicationService.getLeaveApplicationByEmployeeId(employeeId);
   }
+
+  @Get('details/:leave_application_id')
+  async getLeaveApplicationDetails(@Param('leave_application_id') leaveApplicationId: string) {
+    return await this.leaveApplicationService.getLeaveApplicationDetails(leaveApplicationId);
+  }
+
+  @Get('unavailable-dates/:employee_id')
+  async getUnavailableDates(@Param('employee_id') employeeId: string) {
+    return await this.leaveApplicationService.getUnavailableDates(employeeId);
+  }
 }

@@ -13,6 +13,6 @@ export class LeaveBenefitsController {
 
   @Get()
   async getAllLeaveBenefits() {
-    return await this.leaveBenefitsService.crud().findAll();
+    return await this.leaveBenefitsService.crud().findAll({ find: { select: { id: true, leaveName: true }, order: { leaveName: 'ASC' } } });
   }
 }

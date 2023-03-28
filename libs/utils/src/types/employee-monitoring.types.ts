@@ -55,7 +55,7 @@ export enum HolidayType {
 
 export enum ScheduleType {
   REGULAR = 'regular',
-  PUMPING_STATION = 'pumping station',
+  //PUMPING_STATION = 'pumping station',
   FLEXIBLE = 'flexible',
 }
 
@@ -73,3 +73,15 @@ export enum RestDays {
   FRIDAY = 5,
   SATURDAY = 6,
 }
+
+export enum ScheduleBase {
+  OFFICE = 'Office',
+  FIELD = 'Field',
+  PUMPING_STATION = 'Pumping Station',
+}
+
+export type VacationLeaveDetails = {
+  withinThePhilippines: boolean;
+  abroad: boolean;
+  location: string;
+};

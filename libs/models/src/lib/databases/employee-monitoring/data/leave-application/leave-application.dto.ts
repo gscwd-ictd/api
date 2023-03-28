@@ -1,9 +1,6 @@
 import { LeaveApplicationStatus } from '@gscwd-api/utils';
 import { PartialType } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsDate, IsDateString, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
-import { CreateLeaveApplicationDatesDto, LeaveApplicationDates } from '../leave-application-dates';
-import { CreateLeaveBenefitsDto } from '../leave-benefits/leave-benefits.dto';
 import { LeaveBenefits } from '../leave-benefits/leave-benefits.entity';
 
 export class CreateLeaveApplicationDto {
@@ -14,7 +11,7 @@ export class CreateLeaveApplicationDto {
   employeeId: string;
 
   @IsDate({ message: 'Invalid Date of Filing' })
-  dateOfFiling: Date;
+  dateOfFiling?: Date;
 
   @IsOptional()
   @IsString({ message: 'Specify place if travel is in Philippines' })
@@ -30,7 +27,7 @@ export class CreateLeaveApplicationDto {
 
   @IsOptional()
   @IsString({ message: 'specify illness if out patient' })
-  outHospital?: string;
+  outPatient?: string;
 
   @IsOptional()
   @IsString({ message: 'specify in case of leave benefits for women.' })
@@ -64,9 +61,6 @@ export class CreateLeaveApplicationDto {
   status: LeaveApplicationStatus;
 
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateLeaveApplicationDatesDto)
-  leaveApplicationDates: CreateLeaveApplicationDatesDto[];
+  leaveApplicationDates: Date[];
 }
-
 export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) {}

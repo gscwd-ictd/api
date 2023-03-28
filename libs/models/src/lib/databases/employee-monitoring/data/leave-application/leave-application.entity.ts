@@ -15,7 +15,7 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @ManyToOne(() => LeaveBenefits, (leaveBenefits) => leaveBenefits.id)
   leaveBenefitsId: LeaveBenefits;
 
-  @Column({ name: 'date_of_filing' })
+  @Column({ name: 'date_of_filing', type: 'datetime' })
   dateOfFiling: Date;
 
   @Column({ name: 'in_philippines', nullable: true })
@@ -27,8 +27,8 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ name: 'in_hospital', nullable: true })
   inHospital: string;
 
-  @Column({ name: 'out_hospital', nullable: true })
-  outHospital: string;
+  @Column({ name: 'out_patient', nullable: true })
+  outPatient: string;
 
   @Column({ name: 'spl_women', nullable: true })
   splWomen: string;

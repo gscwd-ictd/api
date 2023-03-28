@@ -1,6 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { EmployeeSchedule, EmployeeScheduleDto } from '@gscwd-api/models';
+import { ScheduleType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
@@ -19,7 +20,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
   }
 
   async getEmployeeSchedule(employeeId: string) {
-    const employeeName: object = await this.client.call<string, string, { fullName: string }>({
+    const employeeName: any = await this.client.call<string, string, { fullName: string }>({
       action: 'send',
       payload: employeeId,
       pattern: 'get_employee_name',
@@ -27,7 +28,20 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     });
 
     const schedule = (
-      await this.rawQuery(
+      await this.rawQuery<
+        string,
+        {
+          id: string;
+          scheduleName: string;
+          scheduleType: ScheduleType;
+          timeIn: string;
+          timeOut: string;
+          lunchIn: string;
+          lunchOut: string;
+          restDaysNumbers: string;
+          restDaysNames: string;
+        }
+      >(
         `SELECT 
         s.schedule_id id,
         s.name scheduleName, 
@@ -46,7 +60,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
         [employeeId]
       )
     )[0];
-
+    //const { fullName } = employeeName
     return { employeeName: employeeName.fullName, schedule: { ...schedule } };
   }
 }

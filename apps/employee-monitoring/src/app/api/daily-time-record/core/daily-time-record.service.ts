@@ -30,17 +30,16 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       days.push(day);
     }
 
-    const ivmsResult: { companyId: string; dtrDatesResults: { dtrDate: string; employeeDtr: { time24Hr: string; time12Hr: string }[] }[] } =
-      await this.client.call<
-        string,
-        object,
-        { companyId: string; dtrDatesResults: { dtrDate: string; employeeDtr: { time24Hr: string; time12Hr: string }[] }[] }
-      >({
-        action: 'send',
-        payload: { companyId, dtrDates: days },
-        pattern: 'get_dtr_by_company_id',
-        onError: (error) => new NotFoundException(error, { cause: new Error('') }),
-      });
+    const ivmsResult: any = await this.client.call<
+      string,
+      object,
+      { companyId: string; dtrDatesResults: { dtrDate: string; employeeDtr: { time24Hr: string; time12Hr: string }[] }[] }
+    >({
+      action: 'send',
+      payload: { companyId, dtrDates: days },
+      pattern: 'get_dtr_by_company_id',
+      onError: (error) => new NotFoundException(error, { cause: new Error('') }),
+    });
 
     //console.log(ivmsResult);
 
@@ -49,21 +48,19 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     console.log(dtrDatesResults);
 
     const addToLocalDTR = await Promise.all(
-      dtrDatesResults.map(async (dtrDatesResult, idx) => {
+      dtrDatesResults.map(async (dtrDatesResult: { dtrDate: Date; employeeDtr: { time24Hr: string; time12Hr: string }[] }, idx: number) => {
         //console.log(idx);
         const { dtrDate, employeeDtr } = dtrDatesResult;
         //console.log(dtrDate, ' ', employeeDtr);
         if (employeeDtr.length > 0) {
           if (employeeDtr.length < 4) {
             //check pass slip
-            //
           }
         } else {
           //check leave,pass slip, travel order
         }
       })
     );
-
     //
     //loop per day
     //first kinsenas:  1-15
@@ -77,7 +74,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     //      1.4 travel
     //  1.2 if naa:
     //
-
     return ivmsResult;
   }
 }

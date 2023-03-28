@@ -22,12 +22,8 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "dayjs": "^1.11.7",
-<<<<<<< HEAD
-    "ioredis": "^5.2.4",
     "mysql": "^2.18.1",
-=======
     "ioredis": "^5.3.1",
->>>>>>> 62a1cd36056636b7ff7fa97e16b1d0dd0e706a9a
     "nestjs-typeorm-paginate": "^4.0.3",
     "pg": "^8.10.0",
     "reflect-metadata": "^0.1.13",
@@ -39,17 +35,7 @@
     "@faker-js/faker": "^7.6.0",
     "@nestjs/schematics": "^9.0.3",
     "@nestjs/testing": "^9.3.8",
-<<<<<<< HEAD
-    "@nrwl/cli": "15.2.1",
-    "@nrwl/eslint-plugin-nx": "15.2.1",
-    "@nrwl/jest": "15.2.1",
-    "@nrwl/linter": "15.2.1",
-    "@nrwl/nest": "15.2.1",
-    "@nrwl/node": "15.2.1",
-    "@nrwl/workspace": "15.2.1",
     "@types/cron": "^2.0.0",
-    "@types/jest": "28.1.1",
-=======
     "@nrwl/cli": "15.8.5",
     "@nrwl/eslint-plugin-nx": "15.8.5",
     "@nrwl/jest": "15.8.5",
@@ -59,7 +45,6 @@
     "@nrwl/nx-cloud": "^15.2.1",
     "@nrwl/workspace": "15.8.5",
     "@types/jest": "29.4.0",
->>>>>>> 62a1cd36056636b7ff7fa97e16b1d0dd0e706a9a
     "@types/node": "18.7.1",
     "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.36.1",
