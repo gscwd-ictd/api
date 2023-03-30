@@ -25,6 +25,16 @@ export class RequestedItemService extends CrudHelper<RequestedItem> {
     return await Promise.all(items.map(async (item) => ({ ...item, details: await this.getItemDetails(item.itemId) })));
   }
 
+  async findAllItemsByRfq(id: string) {
+    const items = (await this.crudService.findAll({
+      find: {
+        where: { requestForQuotation: { id } },
+      },
+    })) as RequestedItem[];
+
+    return await Promise.all(items.map(async (item) => ({ ...item, details: await this.getItemDetails(item.itemId) })));
+  }
+
   async getItemDetails(id: string) {
     return await this.itemsService.getItemById(id);
   }

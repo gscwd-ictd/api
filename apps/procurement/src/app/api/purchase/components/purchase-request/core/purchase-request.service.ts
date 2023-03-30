@@ -1,5 +1,5 @@
 import { PurchaseRequestDetails } from '@gscwd-api/models';
-import { RawPurchaseRequest } from '@gscwd-api/utils';
+import { keysToSnake, RawPurchaseRequest } from '@gscwd-api/utils';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { DataSource } from 'typeorm';
@@ -16,7 +16,7 @@ export class PurchaseRequestService {
     private readonly requestedItemService: RequestedItemService
   ) {}
 
-  async createRawPr(prDto: CreatePrDto): Promise<RawPurchaseRequest> {
+  async createPr(prDto: CreatePrDto): Promise<RawPurchaseRequest> {
     // deconstruct the prDto object to extract each field
     const {
       details: { accountId, projectId, requestingOffice, purpose, deliveryPlace, purchaseType },
@@ -32,7 +32,7 @@ export class PurchaseRequestService {
         purpose,
         deliveryPlace,
         purchaseType,
-        JSON.stringify(items),
+        JSON.stringify(keysToSnake(items)),
       ]);
 
       // this query will return an arrat, thus, return the first element

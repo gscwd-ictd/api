@@ -6,7 +6,7 @@ import { PurchaseRequestModule } from '../components/purchase-request/core/purch
 import { init } from '../../../../connections/database/constants/queries';
 import * as request from 'supertest';
 import { CreatePurchaseTypeDtoStub, CreatePrDtoStub, PurchaseTypeStub, PurchaseRequestStub, RequestedForQuotationStub } from './purchase.stubs';
-import { PurchaseType, RequestedItem } from '@gscwd-api/models';
+import { PurchaseType, RequestedItem, RequestForQuotation } from '@gscwd-api/models';
 import { PurchaseTypeModule } from '../components/purchase-type/core/purchase-type.module';
 import { PurchaseRequest } from '@gscwd-api/utils';
 import { RequestForQuotationModule } from '../components/request-for-quotation/core/request-for-quotation.module';
@@ -103,6 +103,7 @@ describe('Purchase Module e2e test', () => {
   describe('Purchase Flow', () => {
     let prType = {} as PurchaseType;
     let pr = {} as PurchaseRequest;
+    let rfq = {} as RequestForQuotation;
     let requestedItems = [] as RequestedItem[];
 
     it('should create new purchase type', async () => {
@@ -151,9 +152,23 @@ describe('Purchase Module e2e test', () => {
 
       const response = await request(app.getHttpServer()).post('/rfq').send({ prId: pr.id, items });
 
+      rfq = response.body;
+
       // assert returned values
       expect(response.status).toBe(201);
       expect(response.body).toMatchObject(RequestedForQuotationStub);
+    });
+
+    it('should find all requests for quotation', async () => {
+      const response = await request(app.getHttpServer()).get('/rfq');
+
+      expect(response.status).toBe(200);
+    });
+
+    it('should get details of rfq based on id', async () => {
+      const response = await request(app.getHttpServer()).get(`/rfq/${rfq.id}`);
+
+      expect(response.status).toBe(200);
     });
   });
 });

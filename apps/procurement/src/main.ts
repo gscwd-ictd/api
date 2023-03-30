@@ -4,6 +4,14 @@ import { NestApplication, NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { initializeOpenApiDocumentation } from './utils/docs/open-api';
 
+/**
+ *  Copyright (C) General Santos City Water District - All Rights Reserved
+ *
+ *  Unauthorized copying of this file, via any medium is strictly prohibited
+ *  Proprietary and confidential
+ *
+ */
+
 async function bootstrap() {
   /**
    * initialize a nest application

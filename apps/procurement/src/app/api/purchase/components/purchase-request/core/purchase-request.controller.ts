@@ -10,11 +10,11 @@ export class PurchaseRequestController {
   @UseInterceptors(CreatePurchaseRequestInterceptor)
   @Post()
   async create(@Body() prDto: CreatePrDto) {
-    return await this.prService.createRawPr(prDto);
+    return await this.prService.createPr(prDto);
   }
 
   @Get()
-  async findAllPrs(
+  async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ) {
@@ -22,7 +22,7 @@ export class PurchaseRequestController {
   }
 
   @Get(':id')
-  async findPrById(@Param('id') id: string) {
+  async findById(@Param('id') id: string) {
     return await this.prService.getPrDetails(id);
   }
 }

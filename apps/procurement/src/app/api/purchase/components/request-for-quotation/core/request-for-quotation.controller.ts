@@ -1,5 +1,5 @@
 import { CreateRfqDto } from '@gscwd-api/models';
-import { Body, Controller, DefaultValuePipe, Get, ParseIntPipe, Post, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Post, Query, UseInterceptors } from '@nestjs/common';
 import { CreateRequestForQuotationInterceptor } from '../misc/create-rfq.interceptor';
 import { RequestForQuotationService } from './request-for-quotation.service';
 
@@ -13,7 +13,7 @@ export class RequestForQuotationController {
   @UseInterceptors(CreateRequestForQuotationInterceptor)
   @Post()
   async create(@Body() rfqDto: CreateRfqDto) {
-    return await this.rfqService.createRawRfq(rfqDto);
+    return await this.rfqService.createRfq(rfqDto);
   }
 
   @Get()
@@ -21,6 +21,11 @@ export class RequestForQuotationController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ) {
-    return await this.rfqService.crud().findAll({ pagination: { page, limit } });
+    return await this.rfqService.findAllRfqs({ page, limit });
+  }
+
+  @Get(':id')
+  async findById(@Param('id') id: string) {
+    return await this.rfqService.getRfqDetails(id);
   }
 }
