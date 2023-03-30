@@ -2,47 +2,107 @@
 
 export const init = {
   create_budget: `
-    
-  CREATE OR REPLACE FUNCTION create_budget(budget_type UUID, general_ledger_account UUID)
-
-  RETURNS TABLE(
-    created_at TIMESTAMP WITHOUT TIME ZONE,
-    updated_at TIMESTAMP WITHOUT TIME ZONE,
-    deleted_at TIMESTAMP WITHOUT TIME ZONE,
-    budget_id UUID,
-    status budget_details_status_enum,
-    budget_type_id_fk UUID,
-    general_ledger_account_id_fk UUID
-  )
+  CREATE OR REPLACE FUNCTION create_budget(
+    budget_type UUID, 
+    general_ledger_account UUID,
+    project_name TEXT,
+    location TEXT, 
+    subject TEXT,
+    work_description TEXT,
+    input_quantity INTEGER,
+    output_per_day INTEGER,
+    material_cost JSONB,
+    labor_cost JSONB,
+    equipment_cost JSONB)
+  RETURNS UUID
   LANGUAGE plpgsql
   AS
   $$
-
-    DECLARE bd_id UUID;
-
-    BEGIN
-
-      INSERT INTO budget_details(
-        budget_type_id_fk, 
-        general_ledger_account_id_fk) 
-      VALUES(
-        budget_type, 
-        general_ledger_account) 
-      RETURNING budget_details_id INTO bd_id;
-      
-      RETURN QUERY 
-        SELECT 
-          bd.created_at, 
-          bd.updated_at, 
-          bd.deleted_at, 
-          bd.budget_details_id, 
-          bd.status, 
-          bd.budget_type_id_fk, 
-          bd.general_ledger_account_id_fk
-        FROM budget_details as bd WHERE budget_details_id = bd_id;
-
-     END;
+  DECLARE budget_id UUID;
+  DECLARE project_id UUID;
+  BEGIN
+    INSERT INTO budget_details(
+      budget_type_id_fk, 
+      general_ledger_account_id_fk) 
+    VALUES(
+      budget_type, 
+      general_ledger_account) 
+    RETURNING budget_details_id INTO budget_id;
   
+    INSERT INTO project_details(
+      budget_details_id_fk,
+      project_name,
+      location, 
+      subject,
+      work_description,
+      quantity,
+      output_per_day)
+    VALUES(
+      budget_id,
+      project_name,
+      location, 
+      subject,
+      work_description,
+      input_quantity,
+      output_per_day)
+    RETURNING project_details_id INTO project_id;
+    
+    INSERT INTO material_costs(
+      project_details_id_fk, 
+      specification_id, 
+      quantity, 
+      unit_cost) 
+    SELECT 
+      project_id as project_details_id_fk, 
+      specification_id, 
+      quantity, 
+      unit_cost 
+    FROM jsonb_to_recordset(material_cost) as m_cost 
+      (project_details_id_fk UUID, 
+      specification_id UUID, 
+      quantity INTEGER, 
+      unit_cost INTEGER);
+      
+    INSERT INTO labor_costs(
+      project_details_id_fk, 
+      specification_id,
+      number_of_person,
+      number_of_days,
+      unit_cost) 
+    SELECT 
+      project_id as project_details_id_fk, 
+      specification_id, 
+      number_of_person,
+      number_of_days,
+      unit_cost 
+    FROM jsonb_to_recordset(labor_cost) as l_cost 
+      (project_details_id_fk UUID, 
+      specification_id UUID, 
+      number_of_person INTEGER,
+      number_of_days INTEGER,
+      unit_cost INTEGER);
+      
+    INSERT INTO equipment_costs(
+      project_details_id_fk, 
+      equipment_description,
+      number_of_unit,
+      number_of_days,
+      unit_cost) 
+    SELECT 
+      project_id as project_details_id_fk, 
+      equipment_description, 
+      number_of_unit,
+      number_of_days,
+      unit_cost 
+    FROM jsonb_to_recordset(equipment_cost) as e_cost 
+      (project_details_id_fk UUID, 
+      equipment_description TEXT, 
+      number_of_unit INTEGER,
+      number_of_days INTEGER,
+      unit_cost INTEGER);
+  
+    RETURN project_id;
+  END;
   $$;`,
   /**
    *  Make this object immutable

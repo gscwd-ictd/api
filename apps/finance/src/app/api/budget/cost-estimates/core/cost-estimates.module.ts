@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ItemModule } from '../../../item';
 import { BudgetDetailsModule } from '../components/budget-details';
 import { EquipmentCostModule } from '../components/equipment-costs';
 import { LaborCostModule } from '../components/labor-costs';
@@ -9,8 +10,18 @@ import { CostEstimateController } from './cost-estimates.controller';
 import { CostEstimateService } from './cost-estimates.service';
 
 @Module({
-  imports: [BudgetDetailsModule, ProjectDetailsModule, MaterialCostModule, LaborCostModule, EquipmentCostModule, ValueAddedTaxModule],
+  imports: [
+    ProjectDetailsModule,
+    BudgetDetailsModule,
+    ProjectDetailsModule,
+    MaterialCostModule,
+    LaborCostModule,
+    EquipmentCostModule,
+    ValueAddedTaxModule,
+    ItemModule,
+  ],
   providers: [CostEstimateService],
   controllers: [CostEstimateController],
+  exports: [CostEstimateService],
 })
 export class CostEstimateModule {}

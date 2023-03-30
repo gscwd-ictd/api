@@ -13,6 +13,7 @@ import {
   LaborCost,
   EquipmentCost,
   ValueAddedTax,
+  CostEstimatesView,
 } from '@gscwd-api/models';
 
 export const DB_ENTITIES = [
@@ -32,5 +33,7 @@ export const DB_ENTITIES = [
   SubMajorAccountGroup,
   ContraAccount,
   GeneralLedgerAccount,
+
+  //table for views
   ChartOfAccountsView,
 ];

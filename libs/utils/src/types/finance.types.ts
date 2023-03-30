@@ -8,5 +8,10 @@ export enum BudgetStatus {
 export type RawCostEstimate = {
   budgetType: string;
   generalLedgerAccount: string;
-  status: BudgetStatus;
+  projectName: string;
+  location: string;
+  subject: string;
+  workDescription: string;
+  quantity: number;
+  outputPerDay: number;
 };
