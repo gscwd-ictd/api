@@ -3,7 +3,7 @@ import { keysToCamel, keysToSnake, RawCostEstimate } from '@gscwd-api/utils';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { DataSource } from 'typeorm';
-import { ItemService } from '../../../item';
+import { ItemService } from '../../../../services/item';
 import { CreateCostEstimateDto } from '../data/cost-estimates.dto';
 
 @Injectable()

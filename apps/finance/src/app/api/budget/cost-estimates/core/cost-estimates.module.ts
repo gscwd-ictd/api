@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ItemModule } from '../../../item';
+import { ItemModule } from '../../../../services/item';
 import { BudgetDetailsModule } from '../components/budget-details';
 import { EquipmentCostModule } from '../components/equipment-costs';
 import { LaborCostModule } from '../components/labor-costs';

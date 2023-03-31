@@ -8,3 +8,4 @@ export * from './types/ms.types';
 
 export * from './clients/items-client.module';
 export * from './clients/hrms-client.module';
+export * from './clients/finance.module';
