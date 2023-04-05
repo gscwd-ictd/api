@@ -32,5 +32,7 @@ export const DB_ENTITIES = [
   SubMajorAccountGroup,
   ContraAccount,
   GeneralLedgerAccount,
+
+  //table for views
   ChartOfAccountsView,
 ];

@@ -6,7 +6,8 @@ import { ChartOfAccountModule } from './api/account-titles/chart-of-accounts';
 import { ContraAccountModule } from './api/account-titles/contra-accounts';
 import { BudgetTypeModule } from './api/budget/budget-types';
 import { CostEstimateModule } from './api/budget/cost-estimates';
-import { ItemModule } from './api/item';
+import { ItemModule } from './services/item';
+import { CostEstimatesMSModule } from './services/cost-estimates/indext';
 
 @Module({
   imports: [
@@ -22,6 +23,9 @@ import { ItemModule } from './api/item';
     ItemModule,
     BudgetTypeModule,
     CostEstimateModule,
+
+    // API module for microservices
+    CostEstimatesMSModule,
   ],
 })
 export class AppModule {}
