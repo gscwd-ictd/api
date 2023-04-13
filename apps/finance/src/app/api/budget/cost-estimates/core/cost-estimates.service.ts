@@ -71,8 +71,10 @@ export class CostEstimateService {
 
       const modifiedMaterialCost = await Promise.all(
         materialCost.map(async (material) => {
-          const item = (await this.itemService.findItemFromViewById(material.specificationId)) as any;
+          const item = await this.itemService.findItemFromViewById(material.specificationId);
+          console.log(item);
           return {
+            id: item.id,
             item: item.specifications.item,
             unit: item.specifications.unit.name,
             quantity: material.quantity,
@@ -88,8 +90,9 @@ export class CostEstimateService {
 
       const modifiedLaborCost = await Promise.all(
         laborCost.map(async (labor) => {
-          const item = (await this.itemService.findItemFromViewById(labor.specificationId)) as any;
+          const item = await this.itemService.findItemFromViewById(labor.specificationId);
           return {
+            id: item.id,
             item: item.specifications.item,
             unit: item.specifications.unit.name,
             numberOfPerson: labor.numberOfPerson,
@@ -99,9 +102,15 @@ export class CostEstimateService {
         })
       );
 
-      const equipmentCost = await this.datasource
-        .getRepository(EquipmentCost)
-        .find({ select: { equipmentDescription: true, numberOfUnit: true, numberOfDays: true, unitCost: true }, where: { projectDetails: { id } } });
+      const equipmentCost = await this.datasource.getRepository(EquipmentCost).find({
+        select: {
+          equipmentDescription: true,
+          numberOfUnit: true,
+          numberOfDays: true,
+          unitCost: true,
+        },
+        where: { projectDetails: { id } },
+      });
 
       const modifiedEquipmentCost = await Promise.all(
         equipmentCost.map(async (equipment) => {

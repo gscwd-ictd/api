@@ -7,7 +7,6 @@ import { ContraAccountModule } from './api/account-titles/contra-accounts';
 import { BudgetTypeModule } from './api/budget/budget-types';
 import { CostEstimateModule } from './api/budget/cost-estimates';
 import { ItemModule } from './services/item';
-import { CostEstimatesMSModule } from './services/cost-estimates/indext';
 
 @Module({
   imports: [
@@ -23,9 +22,6 @@ import { CostEstimatesMSModule } from './services/cost-estimates/indext';
     ItemModule,
     BudgetTypeModule,
     CostEstimateModule,
-
-    // API module for microservices
-    CostEstimatesMSModule,
   ],
 })
 export class AppModule {}

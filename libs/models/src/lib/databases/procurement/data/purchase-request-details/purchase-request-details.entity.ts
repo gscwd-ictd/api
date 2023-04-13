@@ -15,13 +15,8 @@ export class PurchaseRequestDetails extends DatabaseEntity implements IEntity {
   @Column({ unique: true })
   code: string;
 
-  // TODO connect to finance
-  @Column({ name: 'account_id', type: 'uuid' })
-  accountId: string;
-
-  // TODO connect to finance
-  @Column({ name: 'project_id', type: 'uuid' })
-  projectId: string;
+  @Column({ name: 'project_details_id', type: 'uuid' })
+  projectDetailsId: string;
 
   @Column({ name: 'requesting_office', type: 'uuid' })
   requestingOffice: string;

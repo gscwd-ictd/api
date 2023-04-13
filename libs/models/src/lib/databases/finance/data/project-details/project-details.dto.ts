@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsInt, IsString, IsUUID, MaxLength } from 'class-validator';
 import { BudgetDetails } from '../budget-details';
+import { Type } from 'class-transformer';
 
 export class CreateProjectDetailsDto {
   @IsUUID(4, { message: 'budget details id is not valid' })
@@ -20,9 +21,11 @@ export class CreateProjectDetailsDto {
   workDescription: string;
 
   @IsInt()
+  @Type(() => Number)
   quantity: number;
 
   @IsInt()
+  @Type(() => Number)
   outputPerDay: number;
 }
 

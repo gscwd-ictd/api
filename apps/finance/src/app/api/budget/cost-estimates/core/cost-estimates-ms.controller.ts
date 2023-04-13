@@ -1,12 +1,14 @@
 import { CostEstimatePatterns } from '@gscwd-api/microservices';
-import { Controller } from '@nestjs/common';
+import { Controller, UseInterceptors } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { CostEstimateService } from '../../../api/budget/cost-estimates';
+import { CostEstimateService } from './cost-estimates.service';
+import { FindAllProjectsInterceptor } from '../misc/interceptors/find-all-projects.interceptor';
 
 @Controller()
-export class CostEstimateMSController {
+export class CostEstimateMicroserviceController {
   constructor(private readonly costEstimateService: CostEstimateService) {}
 
+  @UseInterceptors(FindAllProjectsInterceptor)
   @MessagePattern(CostEstimatePatterns.FIND_ALL)
   async findAll(@Payload('page') page: number, @Payload('limit') limit: number) {
     return await this.costEstimateService.findAll({ page, limit });

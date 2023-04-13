@@ -10,8 +10,7 @@ export const PurchaseTypeStub = {
 
 export const CreatePrDtoStub = {
   details: {
-    accountId: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
-    projectId: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
+    projectDetailsId: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
     requestingOffice: 'f3ba31db-fef0-4a88-b736-2d4ab9b939d8',
     purpose: 'for office tasks',
     deliveryPlace: 'gensan',
