@@ -5,12 +5,13 @@ export const init = {
   CREATE OR REPLACE FUNCTION create_budget(
     budget_type UUID, 
     general_ledger_account UUID,
-    project_name TEXT,
+    project_name VARCHAR,
     location TEXT, 
-    subject TEXT,
+    subject VARCHAR,
     work_description TEXT,
     input_quantity INTEGER,
-    output_per_day INTEGER,
+    unit_measurement VARCHAR,
+    output_per_day VARCHAR,
     material_cost JSONB,
     labor_cost JSONB,
     equipment_cost JSONB)

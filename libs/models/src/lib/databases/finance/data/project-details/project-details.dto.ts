@@ -24,9 +24,11 @@ export class CreateProjectDetailsDto {
   @Type(() => Number)
   quantity: number;
 
-  @IsInt()
-  @Type(() => Number)
-  outputPerDay: number;
+  @IsString()
+  unitMeasurement: string;
+
+  @IsString()
+  outputPerDay: string;
 }
 
 export class UpdateProjectDetailsDto extends PartialType(CreateProjectDetailsDto) {}

@@ -38,6 +38,10 @@ export class ProjectDetailsController implements ICrudRoutes {
   ): Promise<Pagination<ProjectDetails> | ProjectDetails[]> {
     return await this.projectDetailsService.crud().findAll({
       pagination: { page, limit },
+      find: {
+        relations: { budgetDetails: { budgetType: true, generalLedgerAccount: true } },
+        select: { budgetDetails: { status: true, budgetType: { id: true, name: true, description: true } } },
+      },
       onError: () => new InternalServerErrorException(),
     });
   }
