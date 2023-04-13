@@ -8,6 +8,7 @@ import { ProjectDetailsModule } from '../components/project-details';
 import { ValueAddedTaxModule } from '../components/value-added-tax';
 import { CostEstimateController } from './cost-estimates.controller';
 import { CostEstimateService } from './cost-estimates.service';
+import { CostEstimateMicroserviceController } from './cost-estimates-ms.controller';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { CostEstimateService } from './cost-estimates.service';
     ItemModule,
   ],
   providers: [CostEstimateService],
-  controllers: [CostEstimateController],
+  controllers: [CostEstimateController, CostEstimateMicroserviceController],
   exports: [CostEstimateService],
 })
 export class CostEstimateModule {}

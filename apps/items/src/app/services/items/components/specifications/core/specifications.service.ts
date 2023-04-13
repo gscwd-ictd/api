@@ -3,25 +3,29 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { GeneratorService } from '@gscwd-api/generator';
 import { MyRpcException } from '@gscwd-api/microservices';
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class SpecificationsService extends CrudHelper<ItemSpecification> {
   constructor(
     // inject crud service
-    private readonly crudService: CrudService<ItemSpecification>,
+    private readonly crudService: CrudService<ItemSpecification>, // ! should I remove this?
 
     // inject generator service
-    private readonly generatorService: GeneratorService
+    private readonly generatorService: GeneratorService,
+
+    // inject datasource
+    private readonly datasource: DataSource
   ) {
     super(crudService);
   }
 
   async transactionalInsert(data: CreateItemSpecificationDto) {
     // access the datasource object
-    const datasource = this.crudService.getDatasource();
+    //const datasource = this.crudService.getDatasource();
 
     try {
-      return await datasource.manager.transaction(async (transactionManager) => {
+      return await this.datasource.manager.transaction(async (transactionManager) => {
         // save item specification
         const specification = await transactionManager.save(ItemSpecification, { ...data, code: this.generatorService.generate() as string });
 

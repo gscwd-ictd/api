@@ -1,7 +1,7 @@
 const toSnake = (input: string) => input.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 const toCamel = (input: string) => input.replace(/([-_][a-z])/gi, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
 
-export const keysToSnake = (input: unknown) => {
+export const keysToSnake = <T extends object>(input: T) => {
   if (input === Object(input) && !Array.isArray(input) && typeof input !== 'function') {
     const n = {};
     Object.keys(input).forEach((k) => {
@@ -16,7 +16,7 @@ export const keysToSnake = (input: unknown) => {
   return input;
 };
 
-export const keysToCamel = (input: unknown) => {
+export const keysToCamel = <T extends object>(input: T) => {
   if (input === Object(input) && !Array.isArray(input) && typeof input !== 'function') {
     const n = {};
     Object.keys(input).forEach((k) => {
