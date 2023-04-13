@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsIn, IsInt, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsInt, IsString, IsUUID, MaxLength } from 'class-validator';
 import { BudgetDetails } from '../budget-details';
 
 export class CreateProjectDetailsDto {
