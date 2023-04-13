@@ -13,26 +13,30 @@ export class CostEstimateService {
   async createCostEstimate(costEstimateDto: CreateCostEstimateDto): Promise<RawCostEstimate> {
     const {
       budgetDetails: { budgetType, generalLedgerAccount },
-      projectDetails: { projectName, location, subject, workDescription, quantity, outputPerDay },
+      projectDetails: { projectName, location, subject, workDescription, quantity, unitMeasurement, outputPerDay },
       materialCost,
       laborCost,
       equipmentCost,
     } = costEstimateDto;
 
     try {
-      const result = await this.datasource.query('SELECT * FROM create_budget($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) as project_details_id', [
-        budgetType,
-        generalLedgerAccount,
-        projectName,
-        location,
-        subject,
-        workDescription,
-        quantity,
-        outputPerDay,
-        JSON.stringify(keysToSnake(materialCost)),
-        JSON.stringify(keysToSnake(laborCost)),
-        JSON.stringify(keysToSnake(equipmentCost)),
-      ]);
+      const result = await this.datasource.query(
+        'SELECT * FROM create_budget($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) as project_details_id',
+        [
+          budgetType,
+          generalLedgerAccount,
+          projectName,
+          location,
+          subject,
+          workDescription,
+          quantity,
+          unitMeasurement,
+          outputPerDay,
+          JSON.stringify(keysToSnake(materialCost)),
+          JSON.stringify(keysToSnake(laborCost)),
+          JSON.stringify(keysToSnake(equipmentCost)),
+        ]
+      );
 
       return keysToCamel(result[0]);
     } catch (error) {
@@ -59,7 +63,7 @@ export class CostEstimateService {
 
   async findById(id: string) {
     try {
-      const projectDetails = await this.datasource.getRepository(ProjectDetails).find({
+      const projectDetails = await this.datasource.getRepository(ProjectDetails).findOne({
         relations: { budgetDetails: { budgetType: true, generalLedgerAccount: true } },
         select: { budgetDetails: { status: true, budgetType: { name: true }, generalLedgerAccount: { name: true } } },
         where: { id },
@@ -67,12 +71,14 @@ export class CostEstimateService {
 
       const materialCost = await this.datasource
         .getRepository(MaterialCost)
-        .find({ select: { specificationId: true, quantity: true, unitCost: true }, where: { projectDetails: { id } } });
+        .find({ select: { id: true, specificationId: true, quantity: true, unitCost: true }, where: { projectDetails: { id } } });
 
       const modifiedMaterialCost = await Promise.all(
         materialCost.map(async (material) => {
           const item = (await this.itemService.findItemFromViewById(material.specificationId)) as any;
           return {
+            materialId: material.id,
+            itemId: material.specificationId,
             item: item.specifications.item,
             unit: item.specifications.unit.name,
             quantity: material.quantity,
@@ -82,30 +88,36 @@ export class CostEstimateService {
         })
       );
 
-      const laborCost = await this.datasource
-        .getRepository(LaborCost)
-        .find({ select: { specificationId: true, numberOfPerson: true, numberOfDays: true, unitCost: true }, where: { projectDetails: { id } } });
+      const laborCost = await this.datasource.getRepository(LaborCost).find({
+        select: { id: true, specificationId: true, numberOfPerson: true, numberOfDays: true, unitCost: true },
+        where: { projectDetails: { id } },
+      });
 
       const modifiedLaborCost = await Promise.all(
         laborCost.map(async (labor) => {
           const item = (await this.itemService.findItemFromViewById(labor.specificationId)) as any;
           return {
+            laborId: labor.id,
+            itemId: labor.specificationId,
             item: item.specifications.item,
             unit: item.specifications.unit.name,
             numberOfPerson: labor.numberOfPerson,
             numberOfDays: labor.numberOfDays,
+            unitCost: labor.unitCost,
             amount: labor.numberOfPerson * labor.numberOfDays * labor.unitCost,
           };
         })
       );
 
-      const equipmentCost = await this.datasource
-        .getRepository(EquipmentCost)
-        .find({ select: { equipmentDescription: true, numberOfUnit: true, numberOfDays: true, unitCost: true }, where: { projectDetails: { id } } });
+      const equipmentCost = await this.datasource.getRepository(EquipmentCost).find({
+        select: { id: true, equipmentDescription: true, numberOfUnit: true, numberOfDays: true, unitCost: true },
+        where: { projectDetails: { id } },
+      });
 
       const modifiedEquipmentCost = await Promise.all(
         equipmentCost.map(async (equipment) => {
           return {
+            equipmentId: equipment.id,
             equipmentDescription: equipment.equipmentDescription,
             numberOfUnit: equipment.numberOfUnit,
             numberOfDays: equipment.numberOfDays,
@@ -114,6 +126,7 @@ export class CostEstimateService {
           };
         })
       );
+
       return { projectDetails, materialCost: modifiedMaterialCost, laborCost: modifiedLaborCost, equipmentCost: modifiedEquipmentCost };
     } catch (error) {
       throw new NotFoundException();
