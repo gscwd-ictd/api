@@ -5,11 +5,8 @@ export class CreatePrDetailsDto {
   @IsUUID(4, { message: 'purchase type is not valid' })
   purchaseType: string;
 
-  @IsUUID(4, { message: 'account id is not valid' })
-  accountId: string;
-
-  @IsUUID(4, { message: 'project id is not valid' })
-  projectId: string;
+  @IsUUID(4, { message: 'project details id is not valid' })
+  projectDetailsId: string;
 
   @IsUUID('all', { message: 'requesting office id is not valid' })
   requestingOffice: string;
