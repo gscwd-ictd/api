@@ -19,15 +19,14 @@ export class PurchaseRequestService {
   async createPr(prDto: CreatePrDto): Promise<RawPurchaseRequest> {
     // deconstruct the prDto object to extract each field
     const {
-      details: { accountId, projectId, requestingOffice, purpose, deliveryPlace, purchaseType },
+      details: { projectDetailsId, requestingOffice, purpose, deliveryPlace, purchaseType },
       items,
     } = prDto;
 
     try {
       // call the create_pr() stored function
-      const result = await this.datasource.query('SELECT * FROM create_pr($1, $2, $3, $4, $5, $6, $7)', [
-        accountId,
-        projectId,
+      const result = await this.datasource.query('SELECT * FROM create_pr($1, $2, $3, $4, $5, $6)', [
+        projectDetailsId,
         requestingOffice,
         purpose,
         deliveryPlace,

@@ -20,12 +20,12 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
   }
 
   async getEmployeeSchedule(employeeId: string) {
-    const employeeName: any = await this.client.call<string, string, { fullName: string }>({
+    const employeeName = (await this.client.call<string, string, { fullName: string }>({
       action: 'send',
       payload: employeeId,
       pattern: 'get_employee_name',
       onError: (error) => new NotFoundException(error),
-    });
+    })) as { fullName: string };
 
     const schedule = (
       await this.rawQuery<
@@ -60,7 +60,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
         [employeeId]
       )
     )[0];
-    //const { fullName } = employeeName
+
     return { employeeName: employeeName.fullName, schedule: { ...schedule } };
   }
 }

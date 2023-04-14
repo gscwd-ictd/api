@@ -1,7 +1,7 @@
 export enum LeaveTypes {
-  RECURRING = 'recurring',
-  CUMULATIVE = 'cumulative',
-  SLB = 'special leave benefit',
+  RECURRING = 'Recurring',
+  CUMULATIVE = 'Cumulative',
+  SLB = 'Special Leave Benefit',
 }
 
 export enum CreditDistribution {
@@ -20,7 +20,6 @@ export type LeaveApplicationType = {
   id: string;
   leaveName: string;
   dateOfFiling: Date;
-  leaveDates: string;
   status: LeaveApplicationStatus;
 };
 
@@ -81,7 +80,17 @@ export enum ScheduleBase {
 }
 
 export type VacationLeaveDetails = {
-  withinThePhilippines: boolean;
-  abroad: boolean;
+  inPhilippinesOrAbroad: string;
   location: string;
+};
+
+export type SickLeaveDetails = {
+  hospital: string;
+  illness: string;
+};
+
+export type StudyLeaveDetails = {
+  forMastersCompletion: boolean;
+  forBarBoardReview: boolean;
+  studyLeaveOther: string;
 };

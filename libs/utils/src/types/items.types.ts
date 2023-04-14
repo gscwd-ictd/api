@@ -81,6 +81,29 @@ export type ItemInformation = Pick<RawItem, 'id' | 'code' | 'createdAt' | 'updat
     };
   };
 
+export type ItemDetailsFromView = {
+  id: string;
+  code: string;
+  characteristic: string;
+  classification: string;
+  specifications: {
+    item: string;
+    details: string;
+    description: string;
+    balance: number;
+    unit: {
+      name: string;
+      symbol: string;
+    };
+    reorder: {
+      point: number;
+      quantity: number;
+    };
+  };
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type ItemBalance = {
   code: string;
   item: string;

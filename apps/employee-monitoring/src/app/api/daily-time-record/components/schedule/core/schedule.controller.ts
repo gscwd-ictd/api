@@ -1,6 +1,6 @@
 import { CreateScheduleDto, UpdateScheduleDto } from '@gscwd-api/models';
 import { ScheduleBase } from '@gscwd-api/utils';
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 
 @Controller({ version: '1', path: 'schedule' })
@@ -25,5 +25,10 @@ export class ScheduleController {
   @Put()
   async updateSchedule(@Body() updateScheduleDto: UpdateScheduleDto) {
     return await this.scheduleService.updateSchedule(updateScheduleDto);
+  }
+
+  @Delete(':schedule_id')
+  async deleteSchedule(@Param('schedule_id') scheduleId: string) {
+    return await this.scheduleService.deleteSchedule(scheduleId);
   }
 }

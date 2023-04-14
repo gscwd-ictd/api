@@ -60,7 +60,6 @@ export class CreateLeaveApplicationDto {
   @IsEnum(LeaveApplicationStatus, { message: 'Invalid leave application status' })
   status: LeaveApplicationStatus;
 
-  @IsArray()
-  leaveApplicationDates: Date[];
+  leaveApplicationDates: Date[] | { from: Date; to: Date };
 }
 export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) {}

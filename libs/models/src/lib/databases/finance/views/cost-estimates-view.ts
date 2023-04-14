@@ -12,6 +12,7 @@ import { BudgetDetails, BudgetType, EquipmentCost, GeneralLedgerAccount, LaborCo
       .addSelect('pd.subject', 'pd_subject')
       .addSelect('pd.work_description', 'pd_work_description')
       .addSelect('pd.quantity', 'pd_quantity')
+      .addSelect('pd.unit_measurement', 'pd_unit_measurement')
       .addSelect('pd.output_per_day', 'pd_output_per_day')
       .addSelect('bd.status', 'bd_status')
       .addSelect('bt.name', 'bt_name')
@@ -52,7 +53,10 @@ export class CostEstimatesView {
   pd_work_description: string;
 
   @ViewColumn()
-  pd_quantity: string;
+  pd_quantity: number;
+
+  @ViewColumn()
+  pd_unit_measurement: string;
 
   @ViewColumn()
   pd_output_per_day: string;

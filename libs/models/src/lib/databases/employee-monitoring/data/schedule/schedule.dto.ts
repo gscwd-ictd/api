@@ -1,6 +1,5 @@
 import { ScheduleType, ScheduleShift, ScheduleBase } from '@gscwd-api/utils';
 import { PartialType } from '@nestjs/swagger';
-import { ScheduleRestDayDto } from '../schedule-rest-day/schedule-rest-day.dto';
 
 export class CreateScheduleDto {
   name: string;
@@ -11,6 +10,7 @@ export class CreateScheduleDto {
   lunchIn: string;
   lunchOut: string;
   shift: ScheduleShift;
+  withLunch: boolean;
   restDays: number[];
 }
 

@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { Schedule, CreateScheduleDto, ScheduleRestDay, UpdateScheduleDto } from '@gscwd-api/models';
 import { ScheduleBase } from '@gscwd-api/utils';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
 @Injectable()
@@ -11,7 +11,6 @@ export class ScheduleService extends CrudHelper<Schedule> {
   }
 
   async addSchedule(scheduleServiceDto: CreateScheduleDto) {
-    //const repo = this.crudService.getDatasource();
     const scheduleResult = await this.dataSource.transaction(async (transactionEntityManager) => {
       const { restDays, ...rest } = scheduleServiceDto;
       const schedule = await transactionEntityManager.getRepository(Schedule).save(rest);
@@ -63,9 +62,21 @@ export class ScheduleService extends CrudHelper<Schedule> {
     return schedulesWithRestDays;
   }
 
+  async deleteSchedule(scheduleId: string) {
+    const deletedScheduleRestDays = await this.rawQuery(`DELETE FROM schedule_rest_day WHERE schedule_id_fk=?`, [scheduleId]);
+    const deletedSchedule = await this.crud().delete({
+      deleteBy: { id: scheduleId },
+      softDelete: false,
+      onError: ({ error }) => {
+        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+      },
+    });
+    if (deletedSchedule.affected > 0) return { deleted: scheduleId };
+  }
+
   async updateSchedule(updateScheduleDto: UpdateScheduleDto) {
     const updateScheduleResult = await this.dataSource.transaction(async (transactionEntityManager) => {
-      const { id, restDays, ...rest } = updateScheduleDto;
+      const { id, restDays, withLunch, ...rest } = updateScheduleDto;
 
       const updateSchedule = await transactionEntityManager.getRepository(Schedule).update(id, rest);
 

@@ -15,4 +15,9 @@ export class PassSlipController {
   async getPassSlips(@Param('employee_id') employeeId: string) {
     return await this.passSlipService.getPassSlips(employeeId);
   }
+
+  @Get()
+  async getAllPassSlips() {
+    return await this.passSlipService.getAllPassSlips();
+  }
 }

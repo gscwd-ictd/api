@@ -10,7 +10,12 @@ export class HolidaysService extends CrudHelper<Holidays> {
 
   async getHolidaysForTheCurrentYear() {
     return await this.rawQuery(
-      `SELECT holiday_id id,name, date_format(holiday_date,'%M %d, %Y') holidayDate, type FROM holidays WHERE year(holiday_date) = year(now())`
+      `SELECT holiday_id id, 
+              name, 
+              date_format(holiday_date,'%M %d, %Y') holidayDate, 
+              type FROM holidays 
+      WHERE year(holiday_date) = year(now()) 
+      ORDER BY holiday_date ASC`
     );
   }
 

@@ -108,7 +108,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       [employeeId]
     );
 
-    const appovedDisapproved = await Promise.all(
+    const approvedDisapproved = await Promise.all(
       passSlipsApprovedDisapproved.map(async (passSlip) => {
         const { passSlipId, ...restOfPassSlip } = passSlip;
 
@@ -122,7 +122,20 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       })
     );
 
-    const passSlips = { ongoing, completed: appovedDisapproved };
+    const passSlips = { ongoing, completed: approvedDisapproved };
+    console.log(passSlips);
+    return passSlips;
+  }
+
+  async getAllPassSlips() {
+    const passSlips = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
+      find: {
+        relations: { passSlipId: true },
+        select: { supervisorId: true, status: true },
+        where: { status: PassSlipApprovalStatus.ONGOING },
+        order: { createdAt: 'DESC', status: 'ASC' },
+      },
+    });
     console.log(passSlips);
     return passSlips;
   }

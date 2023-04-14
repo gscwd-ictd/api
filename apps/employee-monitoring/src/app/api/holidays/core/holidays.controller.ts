@@ -5,6 +5,7 @@ import { HolidaysService } from './holidays.service';
 @Controller({ version: '1', path: 'holidays' })
 export class HolidaysController {
   constructor(private readonly holidayService: HolidaysService) {}
+  
   @Post()
   async addHolidays(@Body() holidaysDto: HolidaysDto) {
     return await this.holidayService.addHoliday(holidaysDto);

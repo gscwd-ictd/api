@@ -3,8 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { DatabaseModule } from '../connections/';
 import { PurchaseRequestModule, RequestForQuotationModule, PurchaseTypeModule, RequestedItemModule } from './api/purchase/components';
-import { OrgStructureModule } from './services/hrms/components/org-structure';
-import { ItemsModule } from './services/items';
+import { CostEstimateModule, ItemsModule, OrgStructureModule } from './services';
 
 @Module({
   imports: [
@@ -26,6 +25,7 @@ import { ItemsModule } from './services/items';
     // microservice modules
     OrgStructureModule,
     ItemsModule,
+    CostEstimateModule,
   ],
 })
 export class AppModule {}
