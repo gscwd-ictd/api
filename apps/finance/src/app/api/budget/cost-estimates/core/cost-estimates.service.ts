@@ -59,7 +59,7 @@ export class CostEstimateService {
 
   async findById(id: string) {
     try {
-      const projectDetails = await this.datasource.getRepository(ProjectDetails).find({
+      const projectDetails = await this.datasource.getRepository(ProjectDetails).findOne({
         relations: { budgetDetails: { budgetType: true, generalLedgerAccount: true } },
         select: { budgetDetails: { status: true, budgetType: { name: true }, generalLedgerAccount: { name: true } } },
         where: { id },
@@ -75,7 +75,9 @@ export class CostEstimateService {
           console.log(item);
           return {
             id: item.id,
+            code: item.code,
             item: item.specifications.item,
+            details: item.specifications.details,
             unit: item.specifications.unit.name,
             quantity: material.quantity,
             unitCost: material.unitCost,
