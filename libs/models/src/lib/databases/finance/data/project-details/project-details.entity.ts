@@ -11,21 +11,24 @@ export class ProjectDetails extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'budget_details_id_fk' })
   budgetDetails: BudgetDetails;
 
-  @Column({ name: 'project_name', type: 'text', nullable: true })
+  @Column({ name: 'project_name', nullable: true })
   projectName: string;
 
   @Column({ name: 'location', type: 'text', nullable: true })
   location: string;
 
-  @Column({ name: 'subject', type: 'text', nullable: true })
+  @Column({ name: 'subject', nullable: true })
   subject: string;
 
   @Column({ name: 'work_description', type: 'text', nullable: true })
   workDescription: string;
 
-  @Column({ name: 'quantity', type: 'integer' })
+  @Column({ name: 'quantity', nullable: true })
   quantity: number;
 
-  @Column({ name: 'output_per_day', type: 'integer' })
-  outputPerDay: number;
+  @Column({ name: 'unit_measurement', type: 'varchar', nullable: true })
+  unitMeasurement: string;
+
+  @Column({ name: 'output_per_day' })
+  outputPerDay: string;
 }
