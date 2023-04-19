@@ -1,5 +1,5 @@
 export * from '../services/finance/components/cost-estimate/core/cost-estimate.module';
-export * from './finance/components/cost-estimate/core/cost-estimate.controller';
+export * from '../services/finance/components/cost-estimate/core/cost-estimate.controller';
 export * from '../services/finance/components/cost-estimate/core/cost-estimate.service';
 
 export * from '../services/hrms/components/org-structure/core/org-structure.module';
