@@ -14,6 +14,10 @@ export class FindAllProjectsInterceptor implements NestInterceptor {
           subject: item.subject,
           workDescription: item.workDescription,
           status: item.budgetDetails.status,
+          meta: {
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+          },
         }));
 
         return { ...result, items: projects };
