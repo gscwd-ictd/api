@@ -1,6 +1,6 @@
-export * from '../services/finance/components/cost-estimate/cost-estimate.module';
-export * from '../services/finance/components/cost-estimate/cost-estimate.controller';
-export * from '../services/finance/components/cost-estimate/cost-estimate.service';
+export * from '../services/finance/components/cost-estimate/core/cost-estimate.module';
+export * from '../services/finance/components/cost-estimate/core/cost-estimate.controller';
+export * from '../services/finance/components/cost-estimate/core/cost-estimate.service';
 
 export * from '../services/hrms/components/org-structure/core/org-structure.module';
 export * from '../services/hrms/components/org-structure/core/org-structure.controller';

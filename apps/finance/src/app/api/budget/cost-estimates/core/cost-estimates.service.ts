@@ -80,7 +80,9 @@ export class CostEstimateService {
           return {
             materialId: material.id,
             id: item.id,
+            code: item.code,
             item: item.specifications.item,
+            details: item.specifications.details,
             unit: item.specifications.unit.name,
             quantity: material.quantity,
             unitCost: material.unitCost,

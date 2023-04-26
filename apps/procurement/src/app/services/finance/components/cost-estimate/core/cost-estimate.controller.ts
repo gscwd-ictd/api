@@ -1,7 +1,7 @@
 import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { CostEstimateService } from './cost-estimate.service';
 
-@Controller({ version: '1', path: 'cost-estimates' })
+@Controller({ version: '1', path: 'finance' })
 export class CostEstimateController {
   constructor(private readonly costEstimateService: CostEstimateService) {}
 

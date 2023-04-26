@@ -5,6 +5,8 @@ import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { DataSource } from 'typeorm';
 import { RequestedItemService } from '../../requested-item';
 import { CreatePrDto } from '../data/pr.dto';
+import { OrgStructureService } from '../../../../../services/hrms/components/org-structure';
+import { CostEstimateService } from '../../../../../services/finance/components/cost-estimate';
 
 @Injectable()
 export class PurchaseRequestService {
@@ -13,7 +15,13 @@ export class PurchaseRequestService {
     private readonly datasource: DataSource,
 
     // inject requested items service
-    private readonly requestedItemService: RequestedItemService
+    private readonly requestedItemService: RequestedItemService,
+
+    // inject org structure service
+    private readonly orgStructureService: OrgStructureService,
+
+    // inject cost estimates service
+    private readonly costEstimateService: CostEstimateService
   ) {}
 
   async createPr(prDto: CreatePrDto): Promise<RawPurchaseRequest> {
@@ -62,12 +70,24 @@ export class PurchaseRequestService {
 
   async getPrDetails(id: string) {
     try {
+      // get pr details
       const prDetails = await this.datasource.getRepository(PurchaseRequestDetails).findOneByOrFail({ id });
 
+      // get requesting office details
+      const requestingOffice = (await this.orgStructureService.getOrgUnitById(prDetails.requestingOffice)).name;
+
+      // get project details from finance
+      const projectDetails = await this.costEstimateService.getProjectDetailsById(prDetails.projectDetailsId);
+
+      // get details on requested items
       const requestedItems = await this.requestedItemService.findAllItemsByPr(prDetails.id);
 
-      return { ...prDetails, requestedItems };
+      // return resulting values
+      return { ...prDetails, projectDetails, requestingOffice, requestedItems };
+
+      // catch any error
     } catch (error) {
+      // throw not found
       throw new NotFoundException();
     }
   }
