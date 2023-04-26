@@ -22,8 +22,6 @@ import { ItemModule } from './services/item';
     ItemModule,
     BudgetTypeModule,
     CostEstimateModule,
-
-    //test mod
   ],
 })
 export class AppModule {}

@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsInt, IsUUID } from 'class-validator';
+import { IsInt, IsNumber, IsUUID } from 'class-validator';
 import { Contigency } from '../contingencies';
 import { ProjectDetails } from '../project-details';
 
@@ -19,7 +19,7 @@ export class CreateLaborCostDto {
   @IsInt()
   numberOfDays: number;
 
-  @IsInt()
+  @IsNumber({ maxDecimalPlaces: 2 })
   unitCost: number;
 }
 

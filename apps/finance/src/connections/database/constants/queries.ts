@@ -62,7 +62,7 @@ export const init = {
       (project_details_id_fk UUID, 
       specification_id UUID, 
       quantity INTEGER, 
-      unit_cost INTEGER);
+      unit_cost NUMERIC);
       
     INSERT INTO labor_costs(
       project_details_id_fk, 
@@ -81,7 +81,7 @@ export const init = {
       specification_id UUID, 
       number_of_person INTEGER,
       number_of_days INTEGER,
-      unit_cost INTEGER);
+      unit_cost NUMERIC);
       
     INSERT INTO equipment_costs(
       project_details_id_fk, 
@@ -100,7 +100,7 @@ export const init = {
       equipment_description TEXT, 
       number_of_unit INTEGER,
       number_of_days INTEGER,
-      unit_cost INTEGER);
+      unit_cost NUMERIC);
   
     RETURN project_id;
   END;

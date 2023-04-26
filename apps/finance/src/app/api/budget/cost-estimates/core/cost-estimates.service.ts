@@ -76,7 +76,6 @@ export class CostEstimateService {
       const modifiedMaterialCost = await Promise.all(
         materialCost.map(async (material) => {
           const item = await this.itemService.findItemFromViewById(material.specificationId);
-          console.log(item);
           return {
             materialId: material.id,
             id: item.id,

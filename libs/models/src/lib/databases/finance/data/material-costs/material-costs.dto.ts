@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsDecimal, IsInt, IsUUID } from 'class-validator';
+import { IsInt, IsNumber, IsUUID } from 'class-validator';
 import { Contigency } from '../contingencies';
 import { ProjectDetails } from '../project-details';
 
@@ -16,7 +16,7 @@ export class CreateMaterialCostDto {
   @IsInt()
   quantity: number;
 
-  @IsDecimal()
+  @IsNumber({ maxDecimalPlaces: 2 })
   unitCost: number;
 }
 
