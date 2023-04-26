@@ -65,7 +65,7 @@ export class CostEstimateService {
     try {
       const projectDetails = await this.datasource.getRepository(ProjectDetails).findOne({
         relations: { budgetDetails: { budgetType: true, generalLedgerAccount: true } },
-        select: { budgetDetails: { status: true, budgetType: { name: true }, generalLedgerAccount: { name: true } } },
+        select: { budgetDetails: { status: true, budgetType: { id: true, name: true }, generalLedgerAccount: { id: true, name: true } } },
         where: { id },
       });
 

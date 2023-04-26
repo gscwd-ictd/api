@@ -22,6 +22,6 @@ export class MaterialCost extends DatabaseEntity implements IEntity {
   @Column({ name: 'quantity', type: 'integer' })
   quantity: number;
 
-  @Column({ name: 'unit_cost', type: 'integer' })
+  @Column({ name: 'unit_cost', type: 'decimal', precision: 10, scale: 2 })
   unitCost: number;
 }
