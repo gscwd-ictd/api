@@ -16,7 +16,7 @@ export class CreateMaterialCostDto {
   @IsInt()
   quantity: number;
 
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
   unitCost: number;
 }
 
