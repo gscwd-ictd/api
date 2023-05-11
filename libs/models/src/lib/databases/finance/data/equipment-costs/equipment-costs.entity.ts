@@ -25,6 +25,19 @@ export class EquipmentCost extends DatabaseEntity implements IEntity {
   @Column({ name: 'number_of_days', type: 'integer' })
   numberOfDays: number;
 
-  @Column({ name: 'unit_cost', type: 'integer' })
+  @Column({
+    name: 'unit_cost',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: {
+      to(data: number): number {
+        return data;
+      },
+      from(data: string): number {
+        return parseFloat(data);
+      },
+    },
+  })
   unitCost: number;
 }
