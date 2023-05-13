@@ -4,6 +4,7 @@ import { join } from 'path';
 import { DatabaseModule } from '../connections';
 import { TrainingSourcesModule } from './api/training-sources';
 import { VenueDetailsModule } from './api/venue-details';
+import { VenueFacilitiesModule } from './api/venue-facilities';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { VenueDetailsModule } from './api/venue-details';
     //Api Modules
     TrainingSourcesModule,
     VenueDetailsModule,
+    VenueFacilitiesModule,
   ],
 })
 export class AppModule {}
