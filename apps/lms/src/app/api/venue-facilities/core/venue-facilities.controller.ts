@@ -38,6 +38,10 @@ export class VenueFacilitiesController implements ICrudRoutes {
   ): Promise<Pagination<VenueFacility> | VenueFacility[]> {
     return await this.venueFacilitiesService.crud().findAll({
       pagination: { page, limit },
+      find: {
+        relations: { venueDetails: true },
+        select: { venueDetails: { id: true, name: true } },
+      },
       onError: () => new InternalServerErrorException(),
     });
   }
