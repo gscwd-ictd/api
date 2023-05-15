@@ -1,7 +1,7 @@
 export enum LeaveTypes {
-  RECURRING = 'recurring',
-  CUMULATIVE = 'cumulative',
-  SLB = 'special leave benefit',
+  RECURRING = 'Recurring',
+  CUMULATIVE = 'Cumulative',
+  SLB = 'Special Leave Benefit',
 }
 
 export enum CreditDistribution {
@@ -11,6 +11,7 @@ export enum CreditDistribution {
 
 export enum LeaveApplicationStatus {
   APPROVED = 'approved',
+  HR_APPROVED = 'hr approved',
   ONGOING = 'ongoing',
   DISAPPROVED = 'disapproved',
   CANCELLED = 'cancelled',
@@ -20,37 +21,44 @@ export type LeaveApplicationType = {
   id: string;
   leaveName: string;
   dateOfFiling: Date;
-  leaveDates: string;
   status: LeaveApplicationStatus;
 };
 
+export type DtrPayload = {
+  dateFrom: Date;
+  dateTo: Date;
+};
+
 export enum NatureOfBusiness {
-  PERSONAL = 'personal',
-  HALF_DAY = 'half day',
-  UNDERTIME = 'undertime',
-  OFFICIAL_BUSINESS = 'official business',
+  PERSONAL = 'Personal Business',
+  HALF_DAY = 'Half Day',
+  UNDERTIME = 'Undertime',
+  OFFICIAL_BUSINESS = 'Official Business',
 }
 
 export enum ObTransportation {
-  OFFICIAL_VEHICLE = 'official vehicle',
-  PRIVATE_PERSONAL = 'private/personal',
-  PUBLIC = 'public',
+  OFFICIAL_VEHICLE = 'Office Vehicle',
+  PRIVATE_PERSONAL = 'Private/Personal Vehicle',
+  PUBLIC = 'Public Vehicle',
 }
 
 export enum PassSlipApprovalStatus {
   APPROVED = 'approved',
   ONGOING = 'ongoing',
   DISAPPROVED = 'disapproved',
+  FOR_APPROVAL = 'for approval',
+  USED = 'used',
+  CANCELLED = 'cancelled',
 }
 
 export enum HolidayType {
   REGULAR = 'regular',
-  SPECIAL_NON_WORKING = 'special non-working',
+  SPECIAL_NON_WORKING = 'special',
 }
 
 export enum ScheduleType {
   REGULAR = 'regular',
-  PUMPING_STATION = 'pumping station',
+  //PUMPING_STATION = 'pumping station',
   FLEXIBLE = 'flexible',
 }
 
@@ -68,3 +76,25 @@ export enum RestDays {
   FRIDAY = 5,
   SATURDAY = 6,
 }
+
+export enum ScheduleBase {
+  OFFICE = 'Office',
+  FIELD = 'Field',
+  PUMPING_STATION = 'Pumping Station',
+}
+
+export type VacationLeaveDetails = {
+  inPhilippinesOrAbroad: string;
+  location: string;
+};
+
+export type SickLeaveDetails = {
+  hospital: string;
+  illness: string;
+};
+
+export type StudyLeaveDetails = {
+  forMastersCompletion: boolean;
+  forBarBoardReview: boolean;
+  studyLeaveOther: string;
+};

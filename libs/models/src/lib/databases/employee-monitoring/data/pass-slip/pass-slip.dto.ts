@@ -16,7 +16,7 @@ export class PassSlipDto {
   @IsEnum(ObTransportation)
   obTransportation: ObTransportation;
 
-  @IsNumber({ allowNaN: false })
+  @IsNumber({ allowNaN: true })
   estimateHours: number;
 
   @IsString()
