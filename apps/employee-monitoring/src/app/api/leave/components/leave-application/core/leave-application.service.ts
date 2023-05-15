@@ -310,6 +310,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
+        //console.log(leave);
         const { employeeId, supervisorId, ...rest } = leave;
         const employeeSupervisorNames = (await this.client.call<
           string,
