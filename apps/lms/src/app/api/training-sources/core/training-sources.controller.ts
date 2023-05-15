@@ -10,8 +10,8 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
 } from '@nestjs/common';
 import { TrainingSourcesService } from './training-sources.service';
@@ -50,7 +50,7 @@ export class TrainingSourcesController implements ICrudRoutes {
     });
   }
 
-  @Put(':id')
+  @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateTrainingSourceDto): Promise<UpdateResult> {
     return this.trainingSourcesService.crud().update({
       updateBy: { id },

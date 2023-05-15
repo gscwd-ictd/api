@@ -10,8 +10,8 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
 } from '@nestjs/common';
 import { VenueDetailsService } from './venue-details.service';
@@ -50,7 +50,7 @@ export class VenueDetailsController implements ICrudRoutes {
     });
   }
 
-  @Put(':id')
+  @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateVenueDetailsDto): Promise<UpdateResult> {
     return this.venueDetailsService.crud().update({
       updateBy: { id },
