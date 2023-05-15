@@ -13,10 +13,10 @@ export class LeaveBenefits extends DatabaseEntity implements IEntity {
   @Column({ name: 'leave_types', type: 'enum', enum: LeaveTypes })
   leaveType: LeaveTypes;
 
-  @Column({ name: 'accumulated_credits', type: 'decimal', precision: 3, scale: 2 })
+  @Column({ name: 'accumulated_credits', type: 'decimal', precision: 3, scale: 2, nullable: true })
   accumulatedCredits: number;
 
-  @Column({ name: 'credit_distribution', type: 'enum', enum: CreditDistribution })
+  @Column({ name: 'credit_distribution', type: 'enum', enum: CreditDistribution, nullable: true })
   creditDistribution: CreditDistribution;
 
   @Column({ name: 'monetizable' })

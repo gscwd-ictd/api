@@ -19,7 +19,7 @@ export class PassSlip extends DatabaseEntity implements IEntity {
   @Column({ name: 'ob_transportation', type: 'enum', enum: ObTransportation, nullable: true })
   obTransportation: ObTransportation;
 
-  @Column({ name: 'estimate_hours', type: 'decimal', scale: 2, precision: 5 })
+  @Column({ name: 'estimate_hours', type: 'decimal', scale: 2, precision: 6, nullable: true })
   estimateHours: number;
 
   @Column({ name: 'purpose_destination', type: 'text' })
