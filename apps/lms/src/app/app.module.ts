@@ -5,6 +5,7 @@ import { DatabaseModule } from '../connections';
 import { TrainingSourcesModule } from './api/training-sources';
 import { VenueDetailsModule } from './api/venue-details';
 import { VenueFacilitiesModule } from './api/venue-facilities';
+import { TrainingTypesModule } from './api/training-types';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { VenueFacilitiesModule } from './api/venue-facilities';
 
     //Api Modules
     TrainingSourcesModule,
+    TrainingTypesModule,
     VenueDetailsModule,
     VenueFacilitiesModule,
   ],
