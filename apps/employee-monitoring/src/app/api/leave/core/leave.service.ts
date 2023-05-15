@@ -1,23 +1,30 @@
-import { LeaveApplication } from '@gscwd-api/models';
-import { Injectable } from '@nestjs/common';
+import { LeaveApplication, UpdateLeaveApplicationStatusDto } from '@gscwd-api/models';
+import { LeaveApplicationStatus } from '@gscwd-api/utils';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { LeaveApplicationDatesService } from '../components/leave-application-dates/core/leave-application-dates.service';
 import { LeaveApplicationService } from '../components/leave-application/core/leave-application.service';
 
 @Injectable()
 export class LeaveService {
-  constructor(
-    private readonly leaveApplicationService: LeaveApplicationService,
+  constructor(private readonly leaveApplicationService: LeaveApplicationService) {}
 
-    private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
+  async getLeavesUnderSupervisor(supervisorId: string) {
+    return await this.leaveApplicationService.getLeavesUnderSupervisor(supervisorId);
+  }
+  async getLeavesForHrApproval() {
+    return await this.leaveApplicationService.getLeavesByLeaveApplicationStatus(LeaveApplicationStatus.ONGOING);
+  }
 
-    private readonly datasource: DataSource
-  ) {}
-
-  async createLeave() {
-    return await this.datasource.manager.transaction(async (manager) => {
-      //const leaveApplication = await this.leaveApplicationService.crud().transact<LeaveApplication>(manager).create({dto: })
-      //const
+  async updateLeaveStatus(updateLeaveApplicationStatusDto: UpdateLeaveApplicationStatusDto) {
+    const { id, status } = updateLeaveApplicationStatusDto;
+    const updateResult = await this.leaveApplicationService.crud().update({
+      dto: { status },
+      updateBy: { id },
+      onError: ({ error }) => {
+        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+      },
     });
+    if (updateResult.affected > 0) return updateLeaveApplicationStatusDto;
   }
 }

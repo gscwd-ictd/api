@@ -20,9 +20,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     super(crudService);
   }
 
-  async createLeaveApplicationTransaction(transactionEntityManager: EntityManager, updateLeaveApplicationDto: UpdateLeaveApplicationDto) {
+  async createLeaveApplicationTransaction(transactionEntityManager: EntityManager, createLeaveApplicationDto: CreateLeaveApplicationDto) {
+    const { leaveApplicationDates, ...rest } = createLeaveApplicationDto;
     return await this.crudService.transact<LeaveApplication>(transactionEntityManager).create({
-      dto: updateLeaveApplicationDto,
+      dto: rest,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
@@ -48,11 +49,22 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const result = this.dataSource.transaction(async (transactionEntityManager) => {
       const { leaveApplicationDates, ...rest } = createLeaveApplication;
 
+      const supervisorId = (await this.client.call<string, string, string>({
+        action: 'send',
+        payload: rest.employeeId,
+        pattern: 'get_employee_supervisor_id',
+        onError: (error) => new NotFoundException(error),
+      })) as string;
+
+      console.log(supervisorId);
+
       const leaveApplication = await this.createLeaveApplicationTransaction(transactionEntityManager, {
         ...rest,
+        supervisorId,
         dateOfFiling: new Date(now),
         status: LeaveApplicationStatus.ONGOING,
         forMonetization: false,
+        leaveApplicationDates,
       });
 
       let leaveApplicationDatesResult;
@@ -287,5 +299,59 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       ORDER BY unavailableDates.unavailableDate ASC`,
       [employeeId]
     );
+  }
+
+  async getLeavesForHrApproval() {
+    return await this.getLeavesByLeaveApplicationStatus(LeaveApplicationStatus.ONGOING);
+  }
+
+  async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
+    const leaves = <LeaveApplication[]>await this.crud().findAll({ find: { where: { status: leaveApplicationStatus } } });
+
+    const leavesDetails = await Promise.all(
+      leaves.map(async (leave) => {
+        const { employeeId, supervisorId, ...rest } = leave;
+        const employeeSupervisorNames = (await this.client.call<
+          string,
+          { employeeId: string; supervisorId: string },
+          { employeeName: string; supervisorName: string }
+        >({
+          action: 'send',
+          payload: { employeeId, supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        })) as { employeeName: string; supervisorName: string };
+
+        const { employeeName, supervisorName } = employeeSupervisorNames;
+
+        return { ...rest, employee: { employeeId, employeeName }, supervisor: { supervisorId, supervisorName } };
+      })
+    );
+    return leavesDetails;
+  }
+
+  async getLeavesUnderSupervisor(supervisorId: string) {
+    const leaves = <LeaveApplication[]>await this.crud().findAll({ find: { where: { supervisorId, status: LeaveApplicationStatus.HR_APPROVED } } });
+
+    const leavesDetails = await Promise.all(
+      leaves.map(async (leave) => {
+        const { employeeId, supervisorId, ...rest } = leave;
+        const employeeSupervisorNames = (await this.client.call<
+          string,
+          { employeeId: string; supervisorId: string },
+          { employeeName: string; supervisorName: string }
+        >({
+          action: 'send',
+          payload: { employeeId, supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        })) as { employeeName: string; supervisorName: string };
+
+        const { employeeName, supervisorName } = employeeSupervisorNames;
+
+        return { ...rest, employee: { employeeId, employeeName }, supervisor: { supervisorId, supervisorName } };
+      })
+    );
+    return leavesDetails;
   }
 }

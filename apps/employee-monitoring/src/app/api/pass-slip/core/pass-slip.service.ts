@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { EmployeeSchedule, PassSlip, PassSlipApproval, PassSlipDto } from '@gscwd-api/models';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
@@ -38,7 +38,80 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     return passSlip;
   }
 
-  async getPassSlips(employeeId: string) {
+  async getPassSlipsBySupervisorId(supervisorId: string) {
+    const passSlipsForApproval = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
+      find: {
+        relations: { passSlipId: true },
+        select: { supervisorId: true, status: true },
+        where: { supervisorId, status: PassSlipApprovalStatus.FOR_APPROVAL },
+      },
+    });
+
+    const forApproval = await Promise.all(
+      passSlipsForApproval.map(async (passSlip) => {
+        const { passSlipId, ...restOfPassSlip } = passSlip;
+
+        const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
+          action: 'send',
+          payload: { employeeId: passSlip.passSlipId.employeeId, supervisorId: passSlip.supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        });
+
+        return { ...passSlipId, ...names, ...restOfPassSlip };
+      })
+    );
+
+    const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
+      find: {
+        relations: { passSlipId: true },
+        select: { supervisorId: true, status: true },
+        where: { supervisorId, status: PassSlipApprovalStatus.APPROVED },
+      },
+    });
+
+    const approved = await Promise.all(
+      passSlipsApproved.map(async (passSlip) => {
+        const { passSlipId, ...restOfPassSlip } = passSlip;
+
+        const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
+          action: 'send',
+          payload: { employeeId: passSlip.passSlipId.employeeId, supervisorId: passSlip.supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        });
+
+        return { ...passSlipId, ...names, ...restOfPassSlip };
+      })
+    );
+
+    const passSlipsDisapproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
+      find: {
+        relations: { passSlipId: true },
+        select: { supervisorId: true, status: true },
+        where: { supervisorId, status: PassSlipApprovalStatus.DISAPPROVED },
+      },
+    });
+
+    const disapproved = await Promise.all(
+      passSlipsDisapproved.map(async (passSlip) => {
+        const { passSlipId, ...restOfPassSlip } = passSlip;
+
+        const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
+          action: 'send',
+          payload: { employeeId: passSlip.passSlipId.employeeId, supervisorId: passSlip.supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        });
+
+        return { ...passSlipId, ...names, ...restOfPassSlip };
+      })
+    );
+
+    return { forApproval, completed: { approved, disapproved } };
+  }
+
+  async getPassSlipsByEmployeeId(employeeId: string) {
     const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
@@ -62,17 +135,17 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       })
     );
 
-    const passSlipsOngoing = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
+    const passSlipsForApproval = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true },
-        where: { passSlipId: { employeeId }, status: PassSlipApprovalStatus.ONGOING },
+        where: { passSlipId: { employeeId }, status: PassSlipApprovalStatus.FOR_APPROVAL },
         order: { createdAt: 'DESC' },
       },
     });
 
-    const ongoing = await Promise.all(
-      passSlipsOngoing.map(async (passSlip) => {
+    const forApproval = await Promise.all(
+      passSlipsForApproval.map(async (passSlip) => {
         const { passSlipId, ...restOfPassSlip } = passSlip;
 
         const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
@@ -122,9 +195,19 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       })
     );
 
-    const passSlips = { ongoing, completed: approvedDisapproved };
+    const passSlips = { forApproval, completed: approvedDisapproved };
     console.log(passSlips);
     return passSlips;
+  }
+
+  private async getSupervisorAndEmployeeNames(employeeId: string, supervisorId: string) {
+    const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
+      action: 'send',
+      payload: { employeeId, supervisorId },
+      pattern: 'get_employee_supervisor_names',
+      onError: (error) => new NotFoundException(error),
+    });
+    return names;
   }
 
   async getAllPassSlips() {
@@ -132,11 +215,60 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       find: {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true },
-        where: { status: PassSlipApprovalStatus.ONGOING },
         order: { createdAt: 'DESC', status: 'ASC' },
       },
     });
-    console.log(passSlips);
-    return passSlips;
+
+    const passSlipDetails = await Promise.all(
+      passSlips.map(async (passSlip) => {
+        const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
+        const { passSlipId, ...restOfPassSlip } = passSlip;
+        return { ...restOfPassSlip, ...passSlipId, ...names };
+      })
+    );
+    // const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
+    //   find: {
+    //     relations: { passSlipId: true },
+    //     select: { supervisorId: true, status: true },
+    //     where: { status: PassSlipApprovalStatus.APPROVED },
+    //     order: { createdAt: 'DESC', status: 'ASC' },
+    //   },
+    // });
+
+    // const passSlipsDisapproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
+    //   find: {
+    //     relations: { passSlipId: true },
+    //     select: { supervisorId: true, status: true },
+    //     where: { status: PassSlipApprovalStatus.DISAPPROVED },
+    //     order: { createdAt: 'DESC', status: 'ASC' },
+    //   },
+    // });
+    //console.log(passSlips);
+    //return { ongoing: passSlipsOngoing, completed: { passSlipsApproved, passSlipsDisapproved } };
+    return passSlipDetails;
+  }
+
+  async deletePassSlip(id: string) {
+    const passSlip = await this.getPassSlip(id);
+    const deletePassSlipApprovalResults = await this.passSlipApprovalService.crud().delete({ deleteBy: { passSlipId: { id } }, softDelete: false });
+    const deletePassSlipResult = await this.crud().delete({ deleteBy: { id }, softDelete: false });
+    if (deletePassSlipApprovalResults.affected > 0 && deletePassSlipResult.affected > 0) return passSlip;
+  }
+
+  async getPassSlip(id: string) {
+    /*
+    return await this.crudService.findOne({
+      find: { relations: { seminarTrainingType: true }, select: { seminarTrainingType: { id: true, name: true } }, where: { id } },
+      onError: ({ error }) => {
+        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+      },
+    });
+    */
+    return await this.crudService.findOne({
+      find: { where: { id } },
+      onError: ({ error }) => {
+        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+      },
+    });
   }
 }

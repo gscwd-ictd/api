@@ -26,6 +26,6 @@ import { ScheduleModule } from '@nestjs/schedule';
   ],
   providers: [LeaveApplicationService, MicroserviceClient],
   controllers: [LeaveApplicationController],
-  exports: [LeaveApplicationService],
+  exports: [LeaveApplicationService, MicroserviceClient],
 })
 export class LeaveApplicationModule {}

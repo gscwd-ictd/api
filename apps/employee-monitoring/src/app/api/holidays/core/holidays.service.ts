@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { Holidays, HolidaysDto } from '@gscwd-api/models';
+import { Holidays, HolidaysDto, UpdateHolidayDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -26,5 +26,38 @@ export class HolidaysService extends CrudHelper<Holidays> {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
+  }
+
+  async getHoliday(id: string) {
+    return await this.crudService.findOne({
+      find: { where: { id } },
+      onError: ({ error }) => {
+        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+      },
+    });
+  }
+
+  async updateHoliday(updateHolidayDto: UpdateHolidayDto) {
+    const { id, ...rest } = updateHolidayDto;
+    const updateHolidayResult = await this.crudService.update({
+      dto: rest,
+      updateBy: { id },
+      onError: ({ error }) => {
+        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+      },
+    });
+    if (updateHolidayResult.affected > 0) return updateHolidayDto;
+  }
+
+  async deleteHoliday(id: string) {
+    const holiday = await this.getHoliday(id);
+    const deleteResult = await this.crudService.delete({
+      deleteBy: { id },
+      softDelete: false,
+      onError: ({ error }) => {
+        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+      },
+    });
+    if (deleteResult.affected > 0) return holiday;
   }
 }

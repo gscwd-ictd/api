@@ -11,6 +11,9 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ name: 'employee_id_fk', type: 'uuid' })
   employeeId: string;
 
+  @Column({ name: 'supervisor_id_fk', type: 'uuid' })
+  supervisorId: string;
+
   @JoinColumn({ name: 'leave_benefits_id_fk' })
   @ManyToOne(() => LeaveBenefits, (leaveBenefits) => leaveBenefits.id)
   leaveBenefitsId: LeaveBenefits;

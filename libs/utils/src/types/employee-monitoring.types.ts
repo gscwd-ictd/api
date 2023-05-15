@@ -11,6 +11,7 @@ export enum CreditDistribution {
 
 export enum LeaveApplicationStatus {
   APPROVED = 'approved',
+  HR_APPROVED = 'hr approved',
   ONGOING = 'ongoing',
   DISAPPROVED = 'disapproved',
   CANCELLED = 'cancelled',
@@ -45,6 +46,9 @@ export enum PassSlipApprovalStatus {
   APPROVED = 'approved',
   ONGOING = 'ongoing',
   DISAPPROVED = 'disapproved',
+  FOR_APPROVAL = 'for approval',
+  USED = 'used',
+  CANCELLED = 'cancelled',
 }
 
 export enum HolidayType {

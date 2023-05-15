@@ -1,5 +1,5 @@
 import { LeaveApplicationStatus } from '@gscwd-api/utils';
-import { PartialType } from '@nestjs/swagger';
+import { PartialType, PickType } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsDate, IsDateString, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { LeaveBenefits } from '../leave-benefits/leave-benefits.entity';
 
@@ -9,6 +9,9 @@ export class CreateLeaveApplicationDto {
 
   @IsUUID(4, { message: 'Invalid employeeId value.' })
   employeeId: string;
+
+  @IsUUID(4, { message: 'Invalid supervisorId value.' })
+  supervisorId: string;
 
   @IsDate({ message: 'Invalid Date of Filing' })
   dateOfFiling?: Date;
@@ -63,3 +66,7 @@ export class CreateLeaveApplicationDto {
   leaveApplicationDates: Date[] | { from: Date; to: Date };
 }
 export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) {}
+
+export class UpdateLeaveApplicationStatusDto extends PickType(CreateLeaveApplicationDto, ['status']) {
+  id: string;
+}

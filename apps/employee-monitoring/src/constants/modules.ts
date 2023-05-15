@@ -3,16 +3,13 @@ import { ScheduleRestDayModule } from '../app/api/daily-time-record/components/s
 import { ScheduleModule } from '../app/api/daily-time-record/components/schedule/core/schedule.module';
 import { DailyTimeRecordModule } from '../app/api/daily-time-record/core/daily-time-record.module';
 import { HolidaysModule } from '../app/api/holidays/core/holidays.module';
-import { LeaveApplicationDatesModule } from '../app/api/leave/components/leave-application-dates/core/leave-application-dates.module';
-import { LeaveApplicationModule } from '../app/api/leave/components/leave-application/core/leave-application.module';
-import { LeaveBenefitsModule } from '../app/api/leave/components/leave-benefits/core/leave-benefits.module';
+import { LeaveModule } from '../app/api/leave/core/leave.module';
 import { PassSlipApprovalModule } from '../app/api/pass-slip/components/approval/core/pass-slip-approval.module';
 import { PassSlipModule } from '../app/api/pass-slip/core/pass-slip.module';
+import { TravelOrderModule } from '../app/api/travel-order/core/travel-order.module';
 
 export const appModules = [
-  LeaveApplicationModule,
-  LeaveBenefitsModule,
-  LeaveApplicationDatesModule,
+  LeaveModule,
   PassSlipModule,
   PassSlipApprovalModule,
   HolidaysModule,
@@ -20,4 +17,5 @@ export const appModules = [
   ScheduleRestDayModule,
   EmployeeScheduleModule,
   DailyTimeRecordModule,
+  TravelOrderModule,
 ];

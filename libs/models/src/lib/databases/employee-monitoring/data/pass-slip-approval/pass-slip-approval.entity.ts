@@ -15,6 +15,6 @@ export class PassSlipApproval extends DatabaseEntity implements IEntity {
   @Column({ name: 'supervisor_id_fk' })
   supervisorId: string;
 
-  @Column({ name: 'status', type: 'enum', enum: PassSlipApprovalStatus, default: PassSlipApprovalStatus.ONGOING })
+  @Column({ name: 'status', type: 'enum', enum: PassSlipApprovalStatus, default: PassSlipApprovalStatus.FOR_APPROVAL })
   status: PassSlipApprovalStatus;
 }
