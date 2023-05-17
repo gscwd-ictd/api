@@ -4,7 +4,6 @@ import { join } from 'path';
 import { DatabaseModule } from '../connections';
 import { TrainingSourcesModule } from './api/training-sources';
 import { VenueDetailsModule } from './api/venue-details';
-import { VenueFacilitiesModule } from './api/venue-facilities';
 import { TrainingTypesModule } from './api/training-types';
 
 @Module({
@@ -19,7 +18,6 @@ import { TrainingTypesModule } from './api/training-types';
     TrainingSourcesModule,
     TrainingTypesModule,
     VenueDetailsModule,
-    VenueFacilitiesModule,
   ],
 })
 export class AppModule {}

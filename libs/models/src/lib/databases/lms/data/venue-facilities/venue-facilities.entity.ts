@@ -1,8 +1,9 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { VenueDetails } from '../venue-details';
 
 @Entity('venue_facilities')
+@Unique(['venueDetails', 'name'])
 export class VenueFacility extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'venue_facility_id' })
   id: string;
@@ -11,7 +12,7 @@ export class VenueFacility extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'venue_details_id_fk' })
   venueDetails: VenueDetails;
 
-  @Column({ unique: true, length: 100 })
+  @Column({ length: 100 })
   name: string;
 
   @Column({

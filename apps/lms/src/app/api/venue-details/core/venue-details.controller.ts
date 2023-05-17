@@ -24,11 +24,8 @@ export class VenueDetailsController implements ICrudRoutes {
   constructor(private readonly venueDetailsService: VenueDetailsService) {}
 
   @Post()
-  async create(@Body() data: CreateVenueDetailsDto): Promise<VenueDetails> {
-    return await this.venueDetailsService.crud().create({
-      dto: data,
-      onError: () => new BadRequestException(),
-    });
+  async create(@Body() data: CreateVenueDetailsDto) {
+    return await this.venueDetailsService.addVenueDetails(data);
   }
 
   @Get()

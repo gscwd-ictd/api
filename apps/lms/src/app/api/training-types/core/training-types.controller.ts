@@ -63,6 +63,7 @@ export class TrainingTypesController implements ICrudRoutes {
   async delete(@Param('id') id: string): Promise<DeleteResult> {
     return this.trainingTypesService.crud().delete({
       deleteBy: { id },
+      softDelete: false,
       onError: () => new BadRequestException(),
     });
   }
