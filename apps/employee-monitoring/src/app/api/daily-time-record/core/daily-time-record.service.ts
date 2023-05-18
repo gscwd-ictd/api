@@ -1,8 +1,9 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { DailyTimeRecord } from '@gscwd-api/models';
-import { DtrPayload } from '@gscwd-api/utils';
+import { DtrPayload, EmployeeDetails } from '@gscwd-api/utils';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
@@ -15,6 +16,24 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       action: 'send',
       payload: {},
       pattern: 'get_all_records',
+      onError: (error) => new NotFoundException(error),
+    });
+  }
+
+  async insertDtr(data: { companyId: string; date: Date }) {
+    const employeeDetails = (await this.client.call({
+      action: 'send',
+      payload: data.companyId,
+      pattern: 'get_employee_details_by_company_id',
+      onError: (error) => new NotFoundException(error),
+    })) as EmployeeDetails;
+
+    const { userId, ...rest } = employeeDetails;
+    const employeeSchedule = '';
+    const employeeIvmsDtr = await this.client.call({
+      action: 'send',
+      payload: data,
+      pattern: 'get_dtr_by_company_id_and_date',
       onError: (error) => new NotFoundException(error),
     });
   }

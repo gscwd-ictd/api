@@ -23,6 +23,7 @@ export class LeaveController {
   }
 
   //!todo hr guard
+  //!todo cred
   @Patch('hr/')
   async updateHrLeaveStatus(@Body() updateLeaveApplicationStatus: UpdateLeaveApplicationStatusDto) {
     return await this.leaveService.updateLeaveStatus(updateLeaveApplicationStatus);
