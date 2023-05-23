@@ -7,7 +7,7 @@ export class CreateLspExperienceDto {
   lspDetails: LspDetails;
 
   @IsNumber()
-  numberOfYears: string;
+  numberOfYears: number;
 }
 
 export class UpdateLspExperienceDto extends PartialType(CreateLspExperienceDto) {}

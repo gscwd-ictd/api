@@ -5,6 +5,7 @@ import { DatabaseModule } from '../connections';
 import { TrainingSourcesModule } from './api/training-sources';
 import { VenueDetailsModule } from './api/venue-details';
 import { TrainingTypesModule } from './api/training-types';
+import { LspDetailsModule } from './api/lsp-details/core/lsp-details.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TrainingTypesModule } from './api/training-types';
     DatabaseModule,
 
     //Api Modules
+    LspDetailsModule,
     TrainingSourcesModule,
     TrainingTypesModule,
     VenueDetailsModule,

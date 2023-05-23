@@ -1,5 +1,5 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { LspType, SubjectMatterExpertise } from '@gscwd-api/utils';
+import { LspType } from '@gscwd-api/utils';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('lsp_details')
@@ -28,12 +28,12 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'postal_address', length: 100 })
   postalAddress: string;
 
-  @Column({ name: 'subject_matter_expertise', type: 'jsonb' })
-  subjectMatterExpertise: SubjectMatterExpertise[];
+  @Column({ name: 'subject_matter_expertise', type: 'jsonb', nullable: true })
+  subjectMatterExpertise: string;
 
   @Column({ name: 'educational_attainment', length: 100 })
   educationalAttainment: string;
 
-  @Column({ name: 'lsp_type', type: 'enum', enum: LspType })
+  @Column({ name: 'lsp_type', type: 'enum', enum: LspType, default: null })
   lspType: LspType;
 }
