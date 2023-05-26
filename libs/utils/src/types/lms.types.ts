@@ -2,3 +2,10 @@ export enum LspType {
   INTERNAL = 'INTERNAL',
   EXTERNAL = 'EXTERNAL',
 }
+
+export enum TrainingStatus {
+  ON_GOING_NOMINATION = 'ON GOING NOMINATION',
+  PDC_APPROVAL = 'PDC APPROVAL',
+  GM_APPROVAL = 'GM_APPROVAL',
+  DONE = 'DONE',
+}

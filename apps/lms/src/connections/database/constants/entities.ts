@@ -8,6 +8,7 @@ import {
   LspExperience,
   LspProject,
   LspTraining,
+  Training,
   TrainingSource,
   TrainingType,
   VenueDetails,
@@ -30,5 +31,7 @@ export const DB_ENTITIES = [
   LspProject,
   LspTraining,
   LspDetails,
+
+  Training,
   // views
 ];
