@@ -1,6 +1,5 @@
-import { LspType } from '@gscwd-api/utils';
 import { PartialType } from '@nestjs/swagger';
-import { ArrayNotEmpty, IsArray, IsEmail, IsEnum, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsEmail, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { CreateLspAffiliationDto } from '../lsp-affiliations';
 import { CreateLspAwardDto } from '../lsp-awards';
 import { CreateLspCertificationDto } from '../lsp-certifications';
@@ -11,6 +10,7 @@ import { CreateLspProjectDto } from '../lsp-projects';
 import { CreateLspTrainingDto } from '../lsp-trainings';
 import { LspSubjectDto } from '../subject-matter-experts';
 import { Type } from 'class-transformer';
+import { TrainingSource } from '../training-sources';
 
 export class CreateLspDetailsDto {
   @IsOptional()
@@ -48,8 +48,11 @@ export class CreateLspDetailsDto {
   @Length(1, 100, { message: 'lsp details educational attainment must be between 1 to 100 characters' })
   educationalAttainment: string;
 
-  @IsEnum(LspType)
-  lspType: LspType;
+  @IsString({ message: 'lsp details photo url must be a string' })
+  photoUrl: string;
+
+  @IsUUID('4')
+  trainingSource: TrainingSource;
 
   @IsArray()
   lspAffiliation: CreateLspAffiliationDto[];

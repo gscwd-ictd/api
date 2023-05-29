@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { DatabaseModule } from '../connections';
 import { TrainingSourcesModule } from './api/training-sources';
-import { VenueDetailsModule } from './api/venue-details';
 import { TrainingTypesModule } from './api/training-types';
 import { LspDetailsModule } from './api/lsp-details';
 import { TrainingsModule } from './api/trainings';
@@ -21,7 +20,6 @@ import { TrainingsModule } from './api/trainings';
     TrainingsModule,
     TrainingSourcesModule,
     TrainingTypesModule,
-    //VenueDetailsModule,
   ],
 })
 export class AppModule {}

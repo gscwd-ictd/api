@@ -14,9 +14,10 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { CreateTrainingDto, Training } from '@gscwd-api/models';
+import { CreateTrainingDto, Training, UpdateTrainingDto } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { TrainingsService } from './trainings.service';
+import { DeleteResult, UpdateResult } from 'typeorm';
 
 @Controller({ version: '1', path: 'trainings' })
 export class TrainingsController {
@@ -38,29 +39,22 @@ export class TrainingsController {
     });
   }
 
-  // @Get(':id')
-  // async findById(@Param('id') id: string): Promise<TrainingType> {
-  //   return this.trainingTypesService.crud().findOneBy({
-  //     findBy: { id },
-  //     onError: () => new NotFoundException(),
-  //   });
-  // }
+  @Get(':id')
+  async findById(@Param('id') id: string): Promise<Training> {
+    return this.trainingsService.getTrainingsById(id);
+  }
 
-  // @Patch(':id')
-  // async update(@Param('id') id: string, @Body() data: UpdateTrainingTypeDto): Promise<UpdateResult> {
-  //   return this.trainingTypesService.crud().update({
-  //     updateBy: { id },
-  //     dto: data,
-  //     onError: () => new BadRequestException(),
-  //   });
-  // }
+  @Patch()
+  async update(@Body() data: UpdateTrainingDto) {
+    return this.trainingsService.updateTrainingsDetails(data);
+  }
 
-  // @Delete(':id')
-  // async delete(@Param('id') id: string): Promise<DeleteResult> {
-  //   return this.trainingTypesService.crud().delete({
-  //     deleteBy: { id },
-  //     softDelete: false,
-  //     onError: () => new BadRequestException(),
-  //   });
-  // }
+  @Delete(':id')
+  async delete(@Param('id') id: string): Promise<DeleteResult> {
+    return this.trainingsService.crud().delete({
+      deleteBy: { id },
+      softDelete: false,
+      onError: () => new BadRequestException(),
+    });
+  }
 }

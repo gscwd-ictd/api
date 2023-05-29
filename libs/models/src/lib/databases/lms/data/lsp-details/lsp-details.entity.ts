@@ -1,6 +1,6 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { LspType } from '@gscwd-api/utils';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { TrainingSource } from '../training-sources';
 
 @Entity('lsp_details')
 export class LspDetails extends DatabaseEntity implements IEntity {
@@ -34,6 +34,10 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'educational_attainment', length: 100 })
   educationalAttainment: string;
 
-  @Column({ name: 'lsp_type', type: 'enum', enum: LspType, default: null })
-  lspType: LspType;
+  @Column({ name: 'photo_url' })
+  photoUrl: string;
+
+  @ManyToOne(() => TrainingSource, (trainingSource) => trainingSource.id, { nullable: false })
+  @JoinColumn({ name: 'training_type_id_fk' })
+  trainingSource: TrainingSource;
 }
