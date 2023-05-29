@@ -4,7 +4,8 @@ import { join } from 'path';
 import { DatabaseModule } from '../connections';
 import { TrainingSourcesModule } from './api/training-sources';
 import { VenueDetailsModule } from './api/venue-details';
-import { VenueFacilitiesModule } from './api/venue-facilities';
+import { TrainingTypesModule } from './api/training-types';
+import { LspDetailsModule } from './api/lsp-details/core/lsp-details.module';
 
 @Module({
   imports: [
@@ -15,9 +16,10 @@ import { VenueFacilitiesModule } from './api/venue-facilities';
     DatabaseModule,
 
     //Api Modules
+    LspDetailsModule,
     TrainingSourcesModule,
+    TrainingTypesModule,
     VenueDetailsModule,
-    VenueFacilitiesModule,
   ],
 })
 export class AppModule {}

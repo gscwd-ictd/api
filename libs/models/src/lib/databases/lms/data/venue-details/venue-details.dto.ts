@@ -1,5 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsArray, IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
+import { VenueFacility } from '../venue-facilities';
 
 export class CreateVenueDetailsDto {
   @IsString({ message: 'venue details name must be a string' })
@@ -25,6 +26,9 @@ export class CreateVenueDetailsDto {
   @IsEmail()
   @IsNotEmpty({ message: 'venue details email is  required' })
   email: string;
+
+  @IsArray()
+  venueFacility: VenueFacility[];
 }
 
 export class UpdateVenueDetailsDto extends PartialType(CreateVenueDetailsDto) {}
