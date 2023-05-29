@@ -10,3 +10,4 @@ export * from './data/employee-schedule';
 export * from './data/daily-time-record';
 export * from './data/travel-order';
 export * from './data/travel-order-itinerary';
+export * from './data/employee-rest-days';

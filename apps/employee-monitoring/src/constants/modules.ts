@@ -1,4 +1,5 @@
 import { EmployeeScheduleModule } from '../app/api/daily-time-record/components/employee-schedule/core/employee-schedule.module';
+import { EmployeeRestDaysModule } from '../app/api/daily-time-record/components/employee-schedule/components/employee-rest-days/core/employee-rest-days.module';
 import { ScheduleRestDayModule } from '../app/api/daily-time-record/components/schedule/components/rest-day/core/schedule-rest-day.module';
 import { ScheduleModule } from '../app/api/daily-time-record/components/schedule/core/schedule.module';
 import { DailyTimeRecordModule } from '../app/api/daily-time-record/core/daily-time-record.module';
@@ -18,4 +19,5 @@ export const appModules = [
   EmployeeScheduleModule,
   DailyTimeRecordModule,
   TravelOrderModule,
+  EmployeeRestDaysModule,
 ];

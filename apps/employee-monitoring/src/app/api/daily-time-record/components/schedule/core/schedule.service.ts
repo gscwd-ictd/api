@@ -25,22 +25,43 @@ export class ScheduleService extends CrudHelper<Schedule> {
     return scheduleResult;
   }
 
-  async getSchedules(scheduleBase: ScheduleBase) {
-    const schedules = await this.rawQuery<ScheduleBase, Schedule[]>(
+  async getSchedules(scheduleBase: ScheduleBase | null) {
+    let schedules;
+
+    if (!scheduleBase) {
+      schedules = await this.rawQuery<ScheduleBase, Schedule[]>(
+        `
+      SELECT 
+        schedule_id id, 
+        name, 
+        schedule_type scheduleType, 
+        time_in timeIn, 
+        time_out timeOut, 
+        lunch_in lunchIn, 
+        lunch_out lunchOut, 
+        schedule_base scheduleBase,
+        shift 
+      FROM schedule ORDER BY name ASC;
       `
-    SELECT 
-      schedule_id id, 
-      name, 
-      schedule_type scheduleType, 
-      time_in timeIn, 
-      time_out timeOut, 
-      lunch_in lunchIn, 
-      lunch_out lunchOut, 
-      shift 
-    FROM schedule  WHERE schedule_base = ?
-    `,
-      [scheduleBase]
-    );
+      );
+    } else {
+      schedules = await this.rawQuery<ScheduleBase, Schedule[]>(
+        `
+      SELECT 
+        schedule_id id, 
+        name, 
+        schedule_type scheduleType, 
+        time_in timeIn, 
+        time_out timeOut, 
+        lunch_in lunchIn, 
+        lunch_out lunchOut, 
+        schedule_base scheduleBase,
+        shift 
+      FROM schedule WHERE schedule_base = ? ORDER BY name ASC;
+      `,
+        [scheduleBase]
+      );
+    }
 
     const schedulesWithRestDays = await Promise.all(
       schedules.map(async (schedule) => {

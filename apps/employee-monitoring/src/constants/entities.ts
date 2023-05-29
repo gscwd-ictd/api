@@ -11,7 +11,9 @@ import {
   DailyTimeRecord,
   TravelOrder,
   TravelOrderItinerary,
+  EmployeeRestDays,
 } from '@gscwd-api/models';
+import { EmployeeRestDay } from 'libs/models/src/lib/databases/employee-monitoring/data/employee-rest-day/employee-rest-day.entity';
 
 export const typeOrmEntities = [
   LeaveApplication,
@@ -26,4 +28,6 @@ export const typeOrmEntities = [
   DailyTimeRecord,
   TravelOrder,
   TravelOrderItinerary,
+  EmployeeRestDays,
+  EmployeeRestDay,
 ];

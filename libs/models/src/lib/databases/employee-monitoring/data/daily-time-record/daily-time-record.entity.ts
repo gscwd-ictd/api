@@ -1,5 +1,6 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Schedule } from '../schedule';
 
 @Entity()
 export class DailyTimeRecord extends DatabaseEntity implements IEntity {
@@ -12,15 +13,19 @@ export class DailyTimeRecord extends DatabaseEntity implements IEntity {
   @Column({ name: 'dtr_date', type: 'date' })
   dtrDate: Date;
 
-  @Column({ name: 'time_in', type: 'time' })
+  @Column({ name: 'time_in', type: 'time', nullable: true })
   timeIn: number;
 
-  @Column({ name: 'lunch_out', type: 'time' })
+  @Column({ name: 'lunch_out', type: 'time', nullable: true })
   lunchOut: number;
 
-  @Column({ name: 'lunch_in', type: 'time' })
+  @Column({ name: 'lunch_in', type: 'time', nullable: true })
   lunchIn: number;
 
-  @Column({ name: 'time_out', type: 'time' })
+  @Column({ name: 'time_out', type: 'time', nullable: true })
   timeOut: number;
+
+  @JoinColumn({ name: 'schedule_id_fk' })
+  @ManyToOne(() => Schedule, (schedule) => schedule.id)
+  scheduleId: Schedule;
 }

@@ -13,4 +13,10 @@ export class EmployeeSchedule extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'employee_id_fk' })
   employeeId: string;
+
+  @Column({ name: 'date_from', nullable: true })
+  dateFrom: Date;
+
+  @Column({ name: 'date_to', nullable: true })
+  dateTo: Date;
 }

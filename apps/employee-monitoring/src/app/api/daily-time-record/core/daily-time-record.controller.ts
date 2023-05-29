@@ -11,11 +11,10 @@ export class DailyTimeRecordController {
     return await this.dailyTimeRecordService.getAllDTR();
   }
 
-  @Get('/test/')
-  async insertDtr(@Body() data: { companyId: string; date: Date }) {
-    const { companyId, date } = data;
-    const id = companyId.replace('-', '');
-    return await this.dailyTimeRecordService.insertDtr({ companyId: id, date });
+  @Get('/single-employee/:company_id/:date')
+  async getDtrByCompanyIdAndDay(@Param('company_id') companyId: string, @Param('date') date: Date) {
+    //const { companyId, date } = data;
+    return await this.dailyTimeRecordService.getDtrByCompanyIdAndDay({ companyId, date });
   }
 
   @Get(':company_id')
