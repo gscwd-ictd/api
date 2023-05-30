@@ -28,11 +28,11 @@ export class CreateLspDetailsDto {
   @Length(1, 100, { message: 'lsp details last name must be between 1 to 100 characters' })
   lastName: string;
 
-  @Length(1, 11, { message: 'lsp details contact number must be between 1 to 11 characters' })
-  contactNumber: string;
+  @IsArray()
+  contactNumber: string[];
 
-  @IsEmail()
-  email: string;
+  @IsArray()
+  email: string[];
 
   @IsString({ message: 'lsp details postal address must be a string' })
   @Length(1, 100, { message: 'lsp details postal address must be between 1 to 100 characters' })
@@ -44,10 +44,6 @@ export class CreateLspDetailsDto {
   @Type(() => LspSubjectDto)
   subjectMatterExpertise: LspSubjectDto[];
 
-  @IsString({ message: 'lsp details educational attainment must be a string' })
-  @Length(1, 100, { message: 'lsp details educational attainment must be between 1 to 100 characters' })
-  educationalAttainment: string;
-
   @IsString({ message: 'lsp details photo url must be a string' })
   photoUrl: string;
 
@@ -55,28 +51,28 @@ export class CreateLspDetailsDto {
   trainingSource: TrainingSource;
 
   @IsArray()
-  lspAffiliation: CreateLspAffiliationDto[];
+  affiliations: CreateLspAffiliationDto[];
 
   @IsArray()
-  lspAward: CreateLspAwardDto[];
+  awards: CreateLspAwardDto[];
 
   @IsArray()
-  lspCertification: CreateLspCertificationDto[];
+  certifications: CreateLspCertificationDto[];
 
   @IsArray()
-  lspCoaching: CreateLspCoachingDto[];
+  coaching: CreateLspCoachingDto[];
 
   @IsArray()
-  lspEducation: CreateLspEducationDto[];
+  education: CreateLspEducationDto[];
 
   @IsArray()
-  lspExperience: CreateLspExperienceDto[];
+  experience: CreateLspExperienceDto[];
 
   @IsArray()
-  lspProject: CreateLspProjectDto[];
+  projects: CreateLspProjectDto[];
 
   @IsArray()
-  lspTraining: CreateLspTrainingDto[];
+  trainings: CreateLspTrainingDto[];
 }
 
 export class UpdateLspDetailsDto extends PartialType(CreateLspDetailsDto) {
