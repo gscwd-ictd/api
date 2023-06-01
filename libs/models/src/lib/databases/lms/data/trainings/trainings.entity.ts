@@ -50,6 +50,6 @@ export class Training extends DatabaseEntity implements IEntity {
   @Column({ name: 'number_of_participants' })
   numberOfParticipants: number;
 
-  @Column({ type: 'enum', enum: TrainingStatus, default: TrainingStatus.ON_GOING_NOMINATION })
+  @Column({ name: 'status', type: 'enum', enum: TrainingStatus, default: TrainingStatus.ON_GOING_NOMINATION })
   status: TrainingStatus;
 }

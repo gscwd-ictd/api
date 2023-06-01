@@ -16,5 +16,6 @@ export * from './subject-matter-experts';
 //trainings
 export * from './trainings';
 export * from './training-distributions';
+export * from './training-nominees';
 export * from './course-contents';
 export * from './nominee-qualifications';

@@ -10,6 +10,7 @@ import {
   LspTraining,
   Training,
   TrainingDistribution,
+  TrainingNominee,
   TrainingSource,
   TrainingType,
 } from '@gscwd-api/models';
@@ -31,5 +32,6 @@ export const DB_ENTITIES = [
 
   Training,
   TrainingDistribution,
+  TrainingNominee,
   // views
 ];

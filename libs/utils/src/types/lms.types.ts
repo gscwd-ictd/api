@@ -4,3 +4,9 @@ export enum TrainingStatus {
   GM_APPROVAL = 'GM_APPROVAL',
   DONE = 'DONE',
 }
+
+export enum TrainingNomineeStatus {
+  CONTINUED = 'CONTINUED',
+  DECLINED = 'DECLINED',
+  PENDING = 'PENDING',
+}
