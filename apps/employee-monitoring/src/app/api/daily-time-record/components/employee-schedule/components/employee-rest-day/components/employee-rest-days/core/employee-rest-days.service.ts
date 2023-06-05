@@ -18,7 +18,6 @@ export class EmployeeRestDaysService extends CrudHelper<EmployeeRestDays> {
           onError: () => new InternalServerErrorException(),
         });
         const { employeeRestDayId, ...rest } = restDayResult;
-        console.log(rest);
         return rest;
       })
     );

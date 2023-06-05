@@ -56,8 +56,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         onError: (error) => new NotFoundException(error),
       })) as string;
 
-      console.log(supervisorId);
-
       const leaveApplication = await this.createLeaveApplicationTransaction(transactionEntityManager, {
         ...rest,
         supervisorId,
@@ -185,7 +183,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       );
       return vacationLeaveDetails[0];
     } catch (error) {
-      console.log(error);
       if (isRPC) throw new RpcException(error.message);
       throw new HttpException(error.message, error.status);
     }
@@ -310,7 +307,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
-        //console.log(leave);
         const { employeeId, supervisorId, ...rest } = leave;
         const employeeSupervisorNames = (await this.client.call<
           string,

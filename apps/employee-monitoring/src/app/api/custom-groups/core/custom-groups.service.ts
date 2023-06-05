@@ -10,7 +10,6 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
   }
 
   async createCustomGroup(customGroupDto: CreateCustomGroupsDto) {
-    console.log(customGroupDto);
     return await this.crudService.create({
       dto: customGroupDto,
       onError: () => new InternalServerErrorException(),

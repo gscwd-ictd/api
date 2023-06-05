@@ -197,7 +197,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     );
 
     const passSlips = { forApproval, completed: approvedDisapproved };
-    console.log(passSlips);
     return passSlips;
   }
 
@@ -240,25 +239,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         return { ...restOfPassSlip, ...passSlipId, ...names, assignmentName: assignment.assignment.name };
       })
     );
-    // const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
-    //   find: {
-    //     relations: { passSlipId: true },
-    //     select: { supervisorId: true, status: true },
-    //     where: { status: PassSlipApprovalStatus.APPROVED },
-    //     order: { createdAt: 'DESC', status: 'ASC' },
-    //   },
-    // });
-
-    // const passSlipsDisapproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
-    //   find: {
-    //     relations: { passSlipId: true },
-    //     select: { supervisorId: true, status: true },
-    //     where: { status: PassSlipApprovalStatus.DISAPPROVED },
-    //     order: { createdAt: 'DESC', status: 'ASC' },
-    //   },
-    // });
-    //console.log(passSlips);
-    //return { ongoing: passSlipsOngoing, completed: { passSlipsApproved, passSlipsDisapproved } };
     return passSlipDetails;
   }
 

@@ -82,7 +82,6 @@ export class TravelOrderService extends CrudHelper<TravelOrder> {
   }
 
   async updateTravelOrder(updateTravelOrder: UpdateTravelOrderDto) {
-    //console.log(updateTravelOrder.itinerary);
     const { id, employee, purposeOfTravel, travelOrderNo, itinerary, isPtrRequired, dateRequested } = updateTravelOrder;
     const { employeeId, fullName } = employee;
     const updateTravelOrderResult = await this.dataSource.transaction(async (entityManager) => {

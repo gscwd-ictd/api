@@ -40,10 +40,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       onError: (error) => new NotFoundException(error),
     })) as IvmsEntry[];
 
-    //console.log(employeeIvmsDtr);
     //1. check if employee is in dtr table in the current date;
     const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, data.date);
-    //console.log(currEmployeeDtr);
+
     //1.2 if not in current mysql daily_time_record save data fetched from ivms
     if (!currEmployeeDtr) {
       //if schedule is regular
@@ -88,7 +87,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
-        //console.log(ivmsEntryItem);
         const { time, ...rest } = ivmsEntryItem;
         if (idx === 0) {
           //check if buntag or hapon nag in
@@ -147,7 +145,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
             ) {
               _lunchIn = time;
-              //console.log('Lunch In ', _lunchIn);
             }
           }
         } else {
@@ -263,7 +260,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
-        //console.log(ivmsEntryItem);
         const { time, ...rest } = ivmsEntryItem;
         if (idx === 0) {
           //check if buntag or hapon nag in
@@ -312,18 +308,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + lunchOut))
           ) {
             _timeIn = time;
-            //console.log('Time In ', _timeIn);
           } else {
-            //console.log(lunchOut);
             //baka halfday lang siya
-            //_lunchIn = lunchIn;
             if (
               (dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + lunchIn)) ||
                 dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + lunchIn))) &&
               dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
             ) {
               _lunchIn = time;
-              //console.log('Lunch In ', _lunchIn);
             }
           }
         } else {
@@ -335,7 +327,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
           ) {
             _lunchOut = time;
-            //console.log('Lunch Out ', _lunchOut);
           }
 
           if (
@@ -345,7 +336,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             //dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
           ) {
             _lunchIn = time;
-            //console.log('Lunch In ', _lunchIn);
           }
           if (
             (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut)) ||
@@ -353,15 +343,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59'))
           ) {
             _timeOut = time;
-            //console.log('Time Out ', _timeOut);
           }
         }
       })
     );
-    console.log('Time In ', _timeIn);
-    console.log('Lunch Out ', _lunchOut);
-    console.log('Lunch In ', _lunchIn);
-    console.log('Time Out ', _timeOut);
 
     return await this.crudService.create({
       dto: {
@@ -402,13 +387,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const { dtrDatesResults } = ivmsResult;
 
-    console.log(dtrDatesResults);
-
     const addToLocalDTR = await Promise.all(
       dtrDatesResults.map(async (dtrDatesResult: { dtrDate: Date; employeeDtr: { time24Hr: string; time12Hr: string }[] }, idx: number) => {
-        //console.log(idx);
         const { dtrDate, employeeDtr } = dtrDatesResult;
-        //console.log(dtrDate, ' ', employeeDtr);
+
         if (employeeDtr.length > 0) {
           if (employeeDtr.length < 4) {
             //check pass slip
