@@ -5,6 +5,7 @@ import {
   DefaultValuePipe,
   Get,
   InternalServerErrorException,
+  Param,
   ParseIntPipe,
   Post,
   Query,
@@ -31,6 +32,19 @@ export class TrainingDistributionsController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<TrainingDistribution> | TrainingDistribution[]> {
     return await this.trainingDistributionsService.crud().findAll({
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
+
+  @Get(':id')
+  async findByEmployeeId(
+    @Param('id') id: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<TrainingDistribution> | TrainingDistribution[]> {
+    return await this.trainingDistributionsService.crud().findAll({
+      find: { where: { employeeId: id } },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
     });

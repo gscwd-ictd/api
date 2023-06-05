@@ -1,4 +1,3 @@
-import { ICrudRoutes } from '@gscwd-api/crud';
 import {
   BadRequestException,
   Body,
@@ -7,7 +6,6 @@ import {
   Delete,
   Get,
   InternalServerErrorException,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -17,7 +15,7 @@ import {
 import { CreateTrainingDto, Training, UpdateTrainingDto } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { TrainingsService } from './trainings.service';
-import { DeleteResult, UpdateResult } from 'typeorm';
+import { DeleteResult } from 'typeorm';
 
 @Controller({ version: '1', path: 'trainings' })
 export class TrainingsController {
