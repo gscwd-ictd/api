@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EmployeeRestDaysController } from '../core/employee-rest-days.controller';
+import { EmployeeRestDaysController } from './employee-rest-days.controller';
 
 describe('EmployeeRestDaysController', () => {
   let controller: EmployeeRestDaysController;

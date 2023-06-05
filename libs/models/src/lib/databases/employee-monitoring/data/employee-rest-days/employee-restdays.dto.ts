@@ -1,8 +1,7 @@
 import { RestDays } from '@gscwd-api/utils';
+import { EmployeeRestDay } from '../employee-rest-day/employee-rest-day.entity';
 
-export class EmployeeRestDaysDto {
-  employeeId: string;
-  restDay: RestDays;
-  dateFrom: Date;
-  dateTo: Date;
+export class CreateEmployeeRestDaysDto {
+  employeeRestDay: EmployeeRestDay;
+  restDays: RestDays[];
 }

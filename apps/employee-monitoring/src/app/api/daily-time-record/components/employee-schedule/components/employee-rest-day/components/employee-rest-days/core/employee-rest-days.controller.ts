@@ -1,4 +1,4 @@
 import { Controller } from '@nestjs/common';
 
-@Controller('employee-restdays')
+@Controller('employee-rest-days')
 export class EmployeeRestDaysController {}

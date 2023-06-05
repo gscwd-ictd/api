@@ -11,9 +11,8 @@ export class DailyTimeRecordController {
     return await this.dailyTimeRecordService.getAllDTR();
   }
 
-  @Get('/single-employee/:company_id/:date')
+  @Get('/employees/:company_id/:date')
   async getDtrByCompanyIdAndDay(@Param('company_id') companyId: string, @Param('date') date: Date) {
-    //const { companyId, date } = data;
     return await this.dailyTimeRecordService.getDtrByCompanyIdAndDay({ companyId, date });
   }
 

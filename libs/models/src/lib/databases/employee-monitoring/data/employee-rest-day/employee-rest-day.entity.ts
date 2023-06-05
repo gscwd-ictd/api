@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'employee_rest_day' })
 export class EmployeeRestDay extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'rest_day_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'employee_rest_day_id' })
   id: string;
 
   @Column({ name: 'employee_id_fk' })

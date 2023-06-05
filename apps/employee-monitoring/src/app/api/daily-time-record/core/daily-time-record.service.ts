@@ -4,7 +4,6 @@ import { DailyTimeRecord } from '@gscwd-api/models';
 import { DtrPayload, IvmsEntry } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
-import { stringify } from 'querystring';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
 
 @Injectable()
@@ -33,7 +32,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     const schedule = (await this.employeeScheduleService.getEmployeeSchedule(employeeDetails.userId)).schedule;
 
     const { timeIn, timeOut, lunchIn, lunchOut } = schedule;
-    //console.log('tada ', schedule);
 
     const employeeIvmsDtr = (await this.client.call({
       action: 'send',
@@ -44,28 +42,24 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     //console.log(employeeIvmsDtr);
     //1. check if employee is in dtr table in the current date;
-    const currEmployeeDtr = await this.crud().findOneOrNull({
-      find: { where: { companyId: data.companyId, dtrDate: data.date } },
-      onError: (error) => new InternalServerErrorException(error),
-    });
+    const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, data.date);
     //console.log(currEmployeeDtr);
     //1.2 if not in current mysql daily_time_record save data fetched from ivms
     if (!currEmployeeDtr) {
-      const saveEmployeeDtr = await this.saveDtr(data.companyId, employeeIvmsDtr, schedule);
       //if schedule is regular
-      return await this.crud().findOneOrNull({
-        find: { where: { companyId: data.companyId, dtrDate: data.date } },
-        onError: (error) => new InternalServerErrorException(error),
-      });
+      const saveEmployeeDtr = await this.saveDtr(data.companyId, employeeIvmsDtr, schedule);
       //if schedule is night shift tabok2
     } else {
-      //const saveEmployeeDtr
       await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
-      return await this.crud().findOneOrNull({
-        find: { where: { companyId: data.companyId, dtrDate: data.date } },
-        onError: (error) => new InternalServerErrorException(error),
-      });
     }
+    return { schedule, dtr: await this.findByCompanyIdAndDate(data.companyId, data.date) };
+  }
+
+  private async findByCompanyIdAndDate(companyId: string, dtrDate: Date) {
+    return await this.crud().findOneOrNull({
+      find: { where: { companyId, dtrDate } },
+      onError: (error) => new InternalServerErrorException(error),
+    });
   }
 
   async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
@@ -82,7 +76,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           return '';
         default:
           break;
-        //console.log(isIncompleteDtr);
       }
     }
   }
@@ -406,8 +399,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       pattern: 'get_dtr_by_company_id',
       onError: (error) => new NotFoundException(error, { cause: new Error('') }),
     });
-
-    //console.log(ivmsResult);
 
     const { dtrDatesResults } = ivmsResult;
 
