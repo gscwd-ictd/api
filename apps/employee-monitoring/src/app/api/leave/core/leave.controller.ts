@@ -6,19 +6,26 @@ import { LeaveService } from './leave.service';
 export class LeaveController {
   constructor(private readonly leaveService: LeaveService) {}
 
-  @Get('supervisor/:supervisor_id')
-  async getLeavesUnderSupervisor(@Param('supervisor_id') supervisorId: string) {
-    return await this.leaveService.getLeavesUnderSupervisor(supervisorId);
-  }
-
   @Get('hr/')
   async getLeavesForHrApproval() {
     return await this.leaveService.getLeavesForHrApproval();
   }
 
-  //!todo add hr or supervisor guard
-  @Patch()
-  async updateLeaveStatus(@Body() updateLeaveApplicationStatus: UpdateLeaveApplicationStatusDto) {
+  @Get('supervisor/:supervisor_id')
+  async getLeavesUnderSupervisor(@Param('supervisor_id') supervisorId: string) {
+    return await this.leaveService.getLeavesUnderSupervisor(supervisorId);
+  }
+
+  //!todo supervisor guard
+  @Patch('supervisor/')
+  async updateSupervisorLeaveStatus(@Body() updateLeaveApplicationStatus: UpdateLeaveApplicationStatusDto) {
+    return await this.leaveService.updateLeaveStatus(updateLeaveApplicationStatus);
+  }
+
+  //!todo hr guard
+  //!todo cred
+  @Patch('hr/')
+  async updateHrLeaveStatus(@Body() updateLeaveApplicationStatus: UpdateLeaveApplicationStatusDto) {
     return await this.leaveService.updateLeaveStatus(updateLeaveApplicationStatus);
   }
 }

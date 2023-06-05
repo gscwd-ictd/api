@@ -3,7 +3,7 @@ import { ScheduleBase } from '@gscwd-api/utils';
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 
-@Controller({ version: '1', path: 'schedule' })
+@Controller({ version: '1', path: 'schedules' })
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
@@ -19,7 +19,7 @@ export class ScheduleController {
 
   @Get(':schedule_id')
   async getSchedule(@Param('schedule_id') scheduleId: string) {
-    //return await this.scheduleService.getSchedules(scheduleId);
+    return await this.scheduleService.getScheduleById(scheduleId);
   }
 
   @Put()
