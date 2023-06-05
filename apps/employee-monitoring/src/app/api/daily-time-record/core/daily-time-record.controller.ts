@@ -11,6 +11,11 @@ export class DailyTimeRecordController {
     return await this.dailyTimeRecordService.getAllDTR();
   }
 
+  @Get('/employees/:company_id/:date')
+  async getDtrByCompanyIdAndDay(@Param('company_id') companyId: string, @Param('date') date: Date) {
+    return await this.dailyTimeRecordService.getDtrByCompanyIdAndDay({ companyId, date });
+  }
+
   @Get(':company_id')
   async getDtrByCompanyId(@Param('company_id') companyId: string, @Query('date_from') dateFrom: Date, @Query('date_to') dateTo: Date) {
     const dtrPayload: DtrPayload = { dateFrom, dateTo };

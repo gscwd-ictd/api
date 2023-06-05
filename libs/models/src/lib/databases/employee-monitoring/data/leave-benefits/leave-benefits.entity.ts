@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { CreditDistribution, LeaveTypes } from '@gscwd-api/utils';
 
 @Entity('leave_benefits')
-export class LeaveBenefits extends DatabaseEntity implements IEntity {
+export class LeaveBenefits extends DatabaseEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'leave_benefits_id' })
   id: string;
 

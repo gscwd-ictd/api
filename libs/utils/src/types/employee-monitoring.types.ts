@@ -98,3 +98,13 @@ export type StudyLeaveDetails = {
   forBarBoardReview: boolean;
   studyLeaveOther: string;
 };
+
+export type DailyTimeRecordPayload = {
+  companyId: string;
+  dtrDates: Date[];
+};
+
+export type DailyTimeRecordPayloadForSingleEmployee = {
+  companyId: string;
+  date: Date;
+};

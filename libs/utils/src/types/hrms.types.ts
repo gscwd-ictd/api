@@ -22,3 +22,14 @@ export type Organization = {
   departments: OrgEntity[];
   divisions: OrgEntity[];
 };
+
+export type EmployeeDetails = {
+  id: string;
+  name: string;
+  userId: string;
+  employeeFullName: string;
+  companyId: string;
+  positionId: string;
+  positionTitle: string;
+  userRole: string;
+};

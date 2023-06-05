@@ -68,6 +68,24 @@ export class CrudService<T extends ObjectLiteral> {
     }
   }
 
+  async findOneOrNull(options: CrudFindOneOptions<T>) {
+    // deconstruct options object
+    const { find, onError } = options;
+
+    try {
+      // find one record in the database, and fail this query if it found none
+      return await this.repository.findOne(find);
+
+      // catch the resulting error
+    } catch (error) {
+      // if errorResult is undefined, throw a generic error
+      if (!onError) throw new Error(error);
+
+      // otherwise, throw the resulting error
+      throw onError({ error, metadata: this.repository.metadata });
+    }
+  }
+
   async findOne(options: CrudFindOneOptions<T>) {
     // deconstruct options object
     const { find, onError } = options;

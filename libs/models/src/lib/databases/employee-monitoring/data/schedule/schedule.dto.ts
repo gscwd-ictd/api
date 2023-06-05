@@ -11,7 +11,6 @@ export class CreateScheduleDto {
   lunchOut: string;
   shift: ScheduleShift;
   withLunch: boolean;
-  restDays: number[];
 }
 
 export class UpdateScheduleDto extends PartialType(CreateScheduleDto) {

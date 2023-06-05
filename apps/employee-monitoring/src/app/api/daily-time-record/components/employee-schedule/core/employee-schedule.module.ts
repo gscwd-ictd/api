@@ -5,6 +5,9 @@ import { CrudModule } from '@gscwd-api/crud';
 import { EmployeeSchedule } from '@gscwd-api/models';
 import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { EmployeeRestDayModule } from '../components/employee-rest-day/core/employee-rest-day.module';
+import { CustomGroupsModule } from '../../../../custom-groups/core/custom-groups.module';
+import { CustomGroupMembersModule } from '../../../../custom-groups/components/custom-group-members/core/custom-group-members.module';
 
 @Module({
   imports: [
@@ -19,6 +22,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         },
       },
     ]),
+    EmployeeRestDayModule,
+    CustomGroupMembersModule,
   ],
   providers: [EmployeeScheduleService, MicroserviceClient],
   controllers: [EmployeeScheduleController],

@@ -154,6 +154,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           pattern: 'get_employee_supervisor_names',
           onError: (error) => new NotFoundException(error),
         });
+
         return { ...passSlipId, ...names, ...restOfPassSlip };
       })
     );
@@ -196,7 +197,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     );
 
     const passSlips = { forApproval, completed: approvedDisapproved };
-    console.log(passSlips);
     return passSlips;
   }
 
@@ -222,29 +222,23 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipDetails = await Promise.all(
       passSlips.map(async (passSlip) => {
         const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
+
+        const assignment = (await this.client.call<string, string, object>({
+          action: 'send',
+          payload: passSlip.passSlipId.employeeId,
+          pattern: 'find_employee_ems',
+          onError: (error) => new NotFoundException(error),
+        })) as {
+          userId: string;
+          companyId: string;
+          assignment: { id: string; name: string; positionId: string; positionTitle: string; salary: string };
+          userRole: string;
+        };
+
         const { passSlipId, ...restOfPassSlip } = passSlip;
-        return { ...restOfPassSlip, ...passSlipId, ...names };
+        return { ...restOfPassSlip, ...passSlipId, ...names, assignmentName: assignment.assignment.name };
       })
     );
-    // const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
-    //   find: {
-    //     relations: { passSlipId: true },
-    //     select: { supervisorId: true, status: true },
-    //     where: { status: PassSlipApprovalStatus.APPROVED },
-    //     order: { createdAt: 'DESC', status: 'ASC' },
-    //   },
-    // });
-
-    // const passSlipsDisapproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
-    //   find: {
-    //     relations: { passSlipId: true },
-    //     select: { supervisorId: true, status: true },
-    //     where: { status: PassSlipApprovalStatus.DISAPPROVED },
-    //     order: { createdAt: 'DESC', status: 'ASC' },
-    //   },
-    // });
-    //console.log(passSlips);
-    //return { ongoing: passSlipsOngoing, completed: { passSlipsApproved, passSlipsDisapproved } };
     return passSlipDetails;
   }
 

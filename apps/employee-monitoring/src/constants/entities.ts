@@ -6,12 +6,15 @@ import {
   LeaveApplicationDates,
   LeaveApplication,
   Schedule,
-  ScheduleRestDay,
   EmployeeSchedule,
   DailyTimeRecord,
   TravelOrder,
   TravelOrderItinerary,
+  EmployeeRestDays,
+  CustomGroups,
+  CustomGroupMembers,
 } from '@gscwd-api/models';
+import { EmployeeRestDay } from 'libs/models/src/lib/databases/employee-monitoring/data/employee-rest-day/employee-rest-day.entity';
 
 export const typeOrmEntities = [
   LeaveApplication,
@@ -21,9 +24,12 @@ export const typeOrmEntities = [
   PassSlipApproval,
   Holidays,
   Schedule,
-  ScheduleRestDay,
   EmployeeSchedule,
   DailyTimeRecord,
   TravelOrder,
   TravelOrderItinerary,
+  EmployeeRestDays,
+  EmployeeRestDay,
+  CustomGroups,
+  CustomGroupMembers,
 ];
