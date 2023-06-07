@@ -41,7 +41,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number) {
-    console.log(dayjs(year + '-' + month + '1').daysInMonth());
     const daysInMonth = dayjs(year + '-' + month + '1').daysInMonth();
 
     const dayRange = await this.getDayRange(daysInMonth);
@@ -86,7 +85,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-    //return await this.rawQuery(`SELECT * FROM daily_time_record WHERE year(dtr_date)=? AND month(dtr_date)=?`, [year, month]);
     return dtrDays;
   }
 
@@ -117,12 +115,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       } else {
         await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
       }
-      console.log(data.date);
+
       const dtr = await this.findByCompanyIdAndDate(data.companyId, data.date);
       //console.log('asdads asd ', dtr);
       return { schedule, dtr };
     } catch (error) {
-      console.log(error);
       return {
         dtr: {
           companyId: null,
