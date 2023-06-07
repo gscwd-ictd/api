@@ -13,6 +13,7 @@ import {
   EmployeeRestDays,
   CustomGroups,
   CustomGroupMembers,
+  ScheduleSheetView,
 } from '@gscwd-api/models';
 import { EmployeeRestDay } from 'libs/models/src/lib/databases/employee-monitoring/data/employee-rest-day/employee-rest-day.entity';
 
@@ -32,4 +33,5 @@ export const typeOrmEntities = [
   EmployeeRestDay,
   CustomGroups,
   CustomGroupMembers,
+  ScheduleSheetView,
 ];

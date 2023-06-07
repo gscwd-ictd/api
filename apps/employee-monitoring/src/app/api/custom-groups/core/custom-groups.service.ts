@@ -1,11 +1,16 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateCustomGroupMembersDto, CreateCustomGroupsDto, CustomGroups, UpdateCustomGroupsDto } from '@gscwd-api/models';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ScheduleSheetService } from '../../daily-time-record/components/schedule-sheet/core/schedule-sheet.service';
 import { CustomGroupMembersService } from '../components/custom-group-members/core/custom-group-members.service';
 
 @Injectable()
 export class CustomGroupsService extends CrudHelper<CustomGroups> {
-  constructor(private readonly crudService: CrudService<CustomGroups>, private readonly customGroupMembersService: CustomGroupMembersService) {
+  constructor(
+    private readonly crudService: CrudService<CustomGroups>,
+    private readonly customGroupMembersService: CustomGroupMembersService,
+    private readonly scheduleSheetService: ScheduleSheetService
+  ) {
     super(crudService);
   }
 
@@ -26,6 +31,23 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
 
   async getCustomGroupUnassignedMembers(customGroupId: string) {
     return await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true);
+  }
+
+  async getCustomGroupUnassignedMembersDropDown(customGroupId: string) {
+    const unassignedMembers = (await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true)) as {
+      employeeId: string;
+      fullName: string;
+      positionTitle: string;
+      assignment: string;
+    }[];
+
+    const dropdown = await Promise.all(
+      unassignedMembers.map(async (unassignedMember) => {
+        const { fullName, ...rest } = unassignedMember;
+        return { label: fullName, value: rest };
+      })
+    );
+    return dropdown;
   }
 
   async getCustomGroupAssignedMembers(customGroupId: string) {
@@ -64,5 +86,9 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
     } catch {
       return { customGroupDetails, members: [] };
     }
+  }
+
+  async getAllScheduleSheet() {
+    return await this.scheduleSheetService.getAllScheduleSheet();
   }
 }

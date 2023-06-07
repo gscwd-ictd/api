@@ -250,14 +250,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
 
   async getPassSlip(id: string) {
-    /*
-    return await this.crudService.findOne({
-      find: { relations: { seminarTrainingType: true }, select: { seminarTrainingType: { id: true, name: true } }, where: { id } },
-      onError: ({ error }) => {
-        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
-      },
-    });
-    */
     return await this.crudService.findOne({
       find: { where: { id } },
       onError: ({ error }) => {

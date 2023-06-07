@@ -108,3 +108,37 @@ export type DailyTimeRecordPayloadForSingleEmployee = {
   companyId: string;
   date: Date;
 };
+
+export type EmployeeMonthlyDailyTimeRecord = {
+  month: number;
+  year: number;
+  companyId: string;
+};
+
+export type DailyTimeRecordType = {
+  schedule: {
+    id: string;
+    scheduleName: string;
+    scheduleType: string;
+    timeIn: string;
+    lunchOut: string;
+    lunchIn: string;
+    timeOut: string;
+    shift: string;
+    schedule: string;
+    restDaysNumbers: string;
+    restDaysNames: string;
+  };
+  dtr: {
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date;
+    id: string;
+    companyId: string;
+    dtrDate: Date;
+    timeIn: number;
+    lunchOut: number;
+    lunchIn: number;
+    timeOut: number;
+  };
+};

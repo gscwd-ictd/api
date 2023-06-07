@@ -4,5 +4,5 @@ export class CreateEmployeeRestDayDto {
   employeeId: string;
   dateFrom: Date;
   dateTo: Date;
-  restDays: Date[];
+  restDays: RestDays[];
 }

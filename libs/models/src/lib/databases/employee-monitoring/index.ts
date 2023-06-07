@@ -13,3 +13,4 @@ export * from './data/employee-rest-days';
 export * from './data/employee-rest-day';
 export * from './data/custom-groups';
 export * from './data/custom-group-members';
+export * from './views/schedule-sheet';

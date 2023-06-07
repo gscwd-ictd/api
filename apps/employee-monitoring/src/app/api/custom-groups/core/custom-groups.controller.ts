@@ -26,6 +26,11 @@ export class CustomGroupsController {
     return await this.customGroupsService.updateCustomGroup(customGroupDto);
   }
 
+  @Get('/schedule-sheets/')
+  async getAllScheduleSheet() {
+    return await this.customGroupsService.getAllScheduleSheet();
+  }
+
   @Get()
   async getAllCustomGroups() {
     return await this.customGroupsService.crud().findAll({ find: { order: { name: 'ASC' } } });
@@ -39,6 +44,11 @@ export class CustomGroupsController {
   @Get(':custom_group_id/unassigned')
   async getCustomGroupUnassignedMembers(@Param('custom_group_id') customGroupId: string) {
     return await this.customGroupsService.getCustomGroupUnassignedMembers(customGroupId);
+  }
+
+  @Get(':custom_group_id/unassigned/dropdown')
+  async getCustomGroupUnassignedMembersDropDown(@Param('custom_group_id') customGroupId: string) {
+    return await this.customGroupsService.getCustomGroupUnassignedMembersDropDown(customGroupId);
   }
 
   @Get(':custom_group_id/assigned')

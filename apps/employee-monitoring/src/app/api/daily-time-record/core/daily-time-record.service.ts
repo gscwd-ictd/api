@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { DailyTimeRecord } from '@gscwd-api/models';
-import { DtrPayload, IvmsEntry } from '@gscwd-api/utils';
+import { DailyTimeRecordType, DtrPayload, IvmsEntry } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
@@ -25,39 +25,137 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     });
   }
 
-  async getDtrByCompanyIdAndDay(data: { companyId: string; date: Date }) {
-    const id = data.companyId.replace('-', '');
-    const employeeDetails = await this.employeeScheduleService.getEmployeeScheduleByCompanyId(data.companyId);
-
-    const schedule = (await this.employeeScheduleService.getEmployeeSchedule(employeeDetails.userId)).schedule;
-
-    const { timeIn, timeOut, lunchIn, lunchOut } = schedule;
-
-    const employeeIvmsDtr = (await this.client.call({
-      action: 'send',
-      payload: { companyId: id, date: data.date },
-      pattern: 'get_dtr_by_company_id_and_date',
-      onError: (error) => new NotFoundException(error),
-    })) as IvmsEntry[];
-
-    //1. check if employee is in dtr table in the current date;
-    const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, data.date);
-
-    //1.2 if not in current mysql daily_time_record save data fetched from ivms
-    if (!currEmployeeDtr) {
-      //if schedule is regular
-      const saveEmployeeDtr = await this.saveDtr(data.companyId, employeeIvmsDtr, schedule);
-      //if schedule is night shift tabok2
-    } else {
-      await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
+  private async getDayRange(numberOfDays: number) {
+    switch (numberOfDays) {
+      case 28:
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28];
+      case 29:
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29];
+      case 30:
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30];
+      case 31:
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31];
+      default:
+        return [];
     }
-    return { schedule, dtr: await this.findByCompanyIdAndDate(data.companyId, data.date) };
+  }
+
+  async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number) {
+    console.log(dayjs(year + '-' + month + '1').daysInMonth());
+    const daysInMonth = dayjs(year + '-' + month + '1').daysInMonth();
+
+    const dayRange = await this.getDayRange(daysInMonth);
+
+    const dtrDays = await Promise.all(
+      dayRange.map(async (dtrDay, i) => {
+        const currDate = dayjs(year + '-' + month + '-' + dtrDay).toDate();
+
+        try {
+          const dtr = await this.getDtrByCompanyIdAndDay({ companyId, date: currDate });
+
+          return { day: dayjs(currDate).format('YYYY-MM-DD'), ...dtr };
+        } catch {
+          return {
+            day: dayjs(currDate).format('YYYY-MM-DD'),
+            dtr: {
+              companyId: null,
+              createdAt: null,
+              deletedAt: null,
+              dtrDate: null,
+              id: null,
+              lunchIn: null,
+              lunchOut: null,
+              timeIn: null,
+              timeOut: null,
+              updatedAt: null,
+            },
+            schedule: {
+              id: null,
+              lunchIn: null,
+              lunchOut: null,
+              restDaysNames: null,
+              restDaysNumbers: null,
+              schedule: null,
+              scheduleName: null,
+              scheduleType: null,
+              shift: null,
+              timeIn: null,
+              timeOut: null,
+            },
+          };
+        }
+      })
+    );
+    //return await this.rawQuery(`SELECT * FROM daily_time_record WHERE year(dtr_date)=? AND month(dtr_date)=?`, [year, month]);
+    return dtrDays;
+  }
+
+  async getDtrByCompanyIdAndDay(data: { companyId: string; date: Date }) {
+    try {
+      const id = data.companyId.replace('-', '');
+      const employeeDetails = await this.employeeScheduleService.getEmployeeScheduleByCompanyId(data.companyId);
+
+      const schedule = (await this.employeeScheduleService.getEmployeeSchedule(employeeDetails.userId)).schedule;
+
+      const { timeIn, timeOut, lunchIn, lunchOut } = schedule;
+
+      const employeeIvmsDtr = (await this.client.call({
+        action: 'send',
+        payload: { companyId: id, date: data.date },
+        pattern: 'get_dtr_by_company_id_and_date',
+        onError: (error) => new NotFoundException(error),
+      })) as IvmsEntry[];
+
+      //1. check if employee is in dtr table in the current date;
+      const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, data.date);
+
+      //1.2 if not in current mysql daily_time_record save data fetched from ivms
+      if (!currEmployeeDtr) {
+        //if schedule is regular
+        const saveEmployeeDtr = await this.saveDtr(data.companyId, employeeIvmsDtr, schedule);
+        //if schedule is night shift tabok2
+      } else {
+        await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
+      }
+      console.log(data.date);
+      const dtr = await this.findByCompanyIdAndDate(data.companyId, data.date);
+      //console.log('asdads asd ', dtr);
+      return { schedule, dtr };
+    } catch (error) {
+      console.log(error);
+      return {
+        dtr: {
+          companyId: null,
+          createdAt: null,
+          deletedAt: null,
+          dtrDate: null,
+          id: null,
+          lunchIn: null,
+          lunchOut: null,
+          timeIn: null,
+          timeOut: null,
+          updatedAt: null,
+        },
+        schedule: {
+          id: null,
+          lunchIn: null,
+          lunchOut: null,
+          restDaysNames: null,
+          restDaysNumbers: null,
+          schedule: null,
+          scheduleName: null,
+          scheduleType: null,
+          shift: null,
+          timeIn: null,
+          timeOut: null,
+        },
+      };
+    }
   }
 
   private async findByCompanyIdAndDate(companyId: string, dtrDate: Date) {
     return await this.crud().findOneOrNull({
       find: { where: { companyId, dtrDate } },
-      onError: (error) => new InternalServerErrorException(error),
     });
   }
 

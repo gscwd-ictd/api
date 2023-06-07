@@ -1,4 +1,4 @@
-import { DtrPayload } from '@gscwd-api/utils';
+import { DtrPayload, EmployeeMonthlyDailyTimeRecord } from '@gscwd-api/utils';
 import { Body, Controller, Get, Param, Query } from '@nestjs/common';
 import { DailyTimeRecordService } from './daily-time-record.service';
 
@@ -9,6 +9,11 @@ export class DailyTimeRecordController {
   @Get()
   async getAllRecords() {
     return await this.dailyTimeRecordService.getAllDTR();
+  }
+
+  @Get('/employees/:company_id/:year/:month')
+  async getEmployeeDtrByMonthAndYear(@Param('company_id') companyId: string, @Param('year') year: number, @Param('month') month: number) {
+    return await this.dailyTimeRecordService.getEmployeeDtrByMonthAndYear(companyId, year, month);
   }
 
   @Get('/employees/:company_id/:date')
