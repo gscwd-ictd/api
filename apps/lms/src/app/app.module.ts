@@ -3,9 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { DatabaseModule } from '../connections';
 import { TrainingSourcesModule } from './api/training-sources';
-import { VenueDetailsModule } from './api/venue-details';
 import { TrainingTypesModule } from './api/training-types';
-import { LspDetailsModule } from './api/lsp-details/core/lsp-details.module';
+import { LspDetailsModule } from './api/lsp-details';
+import { TrainingsModule } from './api/trainings';
 
 @Module({
   imports: [
@@ -17,9 +17,9 @@ import { LspDetailsModule } from './api/lsp-details/core/lsp-details.module';
 
     //Api Modules
     LspDetailsModule,
+    TrainingsModule,
     TrainingSourcesModule,
     TrainingTypesModule,
-    VenueDetailsModule,
   ],
 })
 export class AppModule {}

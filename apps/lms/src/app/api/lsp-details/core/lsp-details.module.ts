@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { LspAffiliationsModule } from '../components/lsp-affiliations';
 import { LspAwardsModule } from '../components/lsp-awards';
 import { LspEducationsModule } from '../components/lsp-educations';
-import { LspExperiencesModule } from '../components/lsp-experiences';
 import { LspProjectsModule } from '../components/lsp-projects';
 import { LspTrainingsModule } from '../components/lsp-trainings';
 import { LspCertificationsModule } from '../components/lsp-certifications';
@@ -20,7 +19,6 @@ import { LspDetailsController } from './lsp-details.controller';
     LspCertificationsModule,
     LspCoachingsModule,
     LspEducationsModule,
-    LspExperiencesModule,
     LspProjectsModule,
     LspTrainingsModule,
   ],

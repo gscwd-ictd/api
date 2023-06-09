@@ -1,16 +1,15 @@
-import { LspType } from '@gscwd-api/utils';
 import { PartialType } from '@nestjs/swagger';
-import { ArrayNotEmpty, IsArray, IsEmail, IsEnum, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsNumber, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { CreateLspAffiliationDto } from '../lsp-affiliations';
 import { CreateLspAwardDto } from '../lsp-awards';
 import { CreateLspCertificationDto } from '../lsp-certifications';
 import { CreateLspCoachingDto } from '../lsp-coachings';
 import { CreateLspEducationDto } from '../lsp-educations';
-import { CreateLspExperienceDto } from '../lsp-experiences';
 import { CreateLspProjectDto } from '../lsp-projects';
 import { CreateLspTrainingDto } from '../lsp-trainings';
 import { LspSubjectDto } from '../subject-matter-experts';
 import { Type } from 'class-transformer';
+import { TrainingSource } from '../training-sources';
 
 export class CreateLspDetailsDto {
   @IsOptional()
@@ -28,11 +27,11 @@ export class CreateLspDetailsDto {
   @Length(1, 100, { message: 'lsp details last name must be between 1 to 100 characters' })
   lastName: string;
 
-  @Length(1, 11, { message: 'lsp details contact number must be between 1 to 11 characters' })
-  contactNumber: string;
+  @IsArray()
+  contactNumber: string[];
 
-  @IsEmail()
-  email: string;
+  @IsArray()
+  email: string[];
 
   @IsString({ message: 'lsp details postal address must be a string' })
   @Length(1, 100, { message: 'lsp details postal address must be between 1 to 100 characters' })
@@ -42,38 +41,41 @@ export class CreateLspDetailsDto {
   @IsArray()
   @ArrayNotEmpty()
   @Type(() => LspSubjectDto)
-  subjectMatterExpertise: LspSubjectDto[];
+  expertise: LspSubjectDto[];
 
-  @IsString({ message: 'lsp details educational attainment must be a string' })
-  @Length(1, 100, { message: 'lsp details educational attainment must be between 1 to 100 characters' })
-  educationalAttainment: string;
+  @IsString({ message: 'lsp details photo url must be a string' })
+  photoUrl: string;
 
-  @IsEnum(LspType)
-  lspType: LspType;
+  @IsNumber()
+  experience: number;
 
-  @IsArray()
-  lspAffiliation: CreateLspAffiliationDto[];
+  @IsString()
+  @IsOptional()
+  tin: string;
 
-  @IsArray()
-  lspAward: CreateLspAwardDto[];
-
-  @IsArray()
-  lspCertification: CreateLspCertificationDto[];
+  @IsUUID('4')
+  trainingSource: TrainingSource;
 
   @IsArray()
-  lspCoaching: CreateLspCoachingDto[];
+  affiliations: CreateLspAffiliationDto[];
 
   @IsArray()
-  lspEducation: CreateLspEducationDto[];
+  awards: CreateLspAwardDto[];
 
   @IsArray()
-  lspExperience: CreateLspExperienceDto[];
+  certifications: CreateLspCertificationDto[];
 
   @IsArray()
-  lspProject: CreateLspProjectDto[];
+  coaching: CreateLspCoachingDto[];
 
   @IsArray()
-  lspTraining: CreateLspTrainingDto[];
+  education: CreateLspEducationDto[];
+
+  @IsArray()
+  projects: CreateLspProjectDto[];
+
+  @IsArray()
+  trainings: CreateLspTrainingDto[];
 }
 
 export class UpdateLspDetailsDto extends PartialType(CreateLspDetailsDto) {

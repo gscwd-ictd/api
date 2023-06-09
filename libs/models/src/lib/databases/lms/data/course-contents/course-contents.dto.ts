@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 
-export class LspSubjectDto {
+export class CourseContentDto {
   @IsString()
-  subjectMatter: string;
+  courseContent: string;
 }
