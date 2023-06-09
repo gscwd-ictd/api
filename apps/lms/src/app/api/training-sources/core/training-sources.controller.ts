@@ -44,10 +44,8 @@ export class TrainingSourcesController implements ICrudRoutes {
 
   @Get('q')
   async findId(@Query('source') source: string): Promise<TrainingSource> {
-    const firstLetter = source.charAt(0).toUpperCase();
-    const remaining = source.slice(1);
-    const modifiedQueryString = firstLetter + remaining;
-    return await this.trainingSourcesService.crud().findOneBy({ findBy: { name: modifiedQueryString } });
+    const capitalized = source.charAt(0).toUpperCase() + source.slice(1);
+    return await this.trainingSourcesService.crud().findOneBy({ findBy: { name: capitalized } });
   }
 
   @Get(':id')
