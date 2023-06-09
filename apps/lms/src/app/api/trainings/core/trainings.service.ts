@@ -2,10 +2,17 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingDto, Training, UpdateTrainingDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { TrainingNomineesService } from '../components/training-nominees';
+import { TrainingDistributionsService } from '../components/training-distributions';
 
 @Injectable()
 export class TrainingsService extends CrudHelper<Training> {
-  constructor(private readonly crudService: CrudService<Training>, private readonly datasource: DataSource) {
+  constructor(
+    private readonly crudService: CrudService<Training>,
+    private readonly trainingNomineesService: TrainingNomineesService,
+    private readonly trainingDistributionService: TrainingDistributionsService,
+    private readonly datasource: DataSource
+  ) {
     super(crudService);
   }
 
@@ -42,6 +49,14 @@ export class TrainingsService extends CrudHelper<Training> {
         courseContent: JSON.parse(courseContent),
         nomineeQualifications: JSON.parse(nomineeQualifications),
       };
+    } catch (error) {
+      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  async getNomineeByTrainingId(trainingId: string) {
+    try {
+      //const result = await this
     } catch (error) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     }

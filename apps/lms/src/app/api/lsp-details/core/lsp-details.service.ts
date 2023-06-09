@@ -30,6 +30,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
   async findAllLspDetails(page: number, limit: number): Promise<Pagination<LspDetails> | LspDetails[]> {
     return await this.crud().findAll({
       find: {
+        relations: { trainingSource: true },
         select: {
           id: true,
           employeeId: true,
@@ -40,6 +41,9 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           email: true,
           postalAddress: true,
           photoUrl: true,
+          trainingSource: {
+            name: true,
+          },
           createdAt: true,
           updatedAt: true,
           deletedAt: true,
@@ -165,7 +169,12 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
 
   async getLspDetailsById(lspDetailsId: string) {
     try {
-      const { expertise, ...rest } = await this.crudService.findOne({ find: { where: { id: lspDetailsId } } });
+      const { expertise, ...rest } = await this.crudService.findOne({
+        find: {
+          relations: { trainingSource: true },
+          where: { id: lspDetailsId },
+        },
+      });
       const affiliations = await this.lspAffiliationsService.crud().findAll({ find: { where: { lspDetails: { id: lspDetailsId } } } });
       const awards = await this.lspAwardsService.crud().findAll({ find: { where: { lspDetails: { id: lspDetailsId } } } });
       const certifications = await this.lspCertificationService.crud().findAll({ find: { where: { lspDetails: { id: lspDetailsId } } } });
