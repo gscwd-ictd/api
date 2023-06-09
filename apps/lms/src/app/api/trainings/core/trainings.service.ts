@@ -56,7 +56,9 @@ export class TrainingsService extends CrudHelper<Training> {
 
   async getNomineeByTrainingId(trainingId: string) {
     try {
-      //const result = await this
+      const result = await this.crudService.findOne({ find: { where: { id: trainingId } } });
+
+      return result;
     } catch (error) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     }

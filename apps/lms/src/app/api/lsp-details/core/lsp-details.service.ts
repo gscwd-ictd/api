@@ -28,30 +28,18 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
   }
 
   async findAllLspDetails(page: number, limit: number): Promise<Pagination<LspDetails> | LspDetails[]> {
-    return await this.crud().findAll({
+    return (await this.crud().findAll({
       find: {
         relations: { trainingSource: true },
         select: {
-          id: true,
-          employeeId: true,
-          firstName: true,
-          middleName: true,
-          lastName: true,
-          contactNumber: true,
-          email: true,
-          postalAddress: true,
-          photoUrl: true,
           trainingSource: {
             name: true,
           },
-          createdAt: true,
-          updatedAt: true,
-          deletedAt: true,
         },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
-    });
+    })) as Pagination<LspDetails>;
   }
 
   async addLspDetails(lspDetailsDto: CreateLspDetailsDto) {
