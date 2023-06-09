@@ -27,11 +27,13 @@ export class CreateLspDetailsDto {
   @Length(1, 100, { message: 'lsp details last name must be between 1 to 100 characters' })
   lastName: string;
 
-  @IsArray()
-  contactNumber: string[];
+  @IsString()
+  @IsOptional()
+  contactNumber: string;
 
-  @IsArray()
-  email: string[];
+  @IsString()
+  @IsOptional()
+  email: string;
 
   @IsString({ message: 'lsp details postal address must be a string' })
   @Length(1, 100, { message: 'lsp details postal address must be between 1 to 100 characters' })

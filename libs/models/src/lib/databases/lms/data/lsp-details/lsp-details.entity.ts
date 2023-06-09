@@ -19,11 +19,11 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'last_name', length: 100 })
   lastName: string;
 
-  @Column({ name: 'contact_number', type: 'varchar', array: true, nullable: true })
-  contactNumber: string[];
+  @Column({ name: 'contact_number', type: 'varchar', nullable: true })
+  contactNumber: string;
 
-  @Column({ name: 'email', type: 'varchar', array: true, nullable: true })
-  email: string[];
+  @Column({ name: 'email', type: 'varchar', nullable: true })
+  email: string;
 
   @Column({ name: 'postal_address', length: 100 })
   postalAddress: string;
