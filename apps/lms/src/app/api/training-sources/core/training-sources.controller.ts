@@ -13,6 +13,7 @@ import {
   Patch,
   Post,
   Query,
+  ValidationPipe,
 } from '@nestjs/common';
 import { TrainingSourcesService } from './training-sources.service';
 import { CreateTrainingSourceDto, TrainingSource, UpdateTrainingSourceDto } from '@gscwd-api/models';
@@ -44,8 +45,7 @@ export class TrainingSourcesController implements ICrudRoutes {
 
   @Get('q')
   async findId(@Query('source') source: string): Promise<TrainingSource> {
-    const capitalized = source.charAt(0).toUpperCase() + source.slice(1);
-    return await this.trainingSourcesService.crud().findOneBy({ findBy: { name: capitalized } });
+    return await this.trainingSourcesService.crud().findOneBy({ findBy: { name: source } });
   }
 
   @Get(':id')
