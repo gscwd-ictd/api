@@ -1,8 +1,22 @@
 import { CreateLspDetailsDto, LspDetails, UpdateLspDetailsDto } from '@gscwd-api/models';
-import { Body, Controller, DefaultValuePipe, Delete, Get, InternalServerErrorException, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
+  InternalServerErrorException,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { LspDetailsService } from './lsp-details.service';
 import { UpdateResult } from 'typeorm';
+import { LspDetailsInterceptor } from '../misc/lsp-details-interceptor';
 
 @Controller({ version: '1', path: 'lsp-details' })
 export class LspDetailsController {
@@ -13,6 +27,7 @@ export class LspDetailsController {
     return await this.lspDetailsService.addLspDetails(data);
   }
 
+  @UseInterceptors(LspDetailsInterceptor)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
