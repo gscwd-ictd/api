@@ -1,12 +1,12 @@
 export enum TrainingStatus {
-  ON_GOING_NOMINATION = 'ON GOING NOMINATION',
-  PDC_APPROVAL = 'PDC APPROVAL',
-  GM_APPROVAL = 'GM_APPROVAL',
-  DONE = 'DONE',
+  ON_GOING_NOMINATION = 'on going nomination',
+  PDC_APPROVAL = 'for pdc approval',
+  GM_APPROVAL = 'for gm approval',
+  DONE = 'done',
 }
 
 export enum TrainingNomineeStatus {
-  CONTINUED = 'CONTINUED',
-  DECLINED = 'DECLINED',
-  PENDING = 'PENDING',
+  CONTINUED = 'continued',
+  DECLINED = 'declined',
+  PENDING = 'pending',
 }

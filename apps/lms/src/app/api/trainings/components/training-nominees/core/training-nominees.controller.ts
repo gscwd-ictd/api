@@ -19,11 +19,8 @@ export class TrainingNomineesController {
   constructor(private readonly trainingNomineesService: TrainingNomineesService) {}
 
   @Post()
-  async create(@Body() data: CreateTrainingNomineeDto): Promise<TrainingNominee> {
-    return await this.trainingNomineesService.crud().create({
-      dto: data,
-      onError: () => new BadRequestException(),
-    });
+  async create(@Body() data: CreateTrainingNomineeDto) {
+    return await this.trainingNomineesService.addTrainingNominees(data);
   }
 
   @Get(':id')

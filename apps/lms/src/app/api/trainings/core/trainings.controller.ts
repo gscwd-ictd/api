@@ -32,6 +32,29 @@ export class TrainingsController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<Training> | Training[]> {
     return await this.trainingsService.crud().findAll({
+      find: {
+        relations: { trainingSource: true },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          lspName: true,
+          location: true,
+          courseTitle: true,
+          trainingStart: true,
+          trainingEnd: true,
+          numberOfHours: true,
+          deadlineForSubmission: true,
+          invitationUrl: true,
+          numberOfParticipants: true,
+          status: true,
+          trainingSource: {
+            id: true,
+            name: true,
+          },
+        },
+      },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
     });

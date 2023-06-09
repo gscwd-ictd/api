@@ -29,10 +29,16 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   postalAddress: string;
 
   @Column({ name: 'subject_matter_expertise', type: 'jsonb', nullable: true })
-  subjectMatterExpertise: string;
+  expertise: string;
 
   @Column({ name: 'photo_url' })
   photoUrl: string;
+
+  @Column({ name: 'experience_number_of_years' })
+  experience: number;
+
+  @Column({ name: 'tax_identification_number', nullable: true })
+  tin: string;
 
   @ManyToOne(() => TrainingSource, (trainingSource) => trainingSource.id, { nullable: false })
   @JoinColumn({ name: 'training_type_id_fk' })

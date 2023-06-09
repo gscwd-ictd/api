@@ -8,7 +8,6 @@ export * from './lsp-certifications';
 export * from './lsp-coachings';
 export * from './lsp-details';
 export * from './lsp-educations';
-export * from './lsp-experiences';
 export * from './lsp-projects';
 export * from './lsp-trainings';
 export * from './subject-matter-experts';

@@ -1,11 +1,10 @@
 import { PartialType } from '@nestjs/swagger';
-import { ArrayNotEmpty, IsArray, IsEmail, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsNumber, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { CreateLspAffiliationDto } from '../lsp-affiliations';
 import { CreateLspAwardDto } from '../lsp-awards';
 import { CreateLspCertificationDto } from '../lsp-certifications';
 import { CreateLspCoachingDto } from '../lsp-coachings';
 import { CreateLspEducationDto } from '../lsp-educations';
-import { CreateLspExperienceDto } from '../lsp-experiences';
 import { CreateLspProjectDto } from '../lsp-projects';
 import { CreateLspTrainingDto } from '../lsp-trainings';
 import { LspSubjectDto } from '../subject-matter-experts';
@@ -42,10 +41,17 @@ export class CreateLspDetailsDto {
   @IsArray()
   @ArrayNotEmpty()
   @Type(() => LspSubjectDto)
-  subjectMatterExpertise: LspSubjectDto[];
+  expertise: LspSubjectDto[];
 
   @IsString({ message: 'lsp details photo url must be a string' })
   photoUrl: string;
+
+  @IsNumber()
+  experience: number;
+
+  @IsString()
+  @IsOptional()
+  tin: string;
 
   @IsUUID('4')
   trainingSource: TrainingSource;
@@ -64,9 +70,6 @@ export class CreateLspDetailsDto {
 
   @IsArray()
   education: CreateLspEducationDto[];
-
-  @IsArray()
-  experience: CreateLspExperienceDto[];
 
   @IsArray()
   projects: CreateLspProjectDto[];
