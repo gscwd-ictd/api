@@ -13,7 +13,6 @@ import {
   Patch,
   Post,
   Query,
-  ValidationPipe,
 } from '@nestjs/common';
 import { TrainingSourcesService } from './training-sources.service';
 import { CreateTrainingSourceDto, TrainingSource, UpdateTrainingSourceDto } from '@gscwd-api/models';
