@@ -6,6 +6,8 @@ import { TrainingSourcesModule } from './api/training-sources';
 import { TrainingTypesModule } from './api/training-types';
 import { LspDetailsModule } from './api/lsp-details';
 import { TrainingsModule } from './api/trainings';
+import { ManagersModule } from './services/managers';
+import { EmployeesModule } from './services/employees';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { TrainingsModule } from './api/trainings';
     TrainingsModule,
     TrainingSourcesModule,
     TrainingTypesModule,
+    ManagersModule,
+    EmployeesModule,
   ],
 })
 export class AppModule {}
