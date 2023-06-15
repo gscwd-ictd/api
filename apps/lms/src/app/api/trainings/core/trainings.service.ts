@@ -21,12 +21,16 @@ export class TrainingsService extends CrudHelper<Training> {
     try {
       //transaction results
       const results = await this.datasource.transaction(async (entityManager) => {
-        //spread operator
+        //deconstruct dto
         const { courseContent, nomineeQualifications, trainingDistribution, ...rest } = trainingsDto;
 
         //insert training details
         const training = await this.crudService.transact<Training>(entityManager).create({
-          dto: { ...rest, courseContent: JSON.stringify(courseContent), nomineeQualifications: JSON.stringify(nomineeQualifications) },
+          dto: {
+            ...rest,
+            courseContent: JSON.stringify(courseContent),
+            nomineeQualifications: JSON.stringify(nomineeQualifications),
+          },
           onError: ({ error }) => {
             return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
           },
@@ -53,6 +57,7 @@ export class TrainingsService extends CrudHelper<Training> {
         };
       });
 
+      //return training training and distribution transaction result
       return results;
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
@@ -87,21 +92,32 @@ export class TrainingsService extends CrudHelper<Training> {
     }
   }
 
-  async updateTrainingsDetails(trainingsDto: UpdateTrainingDto) {
+  //update training details
+  async updateTrainingsDetails(dto: UpdateTrainingDto) {
     try {
-      const trainingResult = await this.datasource.transaction(async (entityManager) => {
-        const { id, courseContent, nomineeQualifications, ...rest } = trainingsDto;
-        const updateTrainings = await this.crudService.transact<Training>(entityManager).update({
-          dto: { ...rest, courseContent: JSON.stringify(courseContent), nomineeQualifications: JSON.stringify(nomineeQualifications) },
+      //transaction results
+      const result = await this.datasource.transaction(async (entityManager) => {
+        //deconstruct dto
+        const { id, courseContent, nomineeQualifications, ...rest } = dto;
+
+        //update training details by training id
+        const training = await this.crudService.transact<Training>(entityManager).update({
+          dto: {
+            ...rest,
+            courseContent: JSON.stringify(courseContent),
+            nomineeQualifications: JSON.stringify(nomineeQualifications),
+          },
           updateBy: { id },
           onError: ({ error }) => {
             return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
           },
         });
 
-        return updateTrainings;
+        return training;
       });
-      return trainingResult;
+
+      //return update training details transaction result
+      return result;
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
