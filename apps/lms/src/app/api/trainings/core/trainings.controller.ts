@@ -65,7 +65,7 @@ export class TrainingsController {
     return this.trainingsService.getNomineeByTrainingId(id);
   }
 
-  @Get('details/:id')
+  @Get(':id')
   async findById(@Param('id') id: string): Promise<Training> {
     return this.trainingsService.getTrainingsById(id);
   }

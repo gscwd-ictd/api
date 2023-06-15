@@ -1,18 +1,6 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  DefaultValuePipe,
-  Get,
-  InternalServerErrorException,
-  Param,
-  ParseEnumPipe,
-  ParseIntPipe,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, InternalServerErrorException, Param, ParseEnumPipe, ParseIntPipe, Query } from '@nestjs/common';
 import { TrainingDistributionsService } from './training-distributions.service';
-import { CreateTrainingDistributionDto, TrainingDistribution } from '@gscwd-api/models';
+import { TrainingDistribution } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { TrainingStatus } from '@gscwd-api/utils';
 
@@ -20,13 +8,13 @@ import { TrainingStatus } from '@gscwd-api/utils';
 export class TrainingDistributionsController {
   constructor(private readonly trainingDistributionsService: TrainingDistributionsService) {}
 
-  @Post()
-  async create(@Body() data: CreateTrainingDistributionDto): Promise<TrainingDistribution> {
-    return await this.trainingDistributionsService.crud().create({
-      dto: data,
-      onError: () => new BadRequestException(),
-    });
-  }
+  // @Post()
+  // async create(@Body() data: CreateTrainingDistributionDto): Promise<TrainingDistribution> {
+  //   return await this.trainingDistributionsService.crud().create({
+  //     dto: data,
+  //     onError: () => new BadRequestException(),
+  //   });
+  // }
 
   @Get()
   async findAll(
