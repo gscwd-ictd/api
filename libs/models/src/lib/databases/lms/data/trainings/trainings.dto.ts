@@ -6,6 +6,7 @@ import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { NomineeQualificationsDto } from '../nominee-qualifications';
 import { PartialType } from '@nestjs/swagger';
+import { CreateTrainingDistributionDto } from '../training-distributions';
 
 export class CreateTrainingDto {
   @IsUUID('4')
@@ -56,6 +57,11 @@ export class CreateTrainingDto {
 
   @IsEnum(TrainingStatus)
   status: TrainingStatus;
+
+  @ValidateNested({ each: true })
+  @IsArray()
+  @Type(() => CreateTrainingDistributionDto)
+  trainingDistribution: CreateTrainingDistributionDto[];
 }
 
 export class UpdateTrainingDto extends PartialType(CreateTrainingDto) {

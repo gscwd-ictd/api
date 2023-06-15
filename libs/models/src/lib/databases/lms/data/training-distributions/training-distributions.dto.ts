@@ -5,7 +5,7 @@ export class CreateTrainingDistributionDto {
   @IsUUID('4')
   training: Training;
 
-  @IsUUID('4')
+  @IsUUID('all')
   employeeId: string;
 
   @IsInt({ message: 'training distribution number of slot must be a number' })

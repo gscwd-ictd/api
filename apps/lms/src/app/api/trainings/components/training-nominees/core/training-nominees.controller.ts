@@ -1,15 +1,4 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  DefaultValuePipe,
-  Get,
-  InternalServerErrorException,
-  Param,
-  ParseIntPipe,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Get, InternalServerErrorException, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { TrainingNomineesService } from './training-nominees.service';
 import { CreateTrainingNomineeDto, TrainingNominee } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';

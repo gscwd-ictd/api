@@ -60,7 +60,12 @@ export class TrainingsController {
     });
   }
 
-  @Get('details/:id')
+  @Get(':id/nominees')
+  async findNomineesByTraingId(@Param('id') id: string) {
+    return this.trainingsService.getNomineeByTrainingId(id);
+  }
+
+  @Get(':id')
   async findById(@Param('id') id: string): Promise<Training> {
     return this.trainingsService.getTrainingsById(id);
   }
