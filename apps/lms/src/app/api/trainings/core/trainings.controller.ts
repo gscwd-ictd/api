@@ -75,11 +75,11 @@ export class TrainingsController {
     return this.trainingsService.getTrainingDetailsById(id);
   }
 
-  //get all nominees by training id
-  @Get(':id/nominees')
-  async findNomineeById(@Param('id') id: string) {
-    return `training nominees by training id ${id}`;
-  }
+  // //get all nominees by training id
+  // @Get(':id/nominees')
+  // async findNomineeById(@Param('id') id: string) {
+  //   return `training nominees by training id ${id}`;
+  // }
 
   //patch method to update training details by training id
   @Patch()
@@ -99,15 +99,15 @@ export class TrainingsController {
 
   //Employee Portal
 
-  //get all training by supervisor id and status
-  @Get('/supervisor/:supervisor_id')
-  async findTrainingBySupervisorId(@Param('supervisor_id') id: string) {
-    return `training supervisor id ${id}`;
-  }
+  // //get all training by supervisor id and status
+  // @Get('/supervisor/:supervisor_id')
+  // async findTrainingBySupervisorId(@Param('supervisor_id') id: string) {
+  //   return `training supervisor id ${id}`;
+  // }
 
-  //get all training by supervisor id and status
-  @Get(':id/supervisor/:supervisor_id')
-  async findTrainingNomineesByTrainingIdAndSupervisorId(@Param('id') id: string, @Param('supervisor_id') supervisor_id: string) {
-    return `training id ${id} training supervisor id ${supervisor_id}`;
-  }
+  // //get all training by supervisor id and status
+  // @Get(':id/supervisor/:supervisor_id')
+  // async findTrainingNomineesByTrainingIdAndSupervisorId(@Param('id') id: string, @Param('supervisor_id') supervisor_id: string) {
+  //   return `training id ${id} training supervisor id ${supervisor_id}`;
+  // }
 }
