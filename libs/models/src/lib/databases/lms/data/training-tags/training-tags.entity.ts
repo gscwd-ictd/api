@@ -1,9 +1,10 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Training } from '../trainings';
 import { Tag } from '../tags';
 
 @Entity({ name: 'training_tags' })
+@Unique(['training', 'tag'])
 export class TrainingTag extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_tag_id' })
   id: string;

@@ -12,6 +12,7 @@ import {
   TrainingDistribution,
   TrainingNominee,
   TrainingSource,
+  TrainingTag,
   TrainingType,
 } from '@gscwd-api/models';
 
@@ -34,5 +35,6 @@ export const DB_ENTITIES = [
   Training,
   TrainingDistribution,
   TrainingNominee,
+  TrainingTag,
   // views
 ];

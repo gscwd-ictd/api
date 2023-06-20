@@ -28,10 +28,10 @@ export class Training extends DatabaseEntity implements IEntity {
   @Column({ name: 'course_title', length: 100 })
   courseTitle: string;
 
-  @Column({ name: 'training_start', type: 'datetime' })
+  @Column({ name: 'training_start', type: 'timestamp' })
   trainingStart: Date;
 
-  @Column({ name: 'training_end', type: 'datetime' })
+  @Column({ name: 'training_end', type: 'timestamp' })
   trainingEnd: Date;
 
   @Column({ name: 'number_of_hours' })
@@ -43,7 +43,7 @@ export class Training extends DatabaseEntity implements IEntity {
   @Column({ name: 'nominee_qualifications', type: 'jsonb', nullable: true })
   nomineeQualifications: string;
 
-  @Column({ name: 'deadline_for_submission' })
+  @Column({ name: 'deadline_for_submission', type: 'date' })
   deadlineForSubmission: Date;
 
   @Column({ name: 'invitation_url' })

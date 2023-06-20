@@ -2,15 +2,15 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingDto, Training, UpdateTrainingDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { TrainingNomineesService } from '../components/training-nominees';
 import { TrainingDistributionsService } from '../components/training-distributions';
+import { TrainingTagsService } from '../components/training-tags/core/training-tags.service';
 
 @Injectable()
 export class TrainingsService extends CrudHelper<Training> {
   constructor(
     private readonly crudService: CrudService<Training>,
-    private readonly trainingNomineesService: TrainingNomineesService,
     private readonly trainingDistributionService: TrainingDistributionsService,
+    private readonly trainingTagsService: TrainingTagsService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -29,14 +29,26 @@ export class TrainingsService extends CrudHelper<Training> {
           dto: {
             ...rest,
             courseContent: JSON.stringify(courseContent),
-            nomineeQualifications: JSON.stringify(nomineeQualifications),
           },
           onError: ({ error }) => {
             return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
           },
         });
 
-        //insert and map selected managers and given number of slots
+        //insert multiple and map training tag
+        const tag = await Promise.all(
+          nomineeQualifications.map(async (tagItem) => {
+            return await this.trainingTagsService.addTrainingTag(
+              {
+                training: training,
+                ...tagItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert multiple and map selected managers and given number of slots
         const distribution = await Promise.all(
           trainingDistribution.map(async (distributionItem) => {
             return await this.trainingDistributionService.addTrainingDistribution(
@@ -52,7 +64,7 @@ export class TrainingsService extends CrudHelper<Training> {
         return {
           ...training,
           courseContent: JSON.parse(training.courseContent),
-          nomineeQualifications: JSON.parse(training.nomineeQualifications),
+          nomineeQualifications: tag,
           trainingDistribution: distribution,
         };
       });

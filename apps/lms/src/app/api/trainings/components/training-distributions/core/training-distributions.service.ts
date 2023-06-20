@@ -11,6 +11,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
 
   //HR distribute slots to selected managers
   async addTrainingDistribution(dto: CreateTrainingDistributionDto, entityManager: EntityManager) {
+    //transaction results
     const results = await this.crudService.transact<TrainingDistribution>(entityManager).create({
       dto: dto,
       onError: ({ error }) => {
