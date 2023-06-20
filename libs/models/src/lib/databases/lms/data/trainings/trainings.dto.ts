@@ -1,7 +1,7 @@
 import { TrainingStatus } from '@gscwd-api/utils';
 import { TrainingSource } from '../training-sources';
 import { TrainingType } from '../training-types';
-import { IsArray, IsDate, IsDateString, IsEnum, IsInt, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsInt, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { PartialType } from '@nestjs/swagger';
