@@ -28,11 +28,11 @@ export class Training extends DatabaseEntity implements IEntity {
   @Column({ name: 'course_title', length: 100 })
   courseTitle: string;
 
-  @Column({ name: 'training_start' })
-  trainingStart: string;
+  @Column({ name: 'training_start', type: 'datetime' })
+  trainingStart: Date;
 
-  @Column({ name: 'training_end' })
-  trainingEnd: string;
+  @Column({ name: 'training_end', type: 'datetime' })
+  trainingEnd: Date;
 
   @Column({ name: 'number_of_hours' })
   numberOfHours: number;

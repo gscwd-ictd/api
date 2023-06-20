@@ -14,6 +14,7 @@ export * from './subject-matter-experts';
 
 //tags
 export * from './tags';
+export * from './training-tags';
 
 //trainings
 export * from './trainings';

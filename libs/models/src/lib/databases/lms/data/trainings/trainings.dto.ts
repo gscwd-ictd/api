@@ -1,7 +1,7 @@
 import { TrainingStatus } from '@gscwd-api/utils';
 import { TrainingSource } from '../training-sources';
 import { TrainingType } from '../training-types';
-import { IsArray, IsDateString, IsEnum, IsInt, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
+import { IsArray, IsDate, IsDateString, IsEnum, IsInt, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { NomineeQualificationsDto } from '../nominee-qualifications';
@@ -27,11 +27,11 @@ export class CreateTrainingDto {
   @Length(1, 100, { message: 'training course title must be between 1 to 100 characters' })
   courseTitle: string;
 
-  @IsString({ message: 'training start must be a string' })
-  trainingStart: string;
+  @IsDate({ message: 'training date start must be valid date' })
+  trainingStart: Date;
 
-  @IsString({ message: 'training end must be a string' })
-  trainingEnd: string;
+  @IsDate({ message: 'training date end must be valid date' })
+  trainingEnd: Date;
 
   @IsInt({ message: 'training number of hours must be a number' })
   numberOfHours: number;
@@ -46,7 +46,7 @@ export class CreateTrainingDto {
   @Type(() => NomineeQualificationsDto)
   nomineeQualifications: NomineeQualificationsDto[];
 
-  @IsDateString()
+  @IsDate({ message: 'training deadline for submission must be valid date' })
   deadlineForSubmission: Date;
 
   @IsString({ message: 'training invitation url must be a string' })

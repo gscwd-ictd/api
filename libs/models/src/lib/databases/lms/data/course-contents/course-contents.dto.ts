@@ -2,5 +2,5 @@ import { IsString } from 'class-validator';
 
 export class CourseContentDto {
   @IsString()
-  courseContent: string;
+  title: string;
 }
