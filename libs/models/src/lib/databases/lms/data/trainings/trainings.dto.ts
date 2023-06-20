@@ -7,6 +7,7 @@ import { CourseContentDto } from '../course-contents';
 import { NomineeQualificationsDto } from '../nominee-qualifications';
 import { PartialType } from '@nestjs/swagger';
 import { CreateTrainingDistributionDto } from '../training-distributions';
+import { LspDetails } from '../lsp-details';
 
 export class CreateTrainingDto {
   @IsUUID('4')
@@ -15,9 +16,8 @@ export class CreateTrainingDto {
   @IsUUID('4')
   trainingType: TrainingType;
 
-  @IsString({ message: 'training name must be a string' })
-  @Length(1, 50, { message: 'training name must be between 1 to 50 characters' })
-  lspName: string;
+  @IsUUID('4')
+  lspDetails: LspDetails;
 
   @IsString({ message: 'training location must be a string' })
   @Length(1, 100, { message: 'training location must be between 1 to 100 characters' })
@@ -55,9 +55,6 @@ export class CreateTrainingDto {
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
 
-  @IsEnum(TrainingStatus)
-  status: TrainingStatus;
-
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CreateTrainingDistributionDto)
@@ -67,4 +64,7 @@ export class CreateTrainingDto {
 export class UpdateTrainingDto extends PartialType(CreateTrainingDto) {
   @IsUUID('4')
   id: string;
+
+  @IsEnum(TrainingStatus)
+  status: TrainingStatus;
 }

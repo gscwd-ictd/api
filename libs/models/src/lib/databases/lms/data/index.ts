@@ -12,6 +12,9 @@ export * from './lsp-projects';
 export * from './lsp-trainings';
 export * from './subject-matter-experts';
 
+//tags
+export * from './tags';
+
 //trainings
 export * from './trainings';
 export * from './training-distributions';

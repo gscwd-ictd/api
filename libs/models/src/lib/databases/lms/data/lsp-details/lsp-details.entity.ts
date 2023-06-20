@@ -40,6 +40,9 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'tax_identification_number', nullable: true })
   tin: string;
 
+  @Column({ name: 'introduction', length: 150, nullable: true })
+  introduction: string;
+
   @ManyToOne(() => TrainingSource, (trainingSource) => trainingSource.id, { nullable: false })
   @JoinColumn({ name: 'training_type_id_fk' })
   trainingSource: TrainingSource;

@@ -21,11 +21,15 @@ import { DeleteResult } from 'typeorm';
 export class TrainingsController {
   constructor(private readonly trainingsService: TrainingsService) {}
 
+  // HR
+
+  //post method for creating a training and distribution of slots
   @Post()
   async create(@Body() data: CreateTrainingDto) {
-    return await this.trainingsService.addTrainings(data);
+    return await this.trainingsService.addTraining(data);
   }
 
+  //get method to get all trainings relate to training sources
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -33,13 +37,18 @@ export class TrainingsController {
   ): Promise<Pagination<Training> | Training[]> {
     return await this.trainingsService.crud().findAll({
       find: {
-        relations: { trainingSource: true },
+        relations: { trainingSource: true, lspDetails: true },
         select: {
           createdAt: true,
           updatedAt: true,
           deletedAt: true,
           id: true,
-          lspName: true,
+          lspDetails: {
+            employeeId: true,
+            firstName: true,
+            middleName: true,
+            lastName: true,
+          },
           location: true,
           courseTitle: true,
           trainingStart: true,
@@ -60,21 +69,25 @@ export class TrainingsController {
     });
   }
 
-  @Get(':id/nominees')
-  async findNomineesByTraingId(@Param('id') id: string) {
-    return this.trainingsService.getNomineeByTrainingId(id);
-  }
-
+  //get training details by training id
   @Get(':id')
   async findById(@Param('id') id: string): Promise<Training> {
-    return this.trainingsService.getTrainingsById(id);
+    return this.trainingsService.getTrainingDetailsById(id);
   }
 
+  //get all nominees by training id
+  @Get(':id/nominees')
+  async findNomineeById(@Param('id') id: string) {
+    return `training nominees by training id ${id}`;
+  }
+
+  //patch method to update training details by training id
   @Patch()
   async update(@Body() data: UpdateTrainingDto) {
-    return this.trainingsService.updateTrainingsDetails(data);
+    return this.trainingsService.updateTrainingDetails(data);
   }
 
+  //delete method to remove trainings by training id
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
     return this.trainingsService.crud().delete({
@@ -82,5 +95,19 @@ export class TrainingsController {
       softDelete: false,
       onError: () => new BadRequestException(),
     });
+  }
+
+  //Employee Portal
+
+  //get all training by supervisor id and status
+  @Get('/supervisor/:supervisor_id')
+  async findTrainingBySupervisorId(@Param('supervisor_id') id: string) {
+    return `training supervisor id ${id}`;
+  }
+
+  //get all training by supervisor id and status
+  @Get(':id/supervisor/:supervisor_id')
+  async findTrainingNomineesByTrainingIdAndSupervisorId(@Param('id') id: string, @Param('supervisor_id') supervisor_id: string) {
+    return `training id ${id} training supervisor id ${supervisor_id}`;
   }
 }

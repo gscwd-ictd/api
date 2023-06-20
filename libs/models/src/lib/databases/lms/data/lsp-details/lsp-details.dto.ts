@@ -55,6 +55,10 @@ export class CreateLspDetailsDto {
   @IsOptional()
   tin: string;
 
+  @IsString()
+  @IsOptional()
+  introduction: string;
+
   @IsUUID('4')
   trainingSource: TrainingSource;
 

@@ -8,6 +8,7 @@ import { LspDetailsModule } from './api/lsp-details';
 import { TrainingsModule } from './api/trainings';
 import { ManagersModule } from './services/managers';
 import { EmployeesModule } from './services/employees';
+import { TagsModule } from './api/tags/core/tags.module';
 
 @Module({
   imports: [
@@ -18,10 +19,19 @@ import { EmployeesModule } from './services/employees';
     DatabaseModule,
 
     //Api Modules
+
+    //lsp
     LspDetailsModule,
+
+    //trainings
     TrainingsModule,
     TrainingSourcesModule,
     TrainingTypesModule,
+
+    //tags
+    TagsModule,
+
+    //microservice
     ManagersModule,
     EmployeesModule,
   ],

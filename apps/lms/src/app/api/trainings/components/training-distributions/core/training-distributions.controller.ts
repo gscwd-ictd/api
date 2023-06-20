@@ -22,7 +22,7 @@ export class TrainingDistributionsController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<TrainingDistribution> | TrainingDistribution[]> {
     return await this.trainingDistributionsService.crud().findAll({
-      find: { relations: { training: true }, select: { training: { id: true, lspName: true } } },
+      find: { relations: { training: true }, select: { training: { id: true } } },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
     });

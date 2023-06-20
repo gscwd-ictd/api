@@ -17,12 +17,12 @@ export class TrainingsService extends CrudHelper<Training> {
   }
 
   //HR create trainings and distribute slots to selected managers
-  async addTrainings(trainingsDto: CreateTrainingDto) {
+  async addTraining(dto: CreateTrainingDto) {
     try {
       //transaction results
       const results = await this.datasource.transaction(async (entityManager) => {
         //deconstruct dto
-        const { courseContent, nomineeQualifications, trainingDistribution, ...rest } = trainingsDto;
+        const { courseContent, nomineeQualifications, trainingDistribution, ...rest } = dto;
 
         //insert training details
         const training = await this.crudService.transact<Training>(entityManager).create({
@@ -64,9 +64,41 @@ export class TrainingsService extends CrudHelper<Training> {
     }
   }
 
-  async getTrainingsById(trainingId: string) {
+  //get training details by id
+  async getTrainingDetailsById(trainingId: string) {
     try {
-      const { courseContent, nomineeQualifications, ...rest } = await this.crudService.findOne({ find: { where: { id: trainingId } } });
+      //deconstruct results
+      const { courseContent, nomineeQualifications, ...rest } = await this.crudService.findOne({
+        find: {
+          relations: { lspDetails: true },
+          select: {
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+            id: true,
+            location: true,
+            courseTitle: true,
+            trainingStart: true,
+            trainingEnd: true,
+            numberOfHours: true,
+            deadlineForSubmission: true,
+            invitationUrl: true,
+            numberOfParticipants: true,
+            courseContent: true,
+            nomineeQualifications: true,
+            status: true,
+            lspDetails: {
+              employeeId: true,
+              firstName: true,
+              middleName: true,
+              lastName: true,
+            },
+          },
+          where: { id: trainingId },
+        },
+      });
+
+      //return result and parse course content and nominee qualifications
       return {
         ...rest,
         courseContent: JSON.parse(courseContent),
@@ -77,23 +109,23 @@ export class TrainingsService extends CrudHelper<Training> {
     }
   }
 
-  async getNomineeByTrainingId(trainingId: string) {
-    try {
-      const results = await this.trainingNomineesService.crud().findAll({
-        find: {
-          relations: { trainingDistribution: true },
-          select: { trainingDistribution: { employeeId: true } },
-          where: { trainingDistribution: { training: { id: trainingId } } },
-        },
-      });
-      return results;
-    } catch (error) {
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-    }
-  }
+  // async getNomineeByTrainingId(trainingId: string) {
+  //   try {
+  //     const results = await this.trainingNomineesService.crud().findAll({
+  //       find: {
+  //         relations: { trainingDistribution: true },
+  //         select: { trainingDistribution: { employeeId: true } },
+  //         where: { trainingDistribution: { training: { id: trainingId } } },
+  //       },
+  //     });
+  //     return results;
+  //   } catch (error) {
+  //     throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+  //   }
+  // }
 
   //update training details
-  async updateTrainingsDetails(dto: UpdateTrainingDto) {
+  async updateTrainingDetails(dto: UpdateTrainingDto) {
     try {
       //transaction results
       const result = await this.datasource.transaction(async (entityManager) => {
