@@ -9,25 +9,33 @@ export class LspTrainingsService extends CrudHelper<LspTraining> {
     super(crudService);
   }
 
-  async addLspTrainings(lspTrainingDto: CreateLspTrainingDto, entityManager: EntityManager) {
-    const lspTraining = await this.crudService.transact<LspTraining>(entityManager).create({
+  //insert learning service provider training
+  async addTrainings(lspTrainingDto: CreateLspTrainingDto, entityManager: EntityManager) {
+    //transaction result
+    const result = await this.crudService.transact<LspTraining>(entityManager).create({
       dto: lspTrainingDto,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
-    const { lspDetails, ...rest } = lspTraining;
+
+    //deconstruct and return result
+    const { lspDetails, ...rest } = result;
     return rest;
   }
 
-  async deleteAllLspTrainingssByLspDetailsIdTransaction(lspDetailsId: string, entityManager: EntityManager) {
-    const deleteResult = await this.crudService.transact<LspTraining>(entityManager).delete({
+  //delete learning service provider training
+  async deleteTrainings(lspDetailsId: string, entityManager: EntityManager) {
+    //transaction result
+    const result = await this.crudService.transact<LspTraining>(entityManager).delete({
       deleteBy: { lspDetails: { id: lspDetailsId } },
       softDelete: false,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
-    return deleteResult;
+
+    //return result
+    return result;
   }
 }

@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspDetailsDto, LspDetails, UpdateLspDetailsDto } from '@gscwd-api/models';
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';
 import { LspAwardsService } from '../components/lsp-awards';
@@ -9,7 +9,6 @@ import { LspCoachingsService } from '../components/lsp-coachings';
 import { LspEducationsService } from '../components/lsp-educations';
 import { LspProjectsService } from '../components/lsp-projects';
 import { LspTrainingsService } from '../components/lsp-trainings';
-import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class LspDetailsService extends CrudHelper<LspDetails> {
@@ -27,38 +26,28 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     super(crudService);
   }
 
-  async findAllLspDetails(page: number, limit: number): Promise<Pagination<LspDetails> | LspDetails[]> {
-    return (await this.crud().findAll({
-      find: {
-        relations: { trainingSource: true },
-        select: {
-          trainingSource: {
-            name: true,
-          },
-        },
-      },
-      pagination: { page, limit },
-      onError: () => new InternalServerErrorException(),
-    })) as Pagination<LspDetails>;
-  }
-
-  async addLspDetails(lspDetailsDto: CreateLspDetailsDto) {
+  //insert learning service provider
+  async addLspDetails(dto: CreateLspDetailsDto) {
     try {
-      const lspDetails = await this.datasource.transaction(async (entityManager) => {
-        const { expertise, affiliations, awards, certifications, coaching, education, projects, trainings, ...rest } = lspDetailsDto;
+      //transaction result
+      const result = await this.datasource.transaction(async (entityManager) => {
+        //deconstruct dto
+        const { expertise, affiliations, awards, certifications, coaching, education, projects, trainings, ...rest } = dto;
 
-        const newLspDetails = await this.crudService.transact<LspDetails>(entityManager).create({
+        //insert learning service provider details
+        const lspDetails = await this.crudService.transact<LspDetails>(entityManager).create({
           dto: { ...rest, expertise: JSON.stringify(expertise) },
           onError: ({ error }) => {
             return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
           },
         });
 
-        const newLspAffiliation = await Promise.all(
+        //insert learning service provider affiliations
+        const lspAffiliations = await Promise.all(
           affiliations.map(async (affiliationItem) => {
-            return await this.lspAffiliationsService.addLspAffiliations(
+            return await this.lspAffiliationsService.addAffiliations(
               {
-                lspDetails: newLspDetails,
+                lspDetails: lspDetails,
                 ...affiliationItem,
               },
               entityManager
@@ -66,11 +55,12 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspAward = await Promise.all(
+        //insert learning service provider details
+        const lspAwards = await Promise.all(
           awards.map(async (awardItem) => {
-            return await this.lspAwardsService.addLspAwards(
+            return await this.lspAwardsService.addAwards(
               {
-                lspDetails: newLspDetails,
+                lspDetails: lspDetails,
                 ...awardItem,
               },
               entityManager
@@ -78,11 +68,12 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspCertification = await Promise.all(
+        //insert learning service provider certification
+        const lspCertifications = await Promise.all(
           certifications.map(async (certificationItem) => {
-            return await this.lspCertificationService.addLspCertifications(
+            return await this.lspCertificationService.addCertifications(
               {
-                lspDetails: newLspDetails,
+                lspDetails: lspDetails,
                 ...certificationItem,
               },
               entityManager
@@ -90,11 +81,12 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspCoaching = await Promise.all(
+        //insert learning service provider coaching
+        const lspCoaching = await Promise.all(
           coaching.map(async (coachingItem) => {
-            return await this.lspCoachingsService.addLspCoachings(
+            return await this.lspCoachingsService.addCoachings(
               {
-                lspDetails: newLspDetails,
+                lspDetails: lspDetails,
                 ...coachingItem,
               },
               entityManager
@@ -102,11 +94,12 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspEducation = await Promise.all(
+        //insert learning service provider education
+        const lspEducation = await Promise.all(
           education.map(async (educationItem) => {
-            return await this.lspEducationsService.addLspEducations(
+            return await this.lspEducationsService.addEducations(
               {
-                lspDetails: newLspDetails,
+                lspDetails: lspDetails,
                 ...educationItem,
               },
               entityManager
@@ -114,11 +107,12 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspProject = await Promise.all(
+        //insert learning service provider project
+        const lspProjects = await Promise.all(
           projects.map(async (projectItem) => {
-            return await this.lspProjectsService.addLspProjects(
+            return await this.lspProjectsService.addProjects(
               {
-                lspDetails: newLspDetails,
+                lspDetails: lspDetails,
                 ...projectItem,
               },
               entityManager
@@ -126,11 +120,12 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspTraining = await Promise.all(
+        //insert learning service provider training
+        const lspTrainings = await Promise.all(
           trainings.map(async (trainingItem) => {
-            return await this.lspTrainingsService.addLspTrainings(
+            return await this.lspTrainingsService.addTrainings(
               {
-                lspDetails: newLspDetails,
+                lspDetails: lspDetails,
                 ...trainingItem,
               },
               entityManager
@@ -138,23 +133,27 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
+        //return result
         return {
-          ...newLspDetails,
-          affiliations: newLspAffiliation,
-          awards: newLspAward,
-          certifications: newLspCertification,
-          coaching: newLspCoaching,
-          education: newLspEducation,
-          projects: newLspProject,
-          trainings: newLspTraining,
+          ...lspDetails,
+          affiliations: lspAffiliations,
+          awards: lspAwards,
+          certifications: lspCertifications,
+          coaching: lspCoaching,
+          education: lspEducation,
+          projects: lspProjects,
+          trainings: lspTrainings,
         };
       });
-      return lspDetails;
+
+      //return result
+      return result;
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
   }
 
+  //get learning service provider by id
   async getLspDetailsById(lspDetailsId: string) {
     try {
       const { expertise, ...rest } = await this.crudService.findOne({
@@ -187,13 +186,16 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     }
   }
 
-  async updateLspDetailsById(updateLspDetailsDto: UpdateLspDetailsDto) {
+  //update learning service provider by id
+  async updateLspDetailsById(dto: UpdateLspDetailsDto) {
     try {
-      const { id, expertise, affiliations, awards, certifications, coaching, education, experience, projects, trainings, ...rest } =
-        updateLspDetailsDto;
+      //deconstruct dto
+      const { id, expertise, affiliations, awards, certifications, coaching, education, projects, trainings, ...rest } = dto;
 
-      const updateLspDetailsResult = await this.datasource.transaction(async (entityManager) => {
-        const updateLspDetails = await this.crudService.transact<LspDetails>(entityManager).update({
+      //transaction result
+      const result = await this.datasource.transaction(async (entityManager) => {
+        //update learning service provider details by id
+        const lspDetails = await this.crudService.transact<LspDetails>(entityManager).update({
           dto: { ...rest, expertise: JSON.stringify(expertise) },
           updateBy: { id },
           onError: ({ error }) => {
@@ -201,11 +203,13 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           },
         });
 
+        //delete all learning service provider child details
         const deleteAllLspDetailsChild = await this.deleteAllLspDetailsChild(id, entityManager);
 
-        const newLspAffiliation = await Promise.all(
+        //insert new affiliations
+        const lspAffiliations = await Promise.all(
           affiliations.map(async (affiliationItem) => {
-            return await this.lspAffiliationsService.addLspAffiliations(
+            return await this.lspAffiliationsService.addAffiliations(
               {
                 lspDetails: id,
                 ...affiliationItem,
@@ -215,9 +219,10 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspAward = await Promise.all(
+        //insert new awards
+        const lspAwards = await Promise.all(
           awards.map(async (awardItem) => {
-            return await this.lspAwardsService.addLspAwards(
+            return await this.lspAwardsService.addAwards(
               {
                 lspDetails: id,
                 ...awardItem,
@@ -227,9 +232,10 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspCertification = await Promise.all(
+        //insert new affiliations
+        const lspCertifications = await Promise.all(
           certifications.map(async (certificationItem) => {
-            return await this.lspCertificationService.addLspCertifications(
+            return await this.lspCertificationService.addCertifications(
               {
                 lspDetails: id,
                 ...certificationItem,
@@ -239,9 +245,10 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspCoaching = await Promise.all(
+        //insert new coaching
+        const lspCoaching = await Promise.all(
           coaching.map(async (coachingItem) => {
-            return await this.lspCoachingsService.addLspCoachings(
+            return await this.lspCoachingsService.addCoachings(
               {
                 lspDetails: id,
                 ...coachingItem,
@@ -251,9 +258,10 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspEducation = await Promise.all(
+        //insert new education
+        const lspEducation = await Promise.all(
           education.map(async (educationItem) => {
-            return await this.lspEducationsService.addLspEducations(
+            return await this.lspEducationsService.addEducations(
               {
                 lspDetails: id,
                 ...educationItem,
@@ -263,9 +271,10 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspProject = await Promise.all(
+        //insert new projects
+        const lspProjects = await Promise.all(
           projects.map(async (projectItem) => {
-            return await this.lspProjectsService.addLspProjects(
+            return await this.lspProjectsService.addProjects(
               {
                 lspDetails: id,
                 ...projectItem,
@@ -275,9 +284,10 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        const newLspTraining = await Promise.all(
+        //insert new trainings
+        const lspTrainings = await Promise.all(
           trainings.map(async (trainingItem) => {
-            return await this.lspTrainingsService.addLspTrainings(
+            return await this.lspTrainingsService.addTrainings(
               {
                 lspDetails: id,
                 ...trainingItem,
@@ -287,61 +297,60 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           })
         );
 
-        return updateLspDetails;
+        return lspDetails;
       });
 
-      return updateLspDetailsResult;
+      return result;
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
   }
 
+  //delete learning service provider by id
   async deleteLspDetailsById(lspDetailsId: string) {
     try {
-      const lspDetails = await this.getLspDetailsById(lspDetailsId);
+      //transaction result
+      const result = await this.datasource.transaction(async (entityManager) => {
+        //delete all learning service provider child
+        const lspChilds = await this.deleteAllLspDetailsChild(lspDetailsId, entityManager);
 
-      const deleteResult = await this.datasource.transaction(async (entityManager) => {
-        const deleteAllLspDetailsChild = await this.deleteAllLspDetailsChild(lspDetailsId, entityManager);
+        //delete learning service provider details
+        const lspDetails = await this.crudService.transact<LspDetails>(entityManager).delete({ softDelete: false, deleteBy: { id: lspDetailsId } });
 
-        const deleteLspDetails = await this.crudService
-          .transact<LspDetails>(entityManager)
-          .delete({ softDelete: false, deleteBy: { id: lspDetailsId } });
-
-        if (deleteAllLspDetailsChild.affected > 0 && deleteLspDetails.affected > 0) return true;
+        if (lspChilds.affected > 0 && lspDetails.affected > 0) return lspDetails;
       });
 
-      if (deleteResult) return deleteResult;
+      //return result
+      if (result) return result;
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
   }
 
+  //delete all learning service provider child
   async deleteAllLspDetailsChild(lspDetailsId: string, entityManager: EntityManager) {
-    const deleteLspAffiliations = await this.lspAffiliationsService.deleteAllLspAffiliationsByLspDetailsIdTransaction(lspDetailsId, entityManager);
+    const affiliations = await this.lspAffiliationsService.deleteAffiliations(lspDetailsId, entityManager);
 
-    const deleteLspAwards = await this.lspAwardsService.deleteAllLspAwardsByLspDetailsIdTransaction(lspDetailsId, entityManager);
+    const awards = await this.lspAwardsService.deleteAwards(lspDetailsId, entityManager);
 
-    const deleteLspCertifications = await this.lspCertificationService.deleteAllLspCertificationsByLspDetailsIdTransaction(
-      lspDetailsId,
-      entityManager
-    );
+    const certifications = await this.lspCertificationService.deleteCertifications(lspDetailsId, entityManager);
 
-    const deleteLspCoachings = await this.lspCoachingsService.deleteAllLspCoachingssByLspDetailsIdTransaction(lspDetailsId, entityManager);
+    const coaching = await this.lspCoachingsService.deleteCoachings(lspDetailsId, entityManager);
 
-    const deleteLspEducations = await this.lspEducationsService.deleteAllLspEducationsByLspDetailsIdTransaction(lspDetailsId, entityManager);
+    const education = await this.lspEducationsService.deleteEducations(lspDetailsId, entityManager);
 
-    const deleteLspProjects = await this.lspProjectsService.deleteAllLspProjectsByLspDetailsIdTransaction(lspDetailsId, entityManager);
+    const projects = await this.lspProjectsService.deleteProjects(lspDetailsId, entityManager);
 
-    const deleteLspTrainings = await this.lspTrainingsService.deleteAllLspTrainingssByLspDetailsIdTransaction(lspDetailsId, entityManager);
+    const trainings = await this.lspTrainingsService.deleteTrainings(lspDetailsId, entityManager);
 
     if (
-      deleteLspAffiliations.affected > 0 &&
-      deleteLspAwards.affected > 0 &&
-      deleteLspCertifications.affected > 0 &&
-      deleteLspCoachings.affected > 0 &&
-      deleteLspEducations.affected > 0 &&
-      deleteLspProjects.affected > 0 &&
-      deleteLspTrainings.affected > 0
+      affiliations.affected > 0 &&
+      awards.affected > 0 &&
+      certifications.affected > 0 &&
+      coaching.affected > 0 &&
+      education.affected > 0 &&
+      projects.affected > 0 &&
+      trainings.affected > 0
     )
       return { affected: 1 };
   }

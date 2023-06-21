@@ -80,9 +80,9 @@ export class TrainingsService extends CrudHelper<Training> {
   async getTrainingDetailsById(trainingId: string) {
     try {
       //deconstruct results
-      const { courseContent, nomineeQualifications, ...rest } = await this.crudService.findOne({
+      const { courseContent, ...rest } = await this.crudService.findOne({
         find: {
-          relations: { lspDetails: true },
+          relations: { lspDetails: true, trainingSource: true, trainingType: true, trainingTag: true },
           select: {
             createdAt: true,
             updatedAt: true,
@@ -97,8 +97,18 @@ export class TrainingsService extends CrudHelper<Training> {
             invitationUrl: true,
             numberOfParticipants: true,
             courseContent: true,
-            nomineeQualifications: true,
             status: true,
+            trainingSource: {
+              name: true,
+            },
+            trainingType: {
+              name: true,
+            },
+            trainingTag: {
+              tag: {
+                description: true,
+              },
+            },
             lspDetails: {
               employeeId: true,
               firstName: true,
@@ -114,7 +124,6 @@ export class TrainingsService extends CrudHelper<Training> {
       return {
         ...rest,
         courseContent: JSON.parse(courseContent),
-        nomineeQualifications: JSON.parse(nomineeQualifications),
       };
     } catch (error) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
@@ -142,14 +151,13 @@ export class TrainingsService extends CrudHelper<Training> {
       //transaction results
       const result = await this.datasource.transaction(async (entityManager) => {
         //deconstruct dto
-        const { id, courseContent, nomineeQualifications, ...rest } = dto;
+        const { id, courseContent, ...rest } = dto;
 
         //update training details by training id
         const training = await this.crudService.transact<Training>(entityManager).update({
           dto: {
             ...rest,
             courseContent: JSON.stringify(courseContent),
-            nomineeQualifications: JSON.stringify(nomineeQualifications),
           },
           updateBy: { id },
           onError: ({ error }) => {

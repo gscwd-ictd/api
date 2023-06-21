@@ -9,25 +9,33 @@ export class LspAwardsService extends CrudHelper<LspAward> {
     super(crudService);
   }
 
-  async addLspAwards(lspAwardDto: CreateLspAwardDto, entityManager: EntityManager) {
-    const lspAward = await this.crudService.transact<LspAward>(entityManager).create({
-      dto: lspAwardDto,
+  //insert learning service provider awards
+  async addAwards(dto: CreateLspAwardDto, entityManager: EntityManager) {
+    //transaction result
+    const result = await this.crudService.transact<LspAward>(entityManager).create({
+      dto: dto,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
-    const { lspDetails, ...rest } = lspAward;
+
+    //deconstruct and return result
+    const { lspDetails, ...rest } = result;
     return rest;
   }
 
-  async deleteAllLspAwardsByLspDetailsIdTransaction(lspDetailsId: string, entityManager: EntityManager) {
-    const deleteResult = await this.crudService.transact<LspAward>(entityManager).delete({
+  //delete learning service provider awards
+  async deleteAwards(lspDetailsId: string, entityManager: EntityManager) {
+    //transaction result
+    const result = await this.crudService.transact<LspAward>(entityManager).delete({
       deleteBy: { lspDetails: { id: lspDetailsId } },
       softDelete: false,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
-    return deleteResult;
+
+    //return result
+    return result;
   }
 }
