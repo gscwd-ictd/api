@@ -158,7 +158,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     try {
       const { expertise, ...rest } = await this.crudService.findOne({
         find: {
-          relations: { trainingSource: true },
+          relations: { lspSource: true },
           where: { id: lspDetailsId },
         },
       });

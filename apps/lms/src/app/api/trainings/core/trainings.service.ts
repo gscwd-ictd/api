@@ -79,10 +79,10 @@ export class TrainingsService extends CrudHelper<Training> {
   //get training details by id
   async getTrainingDetailsById(trainingId: string) {
     try {
-      //deconstruct results
+      //find training details by training id and deconstruct
       const { courseContent, ...rest } = await this.crudService.findOne({
         find: {
-          relations: { lspDetails: true, trainingSource: true, trainingType: true, trainingTag: true },
+          relations: { lspDetails: true, trainingSource: true, trainingType: true },
           select: {
             createdAt: true,
             updatedAt: true,
@@ -104,11 +104,6 @@ export class TrainingsService extends CrudHelper<Training> {
             trainingType: {
               name: true,
             },
-            trainingTag: {
-              tag: {
-                description: true,
-              },
-            },
             lspDetails: {
               employeeId: true,
               firstName: true,
@@ -120,10 +115,16 @@ export class TrainingsService extends CrudHelper<Training> {
         },
       });
 
+      //get all training tags by training id
+      const tag = await this.trainingTagsService
+        .crud()
+        .findAll({ find: { relations: { tag: true }, select: { id: true, tag: { description: true } }, where: { training: { id: trainingId } } } });
+
       //return result and parse course content and nominee qualifications
       return {
         ...rest,
         courseContent: JSON.parse(courseContent),
+        nomineeQualifications: tag,
       };
     } catch (error) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);

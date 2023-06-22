@@ -10,3 +10,24 @@ export enum TrainingNomineeStatus {
   DECLINED = 'declined',
   PENDING = 'pending',
 }
+
+export type RawTag = {
+  tag: string;
+};
+
+export type RawTrainingDetails = {
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+  id: string;
+  location: string;
+  courseTitle: string;
+  trainingStart: Date;
+  trainingEnd: Date;
+  numberOfHours: number;
+  deadlineForSubmission: Date;
+  invitationUrl: string;
+  numberOfParticipants: number;
+  status: TrainingStatus;
+  nomineeQualifications: RawTag[];
+};

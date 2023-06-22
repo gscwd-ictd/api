@@ -8,7 +8,8 @@ import { LspDetailsModule } from './api/lsp-details';
 import { TrainingsModule } from './api/trainings';
 import { ManagersModule } from './services/managers';
 import { EmployeesModule } from './services/employees';
-import { TagsModule } from './api/tags/core/tags.module';
+import { LspSourcesModule } from './api/lsp-sources';
+import { TagsModule } from './api/tags';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { TagsModule } from './api/tags/core/tags.module';
     //Api Modules
 
     //lsp
+    LspSourcesModule,
     LspDetailsModule,
 
     //trainings

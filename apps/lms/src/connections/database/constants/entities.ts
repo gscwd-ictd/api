@@ -6,6 +6,7 @@ import {
   LspDetails,
   LspEducation,
   LspProject,
+  LspSource,
   LspTraining,
   Tag,
   Training,
@@ -29,6 +30,7 @@ export const DB_ENTITIES = [
   LspProject,
   LspTraining,
   LspDetails,
+  LspSource,
 
   Tag,
 

@@ -37,9 +37,9 @@ export class LspDetailsController {
   ): Promise<Pagination<LspDetails> | LspDetails[]> {
     return await this.lspDetailsService.crud().findAll({
       find: {
-        relations: { trainingSource: true },
+        relations: { lspSource: true },
         select: {
-          trainingSource: {
+          lspSource: {
             name: true,
           },
         },

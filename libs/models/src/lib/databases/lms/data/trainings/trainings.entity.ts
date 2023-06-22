@@ -4,7 +4,6 @@ import { TrainingSource } from '../training-sources';
 import { TrainingType } from '../training-types';
 import { TrainingStatus } from '@gscwd-api/utils';
 import { LspDetails } from '../lsp-details';
-import { TrainingTag } from '../training-tags';
 
 @Entity('trainings')
 export class Training extends DatabaseEntity implements IEntity {
@@ -23,6 +22,9 @@ export class Training extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'lsp_details_id_fk' })
   lspDetails: LspDetails;
 
+  @Column({ name: 'facilitator', length: 100, nullable: false })
+  facilitator: string;
+
   @Column({ name: 'location', length: 100 })
   location: string;
 
@@ -40,10 +42,6 @@ export class Training extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'course_content', type: 'jsonb', nullable: true })
   courseContent: string;
-
-  @ManyToOne(() => TrainingTag, (trainingTag) => trainingTag.id, { nullable: false })
-  @JoinColumn({ name: 'training_tag_id_fk' })
-  trainingTag: TrainingTag;
 
   @Column({ name: 'deadline_for_submission', type: 'date' })
   deadlineForSubmission: Date;

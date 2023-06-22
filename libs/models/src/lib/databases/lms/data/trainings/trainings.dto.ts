@@ -19,6 +19,10 @@ export class CreateTrainingDto {
   @IsUUID('4')
   lspDetails: LspDetails;
 
+  @IsString({ message: 'training facilitator must be a string' })
+  @Length(1, 100, { message: 'training facilitator must be between 1 to 100 characters' })
+  facilitator: string;
+
   @IsString({ message: 'training location must be a string' })
   @Length(1, 100, { message: 'training location must be between 1 to 100 characters' })
   location: string;
