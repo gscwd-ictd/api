@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { ArrayNotEmpty, IsArray, IsNumber, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
-import { CreateLspAffiliationDto } from '../lsp-affiliations';
+import { CreateLspIndividualAffiliationDto } from '../lsp-individual-affiliations';
 import { CreateLspAwardDto } from '../lsp-awards';
 import { CreateLspCertificationDto } from '../lsp-certifications';
 import { CreateLspCoachingDto } from '../lsp-coachings';
@@ -63,7 +63,7 @@ export class CreateLspDetailsDto {
   trainingSource: TrainingSource;
 
   @IsArray()
-  affiliations: CreateLspAffiliationDto[];
+  affiliations: CreateLspIndividualAffiliationDto[];
 
   @IsArray()
   awards: CreateLspAwardDto[];

@@ -2,7 +2,7 @@ import { PartialType } from '@nestjs/swagger';
 import { IsString, IsUUID, Length } from 'class-validator';
 import { LspDetails } from '../lsp-details';
 
-export class CreateLspAffiliationDto {
+export class CreateLspIndividualAffiliationDto {
   @IsUUID()
   lspDetails: LspDetails;
 
@@ -14,4 +14,4 @@ export class CreateLspAffiliationDto {
   @Length(1, 100, { message: 'lsp affiliation institution must be between 1 to 100 characters' })
   institution: string;
 }
-export class UpdateLspAffiliationDto extends PartialType(CreateLspAffiliationDto) {}
+export class UpdateLspIndividualAffiliationDto extends PartialType(CreateLspIndividualAffiliationDto) {}

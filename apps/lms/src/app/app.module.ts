@@ -4,7 +4,7 @@ import { join } from 'path';
 import { DatabaseModule } from '../connections';
 import { TrainingSourcesModule } from './api/training-sources';
 import { TrainingTypesModule } from './api/training-types';
-import { LspDetailsModule } from './api/lsp-details';
+import { LspIndividualDetailsModule } from './api/lsp-individual-details';
 import { TrainingsModule } from './api/trainings';
 import { ManagersModule } from './services/managers';
 import { EmployeesModule } from './services/employees';
@@ -23,7 +23,7 @@ import { TagsModule } from './api/tags';
 
     //lsp
     LspSourcesModule,
-    LspDetailsModule,
+    LspIndividualDetailsModule,
 
     //trainings
     TrainingsModule,

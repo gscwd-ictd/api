@@ -118,7 +118,7 @@ export class TrainingsService extends CrudHelper<Training> {
       //get all training tags by training id
       const tag = await this.trainingTagsService
         .crud()
-        .findAll({ find: { relations: { tag: true }, select: { id: true, tag: { description: true } }, where: { training: { id: trainingId } } } });
+        .findAll({ find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { training: { id: trainingId } } } });
 
       //return result and parse course content and nominee qualifications
       return {

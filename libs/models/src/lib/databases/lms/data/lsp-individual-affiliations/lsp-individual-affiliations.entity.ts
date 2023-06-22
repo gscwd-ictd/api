@@ -2,9 +2,9 @@ import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { LspDetails } from '../lsp-details';
 
-@Entity({ name: 'lsp_affiliations' })
-export class LspAffiliation extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'lsp_affiliation_id' })
+@Entity({ name: 'lsp_individual_affiliations' })
+export class LspIndividualAffiliation extends DatabaseEntity implements IEntity {
+  @PrimaryGeneratedColumn('uuid', { name: 'lsp_individual_affiliation_id' })
   id: string;
 
   @ManyToOne(() => LspDetails, (lspDetails) => lspDetails.id, { nullable: false })

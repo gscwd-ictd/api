@@ -3,7 +3,7 @@ export * from './training-types';
 
 //learning service providers
 export * from './lsp-sources';
-export * from './lsp-affiliations';
+export * from './lsp-individual-affiliations';
 export * from './lsp-awards';
 export * from './lsp-certifications';
 export * from './lsp-coachings';

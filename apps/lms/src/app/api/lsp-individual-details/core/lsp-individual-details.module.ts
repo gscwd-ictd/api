@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { LspAffiliationsModule } from '../components/lsp-affiliations';
+import { LspIndividualAffiliationsModule } from '../components/lsp-individual-affiliations';
 import { LspAwardsModule } from '../components/lsp-awards';
 import { LspEducationsModule } from '../components/lsp-educations';
 import { LspProjectsModule } from '../components/lsp-projects';
@@ -8,13 +8,13 @@ import { LspCertificationsModule } from '../components/lsp-certifications';
 import { LspCoachingsModule } from '../components/lsp-coachings';
 import { CrudModule } from '@gscwd-api/crud';
 import { LspDetails } from '@gscwd-api/models';
-import { LspDetailsService } from './lsp-details.service';
-import { LspDetailsController } from './lsp-details.controller';
+import { LspIndividualDetailsService } from './lsp-individual-details.service';
+import { LspIndividualDetailsController } from './lsp-individual-details.controller';
 
 @Module({
   imports: [
     CrudModule.register(LspDetails),
-    LspAffiliationsModule,
+    LspIndividualAffiliationsModule,
     LspAwardsModule,
     LspCertificationsModule,
     LspCoachingsModule,
@@ -22,8 +22,8 @@ import { LspDetailsController } from './lsp-details.controller';
     LspProjectsModule,
     LspTrainingsModule,
   ],
-  controllers: [LspDetailsController],
-  providers: [LspDetailsService],
-  exports: [LspDetailsService],
+  controllers: [LspIndividualDetailsController],
+  providers: [LspIndividualDetailsService],
+  exports: [LspIndividualDetailsService],
 })
-export class LspDetailsModule {}
+export class LspIndividualDetailsModule {}

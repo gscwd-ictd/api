@@ -1,18 +1,18 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateLspAffiliationDto, LspAffiliation } from '@gscwd-api/models';
+import { CreateLspIndividualAffiliationDto, LspIndividualAffiliation } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
-export class LspAffiliationsService extends CrudHelper<LspAffiliation> {
-  constructor(private readonly crudService: CrudService<LspAffiliation>) {
+export class LspIndividualAffiliationsService extends CrudHelper<LspIndividualAffiliation> {
+  constructor(private readonly crudService: CrudService<LspIndividualAffiliation>) {
     super(crudService);
   }
 
   //insert learning service provider affiliations
-  async addAffiliations(dto: CreateLspAffiliationDto, entityManager: EntityManager) {
+  async addAffiliations(dto: CreateLspIndividualAffiliationDto, entityManager: EntityManager) {
     //transaction result
-    const result = await this.crudService.transact<LspAffiliation>(entityManager).create({
+    const result = await this.crudService.transact<LspIndividualAffiliation>(entityManager).create({
       dto: dto,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
@@ -27,7 +27,7 @@ export class LspAffiliationsService extends CrudHelper<LspAffiliation> {
   //delete learning service provider affiliations
   async deleteAffiliations(lspDetailsId: string, entityManager: EntityManager) {
     //transaction result
-    const result = await this.crudService.transact<LspAffiliation>(entityManager).delete({
+    const result = await this.crudService.transact<LspIndividualAffiliation>(entityManager).delete({
       deleteBy: { lspDetails: { id: lspDetailsId } },
       softDelete: false,
       onError: ({ error }) => {
