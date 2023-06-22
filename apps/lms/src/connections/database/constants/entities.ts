@@ -1,6 +1,6 @@
 import {
   LspIndividualAffiliation,
-  LspAward,
+  LspIndividualAward,
   LspCertification,
   LspCoaching,
   LspDetails,
@@ -23,7 +23,7 @@ export const DB_ENTITIES = [
   TrainingType,
 
   LspIndividualAffiliation,
-  LspAward,
+  LspIndividualAward,
   LspCertification,
   LspCoaching,
   LspEducation,

@@ -2,8 +2,8 @@ import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { LspDetails } from '../lsp-details';
 
-@Entity({ name: 'lsp_awards' })
-export class LspAward extends DatabaseEntity implements IEntity {
+@Entity({ name: 'lsp_individual_awards' })
+export class LspIndividualAward extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'lsp_award_id' })
   id: string;
 

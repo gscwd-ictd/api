@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { LspIndividualAffiliationsModule } from '../components/lsp-individual-affiliations';
-import { LspAwardsModule } from '../components/lsp-awards';
+import { LspIndividualAwardsModule } from '../components/lsp-individual-awards';
 import { LspEducationsModule } from '../components/lsp-educations';
 import { LspProjectsModule } from '../components/lsp-projects';
 import { LspTrainingsModule } from '../components/lsp-trainings';
@@ -15,7 +15,7 @@ import { LspIndividualDetailsController } from './lsp-individual-details.control
   imports: [
     CrudModule.register(LspDetails),
     LspIndividualAffiliationsModule,
-    LspAwardsModule,
+    LspIndividualAwardsModule,
     LspCertificationsModule,
     LspCoachingsModule,
     LspEducationsModule,

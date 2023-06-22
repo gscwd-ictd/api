@@ -2,7 +2,7 @@ import { PartialType } from '@nestjs/swagger';
 import { IsString, IsUUID, Length } from 'class-validator';
 import { LspDetails } from '../lsp-details';
 
-export class CreateLspAwardDto {
+export class CreateLspIndividualAwardDto {
   @IsUUID()
   lspDetails: LspDetails;
 
@@ -11,4 +11,4 @@ export class CreateLspAwardDto {
   name: string;
 }
 
-export class UpdateLspAwardDto extends PartialType(CreateLspAwardDto) {}
+export class UpdateLspIndividualAwardDto extends PartialType(CreateLspIndividualAwardDto) {}
