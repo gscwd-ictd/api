@@ -9,8 +9,10 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     super(crudService);
   }
 
+  //insert training nominees
   async addTrainingNominees(trainingNomineeDto: CreateTrainingNomineeDto) {
     try {
+      //transaction result
       const result = await this.datasource.transaction(async (entityManager) => {
         const { employee, ...rest } = trainingNomineeDto;
         return await Promise.all(
@@ -24,6 +26,8 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           })
         );
       });
+
+      //return result
       return result;
     } catch (error) {
       return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });

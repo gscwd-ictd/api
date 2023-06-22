@@ -1,6 +1,6 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { TrainingSource } from '../training-sources';
+import { LspSource } from '../lsp-sources';
 
 @Entity('lsp_details')
 export class LspDetails extends DatabaseEntity implements IEntity {
@@ -40,7 +40,10 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'tax_identification_number', nullable: true })
   tin: string;
 
-  @ManyToOne(() => TrainingSource, (trainingSource) => trainingSource.id, { nullable: false })
-  @JoinColumn({ name: 'training_type_id_fk' })
-  trainingSource: TrainingSource;
+  @Column({ name: 'introduction', length: 150, nullable: true })
+  introduction: string;
+
+  @ManyToOne(() => LspSource, (lspSource) => lspSource.id, { nullable: false })
+  @JoinColumn({ name: 'lsp_source_id_fk' })
+  lspSource: LspSource;
 }

@@ -4,9 +4,10 @@ import { TrainingType } from '../training-types';
 import { IsArray, IsDateString, IsEnum, IsInt, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
-import { NomineeQualificationsDto } from '../nominee-qualifications';
 import { PartialType } from '@nestjs/swagger';
 import { CreateTrainingDistributionDto } from '../training-distributions';
+import { LspDetails } from '../lsp-details';
+import { CreateTrainingTagDto } from '../training-tags';
 
 export class CreateTrainingDto {
   @IsUUID('4')
@@ -15,9 +16,12 @@ export class CreateTrainingDto {
   @IsUUID('4')
   trainingType: TrainingType;
 
-  @IsString({ message: 'training name must be a string' })
-  @Length(1, 50, { message: 'training name must be between 1 to 50 characters' })
-  lspName: string;
+  @IsUUID('4')
+  lspDetails: LspDetails;
+
+  @IsString({ message: 'training facilitator must be a string' })
+  @Length(1, 100, { message: 'training facilitator must be between 1 to 100 characters' })
+  facilitator: string;
 
   @IsString({ message: 'training location must be a string' })
   @Length(1, 100, { message: 'training location must be between 1 to 100 characters' })
@@ -27,11 +31,11 @@ export class CreateTrainingDto {
   @Length(1, 100, { message: 'training course title must be between 1 to 100 characters' })
   courseTitle: string;
 
-  @IsString({ message: 'training start must be a string' })
-  trainingStart: string;
+  @IsDateString()
+  trainingStart: Date;
 
-  @IsString({ message: 'training end must be a string' })
-  trainingEnd: string;
+  @IsDateString()
+  trainingEnd: Date;
 
   @IsInt({ message: 'training number of hours must be a number' })
   numberOfHours: number;
@@ -43,10 +47,10 @@ export class CreateTrainingDto {
 
   @ValidateNested({ each: true })
   @IsArray()
-  @Type(() => NomineeQualificationsDto)
-  nomineeQualifications: NomineeQualificationsDto[];
+  @Type(() => CreateTrainingTagDto)
+  nomineeQualifications: CreateTrainingTagDto[];
 
-  @IsDateString()
+  @IsString({ message: 'training deadline for submission must be valid date' })
   deadlineForSubmission: Date;
 
   @IsString({ message: 'training invitation url must be a string' })
@@ -54,9 +58,6 @@ export class CreateTrainingDto {
 
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
-
-  @IsEnum(TrainingStatus)
-  status: TrainingStatus;
 
   @ValidateNested({ each: true })
   @IsArray()
@@ -67,4 +68,7 @@ export class CreateTrainingDto {
 export class UpdateTrainingDto extends PartialType(CreateTrainingDto) {
   @IsUUID('4')
   id: string;
+
+  @IsEnum(TrainingStatus)
+  status: TrainingStatus;
 }

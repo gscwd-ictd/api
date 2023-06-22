@@ -1,33 +1,40 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspAffiliationDto, LspAffiliation } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { DataSource, EntityManager } from 'typeorm';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class LspAffiliationsService extends CrudHelper<LspAffiliation> {
-  constructor(private readonly crudService: CrudService<LspAffiliation>, private readonly datasource: DataSource) {
+  constructor(private readonly crudService: CrudService<LspAffiliation>) {
     super(crudService);
   }
 
-  async addLspAffiliations(lspAffiliationDto: CreateLspAffiliationDto, entityManager: EntityManager) {
-    const lspAffiliation = await this.crudService.transact<LspAffiliation>(entityManager).create({
-      dto: lspAffiliationDto,
+  //insert learning service provider affiliations
+  async addAffiliations(dto: CreateLspAffiliationDto, entityManager: EntityManager) {
+    //transaction result
+    const result = await this.crudService.transact<LspAffiliation>(entityManager).create({
+      dto: dto,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
-    const { lspDetails, ...rest } = lspAffiliation;
+
+    //deconstruct and return result
+    const { lspDetails, ...rest } = result;
     return rest;
   }
 
-  async deleteAllLspAffiliationsByLspDetailsIdTransaction(lspDetailsId: string, entityManager: EntityManager) {
-    const deleteResult = await this.crudService.transact<LspAffiliation>(entityManager).delete({
+  //delete learning service provider affiliations
+  async deleteAffiliations(lspDetailsId: string, entityManager: EntityManager) {
+    //transaction result
+    const result = await this.crudService.transact<LspAffiliation>(entityManager).delete({
       deleteBy: { lspDetails: { id: lspDetailsId } },
       softDelete: false,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
-    return deleteResult;
+    //return result
+    return result;
   }
 }

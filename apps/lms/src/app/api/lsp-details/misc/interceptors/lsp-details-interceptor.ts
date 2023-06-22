@@ -10,7 +10,7 @@ export class LspDetailsInterceptor implements NestInterceptor {
         return {
           ...data,
           items: data.items.map((lsp) => {
-            return { ...lsp, trainingSource: lsp.trainingSource.name };
+            return { ...lsp, lspSource: lsp.lspSource.name };
           }),
         };
       })

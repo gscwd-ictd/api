@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 import { TrainingSource } from '../training-sources';
 import { TrainingType } from '../training-types';
 import { TrainingStatus } from '@gscwd-api/utils';
+import { LspDetails } from '../lsp-details';
 
 @Entity('trainings')
 export class Training extends DatabaseEntity implements IEntity {
@@ -17,8 +18,12 @@ export class Training extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'training_type_id_fk' })
   trainingType: TrainingType;
 
-  @Column({ name: 'lsp_name' })
-  lspName: string;
+  @ManyToOne(() => LspDetails, (lspDetails) => lspDetails.id, { nullable: false })
+  @JoinColumn({ name: 'lsp_details_id_fk' })
+  lspDetails: LspDetails;
+
+  @Column({ name: 'facilitator', length: 100, nullable: false })
+  facilitator: string;
 
   @Column({ name: 'location', length: 100 })
   location: string;
@@ -26,11 +31,11 @@ export class Training extends DatabaseEntity implements IEntity {
   @Column({ name: 'course_title', length: 100 })
   courseTitle: string;
 
-  @Column({ name: 'training_start' })
-  trainingStart: string;
+  @Column({ name: 'training_start', type: 'timestamp' })
+  trainingStart: Date;
 
-  @Column({ name: 'training_end' })
-  trainingEnd: string;
+  @Column({ name: 'training_end', type: 'timestamp' })
+  trainingEnd: Date;
 
   @Column({ name: 'number_of_hours' })
   numberOfHours: number;
@@ -38,10 +43,7 @@ export class Training extends DatabaseEntity implements IEntity {
   @Column({ name: 'course_content', type: 'jsonb', nullable: true })
   courseContent: string;
 
-  @Column({ name: 'nominee_qualifications', type: 'jsonb', nullable: true })
-  nomineeQualifications: string;
-
-  @Column({ name: 'deadline_for_submission' })
+  @Column({ name: 'deadline_for_submission', type: 'date' })
   deadlineForSubmission: Date;
 
   @Column({ name: 'invitation_url' })
