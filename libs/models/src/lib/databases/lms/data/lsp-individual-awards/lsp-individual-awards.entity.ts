@@ -4,7 +4,7 @@ import { LspDetails } from '../lsp-details';
 
 @Entity({ name: 'lsp_individual_awards' })
 export class LspIndividualAward extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'lsp_award_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'lsp_individual_award_id' })
   id: string;
 
   @ManyToOne(() => LspDetails, (lspDetails) => lspDetails.id, { nullable: false })

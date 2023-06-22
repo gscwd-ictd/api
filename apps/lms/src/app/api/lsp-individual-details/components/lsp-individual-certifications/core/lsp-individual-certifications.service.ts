@@ -1,18 +1,18 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateLspCertificationDto, LspCertification } from '@gscwd-api/models';
+import { CreateLspIndividualCertificationDto, LspIndividualCertification } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
-export class LspCertificationsService extends CrudHelper<LspCertification> {
-  constructor(private readonly crudService: CrudService<LspCertification>) {
+export class LspIndividualCertificationsService extends CrudHelper<LspIndividualCertification> {
+  constructor(private readonly crudService: CrudService<LspIndividualCertification>) {
     super(crudService);
   }
 
   //insert learning service provider certifications
-  async addCertifications(dto: CreateLspCertificationDto, entityManager: EntityManager) {
+  async addCertifications(dto: CreateLspIndividualCertificationDto, entityManager: EntityManager) {
     //transaction result
-    const result = await this.crudService.transact<LspCertification>(entityManager).create({
+    const result = await this.crudService.transact<LspIndividualCertification>(entityManager).create({
       dto: dto,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
@@ -27,7 +27,7 @@ export class LspCertificationsService extends CrudHelper<LspCertification> {
   //insert learning service provider certifications
   async deleteCertifications(lspDetailsId: string, entityManager: EntityManager) {
     //transaction result
-    const result = await this.crudService.transact<LspCertification>(entityManager).delete({
+    const result = await this.crudService.transact<LspIndividualCertification>(entityManager).delete({
       deleteBy: { lspDetails: { id: lspDetailsId } },
       softDelete: false,
       onError: ({ error }) => {

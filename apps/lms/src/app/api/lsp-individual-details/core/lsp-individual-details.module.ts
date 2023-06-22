@@ -4,7 +4,7 @@ import { LspIndividualAwardsModule } from '../components/lsp-individual-awards';
 import { LspEducationsModule } from '../components/lsp-educations';
 import { LspProjectsModule } from '../components/lsp-projects';
 import { LspTrainingsModule } from '../components/lsp-trainings';
-import { LspCertificationsModule } from '../components/lsp-certifications';
+import { LspIndividualCertificationsModule } from '../components/lsp-individual-certifications';
 import { LspCoachingsModule } from '../components/lsp-coachings';
 import { CrudModule } from '@gscwd-api/crud';
 import { LspDetails } from '@gscwd-api/models';
@@ -16,7 +16,7 @@ import { LspIndividualDetailsController } from './lsp-individual-details.control
     CrudModule.register(LspDetails),
     LspIndividualAffiliationsModule,
     LspIndividualAwardsModule,
-    LspCertificationsModule,
+    LspIndividualCertificationsModule,
     LspCoachingsModule,
     LspEducationsModule,
     LspProjectsModule,

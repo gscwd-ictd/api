@@ -4,7 +4,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
 import { LspIndividualAffiliationsService } from '../components/lsp-individual-affiliations';
 import { LspIndividualAwardsService } from '../components/lsp-individual-awards';
-import { LspCertificationsService } from '../components/lsp-certifications';
+import { LspIndividualCertificationsService } from '../components/lsp-individual-certifications';
 import { LspCoachingsService } from '../components/lsp-coachings';
 import { LspEducationsService } from '../components/lsp-educations';
 import { LspProjectsService } from '../components/lsp-projects';
@@ -16,7 +16,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspDetails> {
     private readonly crudService: CrudService<LspDetails>,
     private readonly lspIndividualAffiliationsService: LspIndividualAffiliationsService,
     private readonly lspIndividualAwardsService: LspIndividualAwardsService,
-    private readonly lspCertificationService: LspCertificationsService,
+    private readonly lspIndividualCertificationService: LspIndividualCertificationsService,
     private readonly lspCoachingsService: LspCoachingsService,
     private readonly lspEducationsService: LspEducationsService,
     private readonly lspProjectsService: LspProjectsService,
@@ -71,7 +71,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspDetails> {
         //insert learning service provider certification
         const lspCertifications = await Promise.all(
           certifications.map(async (certificationItem) => {
-            return await this.lspCertificationService.addCertifications(
+            return await this.lspIndividualCertificationService.addCertifications(
               {
                 lspDetails: lspDetails,
                 ...certificationItem,
@@ -164,7 +164,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspDetails> {
       });
       const affiliations = await this.lspIndividualAffiliationsService.crud().findAll({ find: { where: { lspDetails: { id: lspDetailsId } } } });
       const awards = await this.lspIndividualAwardsService.crud().findAll({ find: { where: { lspDetails: { id: lspDetailsId } } } });
-      const certifications = await this.lspCertificationService.crud().findAll({ find: { where: { lspDetails: { id: lspDetailsId } } } });
+      const certifications = await this.lspIndividualCertificationService.crud().findAll({ find: { where: { lspDetails: { id: lspDetailsId } } } });
       const coaching = await this.lspCoachingsService.crud().findAll({ find: { where: { lspDetails: { id: lspDetailsId } } } });
       const education = await this.lspEducationsService.crud().findAll({ find: { where: { lspDetails: { id: lspDetailsId } } } });
       const projects = await this.lspProjectsService.crud().findAll({ find: { where: { lspDetails: { id: lspDetailsId } } } });
@@ -235,7 +235,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspDetails> {
         //insert new affiliations
         const lspCertifications = await Promise.all(
           certifications.map(async (certificationItem) => {
-            return await this.lspCertificationService.addCertifications(
+            return await this.lspIndividualCertificationService.addCertifications(
               {
                 lspDetails: id,
                 ...certificationItem,
@@ -333,7 +333,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspDetails> {
 
     const awards = await this.lspIndividualAwardsService.deleteAwards(lspDetailsId, entityManager);
 
-    const certifications = await this.lspCertificationService.deleteCertifications(lspDetailsId, entityManager);
+    const certifications = await this.lspIndividualCertificationService.deleteCertifications(lspDetailsId, entityManager);
 
     const coaching = await this.lspCoachingsService.deleteCoachings(lspDetailsId, entityManager);
 
