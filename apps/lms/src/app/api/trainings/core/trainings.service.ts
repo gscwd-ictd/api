@@ -3,7 +3,7 @@ import { CreateTrainingDto, Training, UpdateTrainingDto } from '@gscwd-api/model
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { TrainingDistributionsService } from '../components/training-distributions';
-import { TrainingTagsService } from '../components/training-tags/core/training-tags.service';
+import { TrainingTagsService } from '../components/training-tags';
 
 @Injectable()
 export class TrainingsService extends CrudHelper<Training> {

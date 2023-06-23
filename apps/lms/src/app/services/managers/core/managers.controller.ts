@@ -5,10 +5,10 @@ import { ManagersService } from './managers.service';
 export class ManagersController {
   constructor(private readonly managerservice: ManagersService) {}
 
-  @Get(':id')
-  async findAll(@Param('id') id: string) {
-    return await this.managerservice.findAllManagersFromView(id);
-  }
+  // @Get(':id')
+  // async findAll(@Param('id') id: string) {
+  //   return await this.managerservice.findAllManagersFromView(id);
+  // }
 
   @Get('managers/q')
   async findAllManagers(
