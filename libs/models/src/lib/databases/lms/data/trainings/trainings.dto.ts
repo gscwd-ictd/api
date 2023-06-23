@@ -6,7 +6,7 @@ import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { PartialType } from '@nestjs/swagger';
 import { CreateTrainingDistributionDto } from '../training-distributions';
-import { LspDetails } from '../lsp-details';
+import { LspIndividualDetails } from '../lsp-individual-details';
 import { CreateTrainingTagDto } from '../training-tags';
 
 export class CreateTrainingDto {
@@ -17,7 +17,7 @@ export class CreateTrainingDto {
   trainingType: TrainingType;
 
   @IsUUID('4')
-  lspDetails: LspDetails;
+  lspIndividualDetails: LspIndividualDetails;
 
   @IsString({ message: 'training facilitator must be a string' })
   @Length(1, 100, { message: 'training facilitator must be between 1 to 100 characters' })

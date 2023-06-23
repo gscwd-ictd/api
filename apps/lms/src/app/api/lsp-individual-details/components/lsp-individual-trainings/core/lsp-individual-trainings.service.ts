@@ -1,18 +1,18 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateLspIndividualAffiliationDto, LspIndividualAffiliation } from '@gscwd-api/models';
+import { CreateLspIndividualTrainingDto, LspIndividualTraining } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
-export class LspIndividualAffiliationsService extends CrudHelper<LspIndividualAffiliation> {
-  constructor(private readonly crudService: CrudService<LspIndividualAffiliation>) {
+export class LspIndividualTrainingsService extends CrudHelper<LspIndividualTraining> {
+  constructor(private readonly crudService: CrudService<LspIndividualTraining>) {
     super(crudService);
   }
 
-  //insert learning service provider affiliations
-  async addAffiliations(dto: CreateLspIndividualAffiliationDto, entityManager: EntityManager) {
+  //insert learning service provider training
+  async addTrainings(dto: CreateLspIndividualTrainingDto, entityManager: EntityManager) {
     //transaction result
-    const result = await this.crudService.transact<LspIndividualAffiliation>(entityManager).create({
+    const result = await this.crudService.transact<LspIndividualTraining>(entityManager).create({
       dto: dto,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
@@ -24,16 +24,17 @@ export class LspIndividualAffiliationsService extends CrudHelper<LspIndividualAf
     return rest;
   }
 
-  //delete learning service provider affiliations
-  async deleteAffiliations(lspDetailsId: string, entityManager: EntityManager) {
+  //delete learning service provider training
+  async deleteTrainings(lspDetailsId: string, entityManager: EntityManager) {
     //transaction result
-    const result = await this.crudService.transact<LspIndividualAffiliation>(entityManager).delete({
+    const result = await this.crudService.transact<LspIndividualTraining>(entityManager).delete({
       deleteBy: { lspIndividualDetails: { id: lspDetailsId } },
       softDelete: false,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
+
     //return result
     return result;
   }

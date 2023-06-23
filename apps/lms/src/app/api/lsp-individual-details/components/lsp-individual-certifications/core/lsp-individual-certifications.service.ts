@@ -20,7 +20,7 @@ export class LspIndividualCertificationsService extends CrudHelper<LspIndividual
     });
 
     //deconstruct and return result
-    const { lspDetails, ...rest } = result;
+    const { lspIndividualDetails, ...rest } = result;
     return rest;
   }
 
@@ -28,7 +28,7 @@ export class LspIndividualCertificationsService extends CrudHelper<LspIndividual
   async deleteCertifications(lspDetailsId: string, entityManager: EntityManager) {
     //transaction result
     const result = await this.crudService.transact<LspIndividualCertification>(entityManager).delete({
-      deleteBy: { lspDetails: { id: lspDetailsId } },
+      deleteBy: { lspIndividualDetails: { id: lspDetailsId } },
       softDelete: false,
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });

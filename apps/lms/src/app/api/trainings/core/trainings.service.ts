@@ -82,7 +82,7 @@ export class TrainingsService extends CrudHelper<Training> {
       //find training details by training id and deconstruct
       const { courseContent, ...rest } = await this.crudService.findOne({
         find: {
-          relations: { lspDetails: true, trainingSource: true, trainingType: true },
+          relations: { lspIndividualDetails: true, trainingSource: true, trainingType: true },
           select: {
             createdAt: true,
             updatedAt: true,
@@ -104,7 +104,7 @@ export class TrainingsService extends CrudHelper<Training> {
             trainingType: {
               name: true,
             },
-            lspDetails: {
+            lspIndividualDetails: {
               employeeId: true,
               firstName: true,
               middleName: true,

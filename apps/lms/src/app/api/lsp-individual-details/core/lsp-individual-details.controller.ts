@@ -1,4 +1,4 @@
-import { CreateLspDetailsDto, LspDetails, UpdateLspDetailsDto } from '@gscwd-api/models';
+import { CreateLspIndividualDetailsDto, LspIndividualDetails, UpdateLspIndividualDetailsDto } from '@gscwd-api/models';
 import {
   Body,
   Controller,
@@ -18,13 +18,13 @@ import { LspIndividualDetailsService } from './lsp-individual-details.service';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { LspDetailsInterceptor } from '../misc/interceptors/lsp-details-interceptor';
 
-@Controller({ version: '1', path: 'lsp-details' })
+@Controller({ version: '1', path: 'lsp-individual-details' })
 export class LspIndividualDetailsController {
   constructor(private readonly lspIndividualDetailsService: LspIndividualDetailsService) {}
 
   //insert learning service provider
   @Post()
-  async create(@Body() data: CreateLspDetailsDto) {
+  async create(@Body() data: CreateLspIndividualDetailsDto) {
     return await this.lspIndividualDetailsService.addLspDetails(data);
   }
 
@@ -34,7 +34,7 @@ export class LspIndividualDetailsController {
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<LspDetails> | LspDetails[]> {
+  ): Promise<Pagination<LspIndividualDetails> | LspIndividualDetails[]> {
     return await this.lspIndividualDetailsService.crud().findAll({
       find: {
         relations: { lspSource: true },
@@ -57,7 +57,7 @@ export class LspIndividualDetailsController {
 
   //update learning service provider by id
   @Put()
-  async update(@Body() data: UpdateLspDetailsDto): Promise<UpdateResult> {
+  async update(@Body() data: UpdateLspIndividualDetailsDto): Promise<UpdateResult> {
     return this.lspIndividualDetailsService.updateLspDetailsById(data);
   }
 
