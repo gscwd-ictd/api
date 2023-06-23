@@ -3,7 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 import { TrainingSource } from '../training-sources';
 import { TrainingType } from '../training-types';
 import { TrainingStatus } from '@gscwd-api/utils';
-import { LspDetails } from '../lsp-details';
+import { LspIndividualDetails } from '../lsp-individual-details';
 
 @Entity('trainings')
 export class Training extends DatabaseEntity implements IEntity {
@@ -18,9 +18,9 @@ export class Training extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'training_type_id_fk' })
   trainingType: TrainingType;
 
-  @ManyToOne(() => LspDetails, (lspDetails) => lspDetails.id, { nullable: false })
+  @ManyToOne(() => LspIndividualDetails, (lspIndividualDetails) => lspIndividualDetails.id, { nullable: false })
   @JoinColumn({ name: 'lsp_details_id_fk' })
-  lspDetails: LspDetails;
+  lspIndividualDetails: LspIndividualDetails;
 
   @Column({ name: 'facilitator', length: 100, nullable: false })
   facilitator: string;

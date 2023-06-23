@@ -37,13 +37,13 @@ export class TrainingsController {
   ): Promise<Pagination<Training> | Training[]> {
     return await this.trainingsService.crud().findAll({
       find: {
-        relations: { trainingSource: true, lspDetails: true },
+        relations: { trainingSource: true, lspIndividualDetails: true },
         select: {
           createdAt: true,
           updatedAt: true,
           deletedAt: true,
           id: true,
-          lspDetails: {
+          lspIndividualDetails: {
             employeeId: true,
             firstName: true,
             middleName: true,

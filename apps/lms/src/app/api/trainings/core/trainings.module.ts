@@ -5,7 +5,7 @@ import { TrainingsService } from './trainings.service';
 import { TrainingsController } from './trainings.controller';
 import { TrainingDistributionsModule } from '../components/training-distributions';
 import { TrainingNomineesModule } from '../components/training-nominees';
-import { TrainingTagsModule } from '../components/training-tags/core/training-tags.module';
+import { TrainingTagsModule } from '../components/training-tags';
 
 @Module({
   imports: [CrudModule.register(Training), TrainingDistributionsModule, TrainingNomineesModule, TrainingTagsModule],

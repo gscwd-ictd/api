@@ -3,7 +3,7 @@ import { CreateTrainingDto, Training, UpdateTrainingDto } from '@gscwd-api/model
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { TrainingDistributionsService } from '../components/training-distributions';
-import { TrainingTagsService } from '../components/training-tags/core/training-tags.service';
+import { TrainingTagsService } from '../components/training-tags';
 
 @Injectable()
 export class TrainingsService extends CrudHelper<Training> {
@@ -82,7 +82,7 @@ export class TrainingsService extends CrudHelper<Training> {
       //find training details by training id and deconstruct
       const { courseContent, ...rest } = await this.crudService.findOne({
         find: {
-          relations: { lspDetails: true, trainingSource: true, trainingType: true },
+          relations: { lspIndividualDetails: true, trainingSource: true, trainingType: true },
           select: {
             createdAt: true,
             updatedAt: true,
@@ -104,7 +104,7 @@ export class TrainingsService extends CrudHelper<Training> {
             trainingType: {
               name: true,
             },
-            lspDetails: {
+            lspIndividualDetails: {
               employeeId: true,
               firstName: true,
               middleName: true,
@@ -118,7 +118,7 @@ export class TrainingsService extends CrudHelper<Training> {
       //get all training tags by training id
       const tag = await this.trainingTagsService
         .crud()
-        .findAll({ find: { relations: { tag: true }, select: { id: true, tag: { description: true } }, where: { training: { id: trainingId } } } });
+        .findAll({ find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { training: { id: trainingId } } } });
 
       //return result and parse course content and nominee qualifications
       return {
