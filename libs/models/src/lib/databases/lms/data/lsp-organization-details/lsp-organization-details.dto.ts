@@ -7,6 +7,7 @@ import { CreateLspOrganizationAffiliationDto } from '../lsp-organization-affilia
 import { CreateLspOrganizationAwardDto } from '../lsp-organization-awards';
 import { CreateLspOrganizationCertificationDto } from '../lsp-organization-certifications';
 import { CreateLspOrganizationCoachingDto } from '../lsp-organization-coachings';
+import { CreateLspOrganizationEducationDto } from '../lsp-organization-educations';
 
 export class CreateLspOrganizationDetailsDto {
   @IsString({ message: 'lsp organization details first name must be a string' })
@@ -60,8 +61,8 @@ export class CreateLspOrganizationDetailsDto {
   @IsArray()
   coaching: CreateLspOrganizationCoachingDto[];
 
-  //   @IsArray()
-  //   education: CreateLspIndividualEducationDto[];
+  @IsArray()
+  education: CreateLspOrganizationEducationDto[];
 
   //   @IsArray()
   //   projects: CreateLspIndividualProjectDto[];

@@ -20,6 +20,7 @@ import {
   LspOrganizationAward,
   LspOrganizationCertification,
   LspOrganizationCoaching,
+  LspOrganizationEducation,
 } from '@gscwd-api/models';
 
 export const DB_ENTITIES = [
@@ -40,6 +41,7 @@ export const DB_ENTITIES = [
   LspOrganizationAward,
   LspOrganizationCertification,
   LspOrganizationCoaching,
+  LspOrganizationEducation,
 
   Tag,
 

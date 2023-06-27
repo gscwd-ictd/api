@@ -6,6 +6,7 @@ import { LspOrganizationAffiliationsService } from '../components/lsp-organizati
 import { LspOrganizationAwardsService } from '../components/lsp-organization-awards';
 import { LspOrganizationCertificationsService } from '../components/lsp-organization-certifications';
 import { LspOrganizationCoachingsService } from '../components/lsp-organization-coachings';
+import { LspOrganizationEducationsService } from '../components/lsp-organization-educations';
 
 @Injectable()
 export class LspOrganizationDetailsService extends CrudHelper<LspOrganizationDetails> {
@@ -15,6 +16,7 @@ export class LspOrganizationDetailsService extends CrudHelper<LspOrganizationDet
     private readonly lspOrganizationAwardsService: LspOrganizationAwardsService,
     private readonly lspOrganizationCertificationsService: LspOrganizationCertificationsService,
     private readonly lspOrganizationCoachingsService: LspOrganizationCoachingsService,
+    private readonly lspOrganizationEducationsService: LspOrganizationEducationsService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -26,9 +28,9 @@ export class LspOrganizationDetailsService extends CrudHelper<LspOrganizationDet
       //transaction result
       const result = await this.datasource.transaction(async (entityManager) => {
         //deconstruct dto
-        const { expertise, affiliations, awards, certifications, coaching, ...rest } = dto;
+        const { expertise, affiliations, awards, certifications, coaching, education, ...rest } = dto;
 
-        //  education, projects, trainings,
+        // projects, trainings,
 
         //insert learning service provider organization details
         const lspDetails = await this.crudService.transact<LspOrganizationDetails>(entityManager).create({
@@ -90,18 +92,18 @@ export class LspOrganizationDetailsService extends CrudHelper<LspOrganizationDet
           })
         );
 
-        // //insert learning service provider education
-        // const lspEducation = await Promise.all(
-        //   education.map(async (educationItem) => {
-        //     return await this.lspIndividualEducationsService.addEducations(
-        //       {
-        //         lspIndividualDetails: lspDetails,
-        //         ...educationItem,
-        //       },
-        //       entityManager
-        //     );
-        //   })
-        // );
+        //insert learning service provider organization education
+        const lspEducation = await Promise.all(
+          education.map(async (educationItem) => {
+            return await this.lspOrganizationEducationsService.addEducations(
+              {
+                lspOrganizationDetails: lspDetails,
+                ...educationItem,
+              },
+              entityManager
+            );
+          })
+        );
 
         // //insert learning service provider project
         // const lspProjects = await Promise.all(

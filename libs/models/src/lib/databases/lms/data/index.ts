@@ -17,6 +17,7 @@ export * from './lsp-organization-affiliations';
 export * from './lsp-organization-awards';
 export * from './lsp-organization-certifications';
 export * from './lsp-organization-coachings';
+export * from './lsp-organization-educations';
 
 //tags
 export * from './tags';
