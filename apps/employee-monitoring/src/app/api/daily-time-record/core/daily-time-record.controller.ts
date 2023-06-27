@@ -22,12 +22,6 @@ export class DailyTimeRecordController {
     return await this.dailyTimeRecordService.getDtrByCompanyIdAndDay({ companyId, date });
   }
 
-  @Get(':company_id')
-  async getDtrByCompanyId(@Param('company_id') companyId: string, @Query('date_from') dateFrom: Date, @Query('date_to') dateTo: Date) {
-    const dtrPayload: DtrPayload = { dateFrom, dateTo };
-    return await this.dailyTimeRecordService.getDtrByCompanyId(companyId, dtrPayload);
-  }
-
   @Patch()
   async updateEmployeeDTR(@Body() dailyTimeRecordDto: UpdateDailyTimeRecordDto) {
     return await this.dailyTimeRecordService.updateEmployeeDTR(dailyTimeRecordDto);
