@@ -6,6 +6,9 @@ export class TrainingType extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_type_id' })
   id: string;
 
-  @Column({ unique: true, length: 50 })
+  @Column({ name: 'name', unique: true, length: 60 })
   name: string;
+
+  @Column({ name: 'description', unique: true, length: 100, nullable: true })
+  description: string;
 }

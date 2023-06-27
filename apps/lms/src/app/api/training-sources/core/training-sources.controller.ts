@@ -42,6 +42,12 @@ export class TrainingSourcesController implements ICrudRoutes {
     });
   }
 
+  @Get('q')
+  async findIdByName(@Query('source') source: string): Promise<TrainingSource> {
+    const capitalized = source.charAt(0).toUpperCase() + source.slice(1);
+    return await this.trainingSourcesService.crud().findOneBy({ findBy: { name: capitalized } });
+  }
+
   @Get(':id')
   async findById(@Param('id') id: string): Promise<TrainingSource> {
     return this.trainingSourcesService.crud().findOneBy({
@@ -63,6 +69,7 @@ export class TrainingSourcesController implements ICrudRoutes {
   async delete(@Param('id') id: string): Promise<DeleteResult> {
     return this.trainingSourcesService.crud().delete({
       deleteBy: { id },
+      softDelete: false,
       onError: () => new BadRequestException(),
     });
   }

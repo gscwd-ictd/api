@@ -2,16 +2,24 @@ export * from './training-sources';
 export * from './training-types';
 
 //learning service providers
-export * from './lsp-affiliations';
-export * from './lsp-awards';
-export * from './lsp-certifications';
-export * from './lsp-coachings';
-export * from './lsp-details';
-export * from './lsp-educations';
-export * from './lsp-experiences';
-export * from './lsp-projects';
-export * from './lsp-trainings';
+export * from './lsp-sources';
+export * from './lsp-individual-affiliations';
+export * from './lsp-individual-awards';
+export * from './lsp-individual-certifications';
+export * from './lsp-individual-coachings';
+export * from './lsp-individual-details';
+export * from './lsp-individual-educations';
+export * from './lsp-individual-projects';
+export * from './lsp-individual-trainings';
 export * from './subject-matter-experts';
 
-export * from './venue-details';
-export * from './venue-facilities';
+//tags
+export * from './tags';
+export * from './training-tags';
+
+//trainings
+export * from './trainings';
+export * from './training-distributions';
+export * from './training-nominees';
+export * from './course-contents';
+export * from './nominee-qualifications';
