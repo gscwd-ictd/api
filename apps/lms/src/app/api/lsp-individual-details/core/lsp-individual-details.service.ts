@@ -55,7 +55,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
           })
         );
 
-        //insert learning service provider details
+        //insert learning service provider awards
         const lspAwards = await Promise.all(
           awards.map(async (awardItem) => {
             return await this.lspIndividualAwardsService.addAwards(

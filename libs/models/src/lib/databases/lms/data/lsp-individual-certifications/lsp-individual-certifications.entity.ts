@@ -7,7 +7,7 @@ export class LspIndividualCertification extends DatabaseEntity implements IEntit
   @PrimaryGeneratedColumn('uuid', { name: 'lsp_individual_certification_id' })
   id: string;
 
-  @ManyToOne(() => LspIndividualDetails, (lspDetails) => lspDetails.id, { nullable: false })
+  @ManyToOne(() => LspIndividualDetails, (lspIndividualDetails) => lspIndividualDetails.id, { nullable: false })
   @JoinColumn({ name: 'lsp_individual_details_id_fk' })
   lspIndividualDetails: LspIndividualDetails;
 

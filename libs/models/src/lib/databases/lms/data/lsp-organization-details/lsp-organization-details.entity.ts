@@ -2,22 +2,13 @@ import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { LspSource } from '../lsp-sources';
 
-@Entity('lsp_individual_details')
-export class LspIndividualDetails extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'lsp_individual_details_id' })
+@Entity('lsp_organization_details')
+export class LspOrganizationDetails extends DatabaseEntity implements IEntity {
+  @PrimaryGeneratedColumn('uuid', { name: 'lsp_organization_details_id' })
   id: string;
 
-  @Column({ name: 'employee_id_fk', nullable: true })
-  employeeId: string;
-
-  @Column({ name: 'first_name', length: 100 })
-  firstName: string;
-
-  @Column({ name: 'middle_name', length: 100 })
-  middleName: string;
-
-  @Column({ name: 'last_name', length: 100 })
-  lastName: string;
+  @Column({ name: 'full_name', length: 200 })
+  fullName: string;
 
   @Column({ name: 'contact_number', type: 'varchar', nullable: true })
   contactNumber: string;
