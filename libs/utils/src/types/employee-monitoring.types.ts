@@ -58,7 +58,6 @@ export enum HolidayType {
 
 export enum ScheduleType {
   REGULAR = 'regular',
-  //PUMPING_STATION = 'pumping station',
   FLEXIBLE = 'flexible',
 }
 

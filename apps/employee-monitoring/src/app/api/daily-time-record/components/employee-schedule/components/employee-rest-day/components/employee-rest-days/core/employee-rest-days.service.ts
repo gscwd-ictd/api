@@ -21,7 +21,7 @@ export class EmployeeRestDaysService extends CrudHelper<EmployeeRestDays> {
         return rest;
       })
     );
-    const {} = employeeRestDaysResult;
+    //const { } = employeeRestDaysResult;
     return employeeRestDaysResult;
   }
 }

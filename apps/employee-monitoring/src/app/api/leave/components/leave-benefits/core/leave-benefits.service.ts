@@ -42,4 +42,10 @@ export class LeaveBenefitsService extends CrudHelper<LeaveBenefits> {
       },
     });
   }
+
+  async deleteLeaveBenefit(leaveBenefitId: string) {
+    const leaveBenefit = await this.crud().findOne({ find: { where: { id: leaveBenefitId } } });
+    const deleteResult = await this.crud().delete({ deleteBy: { id: leaveBenefitId } });
+    if (deleteResult.affected > 0) return leaveBenefit;
+  }
 }

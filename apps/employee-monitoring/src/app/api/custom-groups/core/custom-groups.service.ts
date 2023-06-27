@@ -1,6 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateCustomGroupMembersDto, CreateCustomGroupsDto, CustomGroups, UpdateCustomGroupsDto } from '@gscwd-api/models';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { EmployeeRestDaysService } from '../../daily-time-record/components/employee-schedule/components/employee-rest-day/components/employee-rest-days/core/employee-rest-days.service';
 import { ScheduleSheetService } from '../../daily-time-record/components/schedule-sheet/core/schedule-sheet.service';
 import { CustomGroupMembersService } from '../components/custom-group-members/core/custom-group-members.service';
 
@@ -9,7 +10,8 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
   constructor(
     private readonly crudService: CrudService<CustomGroups>,
     private readonly customGroupMembersService: CustomGroupMembersService,
-    private readonly scheduleSheetService: ScheduleSheetService
+    private readonly scheduleSheetService: ScheduleSheetService,
+    private readonly employeeRestDaysService: EmployeeRestDaysService
   ) {
     super(crudService);
   }
@@ -81,8 +83,39 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
   async getCustomGroupDetails(customGroupId: string) {
     const customGroupDetails = await this.crudService.findOneOrNull({ find: { where: { id: customGroupId } } });
     try {
-      const members = await this.getCustomGroupAssignedMembers(customGroupId);
-      return { customGroupDetails, members };
+      const members = (await this.getCustomGroupAssignedMembers(customGroupId)) as {
+        employeeId: string;
+        companyId: string;
+        fullName: string;
+        positionTitle: string;
+        assignment: string;
+      }[];
+
+      const membersWithRestdays = await Promise.all(
+        members.map(async (member) => {
+          const restDays = (await this.rawQuery(
+            `
+          SELECT rest_day restDay, date_from dateFrom
+          FROM employee_rest_days emrs 
+          INNER JOIN employee_rest_day emr ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk
+          WHERE emr.employee_id_fk = ? 
+          AND date_from = (SELECT date_from FROM employee_rest_day WHERE employee_id_fk=? 
+          ORDER BY date_from ASC LIMIT 1) GROUP BY dateFrom, restDay ORDER BY date_from ASC,rest_day ASC;
+          `,
+            [member.employeeId, member.employeeId]
+          )) as {
+            restDay: string;
+          }[];
+          const modifiedRestdays = await Promise.all(
+            restDays.map(async (restDay) => {
+              return parseInt(restDay.restDay);
+            })
+          );
+          return { ...member, restDays: modifiedRestdays };
+        })
+      );
+
+      return { customGroupDetails, members: membersWithRestdays };
     } catch {
       return { customGroupDetails, members: [] };
     }

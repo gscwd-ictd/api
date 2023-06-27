@@ -27,4 +27,10 @@ export class PassSlip extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'is_cancelled', type: 'boolean' })
   isCancelled: boolean;
+
+  @Column({ name: 'time_out', type: 'time', nullable: true })
+  timeOut: number;
+
+  @Column({ name: 'time_in', type: 'time', nullable: true })
+  timeIn: number;
 }
