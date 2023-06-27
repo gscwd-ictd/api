@@ -1,18 +1,12 @@
 import { PartialType } from '@nestjs/swagger';
 import { ArrayNotEmpty, IsArray, IsNumber, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
-// import { CreateLspIndividualAffiliationDto } from '../lsp-individual-affiliations';
-// import { CreateLspIndividualAwardDto } from '../lsp-individual-awards';
-// import { CreateLspIndividualCertificationDto } from '../lsp-individual-certifications';
-// import { CreateLspIndividualCoachingDto } from '../lsp-individual-coachings';
-// import { CreateLspIndividualEducationDto } from '../lsp-individual-educations';
-// import { CreateLspIndividualProjectDto } from '../lsp-individual-projects';
-// import { CreateLspIndividualTrainingDto } from '../lsp-individual-trainings';
 import { LspSubjectDto } from '../subject-matter-experts';
 import { Type } from 'class-transformer';
 import { LspSource } from '../lsp-sources';
 import { CreateLspOrganizationAffiliationDto } from '../lsp-organization-affiliations';
 import { CreateLspOrganizationAwardDto } from '../lsp-organization-awards';
 import { CreateLspOrganizationCertificationDto } from '../lsp-organization-certifications';
+import { CreateLspOrganizationCoachingDto } from '../lsp-organization-coachings';
 
 export class CreateLspOrganizationDetailsDto {
   @IsString({ message: 'lsp organization details first name must be a string' })
@@ -63,8 +57,8 @@ export class CreateLspOrganizationDetailsDto {
   @IsArray()
   certifications: CreateLspOrganizationCertificationDto[];
 
-  //   @IsArray()
-  //   coaching: CreateLspIndividualCoachingDto[];
+  @IsArray()
+  coaching: CreateLspOrganizationCoachingDto[];
 
   //   @IsArray()
   //   education: CreateLspIndividualEducationDto[];

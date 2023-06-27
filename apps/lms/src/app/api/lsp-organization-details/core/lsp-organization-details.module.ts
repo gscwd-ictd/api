@@ -6,6 +6,7 @@ import { LspOrganizationDetailsController } from './lsp-organization-details.con
 import { LspOrganizationAffiliationsModule } from '../components/lsp-organization-affiliations';
 import { LspOrganizationAwardsModule } from '../components/lsp-organization-awards';
 import { LspOrganizationCertificationsModule } from '../components/lsp-organization-certifications';
+import { LspOrganizationCoachingsModule } from '../components/lsp-organization-coachings';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { LspOrganizationCertificationsModule } from '../components/lsp-organizat
     LspOrganizationAffiliationsModule,
     LspOrganizationAwardsModule,
     LspOrganizationCertificationsModule,
+    LspOrganizationCoachingsModule,
   ],
   controllers: [LspOrganizationDetailsController],
   providers: [LspOrganizationDetailsService],

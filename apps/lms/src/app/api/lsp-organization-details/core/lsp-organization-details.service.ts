@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import { LspOrganizationAffiliationsService } from '../components/lsp-organization-affiliations';
 import { LspOrganizationAwardsService } from '../components/lsp-organization-awards';
 import { LspOrganizationCertificationsService } from '../components/lsp-organization-certifications';
+import { LspOrganizationCoachingsService } from '../components/lsp-organization-coachings';
 
 @Injectable()
 export class LspOrganizationDetailsService extends CrudHelper<LspOrganizationDetails> {
@@ -13,6 +14,7 @@ export class LspOrganizationDetailsService extends CrudHelper<LspOrganizationDet
     private readonly lspOrganizationAffiliationsService: LspOrganizationAffiliationsService,
     private readonly lspOrganizationAwardsService: LspOrganizationAwardsService,
     private readonly lspOrganizationCertificationsService: LspOrganizationCertificationsService,
+    private readonly lspOrganizationCoachingsService: LspOrganizationCoachingsService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -24,9 +26,9 @@ export class LspOrganizationDetailsService extends CrudHelper<LspOrganizationDet
       //transaction result
       const result = await this.datasource.transaction(async (entityManager) => {
         //deconstruct dto
-        const { expertise, affiliations, awards, certifications, ...rest } = dto;
+        const { expertise, affiliations, awards, certifications, coaching, ...rest } = dto;
 
-        // coaching, education, projects, trainings,
+        //  education, projects, trainings,
 
         //insert learning service provider organization details
         const lspDetails = await this.crudService.transact<LspOrganizationDetails>(entityManager).create({
@@ -75,18 +77,18 @@ export class LspOrganizationDetailsService extends CrudHelper<LspOrganizationDet
           })
         );
 
-        // //insert learning service provider coaching
-        // const lspCoaching = await Promise.all(
-        //   coaching.map(async (coachingItem) => {
-        //     return await this.lspIndividualCoachingsService.addCoachings(
-        //       {
-        //         lspIndividualDetails: lspDetails,
-        //         ...coachingItem,
-        //       },
-        //       entityManager
-        //     );
-        //   })
-        // );
+        //insert learning service provider organization coaching
+        const lspCoaching = await Promise.all(
+          coaching.map(async (coachingItem) => {
+            return await this.lspOrganizationCoachingsService.addCoachings(
+              {
+                lspOrganizationDetails: lspDetails,
+                ...coachingItem,
+              },
+              entityManager
+            );
+          })
+        );
 
         // //insert learning service provider education
         // const lspEducation = await Promise.all(

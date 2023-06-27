@@ -6,8 +6,8 @@ export class CreateLspIndividualCoachingDto {
   @IsUUID('4')
   lspIndividualDetails: LspIndividualDetails;
 
-  @IsString({ message: 'lsp coaching name must be a string' })
-  @Length(1, 100, { message: 'lsp coaching name must be between 1 to 100 characters' })
+  @IsString({ message: 'lsp individual coaching name must be a string' })
+  @Length(1, 100, { message: 'lsp individual coaching name must be between 1 to 100 characters' })
   name: string;
 }
 
