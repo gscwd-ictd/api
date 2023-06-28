@@ -1,14 +1,14 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsString, IsUUID, Length } from 'class-validator';
-import { LspIndividualDetails } from '../lsp-individual-details';
+import { LspOrganizationDetails } from '../lsp-organization-details';
 
-export class CreateLspIndividualProjectDto {
+export class CreateLspOrganizationProjectDto {
   @IsUUID('4')
-  lspIndividualDetails: LspIndividualDetails;
+  lspOrganizationDetails: LspOrganizationDetails;
 
   @IsString({ message: 'lsp organization project name must be a string' })
   @Length(1, 100, { message: 'lsp organization project name must be between 1 to 100 characters' })
   name: string;
 }
 
-export class UpdateLspIndividualProjectDto extends PartialType(CreateLspIndividualProjectDto) {}
+export class UpdateLspOrganizationProjectDto extends PartialType(CreateLspOrganizationProjectDto) {}

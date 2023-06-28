@@ -8,6 +8,8 @@ import { CreateLspOrganizationAwardDto } from '../lsp-organization-awards';
 import { CreateLspOrganizationCertificationDto } from '../lsp-organization-certifications';
 import { CreateLspOrganizationCoachingDto } from '../lsp-organization-coachings';
 import { CreateLspOrganizationEducationDto } from '../lsp-organization-educations';
+import { CreateLspOrganizationProjectDto } from '../lsp-organization-projects';
+import { CreateLspOrganizationTrainingDto } from '../lsp-organization-trainings';
 
 export class CreateLspOrganizationDetailsDto {
   @IsString({ message: 'lsp organization details first name must be a string' })
@@ -64,11 +66,11 @@ export class CreateLspOrganizationDetailsDto {
   @IsArray()
   education: CreateLspOrganizationEducationDto[];
 
-  //   @IsArray()
-  //   projects: CreateLspIndividualProjectDto[];
+  @IsArray()
+  projects: CreateLspOrganizationProjectDto[];
 
-  //   @IsArray()
-  //   trainings: CreateLspIndividualTrainingDto[];
+  @IsArray()
+  trainings: CreateLspOrganizationTrainingDto[];
 }
 
 export class UpdateLspOrganizationDetailsDto extends PartialType(CreateLspOrganizationDetailsDto) {

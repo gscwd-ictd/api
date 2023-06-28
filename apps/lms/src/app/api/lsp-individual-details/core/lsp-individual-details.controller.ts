@@ -16,7 +16,7 @@ import {
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { LspIndividualDetailsService } from './lsp-individual-details.service';
 import { DeleteResult, UpdateResult } from 'typeorm';
-import { LspDetailsInterceptor } from '../misc/interceptors/lsp-details-interceptor';
+import { LspIndividualDetailsInterceptor } from '../misc/interceptors/lsp-individual-details.interceptor';
 
 @Controller({ version: '1', path: 'lsp-individual-details' })
 export class LspIndividualDetailsController {
@@ -29,7 +29,7 @@ export class LspIndividualDetailsController {
   }
 
   //find all learning service provider
-  @UseInterceptors(LspDetailsInterceptor)
+  @UseInterceptors(LspIndividualDetailsInterceptor)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
