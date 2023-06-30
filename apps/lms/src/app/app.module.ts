@@ -10,6 +10,7 @@ import { ManagersModule } from './services/managers';
 import { EmployeesModule } from './services/employees';
 import { LspSourcesModule } from './api/lsp-sources';
 import { TagsModule } from './api/tags';
+import { LspOrganizationDetailsModule } from './api/lsp-organization-details';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TagsModule } from './api/tags';
     //lsp
     LspSourcesModule,
     LspIndividualDetailsModule,
+    LspOrganizationDetailsModule,
 
     //trainings
     TrainingsModule,

@@ -4,7 +4,7 @@ import { LspSource } from '../lsp-sources';
 
 @Entity('lsp_individual_details')
 export class LspIndividualDetails extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'lsp_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'lsp_individual_details_id' })
   id: string;
 
   @Column({ name: 'employee_id_fk', nullable: true })
