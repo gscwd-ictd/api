@@ -1,11 +1,11 @@
 import { IsArray, IsEnum, IsString, IsUUID } from 'class-validator';
-import { TrainingIndividualDistribution } from '../training-individual-distributions';
+import { TrainingDistribution } from '../training-distributions';
 import { PartialType } from '@nestjs/swagger';
 import { TrainingNomineeStatus } from '@gscwd-api/utils';
 
-export class CreateTrainingIndividualNomineeDto {
+export class CreateTrainingNomineeDto {
   @IsUUID('4')
-  trainingIndividualDistribution: TrainingIndividualDistribution;
+  trainingDistribution: TrainingDistribution;
 
   @IsArray()
   employee: string[];
@@ -14,7 +14,7 @@ export class CreateTrainingIndividualNomineeDto {
   remarks: string;
 }
 
-export class UpdateTrainingIndividualNomineeDto extends PartialType(CreateTrainingIndividualNomineeDto) {
+export class UpdateTrainingNomineeDto extends PartialType(CreateTrainingNomineeDto) {
   @IsUUID('4')
   id: string;
 

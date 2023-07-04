@@ -1,6 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Get, InternalServerErrorException, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { TrainingOrganizationDetailsService } from './training-organization-details.service';
-import { CreateTrainingOrganizationDetailsDto } from '@gscwd-api/models';
+import { CreateTrainingOrganizationDetailsDto, TrainingOrganizationDetails } from '@gscwd-api/models';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Controller({ version: '1', path: 'training-organization-details' })
 export class TrainingOrganizationDetailsController {
@@ -15,44 +16,41 @@ export class TrainingOrganizationDetailsController {
   }
 
   //get method to get all trainings relate to training sources
-  //   @Get()
-  //   async findAll(
-  //     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  //     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  //   ): Promise<Pagination<TrainingIndividualDetails> | TrainingIndividualDetails[]> {
-  //     return await this.trainingIndividualDetailsService.crud().findAll({
-  //       find: {
-  //         relations: { trainingSource: true, lspIndividualDetails: true },
-  //         select: {
-  //           createdAt: true,
-  //           updatedAt: true,
-  //           deletedAt: true,
-  //           id: true,
-  //           lspIndividualDetails: {
-  //             employeeId: true,
-  //             firstName: true,
-  //             middleName: true,
-  //             lastName: true,
-  //           },
-  //           location: true,
-  //           courseTitle: true,
-  //           trainingStart: true,
-  //           trainingEnd: true,
-  //           numberOfHours: true,
-  //           deadlineForSubmission: true,
-  //           invitationUrl: true,
-  //           numberOfParticipants: true,
-  //           status: true,
-  //           trainingSource: {
-  //             id: true,
-  //             name: true,
-  //           },
-  //         },
-  //       },
-  //       pagination: { page, limit },
-  //       onError: () => new InternalServerErrorException(),
-  //     });
-  //   }
+  @Get()
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<TrainingOrganizationDetails> | TrainingOrganizationDetails[]> {
+    return await this.trainingOrganizationDetailsService.crud().findAll({
+      find: {
+        relations: { trainingSource: true, lspOrganizationDetails: true },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          lspOrganizationDetails: {
+            fullName: true,
+          },
+          location: true,
+          courseTitle: true,
+          trainingStart: true,
+          trainingEnd: true,
+          numberOfHours: true,
+          deadlineForSubmission: true,
+          invitationUrl: true,
+          numberOfParticipants: true,
+          status: true,
+          trainingSource: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
 
   //get training details by training id
   //   @Get(':id')

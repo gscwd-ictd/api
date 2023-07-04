@@ -1,15 +1,16 @@
 import { TrainingStatus } from '@gscwd-api/utils';
 import { TrainingSource } from '../training-sources';
 import { TrainingType } from '../training-types';
-import { IsArray, IsDateString, IsEnum, IsInt, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsInt, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { PartialType } from '@nestjs/swagger';
-import { CreateTrainingIndividualDistributionDto } from '../training-individual-distributions';
+import { CreateTrainingDistributionDto } from '../training-distributions';
 import { LspIndividualDetails } from '../lsp-individual-details';
-import { CreateTrainingIndividualTagDto } from '../training-individual-tags';
+import { CreateTrainingTagDto } from '../training-tags';
+import { LspOrganizationDetails } from '../lsp-organization-details';
 
-export class CreateTrainingIndividualDetailsDto {
+export class CreateTrainingDetailsDto {
   @IsUUID('4')
   trainingSource: TrainingSource;
 
@@ -17,7 +18,12 @@ export class CreateTrainingIndividualDetailsDto {
   trainingType: TrainingType;
 
   @IsUUID('4')
+  @IsOptional()
   lspIndividualDetails: LspIndividualDetails;
+
+  @IsUUID('4')
+  @IsOptional()
+  lspOrganizationDetails: LspOrganizationDetails;
 
   @IsString({ message: 'training facilitator must be a string' })
   @Length(1, 100, { message: 'training facilitator must be between 1 to 100 characters' })
@@ -47,8 +53,8 @@ export class CreateTrainingIndividualDetailsDto {
 
   @ValidateNested({ each: true })
   @IsArray()
-  @Type(() => CreateTrainingIndividualTagDto)
-  nomineeQualifications: CreateTrainingIndividualTagDto[];
+  @Type(() => CreateTrainingTagDto)
+  nomineeQualifications: CreateTrainingTagDto[];
 
   @IsString({ message: 'training deadline for submission must be valid date' })
   deadlineForSubmission: Date;
@@ -61,11 +67,11 @@ export class CreateTrainingIndividualDetailsDto {
 
   @ValidateNested({ each: true })
   @IsArray()
-  @Type(() => CreateTrainingIndividualDistributionDto)
-  trainingDistribution: CreateTrainingIndividualDistributionDto[];
+  @Type(() => CreateTrainingDistributionDto)
+  trainingDistribution: CreateTrainingDistributionDto[];
 }
 
-export class UpdateTrainingIndividualDetailsDto extends PartialType(CreateTrainingIndividualDetailsDto) {
+export class UpdateTrainingDetailsDto extends PartialType(CreateTrainingDetailsDto) {
   @IsUUID('4')
   id: string;
 

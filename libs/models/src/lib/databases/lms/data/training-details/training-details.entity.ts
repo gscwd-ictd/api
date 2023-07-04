@@ -4,10 +4,11 @@ import { TrainingSource } from '../training-sources';
 import { TrainingType } from '../training-types';
 import { TrainingStatus } from '@gscwd-api/utils';
 import { LspIndividualDetails } from '../lsp-individual-details';
+import { LspOrganizationDetails } from '../lsp-organization-details';
 
-@Entity('training_individual_details')
-export class TrainingIndividualDetails extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'training_individual_details_id' })
+@Entity('training_details')
+export class TrainingDetails extends DatabaseEntity implements IEntity {
+  @PrimaryGeneratedColumn('uuid', { name: 'training_details_id' })
   id: string;
 
   @ManyToOne(() => TrainingSource, (trainingSource) => trainingSource.id, { nullable: false })
@@ -18,9 +19,13 @@ export class TrainingIndividualDetails extends DatabaseEntity implements IEntity
   @JoinColumn({ name: 'training_type_id_fk' })
   trainingType: TrainingType;
 
-  @ManyToOne(() => LspIndividualDetails, (lspIndividualDetails) => lspIndividualDetails.id, { nullable: false })
+  @ManyToOne(() => LspIndividualDetails, (lspIndividualDetails) => lspIndividualDetails.id, { nullable: true })
   @JoinColumn({ name: 'lsp_individual_details_id_fk' })
   lspIndividualDetails: LspIndividualDetails;
+
+  @ManyToOne(() => LspOrganizationDetails, (lspOrganizationDetails) => lspOrganizationDetails.id, { nullable: true })
+  @JoinColumn({ name: 'lsp_organization_details_id_fk' })
+  lspOrganizationDetails: LspOrganizationDetails;
 
   @Column({ name: 'facilitator', length: 100, nullable: false })
   facilitator: string;

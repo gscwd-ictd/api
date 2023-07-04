@@ -1,9 +1,9 @@
 import { IsInt, IsUUID } from 'class-validator';
-import { TrainingIndividualDetails } from '../training-individual-details';
+import { TrainingDetails } from '../training-details';
 
-export class CreateTrainingIndividualDistributionDto {
+export class CreateTrainingDistributionDto {
   @IsUUID('4')
-  trainingIndividualDetails: TrainingIndividualDetails;
+  trainingDetails: TrainingDetails;
 
   @IsUUID('all')
   employeeId: string;
