@@ -10,13 +10,13 @@ export class LspIndividualDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'employee_id_fk', nullable: true })
   employeeId: string;
 
-  @Column({ name: 'first_name', length: 100 })
+  @Column({ name: 'first_name', length: 100, nullable: true })
   firstName: string;
 
-  @Column({ name: 'middle_name', length: 100 })
+  @Column({ name: 'middle_name', length: 100, nullable: true })
   middleName: string;
 
-  @Column({ name: 'last_name', length: 100 })
+  @Column({ name: 'last_name', length: 100, nullable: true })
   lastName: string;
 
   @Column({ name: 'contact_number', type: 'varchar', nullable: true })
