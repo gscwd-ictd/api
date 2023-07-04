@@ -29,8 +29,8 @@ export * from './training-types';
 export * from './course-contents';
 export * from './nominee-qualifications';
 
-//trainings
-export * from './trainings';
-export * from './training-distributions';
-export * from './training-nominees';
-export * from './training-tags';
+//training individual
+export * from './training-individual-details';
+export * from './training-individual-distributions';
+export * from './training-individual-nominees';
+export * from './training-individual-tags';

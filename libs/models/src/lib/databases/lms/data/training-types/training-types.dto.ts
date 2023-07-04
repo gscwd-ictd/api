@@ -7,7 +7,6 @@ export class CreateTrainingTypeDto {
   name: string;
 
   @IsString({ message: 'training type description must be a string' })
-  @Length(1, 100, { message: 'training type description must be between 1 to 100 characters' })
   @IsOptional()
   description: string;
 }

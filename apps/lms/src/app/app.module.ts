@@ -5,7 +5,7 @@ import { DatabaseModule } from '../connections';
 import { TrainingSourcesModule } from './api/training-sources';
 import { TrainingTypesModule } from './api/training-types';
 import { LspIndividualDetailsModule } from './api/lsp-individual-details';
-import { TrainingsModule } from './api/trainings';
+import { TrainingIndividualDetailsModule } from './api/training-individual-details';
 import { ManagersModule } from './services/managers';
 import { EmployeesModule } from './services/employees';
 import { LspSourcesModule } from './api/lsp-sources';
@@ -28,7 +28,7 @@ import { LspOrganizationDetailsModule } from './api/lsp-organization-details';
     LspOrganizationDetailsModule,
 
     //trainings
-    TrainingsModule,
+    TrainingIndividualDetailsModule,
     TrainingSourcesModule,
     TrainingTypesModule,
 
