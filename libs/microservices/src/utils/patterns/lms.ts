@@ -6,5 +6,7 @@ export enum FindEmployeesPatterns {
   GET_EMPLOYEES_BY_NAME_MATCH = 'get_employees_by_name_match',
 }
 
-//payload null == all , string = eri
-//FIND_EMPLOYEES_NAME_BY_ID = 'get_employee_name',
+export enum EmployeeTagsPatterns {
+  ADD_EMPLOYEE_TAGS = 'add_employee_tags',
+  GET_TAGS_BY_EMPLOYEE_ID = 'get_tags_by_employee_id',
+}

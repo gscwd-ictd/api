@@ -11,6 +11,7 @@ import { EmployeesModule } from './services/employees';
 import { LspSourcesModule } from './api/lsp-sources';
 import { TagsModule } from './api/tags';
 import { LspOrganizationDetailsModule } from './api/lsp-organization-details';
+import { EmployeeTagsModule } from './services/employee-tags/core/employee-tags.module';
 
 @Module({
   imports: [
@@ -36,8 +37,8 @@ import { LspOrganizationDetailsModule } from './api/lsp-organization-details';
     TagsModule,
 
     //microservice
-    ManagersModule,
     EmployeesModule,
+    EmployeeTagsModule,
   ],
 })
 export class AppModule {}

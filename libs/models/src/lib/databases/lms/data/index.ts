@@ -23,6 +23,7 @@ export * from './lsp-organization-trainings';
 
 //tags
 export * from './tags';
+export * from './employee-tags';
 
 export * from './training-sources';
 export * from './training-types';
