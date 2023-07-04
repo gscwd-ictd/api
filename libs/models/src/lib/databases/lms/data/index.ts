@@ -35,3 +35,6 @@ export * from './training-individual-details';
 export * from './training-individual-distributions';
 export * from './training-individual-nominees';
 export * from './training-individual-tags';
+
+//training organization
+export * from './training-organization-details';
