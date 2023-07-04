@@ -23,10 +23,6 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'lsp_individual_details_id_fk' })
   lspIndividualDetails: LspIndividualDetails;
 
-  @ManyToOne(() => LspOrganizationDetails, (lspOrganizationDetails) => lspOrganizationDetails.id, { nullable: true })
-  @JoinColumn({ name: 'lsp_organization_details_id_fk' })
-  lspOrganizationDetails: LspOrganizationDetails;
-
   @Column({ name: 'facilitator', length: 100, nullable: false })
   facilitator: string;
 

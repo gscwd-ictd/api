@@ -1,9 +1,9 @@
 import { Controller } from '@nestjs/common';
-import { TrainingIndividualNomineesService } from './training-individual-nominees.service';
+import { TrainingNomineesService } from './training-nominees.service';
 
-@Controller({ version: '1', path: 'training-individual-nominees' })
-export class TrainingIndividualNomineesController {
-  constructor(private readonly trainingIndividualNomineesService: TrainingIndividualNomineesService) {}
+@Controller({ version: '1', path: 'training-nominees' })
+export class TrainingNomineesController {
+  constructor(private readonly trainingNomineesService: TrainingNomineesService) {}
 
   // @Post()
   // async create(@Body() data: CreateTrainingNomineeDto) {

@@ -1,9 +1,9 @@
 import { Controller } from '@nestjs/common';
-import { TrainingIndividualDistributionsService } from './training-individual-distributions.service';
+import { TrainingDistributionsService } from './training-distributions.service';
 
-@Controller({ version: '1', path: 'training-individual-distributions' })
-export class TrainingIndividualDistributionsController {
-  constructor(private readonly trainingIndividualDistributionsService: TrainingIndividualDistributionsService) {}
+@Controller({ version: '1', path: 'training-distributions' })
+export class TrainingDistributionsController {
+  constructor(private readonly trainingDistributionsService: TrainingDistributionsService) {}
 
   // @Post()
   // async create(@Body() data: CreateTrainingDistributionDto): Promise<TrainingDistribution> {

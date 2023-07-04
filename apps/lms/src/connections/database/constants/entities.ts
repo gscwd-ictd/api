@@ -9,10 +9,10 @@ import {
   LspIndividualTraining,
   LspSource,
   Tag,
-  TrainingIndividualDetails,
-  TrainingIndividualDistribution,
-  TrainingIndividualNominee,
-  TrainingIndividualTag,
+  TrainingDetails,
+  TrainingDistribution,
+  TrainingNominee,
+  TrainingTag,
   TrainingSource,
   TrainingType,
   LspOrganizationDetails,
@@ -23,7 +23,6 @@ import {
   LspOrganizationEducation,
   LspOrganizationProject,
   LspOrganizationTraining,
-  TrainingOrganizationDetails,
 } from '@gscwd-api/models';
 
 export const DB_ENTITIES = [
@@ -53,11 +52,9 @@ export const DB_ENTITIES = [
   TrainingSource,
   TrainingType,
 
-  TrainingIndividualDetails,
-  TrainingIndividualDistribution,
-  TrainingIndividualNominee,
-  TrainingIndividualTag,
-
-  TrainingOrganizationDetails,
+  TrainingDetails,
+  TrainingDistribution,
+  TrainingNominee,
+  TrainingTag,
   // views
 ];

@@ -8,7 +8,6 @@ import { PartialType } from '@nestjs/swagger';
 import { CreateTrainingDistributionDto } from '../training-distributions';
 import { LspIndividualDetails } from '../lsp-individual-details';
 import { CreateTrainingTagDto } from '../training-tags';
-import { LspOrganizationDetails } from '../lsp-organization-details';
 
 export class CreateTrainingDetailsDto {
   @IsUUID('4')
@@ -20,10 +19,6 @@ export class CreateTrainingDetailsDto {
   @IsUUID('4')
   @IsOptional()
   lspIndividualDetails: LspIndividualDetails;
-
-  @IsUUID('4')
-  @IsOptional()
-  lspOrganizationDetails: LspOrganizationDetails;
 
   @IsString({ message: 'training facilitator must be a string' })
   @Length(1, 100, { message: 'training facilitator must be between 1 to 100 characters' })

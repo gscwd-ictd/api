@@ -1,23 +1,23 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingIndividualDetailsDto, TrainingIndividualDetails, UpdateTrainingIndividualDetailsDto } from '@gscwd-api/models';
+import { CreateTrainingDetailsDto, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { TrainingIndividualDistributionsService } from '../components/training-individual-distributions';
-import { TrainingIndividualTagsService } from '../components/training-individual-tags';
+import { TrainingDistributionsService } from '../components/training-distributions';
+import { TrainingTagsService } from '../components/training-tags';
 
 @Injectable()
-export class TrainingIndividualDetailsService extends CrudHelper<TrainingIndividualDetails> {
+export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   constructor(
-    private readonly crudService: CrudService<TrainingIndividualDetails>,
-    private readonly trainingIndividualDistributionsService: TrainingIndividualDistributionsService,
-    private readonly trainingIndividualTagsService: TrainingIndividualTagsService,
+    private readonly crudService: CrudService<TrainingDetails>,
+    private readonly trainingDistributionsService: TrainingDistributionsService,
+    private readonly trainingTagsService: TrainingTagsService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
   }
 
   //HR create training individual details and distribute slots to selected managers
-  async addTraining(data: CreateTrainingIndividualDetailsDto) {
+  async addTraining(data: CreateTrainingDetailsDto) {
     try {
       //transaction results
       const results = await this.datasource.transaction(async (entityManager) => {
@@ -25,7 +25,7 @@ export class TrainingIndividualDetailsService extends CrudHelper<TrainingIndivid
         const { courseContent, nomineeQualifications, trainingDistribution, ...rest } = data;
 
         //insert training details
-        const training = await this.crudService.transact<TrainingIndividualDetails>(entityManager).create({
+        const training = await this.crudService.transact<TrainingDetails>(entityManager).create({
           dto: {
             ...rest,
             courseContent: JSON.stringify(courseContent),
@@ -38,9 +38,9 @@ export class TrainingIndividualDetailsService extends CrudHelper<TrainingIndivid
         //insert multiple and map training tag
         const tag = await Promise.all(
           nomineeQualifications.map(async (tagItem) => {
-            return await this.trainingIndividualTagsService.addTrainingTag(
+            return await this.trainingTagsService.addTrainingTag(
               {
-                trainingIndividualDetails: training,
+                trainingDetails: training,
                 ...tagItem,
               },
               entityManager
@@ -51,9 +51,9 @@ export class TrainingIndividualDetailsService extends CrudHelper<TrainingIndivid
         //insert multiple and map selected managers and given number of slots
         const distribution = await Promise.all(
           trainingDistribution.map(async (distributionItem) => {
-            return await this.trainingIndividualDistributionsService.addTrainingDistribution(
+            return await this.trainingDistributionsService.addTrainingDistribution(
               {
-                trainingIndividualDetails: training,
+                trainingDetails: training,
                 ...distributionItem,
               },
               entityManager
@@ -116,11 +116,11 @@ export class TrainingIndividualDetailsService extends CrudHelper<TrainingIndivid
       });
 
       //get all training tags by training id
-      const tag = await this.trainingIndividualTagsService.crud().findAll({
+      const tag = await this.trainingTagsService.crud().findAll({
         find: {
           relations: { tag: true },
           select: { id: true, tag: { name: true } },
-          where: { trainingIndividualDetails: { id: trainingId } },
+          where: { trainingDetails: { id: trainingId } },
         },
       });
 
@@ -151,7 +151,7 @@ export class TrainingIndividualDetailsService extends CrudHelper<TrainingIndivid
   // }
 
   //update training details
-  async updateTrainingDetails(dto: UpdateTrainingIndividualDetailsDto) {
+  async updateTrainingDetails(dto: UpdateTrainingDetailsDto) {
     try {
       //transaction results
       const result = await this.datasource.transaction(async (entityManager) => {
@@ -159,7 +159,7 @@ export class TrainingIndividualDetailsService extends CrudHelper<TrainingIndivid
         const { id, courseContent, ...rest } = dto;
 
         //update training details by training id
-        const training = await this.crudService.transact<TrainingIndividualDetails>(entityManager).update({
+        const training = await this.crudService.transact<TrainingDetails>(entityManager).update({
           dto: {
             ...rest,
             courseContent: JSON.stringify(courseContent),
