@@ -9,10 +9,10 @@ import {
   LspIndividualTraining,
   LspSource,
   Tag,
-  TrainingIndividualDetails,
-  TrainingIndividualDistribution,
-  TrainingIndividualNominee,
-  TrainingIndividualTag,
+  TrainingDetails,
+  TrainingDistribution,
+  TrainingNominee,
+  TrainingTag,
   TrainingSource,
   TrainingType,
   LspOrganizationDetails,
@@ -52,9 +52,9 @@ export const DB_ENTITIES = [
   TrainingSource,
   TrainingType,
 
-  TrainingIndividualDetails,
-  TrainingIndividualDistribution,
-  TrainingIndividualNominee,
-  TrainingIndividualTag,
+  TrainingDetails,
+  TrainingDistribution,
+  TrainingNominee,
+  TrainingTag,
   // views
 ];

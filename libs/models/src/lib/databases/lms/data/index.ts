@@ -30,11 +30,8 @@ export * from './training-types';
 export * from './course-contents';
 export * from './nominee-qualifications';
 
-//training individual
-export * from './training-individual-details';
-export * from './training-individual-distributions';
-export * from './training-individual-nominees';
-export * from './training-individual-tags';
-
-//training organization
-export * from './training-organization-details';
+//training
+export * from './training-details';
+export * from './training-distributions';
+export * from './training-nominees';
+export * from './training-tags';
