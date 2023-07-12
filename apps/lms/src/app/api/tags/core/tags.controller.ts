@@ -50,7 +50,7 @@ export class TagsController implements ICrudRoutes {
     });
   }
 
-  @Get('q')
+  @Get('search/q')
   async searchTagName(@Query('name') name: string) {
     return await this.tagsService.getRepository().find({ where: { name: ILike(`%${name}%`) }, select: { id: true, name: true } });
   }
