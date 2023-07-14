@@ -32,7 +32,7 @@ export class EmployeeTagsService {
   async findEmployeesByTagId(tagId: string) {
     return await this.microserviceClient.call({
       action: 'send',
-      pattern: '',
+      pattern: EmployeeTagsPatterns.GET_EMPLOYEES_BY_TAG_ID,
       payload: tagId,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     });
