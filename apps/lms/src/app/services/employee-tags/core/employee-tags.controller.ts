@@ -15,4 +15,9 @@ export class EmployeeTagsController {
   async findById(@Param('id') id: string) {
     return await this.employeeTagsService.findTagsByEmployeeId(id);
   }
+
+  @Get('tag/:id')
+  async findEmployeesByTagId(@Param('id') tagId: string) {
+    return await this.employeeTagsService.findEmployeesByTagId(tagId);
+  }
 }
