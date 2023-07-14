@@ -62,7 +62,7 @@ export enum ScheduleType {
 }
 
 export enum ScheduleShift {
-  MORNING = 'morning',
+  DAY = 'day',
   NIGHT = 'night',
 }
 
@@ -114,20 +114,26 @@ export type EmployeeMonthlyDailyTimeRecord = {
   companyId: string;
 };
 
+export type EmployeeScheduleType = {
+  id: string;
+  esDateFrom: Date;
+  esDateTo: Date;
+  scheduleName: string;
+  scheduleType: ScheduleType;
+  timeIn: string;
+  lunchOut: string;
+  lunchIn: string;
+  timeOut: string;
+  scheduleBase: string;
+  dateFrom: Date;
+  dateTo: Date;
+  scheduleRange: string;
+  restDaysNumbers: string;
+  restDaysNames: string;
+};
+
 export type DailyTimeRecordType = {
-  schedule: {
-    id: string;
-    scheduleName: string;
-    scheduleType: string;
-    timeIn: string;
-    lunchOut: string;
-    lunchIn: string;
-    timeOut: string;
-    shift: string;
-    schedule: string;
-    restDaysNumbers: string;
-    restDaysNames: string;
-  };
+  schedule: EmployeeScheduleType;
   dtr: {
     createdAt: Date;
     updatedAt: Date;

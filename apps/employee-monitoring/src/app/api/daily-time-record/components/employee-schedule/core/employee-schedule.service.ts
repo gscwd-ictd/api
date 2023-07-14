@@ -64,6 +64,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
       pattern: 'get_employee_details_by_company_id',
       onError: (error) => new NotFoundException(error),
     })) as EmployeeDetails;
+
     return employeeDetails;
   }
 
@@ -72,6 +73,8 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
       string,
       {
         id: string;
+        esDateFrom: Date;
+        esDateTo: Date;
         scheduleName: string;
         scheduleType: ScheduleType;
         timeIn: string;
@@ -89,6 +92,8 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
       `
     SELECT DISTINCT 
         s.schedule_id id,
+        es.date_from esDateFrom,
+        es.date_to esDateTo,
         s.name scheduleName, 
         s.schedule_type scheduleType, 
         s.time_in timeIn,
@@ -129,8 +134,8 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
 
   async getEmployeeScheduleByDtrDate(employeeId: string, dtrDate: Date) {
     console.log('Schedule Based on Date', dtrDate);
-    const currDate = dayjs(dtrDate).toDate();
-    const currDateString = currDate.getFullYear() + '-' + currDate.getMonth() + '-' + currDate.getDate();
+    const currDate = dayjs(dtrDate);
+    const currDateString = currDate.toDate().getFullYear() + '-' + (currDate.toDate().getMonth() + 1).toString() + '-' + currDate.toDate().getDate();
     console.log('current date schedule', currDateString);
     const employeeName = (await this.client.call<string, string, { fullName: string }>({
       action: 'send',
@@ -144,6 +149,8 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
         string,
         {
           id: string;
+          esDateFrom: Date;
+          esDateTo: Date;
           scheduleName: string;
           scheduleType: ScheduleType;
           timeIn: string;
@@ -151,6 +158,9 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
           lunchIn: string;
           timeOut: string;
           scheduleBase: string;
+          dateFrom: Date;
+          dateTo: Date;
+          scheduleRange: string;
           restDaysNumbers: string;
           restDaysNames: string;
         }
@@ -158,6 +168,8 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
         `
     SELECT DISTINCT 
         s.schedule_id id,
+        es.date_from esDateFrom,
+        es.date_to esDateTo,
         s.name scheduleName, 
         s.schedule_type scheduleType, 
         s.time_in timeIn,
@@ -176,8 +188,73 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
     INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
     WHERE emr.employee_id_fk = ? AND ( ? BETWEEN emr.date_from AND emr.date_to ) AND ( ? BETWEEN es.date_from AND es.date_to ) 
-    GROUP BY s.schedule_id,es.created_at,dateFrom,dateTo,scheduleRange ORDER BY DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC LIMIT 1`,
+    GROUP BY s.schedule_id,es.created_at,dateFrom, dateTo,scheduleRange,es.date_from,es.date_to ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, DATE_FORMAT(es.date_to,'%Y-%m-%d') ASC LIMIT 1`,
         [employeeId, currDateString, currDateString]
+      )
+    )[0];
+    return { employeeName: employeeName.fullName, schedule: { ...schedule } };
+  }
+
+  async getEmployeeScheduleByScheduleId(employeeId: string, scheduleId: string, dtrDate: Date) {
+    console.log('Schedule Based on Date', dtrDate);
+    const currDate = dayjs(dtrDate).toDate();
+    console.log('date now from schedule', currDate.toLocaleDateString());
+    const currDateString = currDate.getFullYear() + '-' + (currDate.getMonth() + 1).toString() + '-' + currDate.getDate();
+    console.log('current date schedule', currDateString);
+    const employeeName = (await this.client.call<string, string, { fullName: string }>({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_employee_name',
+      onError: (error) => new NotFoundException(error),
+    })) as { fullName: string };
+
+    const schedule = (
+      await this.rawQuery<
+        string,
+        {
+          id: string;
+          esDateFrom: Date;
+          esDateTo: Date;
+          scheduleName: string;
+          scheduleType: ScheduleType;
+          timeIn: string;
+          lunchOut: string;
+          lunchIn: string;
+          timeOut: string;
+          scheduleBase: string;
+          dateFrom: Date;
+          dateTo: Date;
+          scheduleRange: string;
+          restDaysNumbers: string;
+          restDaysNames: string;
+        }
+      >(
+        `
+    SELECT DISTINCT 
+        es.created_at createdAt,
+        es.date_from esDateFrom,
+        es.date_to esDateTo,
+        s.schedule_id id,
+        s.name scheduleName, 
+        s.schedule_type scheduleType, 
+        s.time_in timeIn,
+        s.lunch_out lunchOut,
+        s.lunch_in lunchIn, 
+        s.time_out timeOut, 
+        s.shift shift,
+        s.schedule_base scheduleBase,
+        DATE_FORMAT(emr.date_from,'%Y-%m-%d') dateFrom,
+        DATE_FORMAT(emr.date_to,'%Y-%m-%d') dateTo,
+        concat(DATE_FORMAT(emr.date_from,'%Y-%m-%d'),'-',DATE_FORMAT(emr.date_to,'%Y-%m-%d')) scheduleRange,
+        GROUP_CONCAT(emrs.rest_day SEPARATOR ', ') restDaysNumbers,
+        GROUP_CONCAT(get_weekday((emrs.rest_day - 1)) SEPARATOR ', ') restDaysNames 
+    FROM employee_schedule es 
+    INNER JOIN schedule s ON s.schedule_id = es.schedule_id_fk 
+    LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
+    INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
+    WHERE s.schedule_id = ? AND ( ? BETWEEN emr.date_from AND emr.date_to ) AND ( ? BETWEEN es.date_from AND es.date_to ) 
+    GROUP BY s.schedule_id,es.created_at,dateFrom,dateTo,scheduleRange,es.date_from,es.date_to  ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, DATE_FORMAT(es.date_to,'%Y-%m-%d') ASC LIMIT 1`,
+        [scheduleId, currDateString, currDateString]
       )
     )[0];
     return { employeeName: employeeName.fullName, schedule: { ...schedule } };

@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { DailyTimeRecord, UpdateDailyTimeRecordDto } from '@gscwd-api/models';
-import { DtrPayload, IvmsEntry } from '@gscwd-api/utils';
+import { DtrPayload, IvmsEntry, ScheduleType, EmployeeScheduleType } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { HolidaysService } from '../../holidays/core/holidays.service';
@@ -51,7 +52,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     //#region for map
     const dtrDays = await Promise.all(
       dayRange.map(async (dtrDay, idx) => {
-        console.log('index ', dtrDay);
+        //console.log('index ', dtrDay);
 
         const currDate = dayjs(year + '-' + month + '-' + dtrDay).toDate();
         const holidayType = await this.holidayService.getHolidayTypeByDate(currDate);
@@ -103,13 +104,57 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     return dtrDays;
   }
 
+  //#region lates,undertimes,halfday functionalities
+
+  async getLatesPerDay(dtr: DailyTimeRecord, schedule: EmployeeScheduleType) {
+    //console.log('get lates per day', dtr, schedule);
+    if (schedule.scheduleName === 'Regular Morning Schedule') {
+      const lateMorning = dayjs(dayjs('2023-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
+        dayjs('2023-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
+        'm'
+      );
+      const lateAfternoon = dayjs(dayjs('2023-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
+        dayjs('2023-01-01 13:00').format('YYYY-MM-DD HH:mm'),
+        'm'
+      );
+
+      let minutesLate = 0;
+      let noOfLates = 0;
+      if (lateMorning > 0) {
+        minutesLate += lateMorning;
+        noOfLates += 1;
+      }
+      if (lateAfternoon > 0) {
+        minutesLate += lateAfternoon;
+        noOfLates += 1;
+      }
+
+      console.log({
+        timeIn: dtr.timeIn,
+        scheduleTimeIn: schedule.timeIn,
+        lateMorning,
+        lunchIn: dtr.lunchIn,
+        scheduleLunchIn: schedule.lunchIn,
+        lateAfternoon,
+        minutesLate,
+        noOfLates,
+      });
+
+      return {
+        minutesLate,
+        noOfLates,
+      };
+    }
+  }
+  //#endregion
+
   async getDtrByCompanyIdAndDay(data: { companyId: string; date: Date }) {
     try {
       const dateCurrent = dayjs(data.date).toDate();
       const id = data.companyId.replace('-', '');
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
-      console.log('SCHEDULE log', schedule);
+
       const employeeIvmsDtr = (await this.client.call<string, { companyId: string; date: Date }, IvmsEntry[]>({
         action: 'send',
         payload: { companyId: id, date: dateCurrent },
@@ -120,26 +165,42 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //1. check if employee is in dtr table in the current date;
       const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
       const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dateCurrent]))[0];
+
       //1.2 if not in current mysql daily_time_record save data fetched from ivms
       if (!currEmployeeDtr) {
         //if schedule is regular
         await this.saveDtr(data.companyId, employeeIvmsDtr, schedule);
         //if schedule is night shift tabok2
       } else {
-        //console.log('else update');
-        console.log('FOR_UPDATE ', currEmployeeDtr);
+        if (schedule.id !== currEmployeeDtr.scheduleId)
+          await this.crud().update({ dto: { scheduleId: { id: schedule.id } }, updateBy: { id: currEmployeeDtr.id } });
         await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
       }
       const dtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
+      const lates = await this.getLatesPerDay(dtr, schedule);
+      //1.1 compute late by the day
+      const noOfLates = lates.noOfLates;
+      const totalMinutesLate = lates.minutesLate;
+      //1.2 compute undertimes
+      const noOfUndertimes = '';
+      const totalMinutesUndertime = '';
+      //1.3 halfday
+      const isHalfday = '';
+      const summary = {
+        noOfLates,
+        totalMinutesLate,
+        noOfUndertimes,
+        totalMinutesUndertime,
+        isHalfday,
+      };
 
-      return { companyId: data.companyId, date: dayjs(data.date).format('YYYY-MM-DD'), schedule, dtr: { ...dtr, remarks } };
+      return { companyId: data.companyId, date: dayjs(data.date).format('YYYY-MM-DD'), schedule, dtr: { ...dtr, remarks }, summary };
     } catch (error) {
       const dateCurrent = dayjs(data.date).toDate();
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
       const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dateCurrent]))[0];
       return {
         //fetch day if may leave, holiday, pass slip
-
         schedule: {
           id: null,
           lunchIn: null,
@@ -166,9 +227,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           updatedAt: null,
           remarks,
         },
+        summary: null,
       };
     }
   }
+
+  private async countNoOfTimesLate() {}
 
   private async findByCompanyIdAndDate(companyId: string, dtrDate: Date) {
     const findResult = await this.crud().findOneOrNull({
@@ -180,7 +244,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
     const { isIncompleteDtr } = (await this.rawQuery(`SELECT is_incomplete_dtr(?) isIncompleteDtr;`, [currEmployeeDtr.id]))[0];
 
-    console.log('Is incomplete ', isIncompleteDtr);
+    console.log('Schedule Typeeee', schedule);
+
+    console.log('Is incomplete ', isIncompleteDtr, currEmployeeDtr);
     if (isIncompleteDtr === 1) {
       switch (schedule.scheduleName) {
         case 'Regular Morning Schedule':
