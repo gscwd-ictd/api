@@ -9,18 +9,25 @@ import {
   LspIndividualTraining,
   LspSource,
   Tag,
-  Training,
+  TrainingDetails,
   TrainingDistribution,
   TrainingNominee,
-  TrainingSource,
   TrainingTag,
+  TrainingSource,
   TrainingType,
+  LspOrganizationDetails,
+  LspOrganizationAffiliation,
+  LspOrganizationAward,
+  LspOrganizationCertification,
+  LspOrganizationCoaching,
+  LspOrganizationEducation,
+  LspOrganizationProject,
+  LspOrganizationTraining,
 } from '@gscwd-api/models';
 
 export const DB_ENTITIES = [
   // entities
-  TrainingSource,
-  TrainingType,
+  LspSource,
 
   LspIndividualDetails,
   LspIndividualAffiliation,
@@ -31,11 +38,21 @@ export const DB_ENTITIES = [
   LspIndividualProject,
   LspIndividualTraining,
 
-  LspSource,
+  LspOrganizationDetails,
+  LspOrganizationAffiliation,
+  LspOrganizationAward,
+  LspOrganizationCertification,
+  LspOrganizationCoaching,
+  LspOrganizationEducation,
+  LspOrganizationProject,
+  LspOrganizationTraining,
 
   Tag,
 
-  Training,
+  TrainingSource,
+  TrainingType,
+
+  TrainingDetails,
   TrainingDistribution,
   TrainingNominee,
   TrainingTag,

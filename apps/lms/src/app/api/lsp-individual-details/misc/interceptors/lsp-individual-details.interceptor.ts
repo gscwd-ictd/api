@@ -1,0 +1,19 @@
+import { LspIndividualDetails } from '@gscwd-api/models';
+import { CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { Observable, map } from 'rxjs';
+
+export class LspIndividualDetailsInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
+    return next.handle().pipe(
+      map((data: Pagination<LspIndividualDetails>) => {
+        return {
+          ...data,
+          items: data.items.map((lsp) => {
+            return { ...lsp, lspSource: lsp.lspSource.name };
+          }),
+        };
+      })
+    );
+  }
+}

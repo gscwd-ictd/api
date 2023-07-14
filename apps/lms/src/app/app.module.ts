@@ -5,11 +5,12 @@ import { DatabaseModule } from '../connections';
 import { TrainingSourcesModule } from './api/training-sources';
 import { TrainingTypesModule } from './api/training-types';
 import { LspIndividualDetailsModule } from './api/lsp-individual-details';
-import { TrainingsModule } from './api/trainings';
-import { ManagersModule } from './services/managers';
+import { TrainingDetailsModule } from './api/training-details';
 import { EmployeesModule } from './services/employees';
 import { LspSourcesModule } from './api/lsp-sources';
 import { TagsModule } from './api/tags';
+import { LspOrganizationDetailsModule } from './api/lsp-organization-details';
+import { EmployeeTagsModule } from './services/employee-tags/core/employee-tags.module';
 
 @Module({
   imports: [
@@ -24,18 +25,21 @@ import { TagsModule } from './api/tags';
     //lsp
     LspSourcesModule,
     LspIndividualDetailsModule,
+    LspOrganizationDetailsModule,
 
     //trainings
-    TrainingsModule,
     TrainingSourcesModule,
     TrainingTypesModule,
+
+    //trainings
+    TrainingDetailsModule,
 
     //tags
     TagsModule,
 
     //microservice
-    ManagersModule,
     EmployeesModule,
+    EmployeeTagsModule,
   ],
 })
 export class AppModule {}

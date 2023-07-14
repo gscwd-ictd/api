@@ -1,11 +1,11 @@
 import { IsUUID } from 'class-validator';
-import { Training } from '../trainings';
+import { TrainingDetails } from '../training-details';
 import { Tag } from '../tags';
 import { PartialType } from '@nestjs/swagger';
 
 export class CreateTrainingTagDto {
   @IsUUID('4')
-  training: Training;
+  trainingDetails: TrainingDetails;
 
   @IsUUID('4')
   tag: Tag;

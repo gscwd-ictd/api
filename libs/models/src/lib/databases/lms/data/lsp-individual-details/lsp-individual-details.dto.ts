@@ -12,19 +12,20 @@ import { Type } from 'class-transformer';
 import { LspSource } from '../lsp-sources';
 
 export class CreateLspIndividualDetailsDto {
+  @IsUUID('all')
   @IsOptional()
   employeeId: string;
 
-  @IsString({ message: 'lsp details first name must be a string' })
-  @Length(1, 100, { message: 'lsp details first name must be between 1 to 100 characters' })
+  @IsString({ message: 'lsp individual details first name must be a string' })
+  @IsOptional()
   firstName: string;
 
-  @IsString({ message: 'lsp details middle name must be a string' })
-  @Length(1, 100, { message: 'venue details middle name must be between 1 to 100 characters' })
+  @IsString({ message: 'lsp individual details middle name must be a string' })
+  @IsOptional()
   middleName: string;
 
-  @IsString({ message: 'lsp details last name must be a string' })
-  @Length(1, 100, { message: 'lsp details last name must be between 1 to 100 characters' })
+  @IsString({ message: 'lsp individual details last name must be a string' })
+  @IsOptional()
   lastName: string;
 
   @IsString()
@@ -35,8 +36,8 @@ export class CreateLspIndividualDetailsDto {
   @IsOptional()
   email: string;
 
-  @IsString({ message: 'lsp details postal address must be a string' })
-  @Length(1, 100, { message: 'lsp details postal address must be between 1 to 100 characters' })
+  @IsString({ message: 'lsp individual details postal address must be a string' })
+  @Length(1, 100, { message: 'lsp individual details postal address must be between 1 to 100 characters' })
   postalAddress: string;
 
   @ValidateNested({ each: true })
@@ -45,7 +46,7 @@ export class CreateLspIndividualDetailsDto {
   @Type(() => LspSubjectDto)
   expertise: LspSubjectDto[];
 
-  @IsString({ message: 'lsp details photo url must be a string' })
+  @IsString({ message: 'lsp individual details photo url must be a string' })
   photoUrl: string;
 
   @IsNumber()

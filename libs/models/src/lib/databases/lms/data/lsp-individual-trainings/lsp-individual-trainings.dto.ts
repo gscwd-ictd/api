@@ -6,8 +6,8 @@ export class CreateLspIndividualTrainingDto {
   @IsUUID('4')
   lspIndividualDetails: LspIndividualDetails;
 
-  @IsString({ message: 'lsp training name must be a string' })
-  @Length(1, 100, { message: 'lsp training name must be between 1 to 100 characters' })
+  @IsString({ message: 'lsp organization training name must be a string' })
+  @Length(1, 100, { message: 'lsp organization training name must be between 1 to 100 characters' })
   name: string;
 }
 

@@ -15,7 +15,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { UpdateResult, DeleteResult } from 'typeorm';
+import { UpdateResult, DeleteResult, ILike } from 'typeorm';
 import { TagsService } from './tags.service';
 import { CreateTagDto, Tag, UpdateTagDto } from '@gscwd-api/models';
 
@@ -48,6 +48,11 @@ export class TagsController implements ICrudRoutes {
       findBy: { id },
       onError: () => new NotFoundException(),
     });
+  }
+
+  @Get('search/q')
+  async searchTagName(@Query('name') name: string) {
+    return await this.tagsService.getRepository().find({ where: { name: ILike(`%${name}%`) }, select: { id: true, name: true } });
   }
 
   @Patch(':id')

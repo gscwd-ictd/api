@@ -8,7 +8,7 @@ export class CreateTrainingNomineeDto {
   trainingDistribution: TrainingDistribution;
 
   @IsArray()
-  employee: Array<string>;
+  employee: string[];
 
   @IsString({ message: 'training nominee remarks must be a string' })
   remarks: string;
