@@ -147,3 +147,55 @@ export type DailyTimeRecordType = {
     timeOut: number;
   };
 };
+
+export type MonthlyDtrItemType = Pick<DailyTimeRecordType, 'dtr' | 'schedule'> & {
+  day: string;
+  holidayType: HolidayType;
+  summary: DtrSummary;
+};
+
+export type DtrSummary = {
+  noOfLates: number;
+  totalMinutesLate: number;
+  noOfUndertimes: number;
+  totalMinutesUndertime: number;
+  isHalfDay: boolean;
+};
+
+// {
+//   day: dayjs(currDate).format('YYYY-MM-DD'),
+//   holidayType,
+//   schedule: {
+//     id: null,
+//     lunchIn: null,
+//     lunchOut: null,
+//     restDaysNames: null,
+//     restDaysNumbers: null,
+//     schedule: null,
+//     scheduleName: null,
+//     scheduleType: null,
+//     shift: null,
+//     timeIn: null,
+//     timeOut: null,
+//   },
+//   dtr: {
+//     companyId: null,
+//     createdAt: null,
+//     deletedAt: null,
+//     dtrDate: null,
+//     id: null,
+//     lunchIn: null,
+//     lunchOut: null,
+//     timeIn: null,
+//     timeOut: null,
+//     updatedAt: null,
+//     remarks,
+//   },
+//   summary: {
+//     noOfLates: null,
+//     totalMinutesLate: null,
+//     noOfUndertimes: null,
+//     totalMinutesUndertime: null,
+//     isHalfDay: null,
+//   },
+// };

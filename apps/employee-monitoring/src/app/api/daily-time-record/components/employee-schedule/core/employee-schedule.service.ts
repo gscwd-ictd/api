@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { EmployeeSchedule, CreateEmployeeScheduleDto, CreateEmployeeScheduleByGroupDto, DeleteEmployeeScheduleDto } from '@gscwd-api/models';
-import { EmployeeDetails, ScheduleType } from '@gscwd-api/utils';
+import { EmployeeDetails, EmployeeScheduleType, ScheduleType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { DataSource, EntityManager } from 'typeorm';
@@ -69,26 +69,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
   }
 
   async getAllEmployeeSchedules(employeeId: string) {
-    const schedule = await this.rawQuery<
-      string,
-      {
-        id: string;
-        esDateFrom: Date;
-        esDateTo: Date;
-        scheduleName: string;
-        scheduleType: ScheduleType;
-        timeIn: string;
-        lunchOut: string;
-        lunchIn: string;
-        timeOut: string;
-        dateFrom: Date;
-        dateTo: Date;
-        scheduleRange: string;
-        scheduleBase: string;
-        restDaysNumbers: string;
-        restDaysNames: string;
-      }[]
-    >(
+    const schedule = await this.rawQuery<string, EmployeeScheduleType[]>(
       `
     SELECT DISTINCT 
         s.schedule_id id,
@@ -145,26 +126,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     })) as { fullName: string };
 
     const schedule = (
-      await this.rawQuery<
-        string,
-        {
-          id: string;
-          esDateFrom: Date;
-          esDateTo: Date;
-          scheduleName: string;
-          scheduleType: ScheduleType;
-          timeIn: string;
-          lunchOut: string;
-          lunchIn: string;
-          timeOut: string;
-          scheduleBase: string;
-          dateFrom: Date;
-          dateTo: Date;
-          scheduleRange: string;
-          restDaysNumbers: string;
-          restDaysNames: string;
-        }
-      >(
+      await this.rawQuery<string, EmployeeScheduleType>(
         `
     SELECT DISTINCT 
         s.schedule_id id,
@@ -209,26 +171,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     })) as { fullName: string };
 
     const schedule = (
-      await this.rawQuery<
-        string,
-        {
-          id: string;
-          esDateFrom: Date;
-          esDateTo: Date;
-          scheduleName: string;
-          scheduleType: ScheduleType;
-          timeIn: string;
-          lunchOut: string;
-          lunchIn: string;
-          timeOut: string;
-          scheduleBase: string;
-          dateFrom: Date;
-          dateTo: Date;
-          scheduleRange: string;
-          restDaysNumbers: string;
-          restDaysNames: string;
-        }
-      >(
+      await this.rawQuery<string, EmployeeScheduleType>(
         `
     SELECT DISTINCT 
         es.created_at createdAt,

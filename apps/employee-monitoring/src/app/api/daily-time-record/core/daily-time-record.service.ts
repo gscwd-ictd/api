@@ -2,7 +2,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { DailyTimeRecord, UpdateDailyTimeRecordDto } from '@gscwd-api/models';
-import { DtrPayload, IvmsEntry, ScheduleType, EmployeeScheduleType } from '@gscwd-api/utils';
+import { DtrPayload, IvmsEntry, ScheduleType, EmployeeScheduleType, MonthlyDtrItemType } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { HolidaysService } from '../../holidays/core/holidays.service';
@@ -50,7 +50,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     console.log('day range ', dayRange);
 
     //#region for map
-    const dtrDays = await Promise.all(
+    const dtrDays: MonthlyDtrItemType[] = (await Promise.all(
       dayRange.map(async (dtrDay, idx) => {
         //console.log('index ', dtrDay);
 
@@ -73,6 +73,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             schedule: {
               id: null,
               lunchIn: null,
+              esDateFrom: null,
+              esDateTo: null,
+              dateFrom: null,
+              scheduleRange: null,
+              dateTo: null,
+              scheduleBase: null,
               lunchOut: null,
               restDaysNames: null,
               restDaysNumbers: null,
@@ -96,12 +102,41 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               updatedAt: null,
               remarks,
             },
+            summary: {
+              noOfLates: null,
+              totalMinutesLate: null,
+              noOfUndertimes: null,
+              totalMinutesUndertime: null,
+              isHalfDay: null,
+            },
           };
         }
       })
-    );
+    )) as MonthlyDtrItemType[];
     //#endregion map
-    return dtrDays;
+    //console.log('from monthly ', dtrDays);
+    const summary = await this.getSummary(dtrDays);
+    console.log(summary);
+    return { dtrDays, summary };
+  }
+
+  async getSummary(dtrDays: MonthlyDtrItemType[]) {
+    //console.log(dtrDays);
+    let noOfTimesLate = 0;
+    let totalMinutesLate = 0;
+    let lateDates: number[] = [];
+    const summaryResult = await Promise.all(
+      dtrDays.map(async (dtrDay: MonthlyDtrItemType) => {
+        const { summary, dtr, day, holidayType, schedule } = dtrDay;
+        noOfTimesLate += summary.noOfLates;
+        totalMinutesLate += summary.totalMinutesLate;
+        if (summary.noOfLates > 0) {
+          const day = dayjs(dtr.dtrDate).date();
+          lateDates.push(day);
+        }
+      })
+    );
+    return { noOfTimesLate, totalMinutesLate, lateDates };
   }
 
   //#region lates,undertimes,halfday functionalities
@@ -124,6 +159,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         minutesLate += lateMorning;
         noOfLates += 1;
       }
+
       if (lateAfternoon > 0) {
         minutesLate += lateAfternoon;
         noOfLates += 1;
@@ -180,18 +216,19 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const lates = await this.getLatesPerDay(dtr, schedule);
       //1.1 compute late by the day
       const noOfLates = lates.noOfLates;
+
       const totalMinutesLate = lates.minutesLate;
       //1.2 compute undertimes
-      const noOfUndertimes = '';
-      const totalMinutesUndertime = '';
+      const noOfUndertimes = 0;
+      const totalMinutesUndertime = 0;
       //1.3 halfday
-      const isHalfday = '';
+      const isHalfDay = false;
       const summary = {
         noOfLates,
         totalMinutesLate,
         noOfUndertimes,
         totalMinutesUndertime,
-        isHalfday,
+        isHalfDay,
       };
 
       return { companyId: data.companyId, date: dayjs(data.date).format('YYYY-MM-DD'), schedule, dtr: { ...dtr, remarks }, summary };
@@ -203,6 +240,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         //fetch day if may leave, holiday, pass slip
         schedule: {
           id: null,
+          esDateFrom: null,
+          esDateTo: null,
+          dateFrom: null,
+          dateTo: null,
+          scheduleBase: null,
+          scheduleRange: null,
           lunchIn: null,
           lunchOut: null,
           restDaysNames: null,
@@ -227,7 +270,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           updatedAt: null,
           remarks,
         },
-        summary: null,
+        summary: {
+          noOfLates: null,
+          totalMinutesLate: null,
+          noOfUndertimes: null,
+          totalMinutesUndertime: null,
+          isHalfDay: false,
+        },
       };
     }
   }
@@ -243,10 +292,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
     const { isIncompleteDtr } = (await this.rawQuery(`SELECT is_incomplete_dtr(?) isIncompleteDtr;`, [currEmployeeDtr.id]))[0];
-
-    console.log('Schedule Typeeee', schedule);
-
-    console.log('Is incomplete ', isIncompleteDtr, currEmployeeDtr);
     if (isIncompleteDtr === 1) {
       switch (schedule.scheduleName) {
         case 'Regular Morning Schedule':
