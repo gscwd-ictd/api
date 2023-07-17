@@ -28,4 +28,13 @@ export class EmployeeTagsService {
 
     return await Promise.all(tagIds.map(async (tagId) => await this.tagsService.crud().findOneBy({ findBy: { id: tagId } })));
   }
+
+  async findEmployeesByTagId(tagId: string) {
+    return await this.microserviceClient.call({
+      action: 'send',
+      pattern: EmployeeTagsPatterns.GET_EMPLOYEES_BY_TAG_ID,
+      payload: tagId,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    });
+  }
 }
