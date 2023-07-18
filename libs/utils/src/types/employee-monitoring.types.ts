@@ -13,6 +13,7 @@ export enum LeaveApplicationStatus {
   APPROVED = 'approved',
   HR_APPROVED = 'hr approved',
   ONGOING = 'ongoing',
+  FOR_APPROVAL = 'For approval',
   DISAPPROVED = 'disapproved',
   CANCELLED = 'cancelled',
 }
@@ -157,7 +158,7 @@ export type MonthlyDtrItemType = Pick<DailyTimeRecordType, 'dtr' | 'schedule'> &
 export type DtrSummary = {
   noOfLates: number;
   totalMinutesLate: number;
-  noOfUndertimes: number;
+  noOfTimesUndertime: number;
   totalMinutesUndertime: number;
   isHalfDay: boolean;
 };

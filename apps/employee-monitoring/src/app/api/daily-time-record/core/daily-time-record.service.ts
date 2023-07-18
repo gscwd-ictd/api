@@ -124,37 +124,54 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     //console.log(dtrDays);
     let noOfTimesLate = 0;
     let totalMinutesLate = 0;
-    let lateDates: number[] = [];
+    let noOfTimesUndertime = 0;
+    let totalMinutesUndertime = 0;
+    const lateDates: number[] = [];
+    const undertimeDates: number[] = [];
     const summaryResult = await Promise.all(
       dtrDays.map(async (dtrDay: MonthlyDtrItemType) => {
         const { summary, dtr, day, holidayType, schedule } = dtrDay;
         noOfTimesLate += summary.noOfLates;
         totalMinutesLate += summary.totalMinutesLate;
+
         if (summary.noOfLates > 0) {
           const day = dayjs(dtr.dtrDate).date();
           lateDates.push(day);
         }
+
+        noOfTimesUndertime += summary.noOfTimesUndertime;
+        totalMinutesUndertime += summary.totalMinutesUndertime;
+
+        if (summary.noOfTimesUndertime > 0) {
+          const day = dayjs(dtr.dtrDate).date();
+          undertimeDates.push(day);
+        }
       })
     );
-    return { noOfTimesLate, totalMinutesLate, lateDates };
+    return { noOfTimesLate, totalMinutesLate, lateDates, noOfTimesUndertime, totalMinutesUndertime, undertimeDates };
   }
 
   //#region lates,undertimes,halfday functionalities
 
-  async getLatesPerDay(dtr: DailyTimeRecord, schedule: EmployeeScheduleType) {
+  async getLatesUndertimesNoAttendancePerDay(dtr: DailyTimeRecord, schedule: EmployeeScheduleType, employeeId: string) {
     //console.log('get lates per day', dtr, schedule);
+
+    let minutesLate = 0;
+    let noOfLates = 0;
+    let noOfUndertimes = 0;
+    let minutesUndertime = 0;
+
     if (schedule.scheduleName === 'Regular Morning Schedule') {
       const lateMorning = dayjs(dayjs('2023-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
         dayjs('2023-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
         'm'
       );
+
       const lateAfternoon = dayjs(dayjs('2023-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
         dayjs('2023-01-01 13:00').format('YYYY-MM-DD HH:mm'),
         'm'
       );
 
-      let minutesLate = 0;
-      let noOfLates = 0;
       if (lateMorning > 0) {
         minutesLate += lateMorning;
         noOfLates += 1;
@@ -164,23 +181,34 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         minutesLate += lateAfternoon;
         noOfLates += 1;
       }
-
-      console.log({
-        timeIn: dtr.timeIn,
-        scheduleTimeIn: schedule.timeIn,
-        lateMorning,
-        lunchIn: dtr.lunchIn,
-        scheduleLunchIn: schedule.lunchIn,
-        lateAfternoon,
-        minutesLate,
-        noOfLates,
-      });
-
-      return {
-        minutesLate,
-        noOfLates,
-      };
     }
+
+    const undertime = (await this.rawQuery(
+      `
+      SELECT DATE_FORMAT(date_of_application,'%Y-%m-%d') dateOfApplication,ps.time_out undertimeOut FROM pass_slip ps 
+        INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
+      WHERE psa.status = 'used' 
+      AND ps.employee_id_fk = ? 
+      AND date_of_application = ?;
+    `,
+      [employeeId, dayjs(dtr.dtrDate).format('YYYY-MM-DD')]
+    )) as { dateOfApplication: Date; undertimeOut: Date }[];
+
+    if (undertime.length > 0) {
+      //do the math
+      const { dateOfApplication, undertimeOut } = undertime[0];
+      noOfUndertimes = 1;
+      minutesUndertime = dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+        dayjs('2023-01-01 ' + undertimeOut).format('YYYY-MM-DD HH:mm'),
+        'm'
+      );
+    }
+    return {
+      minutesLate,
+      noOfLates,
+      noOfUndertimes,
+      minutesUndertime,
+    };
   }
   //#endregion
 
@@ -213,20 +241,22 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
       }
       const dtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
-      const lates = await this.getLatesPerDay(dtr, schedule);
+      const latesUndertimesNoAttendance = await this.getLatesUndertimesNoAttendancePerDay(dtr, schedule, employeeDetails.userId);
+      //const undertimes = await this.getUndertimesPerDay(dtr, schedule);
       //1.1 compute late by the day
-      const noOfLates = lates.noOfLates;
+      const noOfLates = latesUndertimesNoAttendance.noOfLates;
 
-      const totalMinutesLate = lates.minutesLate;
+      const totalMinutesLate = latesUndertimesNoAttendance.minutesLate;
       //1.2 compute undertimes
-      const noOfUndertimes = 0;
-      const totalMinutesUndertime = 0;
+      const noOfTimesUndertime = latesUndertimesNoAttendance.noOfUndertimes;
+      const totalMinutesUndertime = latesUndertimesNoAttendance.minutesUndertime;
+
       //1.3 halfday
       const isHalfDay = false;
       const summary = {
         noOfLates,
         totalMinutesLate,
-        noOfUndertimes,
+        noOfTimesUndertime,
         totalMinutesUndertime,
         isHalfDay,
       };
@@ -273,7 +303,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         summary: {
           noOfLates: null,
           totalMinutesLate: null,
-          noOfUndertimes: null,
+          noOfTimesUndertime: null,
           totalMinutesUndertime: null,
           isHalfDay: false,
         },

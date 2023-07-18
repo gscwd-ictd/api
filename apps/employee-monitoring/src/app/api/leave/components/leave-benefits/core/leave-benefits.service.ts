@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateLeaveBenefitsDto, LeaveBenefits } from '@gscwd-api/models';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { CreateLeaveBenefitsDto, LeaveBenefits, UpdateLeaveBenefitsDto } from '@gscwd-api/models';
 import { LeaveTypes } from '@gscwd-api/utils';
 
 @Injectable()
@@ -45,7 +45,20 @@ export class LeaveBenefitsService extends CrudHelper<LeaveBenefits> {
 
   async deleteLeaveBenefit(leaveBenefitId: string) {
     const leaveBenefit = await this.crud().findOne({ find: { where: { id: leaveBenefitId } } });
-    const deleteResult = await this.crud().delete({ deleteBy: { id: leaveBenefitId } });
+    const appliedCount = (
+      await this.rawQuery(`SELECT count(*) appliedCount FROM leave_application WHERE leave_benefits_id_fk=?`, [leaveBenefitId])
+    )[0].appliedCount;
+    if (appliedCount > 0) throw new HttpException('Leave Benefit is already used in leave application.', HttpStatus.BAD_REQUEST);
+
+    const deleteResult = await this.crud().delete({ deleteBy: { id: leaveBenefitId }, softDelete: false });
     if (deleteResult.affected > 0) return leaveBenefit;
+  }
+
+  async updateLeaveBenefits(updateLeaveBenefitsDto: UpdateLeaveBenefitsDto) {
+    const { id, ...rest } = updateLeaveBenefitsDto;
+    const updateResult = await this.crudService.update({ dto: rest, updateBy: { id }, onError: () => new InternalServerErrorException() });
+    if (updateResult.affected > 0) {
+      return updateLeaveBenefitsDto;
+    }
   }
 }
