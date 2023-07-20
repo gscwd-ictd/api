@@ -4,7 +4,6 @@ import { TrainingSource } from '../training-sources';
 import { TrainingType } from '../training-types';
 import { TrainingStatus } from '@gscwd-api/utils';
 import { LspIndividualDetails } from '../lsp-individual-details';
-import { LspOrganizationDetails } from '../lsp-organization-details';
 
 @Entity('training_details')
 export class TrainingDetails extends DatabaseEntity implements IEntity {
