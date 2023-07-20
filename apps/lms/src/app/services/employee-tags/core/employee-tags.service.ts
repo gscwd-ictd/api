@@ -1,5 +1,5 @@
 import { EmployeeTagsPatterns, MicroserviceClient } from '@gscwd-api/microservices';
-import { CreateEmployeeTags } from '@gscwd-api/models';
+import { CreateEmployeeTagDto, DeleteEmployeeTagDto } from '@gscwd-api/models';
 import { HttpException, Injectable } from '@nestjs/common';
 import { TagsService } from '../../../api/tags';
 
@@ -8,7 +8,7 @@ export class EmployeeTagsService {
   constructor(private readonly microserviceClient: MicroserviceClient, private readonly tagsService: TagsService) {}
 
   //add multiple tags in a multiple employees
-  async addEmployeeTags(data: CreateEmployeeTags) {
+  async addEmployeeTags(data: CreateEmployeeTagDto) {
     return await this.microserviceClient.call({
       action: 'send',
       pattern: EmployeeTagsPatterns.ADD_EMPLOYEE_TAGS,
@@ -29,11 +29,22 @@ export class EmployeeTagsService {
     return await Promise.all(tagIds.map(async (tagId) => await this.tagsService.crud().findOneBy({ findBy: { id: tagId } })));
   }
 
+  //find employee names by tag id
   async findEmployeesByTagId(tagId: string) {
     return await this.microserviceClient.call({
       action: 'send',
       pattern: EmployeeTagsPatterns.GET_EMPLOYEES_BY_TAG_ID,
       payload: tagId,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    });
+  }
+
+  //delete employee tags by employee id and tag id
+  async deleteEmployeeTags(dto: DeleteEmployeeTagDto) {
+    return await this.microserviceClient.call({
+      action: 'send',
+      pattern: EmployeeTagsPatterns.DELETE_EMPLOYEE_TAGS,
+      payload: dto,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     });
   }

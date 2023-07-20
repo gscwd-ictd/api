@@ -1,9 +1,17 @@
-import { IsArray } from 'class-validator';
+import { IsArray, IsUUID } from 'class-validator';
 
-export class CreateEmployeeTags {
+export class CreateEmployeeTagDto {
   @IsArray()
   employees: string[];
 
   @IsArray()
   tags: string[];
+}
+
+export class DeleteEmployeeTagDto {
+  @IsUUID('all')
+  employeeId: string;
+
+  @IsUUID('4')
+  tagId: string;
 }
