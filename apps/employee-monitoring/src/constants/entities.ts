@@ -14,6 +14,7 @@ import {
   CustomGroups,
   CustomGroupMembers,
   ScheduleSheetView,
+  LeaveCreditEarnings,
 } from '@gscwd-api/models';
 import { EmployeeRestDay } from 'libs/models/src/lib/databases/employee-monitoring/data/employee-rest-day/employee-rest-day.entity';
 
@@ -34,4 +35,5 @@ export const typeOrmEntities = [
   CustomGroups,
   CustomGroupMembers,
   ScheduleSheetView,
+  LeaveCreditEarnings,
 ];

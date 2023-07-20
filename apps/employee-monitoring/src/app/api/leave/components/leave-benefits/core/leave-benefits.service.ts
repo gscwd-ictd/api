@@ -22,7 +22,15 @@ export class LeaveBenefitsService extends CrudHelper<LeaveBenefits> {
     if (leaveType)
       return await this.crud().findAll({
         find: {
-          select: { id: true, leaveName: true, accumulatedCredits: true, canBeCarriedOver: true, creditDistribution: true, isMonetizable: true },
+          select: {
+            id: true,
+            leaveName: true,
+            accumulatedCredits: true,
+            canBeCarriedOver: true,
+            leaveType: true,
+            creditDistribution: true,
+            isMonetizable: true,
+          },
           where: { leaveType },
           order: { leaveName: 'ASC' },
         },

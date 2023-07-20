@@ -1,7 +1,7 @@
 export enum LeaveTypes {
-  RECURRING = 'Recurring',
-  CUMULATIVE = 'Cumulative',
-  SLB = 'Special Leave Benefit',
+  RECURRING = 'recurring',
+  CUMULATIVE = 'cumulative',
+  SLB = 'special leave benefit',
 }
 
 export enum CreditDistribution {
@@ -160,6 +160,7 @@ export type DtrSummary = {
   totalMinutesLate: number;
   noOfTimesUndertime: number;
   totalMinutesUndertime: number;
+  noAttendance: number;
   isHalfDay: boolean;
 };
 

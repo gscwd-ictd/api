@@ -108,6 +108,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               noOfUndertimes: null,
               totalMinutesUndertime: null,
               isHalfDay: null,
+              noAttendance: null,
             },
           };
         }
@@ -126,6 +127,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let totalMinutesLate = 0;
     let noOfTimesUndertime = 0;
     let totalMinutesUndertime = 0;
+    let noAttendance = 0;
     const lateDates: number[] = [];
     const undertimeDates: number[] = [];
     const summaryResult = await Promise.all(
@@ -139,6 +141,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           lateDates.push(day);
         }
 
+        if (summary.noAttendance > 0) {
+          noAttendance += 1;
+        }
+
         noOfTimesUndertime += summary.noOfTimesUndertime;
         totalMinutesUndertime += summary.totalMinutesUndertime;
 
@@ -148,7 +154,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-    return { noOfTimesLate, totalMinutesLate, lateDates, noOfTimesUndertime, totalMinutesUndertime, undertimeDates };
+    return { noOfTimesLate, totalMinutesLate, lateDates, noOfTimesUndertime, totalMinutesUndertime, undertimeDates, noAttendance };
   }
 
   //#region lates,undertimes,halfday functionalities
@@ -183,6 +189,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       }
     }
 
+    let noAttendance = 0;
+
+    console.log('ASD ', dtr);
+    if (dtr.lunchIn === null && dtr.lunchOut === null && dtr.timeIn === null && dtr.timeOut === null && schedule.scheduleName === null) {
+      noAttendance = 1;
+    }
+
     const undertime = (await this.rawQuery(
       `
       SELECT DATE_FORMAT(date_of_application,'%Y-%m-%d') dateOfApplication,ps.time_out undertimeOut FROM pass_slip ps 
@@ -208,6 +221,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       noOfLates,
       noOfUndertimes,
       minutesUndertime,
+      noAttendance,
     };
   }
   //#endregion
@@ -253,11 +267,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       //1.3 halfday
       const isHalfDay = false;
+      //1.4 no attendance
+      const noAttendance = latesUndertimesNoAttendance.noAttendance;
       const summary = {
         noOfLates,
         totalMinutesLate,
         noOfTimesUndertime,
         totalMinutesUndertime,
+        noAttendance,
         isHalfDay,
       };
 
@@ -266,6 +283,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const dateCurrent = dayjs(data.date).toDate();
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
       const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dateCurrent]))[0];
+      let noAttendance = 1;
+      if (remarks !== null || remarks !== '') noAttendance = 0;
       return {
         //fetch day if may leave, holiday, pass slip
         schedule: {
@@ -305,6 +324,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           totalMinutesLate: null,
           noOfTimesUndertime: null,
           totalMinutesUndertime: null,
+          noAttendance,
           isHalfDay: false,
         },
       };
@@ -380,10 +400,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   async updateRegularMorningDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
-    let _timeIn;
-    let _lunchOut;
-    let _lunchIn;
-    let _timeOut;
+    let _timeIn = null;
+    let _lunchOut = null;
+    let _lunchIn = null;
+    let _timeOut = null;
     const { timeIn, timeOut, lunchOut, lunchIn } = schedule;
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
@@ -432,7 +452,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
             //dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
           ) {
-            _lunchIn = time;
+            if (_lunchIn === null) _lunchIn = time;
           }
           if (
             (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut)) ||
@@ -562,10 +582,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   async addRegularMorningDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
-    let _timeIn;
-    let _lunchOut;
-    let _lunchIn;
-    let _timeOut;
+    let _timeIn = null;
+    let _lunchOut = null;
+    let _lunchIn = null;
+    let _timeOut = null;
     const { timeIn, timeOut, lunchOut, lunchIn } = schedule;
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
@@ -613,7 +633,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
             //dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
           ) {
-            _lunchIn = time;
+            if (_lunchIn === null) _lunchIn = time;
           }
           if (
             (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut)) ||

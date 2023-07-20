@@ -343,9 +343,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           pattern: 'get_employee_supervisor_names',
           onError: (error) => new NotFoundException(error),
         })) as { employeeName: string; supervisorName: string };
-
         const { employeeName, supervisorName } = employeeSupervisorNames;
-
         return { ...rest, employee: { employeeId, employeeName }, supervisor: { supervisorId, supervisorName } };
       })
     );
