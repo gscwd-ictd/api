@@ -11,11 +11,13 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CreateTrainingDetailsDto, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { TrainingDetailsService } from './training-details.service';
 import { DeleteResult, UpdateResult } from 'typeorm';
+import { TrainingDetailsInterceptor } from '../misc/interceptors/training-details.interceptor';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -31,6 +33,7 @@ export class TrainingDetailsController {
 
   //get method to get all trainings relate to training sources
   @Get()
+  @UseInterceptors(TrainingDetailsInterceptor)
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
@@ -110,4 +113,72 @@ export class TrainingDetailsController {
   // async findTrainingNomineesByTrainingIdAndSupervisorId(@Param('id') id: string, @Param('supervisor_id') supervisor_id: string) {
   //   return `training id ${id} training supervisor id ${supervisor_id}`;
   // }
+
+  //organization
+
+  @Post('q/organization')
+  async createOrganization(@Body() data: CreateTrainingDetailsDto) {
+    return await this.trainingDetailsService.addTraining(data);
+  }
+
+  @Get('q/organization')
+  @UseInterceptors(TrainingDetailsInterceptor)
+  async findAllOrg(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      find: {
+        relations: { trainingSource: true, lspIndividualDetails: true },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          lspIndividualDetails: {
+            employeeId: true,
+            firstName: true,
+            middleName: true,
+            lastName: true,
+          },
+          location: true,
+          courseTitle: true,
+          trainingStart: true,
+          trainingEnd: true,
+          numberOfHours: true,
+          deadlineForSubmission: true,
+          invitationUrl: true,
+          numberOfParticipants: true,
+          status: true,
+          trainingSource: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
+
+  @Get('q/organization:id')
+  async findOrganizationById(@Param('id') id: string): Promise<TrainingDetails> {
+    return this.trainingDetailsService.getTrainingDetailsById(id);
+  }
+
+  //patch method to update training details by training id
+  @Patch('q/organization')
+  async updateOrganization(@Body() data: UpdateTrainingDetailsDto): Promise<UpdateResult> {
+    return this.trainingDetailsService.updateTrainingDetails(data);
+  }
+
+  //delete method to remove trainings by training id
+  @Delete('q/organization:id')
+  async deleteOrganization(@Param('id') id: string): Promise<DeleteResult> {
+    return this.trainingDetailsService.crud().delete({
+      deleteBy: { id },
+      softDelete: false,
+      onError: () => new BadRequestException(),
+    });
+  }
 }
