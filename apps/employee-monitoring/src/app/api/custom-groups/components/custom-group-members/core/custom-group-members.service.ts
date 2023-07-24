@@ -17,34 +17,42 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
         return { customGroupId: members.customGroupId, employeeId: members.employeeId };
       })
     );
-    return { customGroupId, members: customGroupMembers };
+    return customGroupMembersDto;
   }
 
   async unassignCustomGroupMembers(customGroupMembersDto: CreateCustomGroupMembersDto) {
     const { customGroupId, employeeIds } = customGroupMembersDto;
-    const deleteResult = await this.rawQuery(`DELETE FROM custom_group_members WHERE custom_group_members_id=? AND employee_id_fk IN (?);`, [
+    const deleteResult = await this.rawQuery(`DELETE FROM custom_group_members WHERE custom_group_id_fk=? AND employee_id_fk IN (?);`, [
       customGroupId,
       employeeIds,
     ]);
-
+    console.log(deleteResult);
     return customGroupMembersDto;
   }
 
   async getCustomGroupMembers(customGroupId: string, unassigned: boolean) {
-    const assignedMembers = (await this.crudService.findAll({
-      find: { select: { employeeId: true }, where: { customGroupId: { id: customGroupId } } },
-      onError: () => new NotFoundException(),
-    })) as CustomGroupMembers[];
+    let assignedMembers;
+
+    let pattern = '';
+    if (unassigned) {
+      assignedMembers = (await this.crudService.findAll({
+        find: { select: { employeeId: true } },
+        onError: () => new NotFoundException(),
+      })) as CustomGroupMembers[];
+      pattern = 'get_custom_group_unassigned_member';
+    } else {
+      assignedMembers = (await this.crudService.findAll({
+        find: { select: { employeeId: true }, where: { customGroupId: { id: customGroupId } } },
+        onError: () => new NotFoundException(),
+      })) as CustomGroupMembers[];
+      pattern = 'get_custom_group_assigned_member';
+    }
 
     const employeeIds = await Promise.all(
       assignedMembers.map(async (assignedMember) => {
         return assignedMember.employeeId;
       })
     );
-
-    let pattern = '';
-    if (unassigned) pattern = 'get_custom_group_unassigned_member';
-    else pattern = 'get_custom_group_assigned_member';
 
     const employees = await this.client.call({
       action: 'send',
@@ -55,4 +63,6 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
 
     return employees;
   }
+
+  async getAllScheduleSheet() {}
 }

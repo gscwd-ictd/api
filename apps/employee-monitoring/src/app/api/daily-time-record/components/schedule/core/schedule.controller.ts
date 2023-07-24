@@ -12,9 +12,14 @@ export class ScheduleController {
     return await this.scheduleService.addSchedule(scheduleDto);
   }
 
-  @Get('')
+  @Get()
   async getSchedules(@Query('base') scheduleBase: ScheduleBase) {
     return await this.scheduleService.getSchedules(scheduleBase);
+  }
+
+  @Get('/dropdown')
+  async getSchedulesDropDown() {
+    return await this.scheduleService.getSchedulesDropDown();
   }
 
   @Get(':schedule_id')

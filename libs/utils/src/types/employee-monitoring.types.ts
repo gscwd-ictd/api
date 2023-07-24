@@ -1,7 +1,7 @@
 export enum LeaveTypes {
-  RECURRING = 'Recurring',
-  CUMULATIVE = 'Cumulative',
-  SLB = 'Special Leave Benefit',
+  RECURRING = 'recurring',
+  CUMULATIVE = 'cumulative',
+  SLB = 'special leave benefit',
 }
 
 export enum CreditDistribution {
@@ -13,6 +13,7 @@ export enum LeaveApplicationStatus {
   APPROVED = 'approved',
   HR_APPROVED = 'hr approved',
   ONGOING = 'ongoing',
+  FOR_APPROVAL = 'For approval',
   DISAPPROVED = 'disapproved',
   CANCELLED = 'cancelled',
 }
@@ -58,12 +59,11 @@ export enum HolidayType {
 
 export enum ScheduleType {
   REGULAR = 'regular',
-  //PUMPING_STATION = 'pumping station',
   FLEXIBLE = 'flexible',
 }
 
 export enum ScheduleShift {
-  MORNING = 'morning',
+  DAY = 'day',
   NIGHT = 'night',
 }
 
@@ -108,3 +108,96 @@ export type DailyTimeRecordPayloadForSingleEmployee = {
   companyId: string;
   date: Date;
 };
+
+export type EmployeeMonthlyDailyTimeRecord = {
+  month: number;
+  year: number;
+  companyId: string;
+};
+
+export type EmployeeScheduleType = {
+  id: string;
+  esDateFrom: Date;
+  esDateTo: Date;
+  scheduleName: string;
+  scheduleType: ScheduleType;
+  timeIn: string;
+  lunchOut: string;
+  lunchIn: string;
+  timeOut: string;
+  scheduleBase: string;
+  dateFrom: Date;
+  dateTo: Date;
+  scheduleRange: string;
+  restDaysNumbers: string;
+  restDaysNames: string;
+};
+
+export type DailyTimeRecordType = {
+  schedule: EmployeeScheduleType;
+  dtr: {
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date;
+    id: string;
+    companyId: string;
+    dtrDate: Date;
+    timeIn: number;
+    lunchOut: number;
+    lunchIn: number;
+    timeOut: number;
+  };
+};
+
+export type MonthlyDtrItemType = Pick<DailyTimeRecordType, 'dtr' | 'schedule'> & {
+  day: string;
+  holidayType: HolidayType;
+  summary: DtrSummary;
+};
+
+export type DtrSummary = {
+  noOfLates: number;
+  totalMinutesLate: number;
+  noOfTimesUndertime: number;
+  totalMinutesUndertime: number;
+  noAttendance: number;
+  isHalfDay: boolean;
+};
+
+// {
+//   day: dayjs(currDate).format('YYYY-MM-DD'),
+//   holidayType,
+//   schedule: {
+//     id: null,
+//     lunchIn: null,
+//     lunchOut: null,
+//     restDaysNames: null,
+//     restDaysNumbers: null,
+//     schedule: null,
+//     scheduleName: null,
+//     scheduleType: null,
+//     shift: null,
+//     timeIn: null,
+//     timeOut: null,
+//   },
+//   dtr: {
+//     companyId: null,
+//     createdAt: null,
+//     deletedAt: null,
+//     dtrDate: null,
+//     id: null,
+//     lunchIn: null,
+//     lunchOut: null,
+//     timeIn: null,
+//     timeOut: null,
+//     updatedAt: null,
+//     remarks,
+//   },
+//   summary: {
+//     noOfLates: null,
+//     totalMinutesLate: null,
+//     noOfUndertimes: null,
+//     totalMinutesUndertime: null,
+//     isHalfDay: null,
+//   },
+// };

@@ -9,9 +9,9 @@ export class EmployeeRestDay extends DatabaseEntity implements IEntity {
   @Column({ name: 'employee_id_fk' })
   employeeId: string;
 
-  @Column({ name: 'date_from', type: 'date' })
+  @Column({ name: 'date_from', type: 'date', nullable: true })
   dateFrom: Date;
 
-  @Column({ name: 'date_to', type: 'date' })
+  @Column({ name: 'date_to', type: 'date', nullable: true })
   dateTo: Date;
 }

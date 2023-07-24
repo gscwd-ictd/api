@@ -18,6 +18,33 @@ export class ScheduleService extends CrudHelper<Schedule> {
     return await this.crud().findOne({ find: { where: { id } } });
   }
 
+  async getSchedulesDropDown() {
+    const schedules = await this.rawQuery<ScheduleBase, Schedule[]>(
+      `
+    SELECT 
+      schedule_id id, 
+      name, 
+      schedule_type scheduleType, 
+      time_in timeIn, 
+      time_out timeOut, 
+      lunch_in lunchIn, 
+      lunch_out lunchOut, 
+      schedule_base scheduleBase,
+      shift 
+    FROM schedule ORDER BY name ASC;
+    `
+    );
+
+    const schedulesDropDown = await Promise.all(
+      schedules.map(async (schedule) => {
+        const { name, createdAt, deletedAt, updatedAt, ...rest } = schedule;
+        return { label: name, value: { name, ...rest } };
+      })
+    );
+
+    return schedulesDropDown;
+  }
+
   async getSchedules(scheduleBase: ScheduleBase | null) {
     let schedules;
 
