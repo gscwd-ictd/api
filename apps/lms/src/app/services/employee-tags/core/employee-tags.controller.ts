@@ -12,8 +12,13 @@ export class EmployeeTagsController {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string) {
+  async findTagsByEmployeeId(@Param('id') id: string) {
     return await this.employeeTagsService.findTagsByEmployeeId(id);
+  }
+
+  @Get('tag/:id')
+  async findEmployeesByTagId(@Param('id') id: string) {
+    return await this.employeeTagsService.findEmployeesByTagId(id);
   }
 
   @Delete()
