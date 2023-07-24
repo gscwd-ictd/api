@@ -2,6 +2,7 @@ import { CrudHelper, CrudService, throwRpc } from '@gscwd-api/crud';
 import { IvmsDailyTimeRecord } from '@gscwd-api/models';
 import { DailyTimeRecordPayload, DailyTimeRecordPayloadForSingleEmployee } from '@gscwd-api/utils';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class DailyTimeRecordService extends CrudHelper<IvmsDailyTimeRecord> {
@@ -15,10 +16,17 @@ export class DailyTimeRecordService extends CrudHelper<IvmsDailyTimeRecord> {
 
   async getEmployeeDtrByDayAndCompanyId(dailyTimeRecordPayloadForSingleEmployee: DailyTimeRecordPayloadForSingleEmployee) {
     const { companyId, date } = dailyTimeRecordPayloadForSingleEmployee;
-    return await this.crudService.findAll({
-      find: { where: { id: companyId, date } },
-      onError: ({ error }) => new NotFoundException(error, { cause: new Error('') }),
+    const dateNow = dayjs(date).toDate();
+    console.log(dateNow);
+    //console.log('asd asd ', date.toISOString());
+    const dtr = await this.crudService.findAll({
+      find: { where: { id: companyId, date: dateNow } },
+      onError: ({ error }) => {
+        console.log(error);
+        return new NotFoundException(error, { cause: error as Error });
+      },
     });
+    return dtr;
   }
 
   async getDtrByCompanyId(dtrPayload: DailyTimeRecordPayload) {

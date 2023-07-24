@@ -27,4 +27,9 @@ export class LeaveApplicationController {
   async getUnavailableDates(@Param('employee_id') employeeId: string) {
     return await this.leaveApplicationService.getUnavailableDates(employeeId);
   }
+
+  @Get('supervisor/:supervisor_id')
+  async getLeavesUnderSupervisor(@Param('supervisor_id') supervisorId: string) {
+    return await this.leaveApplicationService.getLeavesUnderSupervisor(supervisorId);
+  }
 }

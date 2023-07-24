@@ -15,12 +15,6 @@ export class EmployeeRestDayService extends CrudHelper<EmployeeRestDay> {
   async addEmployeeRestDayTransaction(employeeRestDayDto: CreateEmployeeRestDayDto, entityManager: EntityManager) {
     const { restDays, ...employeeRestDay } = employeeRestDayDto;
 
-    const _daysOfWeek = await Promise.all(
-      restDays.map(async (restDay) => {
-        return dayjs(restDay).day();
-      })
-    );
-
     const employeeRestDayResult = await this.crudService.transact<EmployeeRestDay>(entityManager).create({
       dto: employeeRestDay,
       onError: () => new InternalServerErrorException(),
@@ -29,7 +23,7 @@ export class EmployeeRestDayService extends CrudHelper<EmployeeRestDay> {
     const employeeRestDaysResult = await this.employeeRestDaysService.addEmployeeRestDaysTransaction(
       {
         employeeRestDay: { ...employeeRestDayResult, createdAt: null, updatedAt: null, deletedAt: null },
-        restDays: _daysOfWeek,
+        restDays,
       },
       entityManager
     );

@@ -4,11 +4,11 @@ import { CustomGroupsController } from './custom-groups.controller';
 import { CrudModule } from '@gscwd-api/crud';
 import { CustomGroups } from '@gscwd-api/models';
 import { CustomGroupMembersModule } from '../components/custom-group-members/core/custom-group-members.module';
-import { MS_CLIENT } from '@gscwd-api/microservices';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ScheduleSheetModule } from '../../daily-time-record/components/schedule-sheet/core/schedule-sheet.module';
+import { EmployeeRestDaysModule } from '../../daily-time-record/components/employee-schedule/components/employee-rest-day/components/employee-rest-days/core/employee-rest-days.module';
 
 @Module({
-  imports: [CrudModule.register(CustomGroups), CustomGroupMembersModule],
+  imports: [CrudModule.register(CustomGroups), CustomGroupMembersModule, ScheduleSheetModule, EmployeeRestDaysModule],
   providers: [CustomGroupsService],
   controllers: [CustomGroupsController],
   exports: [CustomGroupsService],

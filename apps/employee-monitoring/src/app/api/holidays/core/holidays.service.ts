@@ -1,6 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { Holidays, HolidaysDto, UpdateHolidayDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import dayjs = require('dayjs');
 
 @Injectable()
 export class HolidaysService extends CrudHelper<Holidays> {
@@ -35,6 +36,15 @@ export class HolidaysService extends CrudHelper<Holidays> {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
+  }
+
+  async getHolidayTypeByDate(holidayDate: Date) {
+    const _holidayDate = dayjs(holidayDate).toDate();
+    try {
+      return (await this.crudService.findOneOrNull({ find: { select: { type: true }, where: { holidayDate: _holidayDate } } })).type;
+    } catch {
+      return null;
+    }
   }
 
   async updateHoliday(updateHolidayDto: UpdateHolidayDto) {

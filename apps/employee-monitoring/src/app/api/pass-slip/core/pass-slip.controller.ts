@@ -17,6 +17,16 @@ export class PassSlipController {
     return await this.passSlipService.getPassSlipsByEmployeeId(employeeId);
   }
 
+  @Get('details/:pass_slip_id')
+  async getPassSlipDetails(@Param('pass_slip_id') passSlipId: string) {
+    return await this.passSlipService.getPassSlipDetails(passSlipId);
+  }
+
+  @Get(':employee_id/approved')
+  async getApprovedPassSlipsByEmployeeId(@Param('employee_id') employeeId: string) {
+    return await this.passSlipService.getApprovedPassSlipsByEmployeeId(employeeId);
+  }
+
   @Get()
   async getAllPassSlips() {
     return await this.passSlipService.getAllPassSlips();
