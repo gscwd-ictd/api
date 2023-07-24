@@ -6,6 +6,8 @@ import { DailyTimeRecord } from '@gscwd-api/models';
 import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { EmployeeScheduleModule } from '../components/employee-schedule/core/employee-schedule.module';
+import { HolidaysModule } from '../../holidays/core/holidays.module';
+import { ScheduleModule } from '../components/schedule/core/schedule.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { EmployeeScheduleModule } from '../components/employee-schedule/core/emp
       },
     ]),
     EmployeeScheduleModule,
+    HolidaysModule,
+    ScheduleModule,
   ],
   providers: [DailyTimeRecordService, MicroserviceClient],
   controllers: [DailyTimeRecordController],

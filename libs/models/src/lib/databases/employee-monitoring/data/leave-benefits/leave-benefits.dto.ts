@@ -23,4 +23,6 @@ export class CreateLeaveBenefitsDto {
   canBeCarriedOver: boolean;
 }
 
-export class UpdateLeaveBenefitsDto extends PartialType(CreateLeaveBenefitsDto) {}
+export class UpdateLeaveBenefitsDto extends PartialType(CreateLeaveBenefitsDto) {
+  id: string;
+}

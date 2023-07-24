@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { DailyTimeRecord } from '@gscwd-api/models';
-import { DtrPayload, IvmsEntry } from '@gscwd-api/utils';
+import { DailyTimeRecord, UpdateDailyTimeRecordDto } from '@gscwd-api/models';
+import { DtrPayload, IvmsEntry, ScheduleType, EmployeeScheduleType, MonthlyDtrItemType } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
+import { HolidaysService } from '../../holidays/core/holidays.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
 
 @Injectable()
@@ -11,7 +13,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   constructor(
     private readonly crudService: CrudService<DailyTimeRecord>,
     private readonly client: MicroserviceClient,
-    private readonly employeeScheduleService: EmployeeScheduleService
+    private readonly employeeScheduleService: EmployeeScheduleService,
+    private readonly holidayService: HolidaysService
   ) {
     super(crudService);
   }
@@ -25,40 +28,316 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     });
   }
 
-  async getDtrByCompanyIdAndDay(data: { companyId: string; date: Date }) {
-    const id = data.companyId.replace('-', '');
-    const employeeDetails = await this.employeeScheduleService.getEmployeeScheduleByCompanyId(data.companyId);
-
-    const schedule = (await this.employeeScheduleService.getEmployeeSchedule(employeeDetails.userId)).schedule;
-
-    const { timeIn, timeOut, lunchIn, lunchOut } = schedule;
-
-    const employeeIvmsDtr = (await this.client.call({
-      action: 'send',
-      payload: { companyId: id, date: data.date },
-      pattern: 'get_dtr_by_company_id_and_date',
-      onError: (error) => new NotFoundException(error),
-    })) as IvmsEntry[];
-
-    //1. check if employee is in dtr table in the current date;
-    const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, data.date);
-
-    //1.2 if not in current mysql daily_time_record save data fetched from ivms
-    if (!currEmployeeDtr) {
-      //if schedule is regular
-      const saveEmployeeDtr = await this.saveDtr(data.companyId, employeeIvmsDtr, schedule);
-      //if schedule is night shift tabok2
-    } else {
-      await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
+  private getDayRange(numberOfDays: number) {
+    switch (numberOfDays) {
+      case 28:
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28];
+      case 29:
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29];
+      case 30:
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30];
+      case 31:
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31];
+      default:
+        return [9, 31];
     }
-    return { schedule, dtr: await this.findByCompanyIdAndDate(data.companyId, data.date) };
   }
 
+  async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number) {
+    const daysInMonth = dayjs(year + '-' + month + '-' + '01').daysInMonth();
+
+    const dayRange = this.getDayRange(daysInMonth);
+    console.log('day range ', dayRange);
+
+    //#region for map
+    const dtrDays: MonthlyDtrItemType[] = (await Promise.all(
+      dayRange.map(async (dtrDay, idx) => {
+        //console.log('index ', dtrDay);
+
+        const currDate = dayjs(year + '-' + month + '-' + dtrDay).toDate();
+        const holidayType = await this.holidayService.getHolidayTypeByDate(currDate);
+
+        try {
+          const dtr = await this.getDtrByCompanyIdAndDay({ companyId, date: currDate });
+
+          return { day: dayjs(currDate).format('YYYY-MM-DD'), holidayType, ...dtr };
+        } catch {
+          const currDate = dayjs(year + '-' + month + '-' + dtrDay).toDate();
+          // #region rework get only id by company_id;
+          const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(companyId);
+          // #endregion
+          const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, currDate]))[0];
+          return {
+            day: dayjs(currDate).format('YYYY-MM-DD'),
+            holidayType,
+            schedule: {
+              id: null,
+              lunchIn: null,
+              esDateFrom: null,
+              esDateTo: null,
+              dateFrom: null,
+              scheduleRange: null,
+              dateTo: null,
+              scheduleBase: null,
+              lunchOut: null,
+              restDaysNames: null,
+              restDaysNumbers: null,
+              schedule: null,
+              scheduleName: null,
+              scheduleType: null,
+              shift: null,
+              timeIn: null,
+              timeOut: null,
+            },
+            dtr: {
+              companyId: null,
+              createdAt: null,
+              deletedAt: null,
+              dtrDate: null,
+              id: null,
+              lunchIn: null,
+              lunchOut: null,
+              timeIn: null,
+              timeOut: null,
+              updatedAt: null,
+              remarks,
+            },
+            summary: {
+              noOfLates: null,
+              totalMinutesLate: null,
+              noOfUndertimes: null,
+              totalMinutesUndertime: null,
+              isHalfDay: null,
+              noAttendance: null,
+            },
+          };
+        }
+      })
+    )) as MonthlyDtrItemType[];
+    //#endregion map
+    //console.log('from monthly ', dtrDays);
+    const summary = await this.getSummary(dtrDays);
+    console.log(summary);
+    return { dtrDays, summary };
+  }
+
+  async getSummary(dtrDays: MonthlyDtrItemType[]) {
+    //console.log(dtrDays);
+    let noOfTimesLate = 0;
+    let totalMinutesLate = 0;
+    let noOfTimesUndertime = 0;
+    let totalMinutesUndertime = 0;
+    let noAttendance = 0;
+    const lateDates: number[] = [];
+    const undertimeDates: number[] = [];
+    const summaryResult = await Promise.all(
+      dtrDays.map(async (dtrDay: MonthlyDtrItemType) => {
+        const { summary, dtr, day, holidayType, schedule } = dtrDay;
+        noOfTimesLate += summary.noOfLates;
+        totalMinutesLate += summary.totalMinutesLate;
+
+        if (summary.noOfLates > 0) {
+          const day = dayjs(dtr.dtrDate).date();
+          lateDates.push(day);
+        }
+
+        if (summary.noAttendance > 0) {
+          noAttendance += 1;
+        }
+
+        noOfTimesUndertime += summary.noOfTimesUndertime;
+        totalMinutesUndertime += summary.totalMinutesUndertime;
+
+        if (summary.noOfTimesUndertime > 0) {
+          const day = dayjs(dtr.dtrDate).date();
+          undertimeDates.push(day);
+        }
+      })
+    );
+    return { noOfTimesLate, totalMinutesLate, lateDates, noOfTimesUndertime, totalMinutesUndertime, undertimeDates, noAttendance };
+  }
+
+  //#region lates,undertimes,halfday functionalities
+
+  async getLatesUndertimesNoAttendancePerDay(dtr: DailyTimeRecord, schedule: EmployeeScheduleType, employeeId: string) {
+    //console.log('get lates per day', dtr, schedule);
+
+    let minutesLate = 0;
+    let noOfLates = 0;
+    let noOfUndertimes = 0;
+    let minutesUndertime = 0;
+
+    if (schedule.scheduleName === 'Regular Morning Schedule') {
+      const lateMorning = dayjs(dayjs('2023-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
+        dayjs('2023-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
+        'm'
+      );
+
+      const lateAfternoon = dayjs(dayjs('2023-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
+        dayjs('2023-01-01 13:00').format('YYYY-MM-DD HH:mm'),
+        'm'
+      );
+
+      if (lateMorning > 0) {
+        minutesLate += lateMorning;
+        noOfLates += 1;
+      }
+
+      if (lateAfternoon > 0) {
+        minutesLate += lateAfternoon;
+        noOfLates += 1;
+      }
+    }
+
+    let noAttendance = 0;
+
+    console.log('ASD ', dtr);
+    if (dtr.lunchIn === null && dtr.lunchOut === null && dtr.timeIn === null && dtr.timeOut === null && schedule.scheduleName === null) {
+      noAttendance = 1;
+    }
+
+    const undertime = (await this.rawQuery(
+      `
+      SELECT DATE_FORMAT(date_of_application,'%Y-%m-%d') dateOfApplication,ps.time_out undertimeOut FROM pass_slip ps 
+        INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
+      WHERE psa.status = 'used' 
+      AND ps.employee_id_fk = ? 
+      AND date_of_application = ?;
+    `,
+      [employeeId, dayjs(dtr.dtrDate).format('YYYY-MM-DD')]
+    )) as { dateOfApplication: Date; undertimeOut: Date }[];
+
+    if (undertime.length > 0) {
+      //do the math
+      const { dateOfApplication, undertimeOut } = undertime[0];
+      noOfUndertimes = 1;
+      minutesUndertime = dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+        dayjs('2023-01-01 ' + undertimeOut).format('YYYY-MM-DD HH:mm'),
+        'm'
+      );
+    }
+    return {
+      minutesLate,
+      noOfLates,
+      noOfUndertimes,
+      minutesUndertime,
+      noAttendance,
+    };
+  }
+  //#endregion
+
+  async getDtrByCompanyIdAndDay(data: { companyId: string; date: Date }) {
+    try {
+      const dateCurrent = dayjs(data.date).toDate();
+      const id = data.companyId.replace('-', '');
+      const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
+      const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
+
+      const employeeIvmsDtr = (await this.client.call<string, { companyId: string; date: Date }, IvmsEntry[]>({
+        action: 'send',
+        payload: { companyId: id, date: dateCurrent },
+        pattern: 'get_dtr_by_company_id_and_date',
+        onError: (error) => new NotFoundException(error),
+      })) as IvmsEntry[];
+
+      //1. check if employee is in dtr table in the current date;
+      const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
+      const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dateCurrent]))[0];
+
+      //1.2 if not in current mysql daily_time_record save data fetched from ivms
+      if (!currEmployeeDtr) {
+        //if schedule is regular
+        await this.saveDtr(data.companyId, employeeIvmsDtr, schedule);
+        //if schedule is night shift tabok2
+      } else {
+        if (schedule.id !== currEmployeeDtr.scheduleId)
+          await this.crud().update({ dto: { scheduleId: { id: schedule.id } }, updateBy: { id: currEmployeeDtr.id } });
+        await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
+      }
+      const dtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
+      const latesUndertimesNoAttendance = await this.getLatesUndertimesNoAttendancePerDay(dtr, schedule, employeeDetails.userId);
+      //const undertimes = await this.getUndertimesPerDay(dtr, schedule);
+      //1.1 compute late by the day
+      const noOfLates = latesUndertimesNoAttendance.noOfLates;
+
+      const totalMinutesLate = latesUndertimesNoAttendance.minutesLate;
+      //1.2 compute undertimes
+      const noOfTimesUndertime = latesUndertimesNoAttendance.noOfUndertimes;
+      const totalMinutesUndertime = latesUndertimesNoAttendance.minutesUndertime;
+
+      //1.3 halfday
+      const isHalfDay = false;
+      //1.4 no attendance
+      const noAttendance = latesUndertimesNoAttendance.noAttendance;
+      const summary = {
+        noOfLates,
+        totalMinutesLate,
+        noOfTimesUndertime,
+        totalMinutesUndertime,
+        noAttendance,
+        isHalfDay,
+      };
+
+      return { companyId: data.companyId, date: dayjs(data.date).format('YYYY-MM-DD'), schedule, dtr: { ...dtr, remarks }, summary };
+    } catch (error) {
+      const dateCurrent = dayjs(data.date).toDate();
+      const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
+      const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dateCurrent]))[0];
+      let noAttendance = 1;
+      if (remarks !== null || remarks !== '') noAttendance = 0;
+      return {
+        //fetch day if may leave, holiday, pass slip
+        schedule: {
+          id: null,
+          esDateFrom: null,
+          esDateTo: null,
+          dateFrom: null,
+          dateTo: null,
+          scheduleBase: null,
+          scheduleRange: null,
+          lunchIn: null,
+          lunchOut: null,
+          restDaysNames: null,
+          restDaysNumbers: null,
+          schedule: null,
+          scheduleName: null,
+          scheduleType: null,
+          shift: null,
+          timeIn: null,
+          timeOut: null,
+        },
+        dtr: {
+          companyId: null,
+          createdAt: null,
+          deletedAt: null,
+          dtrDate: null,
+          id: null,
+          lunchIn: null,
+          lunchOut: null,
+          timeIn: null,
+          timeOut: null,
+          updatedAt: null,
+          remarks,
+        },
+        summary: {
+          noOfLates: null,
+          totalMinutesLate: null,
+          noOfTimesUndertime: null,
+          totalMinutesUndertime: null,
+          noAttendance,
+          isHalfDay: false,
+        },
+      };
+    }
+  }
+
+  private async countNoOfTimesLate() {}
+
   private async findByCompanyIdAndDate(companyId: string, dtrDate: Date) {
-    return await this.crud().findOneOrNull({
+    const findResult = await this.crud().findOneOrNull({
       find: { where: { companyId, dtrDate } },
-      onError: (error) => new InternalServerErrorException(error),
     });
+    return findResult;
   }
 
   async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
@@ -121,10 +400,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   async updateRegularMorningDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
-    let _timeIn;
-    let _lunchOut;
-    let _lunchIn;
-    let _timeOut;
+    let _timeIn = null;
+    let _lunchOut = null;
+    let _lunchIn = null;
+    let _timeOut = null;
     const { timeIn, timeOut, lunchOut, lunchIn } = schedule;
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
@@ -146,6 +425,15 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             ) {
               _lunchIn = time;
             }
+
+            if (
+              (dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + lunchOut)) ||
+                dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + lunchOut))) &&
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + lunchIn)) &&
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
+            ) {
+              _lunchOut = time;
+            }
           }
         } else {
           //baka timeout or lunchout or lunchin
@@ -164,7 +452,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
             //dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
           ) {
-            _lunchIn = time;
+            if (_lunchIn === null) _lunchIn = time;
           }
           if (
             (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut)) ||
@@ -177,6 +465,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       })
     );
 
+    console.log('UPDATE');
     return await this.crudService.create({
       dto: {
         id: currEmployeeDtr.id,
@@ -293,10 +582,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   async addRegularMorningDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
-    let _timeIn;
-    let _lunchOut;
-    let _lunchIn;
-    let _timeOut;
+    let _timeIn = null;
+    let _lunchOut = null;
+    let _lunchIn = null;
+    let _timeOut = null;
     const { timeIn, timeOut, lunchOut, lunchIn } = schedule;
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
@@ -317,6 +606,15 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             ) {
               _lunchIn = time;
             }
+
+            if (
+              (dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + lunchOut)) ||
+                dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + lunchOut))) &&
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + lunchIn)) &&
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
+            ) {
+              _lunchOut = time;
+            }
           }
         } else {
           //baka timeout or lunchout or lunchin
@@ -335,7 +633,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
             //dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
           ) {
-            _lunchIn = time;
+            if (_lunchIn === null) _lunchIn = time;
           }
           if (
             (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut)) ||
@@ -347,7 +645,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-
+    console.log('save');
     return await this.crudService.create({
       dto: {
         companyId,
@@ -358,61 +656,15 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         lunchIn: _lunchIn,
         lunchOut: _lunchOut,
       },
+      onError: () => new InternalServerErrorException(),
     });
   }
 
   //#endregion
 
-  async getDtrByCompanyId(companyId: string, dtrPayload: DtrPayload) {
-    let dateFrom = new Date(dtrPayload.dateFrom);
-    let dateTo = new Date(dtrPayload.dateTo);
-    const dayDifference = (dateTo.getTime() - dateFrom.getTime()) / 86400000;
-    let days = [];
-
-    for (var i = 0; i <= dayDifference; i++) {
-      let day = new Date(dateFrom.setDate(dateFrom.getDate()) + i * 86400000).toISOString().split('T')[0];
-      days.push(day);
-    }
-
-    const ivmsResult: any = await this.client.call<
-      string,
-      object,
-      { companyId: string; dtrDatesResults: { dtrDate: string; employeeDtr: { time24Hr: string; time12Hr: string }[] }[] }
-    >({
-      action: 'send',
-      payload: { companyId, dtrDates: days },
-      pattern: 'get_dtr_by_company_id',
-      onError: (error) => new NotFoundException(error, { cause: new Error('') }),
-    });
-
-    const { dtrDatesResults } = ivmsResult;
-
-    const addToLocalDTR = await Promise.all(
-      dtrDatesResults.map(async (dtrDatesResult: { dtrDate: Date; employeeDtr: { time24Hr: string; time12Hr: string }[] }, idx: number) => {
-        const { dtrDate, employeeDtr } = dtrDatesResult;
-
-        if (employeeDtr.length > 0) {
-          if (employeeDtr.length < 4) {
-            //check pass slip
-          }
-        } else {
-          //check leave,pass slip, travel order
-        }
-      })
-    );
-    //
-    //loop per day
-    //first kinsenas:  1-15
-    //
-    //per day check:
-    //1. attendance
-    //  1.1 if wala:
-    //      1.1 if rest period ng schedule niya
-    //      1.2 if leave niya
-    //      1.3 pass slip
-    //      1.4 travel
-    //  1.2 if naa:
-    //
-    return ivmsResult;
+  async updateEmployeeDTR(dailyTimeRecordDto: UpdateDailyTimeRecordDto) {
+    const { dtrDate, companyId, ...rest } = dailyTimeRecordDto;
+    const updateResult = await this.crud().update({ dto: rest, updateBy: { companyId, dtrDate }, onError: () => new InternalServerErrorException() });
+    if (updateResult.affected > 0) return dailyTimeRecordDto;
   }
 }

@@ -12,7 +12,7 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       database: process.env.DB_NAME,
       entities: typeOrmEntities,
       logging: true,
-      synchronize: false,
+      synchronize: true,
       //charset: 'utf8mb4_0900_ai_ci',
     };
   }

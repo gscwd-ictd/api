@@ -8,6 +8,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { EmployeeRestDayModule } from '../components/employee-rest-day/core/employee-rest-day.module';
 import { CustomGroupsModule } from '../../../../custom-groups/core/custom-groups.module';
 import { CustomGroupMembersModule } from '../../../../custom-groups/components/custom-group-members/core/custom-group-members.module';
+import { EmployeeScheduleMsController } from './employee-schedule-ms.controller';
+import { EmployeeRestDaysModule } from '../components/employee-rest-day/components/employee-rest-days/core/employee-rest-days.module';
 
 @Module({
   imports: [
@@ -23,10 +25,11 @@ import { CustomGroupMembersModule } from '../../../../custom-groups/components/c
       },
     ]),
     EmployeeRestDayModule,
+    EmployeeRestDaysModule,
     CustomGroupMembersModule,
   ],
   providers: [EmployeeScheduleService, MicroserviceClient],
-  controllers: [EmployeeScheduleController],
+  controllers: [EmployeeScheduleController, EmployeeScheduleMsController],
   exports: [EmployeeScheduleService],
 })
 export class EmployeeScheduleModule {}
