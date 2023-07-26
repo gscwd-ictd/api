@@ -299,7 +299,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         [passSlipId]
       )
     )[0];
-    console.log('ASD ', new RegExp('[A-Z]').test(''));
+
     const { employeeId, supervisorId, ...rest } = passSlip;
     const employeeAssignment = await this.getEmployeeAssignment(employeeId);
     const employeeSupervisorNames = await this.getSupervisorAndEmployeeNames(employeeId, supervisorId);

@@ -30,4 +30,7 @@ export class Schedule extends DatabaseEntity implements IEntity {
 
   @Column({ type: 'enum', enum: ScheduleShift, nullable: true })
   shift: ScheduleShift;
+
+  @Column({ type: 'boolean', name: 'is_with_lunch' })
+  withLunch: boolean;
 }

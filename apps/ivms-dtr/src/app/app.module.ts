@@ -18,7 +18,7 @@ import { appModules } from '../constants/modules';
       entities: [...typeOrmEntities],
       synchronize: true,
       logging: true,
-      options: { trustServerCertificate: true },
+      options: { trustServerCertificate: true, encrypt: false },
     }),
     ...appModules,
   ],
