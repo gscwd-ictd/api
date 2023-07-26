@@ -16,6 +16,8 @@ import {
   ScheduleSheetView,
   LeaveCreditEarnings,
   LeaveCardLedgerDebit,
+  LeaveCardLedgerCredit,
+  LeaveAddBack,
 } from '@gscwd-api/models';
 import { EmployeeRestDay } from 'libs/models/src/lib/databases/employee-monitoring/data/employee-rest-day/employee-rest-day.entity';
 
@@ -38,4 +40,6 @@ export const typeOrmEntities = [
   ScheduleSheetView,
   LeaveCreditEarnings,
   LeaveCardLedgerDebit,
+  LeaveCardLedgerCredit,
+  LeaveAddBack,
 ];
