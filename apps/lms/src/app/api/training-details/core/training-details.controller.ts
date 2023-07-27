@@ -7,7 +7,6 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  InternalServerErrorException,
   Param,
   ParseIntPipe,
   Patch,
@@ -15,12 +14,18 @@ import {
   Query,
   UseInterceptors,
 } from '@nestjs/common';
-import { CreateTrainingDetailsDto, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
-import { Pagination } from 'nestjs-typeorm-paginate';
+import {
+  CreateTrainingDetailsDto,
+  TrainingDetails,
+  TrainingLspIndividual,
+  TrainingLspOrganization,
+  UpdateTrainingDetailsDto,
+} from '@gscwd-api/models';
 import { TrainingDetailsService } from './training-details.service';
 import { DeleteResult, UpdateResult } from 'typeorm';
-import { TrainingDetailsInterceptor } from '../misc/interceptors/training-details.interceptor';
 import { LspType } from '@gscwd-api/utils';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { TrainingDetailsInterceptor } from '../misc/interceptors/training-details.interceptor';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -45,35 +50,18 @@ export class TrainingDetailsController {
   @Get()
   @UseInterceptors(TrainingDetailsInterceptor)
   async findAll(
+    @Query('lsp-type') lspType: LspType,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
-    return await this.trainingDetailsService.crud().findAll({
-      find: {
-        relations: { trainingSource: true },
-        select: {
-          createdAt: true,
-          updatedAt: true,
-          deletedAt: true,
-          id: true,
-          location: true,
-          courseTitle: true,
-          trainingStart: true,
-          trainingEnd: true,
-          numberOfHours: true,
-          deadlineForSubmission: true,
-          invitationUrl: true,
-          numberOfParticipants: true,
-          status: true,
-          trainingSource: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      pagination: { page, limit },
-      onError: () => new InternalServerErrorException(),
-    });
+  ): Promise<Pagination<TrainingLspIndividual> | Pagination<TrainingLspOrganization>> {
+    switch (lspType) {
+      case LspType.INDIVIDUAL:
+        return await this.trainingDetailsService.findTrainingLspIndividual(page, limit);
+      case LspType.ORGANIZATION:
+        return await this.trainingDetailsService.findTrainingLspOrganization(page, limit);
+      default:
+        throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   //get training details by training id
