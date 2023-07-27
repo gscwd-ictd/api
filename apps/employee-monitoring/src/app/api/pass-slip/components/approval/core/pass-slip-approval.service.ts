@@ -1,5 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { PassSlipApproval, UpdatePassSlipApprovalDto } from '@gscwd-api/models';
+import { PassSlipApprovalStatus } from '@gscwd-api/utils';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {
   async updatePassSlipStatus(updatePassSlipApprovalDto: UpdatePassSlipApprovalDto) {
     const { status, passSlipId } = updatePassSlipApprovalDto;
     const updateResult = await this.crudService.update({ dto: { status }, updateBy: { passSlipId } });
+    //if(status === PassSlipApprovalStatus.APPROVED)
     if (updateResult.affected > 0) return updatePassSlipApprovalDto;
   }
 }

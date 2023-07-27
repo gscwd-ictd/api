@@ -114,10 +114,9 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
   }
 
   async getEmployeeScheduleByDtrDate(employeeId: string, dtrDate: Date) {
-    console.log('Schedule Based on Date', dtrDate);
     const currDate = dayjs(dtrDate);
     const currDateString = currDate.toDate().getFullYear() + '-' + (currDate.toDate().getMonth() + 1).toString() + '-' + currDate.toDate().getDate();
-    console.log('current date schedule', currDateString);
+
     const employeeName = (await this.client.call<string, string, { fullName: string }>({
       action: 'send',
       payload: employeeId,
@@ -158,11 +157,10 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
   }
 
   async getEmployeeScheduleByScheduleId(employeeId: string, scheduleId: string, dtrDate: Date) {
-    console.log('Schedule Based on Date', dtrDate);
     const currDate = dayjs(dtrDate).toDate();
-    console.log('date now from schedule', currDate.toLocaleDateString());
+
     const currDateString = currDate.getFullYear() + '-' + (currDate.getMonth() + 1).toString() + '-' + currDate.getDate();
-    console.log('current date schedule', currDateString);
+
     const employeeName = (await this.client.call<string, string, { fullName: string }>({
       action: 'send',
       payload: employeeId,
@@ -196,7 +194,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
     INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
     WHERE s.schedule_id = ? AND ( ? BETWEEN emr.date_from AND emr.date_to ) AND ( ? BETWEEN es.date_from AND es.date_to ) 
-    GROUP BY s.schedule_id,es.created_at,dateFrom,dateTo,scheduleRange,es.date_from,es.date_to  ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, DATE_FORMAT(es.date_to,'%Y-%m-%d') ASC LIMIT 1`,
+    GROUP BY s.schedule_id,es.created_at,dateFrom,dateTo,scheduleRange,es.date_from,es.date_to ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, DATE_FORMAT(es.date_to,'%Y-%m-%d') ASC LIMIT 1`,
         [scheduleId, currDateString, currDateString]
       )
     )[0];
@@ -255,7 +253,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
 
   async deleteEmployeeSchedule(employeeScheduleDto: DeleteEmployeeScheduleDto) {
     const { employeeId, dateFrom, dateTo } = employeeScheduleDto;
-    console.log(employeeId, dateFrom, dateTo);
+
     const restDay = await this.employeeRestDayService.crud().findOne({ find: { select: { id: true }, where: { employeeId, dateFrom, dateTo } } });
     const restDaysDelete = await this.employeeRestDaysService.crud().delete({ deleteBy: { employeeRestDayId: restDay }, softDelete: false });
     const restDayDelete = await this.employeeRestDayService.crud().delete({ deleteBy: { dateFrom, dateTo, employeeId }, softDelete: false });

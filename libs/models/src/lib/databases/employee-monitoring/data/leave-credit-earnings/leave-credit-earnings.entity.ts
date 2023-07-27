@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { LeaveBenefits } from '../leave-benefits';
+import { DailyTimeRecord } from '../daily-time-record';
 
 @Entity('leave_credit_earnings')
 export class LeaveCreditEarnings extends DatabaseEntity implements IEntity {
@@ -13,6 +14,10 @@ export class LeaveCreditEarnings extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'leave_benefits_id_fk' })
   @ManyToOne(() => LeaveBenefits, (leaveBenefits) => leaveBenefits.id)
   leaveBenefitsId: LeaveBenefits;
+
+  @JoinColumn({ name: 'daily_time_record_id_fk' })
+  @ManyToOne(() => DailyTimeRecord, (dtr) => dtr.id)
+  dailyTimeRecordId: DailyTimeRecord;
 
   @Column({ name: 'credit_date', type: 'date' })
   creditDate: Date;

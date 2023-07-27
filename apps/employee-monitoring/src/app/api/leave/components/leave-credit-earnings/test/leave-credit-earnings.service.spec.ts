@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { LeaveCreditEarningsService } from '../core/leave_credit_earnings.service';
+import { LeaveCreditEarningsService } from '../core/leave-credit-earnings.service';
 
 describe('LeaveCreditEarningsService', () => {
   let service: LeaveCreditEarningsService;

@@ -17,12 +17,10 @@ export class DailyTimeRecordService extends CrudHelper<IvmsDailyTimeRecord> {
   async getEmployeeDtrByDayAndCompanyId(dailyTimeRecordPayloadForSingleEmployee: DailyTimeRecordPayloadForSingleEmployee) {
     const { companyId, date } = dailyTimeRecordPayloadForSingleEmployee;
     const dateNow = dayjs(date).toDate();
-    console.log(dateNow);
-    //console.log('asd asd ', date.toISOString());
+
     const dtr = await this.crudService.findAll({
       find: { where: { id: companyId, date: dateNow } },
       onError: ({ error }) => {
-        console.log(error);
         return new NotFoundException(error, { cause: error as Error });
       },
     });

@@ -49,7 +49,7 @@ export class ScheduleService extends CrudHelper<Schedule> {
     let schedules;
 
     if (!scheduleBase) {
-      schedules = await this.rawQuery<ScheduleBase, Schedule[]>(
+      schedules = (await this.rawQuery<ScheduleBase, Schedule[]>(
         `
       SELECT 
         schedule_id id, 
@@ -60,12 +60,13 @@ export class ScheduleService extends CrudHelper<Schedule> {
         lunch_in lunchIn, 
         lunch_out lunchOut, 
         schedule_base scheduleBase,
-        shift 
+        shift,
+        is_with_lunch withLunch
       FROM schedule ORDER BY name ASC;
       `
-      );
+      )) as Schedule[];
     } else {
-      schedules = await this.rawQuery<ScheduleBase, Schedule[]>(
+      schedules = (await this.rawQuery<ScheduleBase, Schedule[]>(
         `
       SELECT 
         schedule_id id, 
@@ -76,11 +77,12 @@ export class ScheduleService extends CrudHelper<Schedule> {
         lunch_in lunchIn, 
         lunch_out lunchOut, 
         schedule_base scheduleBase,
-        shift 
+        shift,
+        is_with_lunch withLunch 
       FROM schedule WHERE schedule_base = ? ORDER BY name ASC;
       `,
         [scheduleBase]
-      );
+      )) as Schedule[];
     }
 
     return schedules;

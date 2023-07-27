@@ -26,7 +26,7 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
       customGroupId,
       employeeIds,
     ]);
-    console.log(deleteResult);
+
     return customGroupMembersDto;
   }
 
