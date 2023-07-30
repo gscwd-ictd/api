@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { LeaveCreditEarningsController } from '../core/leave_credit_earnings.controller';
+import { LeaveCreditEarningsController } from '../core/leave-credit-earnings.controller';
 
 describe('LeaveCreditEarningsController', () => {
   let controller: LeaveCreditEarningsController;

@@ -2,10 +2,11 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { DailyTimeRecord, UpdateDailyTimeRecordDto } from '@gscwd-api/models';
-import { DtrPayload, IvmsEntry, ScheduleType, EmployeeScheduleType, MonthlyDtrItemType } from '@gscwd-api/utils';
+import { DtrPayload, IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { HolidaysService } from '../../holidays/core/holidays.service';
+import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
 
 @Injectable()
@@ -14,7 +15,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     private readonly crudService: CrudService<DailyTimeRecord>,
     private readonly client: MicroserviceClient,
     private readonly employeeScheduleService: EmployeeScheduleService,
-    private readonly holidayService: HolidaysService
+    private readonly holidayService: HolidaysService,
+    private readonly leaveCardLedgerDebitService: LeaveCardLedgerDebitService
   ) {
     super(crudService);
   }
@@ -47,13 +49,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     const daysInMonth = dayjs(year + '-' + month + '-' + '01').daysInMonth();
 
     const dayRange = this.getDayRange(daysInMonth);
-    console.log('day range ', dayRange);
 
     //#region for map
     const dtrDays: MonthlyDtrItemType[] = (await Promise.all(
       dayRange.map(async (dtrDay, idx) => {
-        //console.log('index ', dtrDay);
-
         const currDate = dayjs(year + '-' + month + '-' + dtrDay).toDate();
         const holidayType = await this.holidayService.getHolidayTypeByDate(currDate);
 
@@ -115,14 +114,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       })
     )) as MonthlyDtrItemType[];
     //#endregion map
-    //console.log('from monthly ', dtrDays);
+
     const summary = await this.getSummary(dtrDays);
-    console.log(summary);
+
     return { dtrDays, summary };
   }
 
   async getSummary(dtrDays: MonthlyDtrItemType[]) {
-    //console.log(dtrDays);
     let noOfTimesLate = 0;
     let totalMinutesLate = 0;
     let noOfTimesUndertime = 0;
@@ -160,14 +158,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   //#region lates,undertimes,halfday functionalities
 
   async getLatesUndertimesNoAttendancePerDay(dtr: DailyTimeRecord, schedule: EmployeeScheduleType, employeeId: string) {
-    //console.log('get lates per day', dtr, schedule);
-
     let minutesLate = 0;
     let noOfLates = 0;
     let noOfUndertimes = 0;
     let minutesUndertime = 0;
 
-    if (schedule.scheduleName === 'Regular Morning Schedule') {
+    if (schedule.shift === 'day') {
       const lateMorning = dayjs(dayjs('2023-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
         dayjs('2023-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
         'm'
@@ -191,7 +187,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     let noAttendance = 0;
 
-    console.log('ASD ', dtr);
     if (dtr.lunchIn === null && dtr.lunchOut === null && dtr.timeIn === null && dtr.timeOut === null && schedule.scheduleName === null) {
       noAttendance = 1;
     }
@@ -259,6 +254,25 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //const undertimes = await this.getUndertimesPerDay(dtr, schedule);
       //1.1 compute late by the day
       const noOfLates = latesUndertimesNoAttendance.noOfLates;
+      if (noOfLates > 0) {
+        //insert to leave card ledger debit;
+        //insert only if permanent or casual;
+        if (employeeDetails.userRole !== 'job_order') {
+          const leaveCardItem = await this.leaveCardLedgerDebitService
+            .crud()
+            .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id } } } });
+          let debitValue = 0;
+
+          if (!leaveCardItem) {
+            debitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+
+            await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+              dailyTimeRecordId: dtr,
+              debitValue,
+            });
+          }
+        }
+      }
 
       const totalMinutesLate = latesUndertimesNoAttendance.minutesLate;
       //1.2 compute undertimes
@@ -340,17 +354,27 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     return findResult;
   }
 
-  async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
+  async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: EmployeeScheduleType) {
     const { isIncompleteDtr } = (await this.rawQuery(`SELECT is_incomplete_dtr(?) isIncompleteDtr;`, [currEmployeeDtr.id]))[0];
     if (isIncompleteDtr === 1) {
-      switch (schedule.scheduleName) {
-        case 'Regular Morning Schedule':
+      // switch (schedule.scheduleName) {
+      //   case 'Regular Morning Schedule':
+      //     return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);
+      //   case 'Regular Morning Schedule Without Lunch':
+      //     return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);
+      //   case 'Frontline Schedule Shift B':
+      //     return await this.updateFrontlineScheduleShiftB(currEmployeeDtr, ivmsEntry, schedule);
+      //   case 'Station Morning Schedule':
+      //     return await this.updateFrontlineScheduleShiftB(currEmployeeDtr, ivmsEntry, schedule);
+      //   case 'Station Night Schedule':
+      //     return '';
+      //   default:
+      //     break;
+      // }
+      switch (schedule.shift) {
+        case 'day':
           return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);
-        case 'Frontline Schedule Shift B':
-          return await this.updateFrontlineScheduleShiftB(currEmployeeDtr, ivmsEntry, schedule);
-        case 'Station Morning Schedule':
-          return await this.updateFrontlineScheduleShiftB(currEmployeeDtr, ivmsEntry, schedule);
-        case 'Station Night Schedule':
+        case 'night':
           return '';
         default:
           break;
@@ -465,7 +489,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       })
     );
 
-    console.log('UPDATE');
     return await this.crudService.create({
       dto: {
         id: currEmployeeDtr.id,
@@ -480,19 +503,29 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     });
   }
 
-  async saveDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
-    switch (schedule.scheduleName) {
-      case 'Regular Morning Schedule':
+  async saveDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: EmployeeScheduleType) {
+    switch (schedule.shift) {
+      case 'day':
         return await this.addRegularMorningDtr(companyId, ivmsEntry, schedule);
-      case 'Frontline Schedule Shift B':
-        return await this.addFrontlineShiftBDtr(companyId, ivmsEntry, schedule);
-      case 'Station Morning Schedule':
-        return await this.addFrontlineShiftBDtr(companyId, ivmsEntry, schedule);
-      case 'Station Night Schedule':
+      case 'night':
         return await this.addNightScheduleDtr(companyId, ivmsEntry, schedule);
       default:
         break;
     }
+    // switch (schedule.scheduleName) {
+    //   case 'Regular Morning Schedule':
+    //     return await this.addRegularMorningDtr(companyId, ivmsEntry, schedule);
+    //   case 'Regular Morning Schedule Without Lunch':
+    //     return await this.addRegularMorningDtr(companyId, ivmsEntry, schedule);
+    //   case 'Frontline Schedule Shift B':
+    //     return await this.addFrontlineShiftBDtr(companyId, ivmsEntry, schedule);
+    //   case 'Station Morning Schedule':
+    //     return await this.addFrontlineShiftBDtr(companyId, ivmsEntry, schedule);
+    //   case 'Station Night Schedule':
+    //     return await this.addNightScheduleDtr(companyId, ivmsEntry, schedule);
+    //   default:
+    //     break;
+    // }
   }
 
   //#region add functionalities for different kinds of schedule
@@ -645,7 +678,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-    console.log('save');
     return await this.crudService.create({
       dto: {
         companyId,
