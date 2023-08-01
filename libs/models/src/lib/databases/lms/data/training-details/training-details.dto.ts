@@ -7,6 +7,7 @@ import { CourseContentDto } from '../course-contents';
 import { PartialType } from '@nestjs/swagger';
 import { CreateTrainingDistributionDto } from '../training-distributions';
 import { CreateTrainingTagDto } from '../training-tags';
+import { PostTrainingRequirementsDto } from '../post-training-requirements';
 
 export class CreateTrainingDetailsDto {
   @IsUUID('4')
@@ -58,6 +59,11 @@ export class CreateTrainingDetailsDto {
   @IsArray()
   @Type(() => CreateTrainingDistributionDto)
   trainingDistribution: CreateTrainingDistributionDto[];
+
+  @ValidateNested({ each: true })
+  @IsArray()
+  @Type(() => PostTrainingRequirementsDto)
+  postTrainingRequirements: PostTrainingRequirementsDto[];
 }
 
 export class UpdateTrainingDetailsDto extends PartialType(CreateTrainingDetailsDto) {
