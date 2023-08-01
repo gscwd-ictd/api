@@ -1,13 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import {
-  CreateTrainingDetailsDto,
-  LspIndividualDetails,
-  LspOrganizationDetails,
-  TrainingDetails,
-  TrainingLspIndividual,
-  TrainingLspOrganization,
-  UpdateTrainingDetailsDto,
-} from '@gscwd-api/models';
+import { CreateTrainingDetailsDto, LspIndividualDetails, LspOrganizationDetails, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { TrainingDistributionsService } from '../components/training-distributions';
@@ -16,7 +8,6 @@ import { LspIndividualDetailsService } from '../../lsp-individual-details';
 import { LspOrganizationDetailsService } from '../../lsp-organization-details';
 import { TrainingLspIndividualService } from '../components/training-lsp-individual';
 import { TrainingLspOrganizationService } from '../components/training-lsp-organization';
-import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
