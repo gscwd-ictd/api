@@ -196,30 +196,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  async findTrainingLspIndividual(page: number, limit: number) {
-    const result = (await this.trainingLspIndividualService.crud().findAll({
-      find: { relations: { trainingDetails: true } },
-      pagination: { page, limit },
-      onError: ({ error }) => {
-        return new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR, { cause: error as Error });
-      },
-    })) as Pagination<TrainingLspIndividual>;
-
-    return result;
-  }
-
-  async findTrainingLspOrganization(page: number, limit: number) {
-    const result = (await this.trainingLspOrganizationService.crud().findAll({
-      find: { relations: { trainingDetails: true } },
-      pagination: { page, limit },
-      onError: ({ error }) => {
-        return new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR, { cause: error as Error });
-      },
-    })) as Pagination<TrainingLspOrganization>;
-
-    return result;
-  }
-
   //get training details by id
   async getTrainingDetailsById(trainingId: string) {
     try {

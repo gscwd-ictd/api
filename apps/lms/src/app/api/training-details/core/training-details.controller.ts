@@ -7,25 +7,18 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  InternalServerErrorException,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
-  UseInterceptors,
 } from '@nestjs/common';
-import {
-  CreateTrainingDetailsDto,
-  TrainingDetails,
-  TrainingLspIndividual,
-  TrainingLspOrganization,
-  UpdateTrainingDetailsDto,
-} from '@gscwd-api/models';
+import { CreateTrainingDetailsDto, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
 import { TrainingDetailsService } from './training-details.service';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { LspType } from '@gscwd-api/utils';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { TrainingDetailsInterceptor } from '../misc/interceptors/training-details.interceptor';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -46,22 +39,15 @@ export class TrainingDetailsController {
     }
   }
 
-  //get method to get all trainings relate to training sources
   @Get()
-  @UseInterceptors(TrainingDetailsInterceptor)
   async findAll(
-    @Query('lsp-type') lspType: LspType,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<TrainingLspIndividual> | Pagination<TrainingLspOrganization>> {
-    switch (lspType) {
-      case LspType.INDIVIDUAL:
-        return await this.trainingDetailsService.findTrainingLspIndividual(page, limit);
-      case LspType.ORGANIZATION:
-        return await this.trainingDetailsService.findTrainingLspOrganization(page, limit);
-      default:
-        throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   //get training details by training id
