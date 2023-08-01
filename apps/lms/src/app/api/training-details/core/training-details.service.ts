@@ -1,5 +1,13 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingDetailsDto, LspIndividualDetails, LspOrganizationDetails, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
+import {
+  CreateTrainingDetailsDto,
+  LspIndividualDetails,
+  LspOrganizationDetails,
+  TrainingDetails,
+  TrainingLspIndividual,
+  TrainingLspOrganization,
+  UpdateTrainingDetailsDto,
+} from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { TrainingDistributionsService } from '../components/training-distributions';
@@ -8,6 +16,7 @@ import { LspIndividualDetailsService } from '../../lsp-individual-details';
 import { LspOrganizationDetailsService } from '../../lsp-organization-details';
 import { TrainingLspIndividualService } from '../components/training-lsp-individual';
 import { TrainingLspOrganizationService } from '../components/training-lsp-organization';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -185,6 +194,30 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async findTrainingLspIndividual(page: number, limit: number) {
+    const result = (await this.trainingLspIndividualService.crud().findAll({
+      find: { relations: { trainingDetails: true } },
+      pagination: { page, limit },
+      onError: ({ error }) => {
+        return new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR, { cause: error as Error });
+      },
+    })) as Pagination<TrainingLspIndividual>;
+
+    return result;
+  }
+
+  async findTrainingLspOrganization(page: number, limit: number) {
+    const result = (await this.trainingLspOrganizationService.crud().findAll({
+      find: { relations: { trainingDetails: true } },
+      pagination: { page, limit },
+      onError: ({ error }) => {
+        return new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR, { cause: error as Error });
+      },
+    })) as Pagination<TrainingLspOrganization>;
+
+    return result;
   }
 
   //get training details by id
