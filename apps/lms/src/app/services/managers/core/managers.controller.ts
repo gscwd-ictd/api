@@ -1,4 +1,4 @@
-import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, ParseIntPipe, Query } from '@nestjs/common';
 import { ManagersService } from './managers.service';
 
 @Controller({ version: '1', path: 'managers' })

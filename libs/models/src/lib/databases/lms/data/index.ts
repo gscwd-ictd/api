@@ -27,6 +27,7 @@ export * from './training-sources';
 export * from './training-types';
 export * from './course-contents';
 export * from './nominee-qualifications';
+export * from './post-training-requirements';
 
 //training
 export * from './training-details';

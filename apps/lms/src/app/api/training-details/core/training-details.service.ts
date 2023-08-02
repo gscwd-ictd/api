@@ -1,13 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import {
-  CreateTrainingDetailsDto,
-  LspIndividualDetails,
-  LspOrganizationDetails,
-  TrainingDetails,
-  TrainingLspIndividual,
-  TrainingLspOrganization,
-  UpdateTrainingDetailsDto,
-} from '@gscwd-api/models';
+import { CreateTrainingDetailsDto, LspIndividualDetails, LspOrganizationDetails, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { TrainingDistributionsService } from '../components/training-distributions';
@@ -16,7 +8,6 @@ import { LspIndividualDetailsService } from '../../lsp-individual-details';
 import { LspOrganizationDetailsService } from '../../lsp-organization-details';
 import { TrainingLspIndividualService } from '../components/training-lsp-individual';
 import { TrainingLspOrganizationService } from '../components/training-lsp-organization';
-import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -38,7 +29,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   //insert training with individual learning service provider
   async addTrainingLspIndividual(data: CreateTrainingDetailsDto) {
     //deconstruct dto
-    const { lspDetails, courseContent, nomineeQualifications, trainingDistribution, ...rest } = data;
+    const { lspDetails, courseContent, recommendedEmployee, trainingDistribution, postTrainingRequirements, trainingTags, ...rest } = data;
     try {
       //transaction results
       const results = await this.datasource.transaction(async (entityManager) => {
@@ -47,6 +38,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           dto: {
             ...rest,
             courseContent: JSON.stringify(courseContent),
+            recommendedEmployee: JSON.stringify(recommendedEmployee),
+            postTrainingRequirements: JSON.stringify(postTrainingRequirements),
           },
           onError: ({ error }) => {
             return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
@@ -75,7 +68,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
         //insert multiple and map training tag
         const tag = await Promise.all(
-          nomineeQualifications.map(async (tagItem) => {
+          trainingTags.map(async (tagItem) => {
             return await this.trainingTagsService.addTrainingTag(
               {
                 trainingDetails: trainingDetails,
@@ -103,7 +96,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           ...trainingDetails,
           lspDetails: lsp.id,
           courseContent: JSON.parse(trainingDetails.courseContent),
-          nomineeQualifications: tag,
+          recommendedEmployee: JSON.parse(trainingDetails.recommendedEmployee),
+          trainingTag: tag,
           trainingDistribution: distribution,
         };
       });
@@ -118,7 +112,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   //insert training with learning service provider organization
   async addTrainingLspOrganization(data: CreateTrainingDetailsDto) {
     //deconstruct dto
-    const { lspDetails, courseContent, nomineeQualifications, trainingDistribution, ...rest } = data;
+    const { lspDetails, courseContent, recommendedEmployee, trainingDistribution, postTrainingRequirements, trainingTags, ...rest } = data;
 
     try {
       //transaction results
@@ -128,6 +122,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           dto: {
             ...rest,
             courseContent: JSON.stringify(courseContent),
+            recommendedEmployee: JSON.stringify(recommendedEmployee),
+            postTrainingRequirements: JSON.stringify(postTrainingRequirements),
           },
           onError: ({ error }) => {
             return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
@@ -156,7 +152,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
         //insert multiple and map training tag
         const tag = await Promise.all(
-          nomineeQualifications.map(async (tagItem) => {
+          trainingTags.map(async (tagItem) => {
             return await this.trainingTagsService.addTrainingTag(
               {
                 trainingDetails,
@@ -184,7 +180,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           ...trainingDetails,
           lspDetails: lsp.id,
           courseContent: JSON.parse(trainingDetails.courseContent),
-          nomineeQualifications: tag,
+          recommendedEmployee: JSON.parse(trainingDetails.recommendedEmployee),
+          trainingTag: tag,
           trainingDistribution: distribution,
         };
       });
@@ -194,30 +191,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
-  }
-
-  async findTrainingLspIndividual(page: number, limit: number) {
-    const result = (await this.trainingLspIndividualService.crud().findAll({
-      find: { relations: { trainingDetails: true } },
-      pagination: { page, limit },
-      onError: ({ error }) => {
-        return new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR, { cause: error as Error });
-      },
-    })) as Pagination<TrainingLspIndividual>;
-
-    return result;
-  }
-
-  async findTrainingLspOrganization(page: number, limit: number) {
-    const result = (await this.trainingLspOrganizationService.crud().findAll({
-      find: { relations: { trainingDetails: true } },
-      pagination: { page, limit },
-      onError: ({ error }) => {
-        return new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR, { cause: error as Error });
-      },
-    })) as Pagination<TrainingLspOrganization>;
-
-    return result;
   }
 
   //get training details by id
@@ -294,13 +267,15 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       //transaction results
       const result = await this.datasource.transaction(async (entityManager) => {
         //deconstruct dto
-        const { id, courseContent, ...rest } = dto;
+        const { id, courseContent, recommendedEmployee, postTrainingRequirements, ...rest } = dto;
 
         //update training details by training id
         const training = await this.crudService.transact<TrainingDetails>(entityManager).update({
           dto: {
             ...rest,
             courseContent: JSON.stringify(courseContent),
+            recommendedEmployee: JSON.stringify(recommendedEmployee),
+            postTrainingRequirements: JSON.stringify(postTrainingRequirements),
           },
           updateBy: { id },
           onError: ({ error }) => {
