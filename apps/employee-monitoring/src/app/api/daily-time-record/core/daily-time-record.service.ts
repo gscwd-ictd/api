@@ -45,6 +45,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     }
   }
 
+  async generateAllEmployeeDtrByMonthAndYear() {}
+
   async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number) {
     const daysInMonth = dayjs(year + '-' + month + '-' + '01').daysInMonth();
 
@@ -357,20 +359,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: EmployeeScheduleType) {
     const { isIncompleteDtr } = (await this.rawQuery(`SELECT is_incomplete_dtr(?) isIncompleteDtr;`, [currEmployeeDtr.id]))[0];
     if (isIncompleteDtr === 1) {
-      // switch (schedule.scheduleName) {
-      //   case 'Regular Morning Schedule':
-      //     return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);
-      //   case 'Regular Morning Schedule Without Lunch':
-      //     return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);
-      //   case 'Frontline Schedule Shift B':
-      //     return await this.updateFrontlineScheduleShiftB(currEmployeeDtr, ivmsEntry, schedule);
-      //   case 'Station Morning Schedule':
-      //     return await this.updateFrontlineScheduleShiftB(currEmployeeDtr, ivmsEntry, schedule);
-      //   case 'Station Night Schedule':
-      //     return '';
-      //   default:
-      //     break;
-      // }
       switch (schedule.shift) {
         case 'day':
           return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);
