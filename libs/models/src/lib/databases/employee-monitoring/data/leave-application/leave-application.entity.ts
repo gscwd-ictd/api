@@ -54,6 +54,21 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ name: 'requested_commutation', type: 'bool', nullable: true })
   requestedCommutation: boolean;
 
-  @Column({ type: 'enum', enum: LeaveApplicationStatus, default: LeaveApplicationStatus.ONGOING })
+  @Column({ type: 'enum', enum: LeaveApplicationStatus, default: LeaveApplicationStatus.FOR_HRMO_APPROVAL, nullable: true })
   status: LeaveApplicationStatus;
+
+  @Column({ type: 'date', name: 'hrmo_approval_date', nullable: true })
+  hrmoApprovalDate: Date;
+
+  @Column({ type: 'date', name: 'supervisor_approval_date', nullable: true })
+  supervisorApprovalDate: Date;
+
+  @Column({ type: 'text', name: 'supervisor_disapproval_remarks', nullable: true })
+  supervisorDisapprovalRemarks: string;
+
+  @Column({ type: 'date', name: 'hrdm_approval_date', nullable: true })
+  hrdmApprovalDate: Date;
+
+  @Column({ type: 'text', name: 'hrdm_disapproval_remarks', nullable: true })
+  hrdmDisapprovalRemarks: string;
 }

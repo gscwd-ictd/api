@@ -24,4 +24,7 @@ export class LeaveBenefits extends DatabaseEntity {
 
   @Column({ name: 'can_be_carried_over' })
   canBeCarriedOver: boolean;
+
+  @Column({ name: 'maximum_credits', type: 'decimal', precision: 6, scale: 3, default: 0 })
+  maximumCredits: number;
 }

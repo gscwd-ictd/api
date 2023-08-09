@@ -28,7 +28,7 @@ import { LeaveService } from './leave.service';
     LeaveCreditEarningsModule,
     LeaveCardLedgerDebitModule,
     LeaveCardLedgerCreditModule,
-    LeaveAddBackModule,
+    LeaveCreditEarningsModule,
   ],
 })
 export class LeaveModule {}

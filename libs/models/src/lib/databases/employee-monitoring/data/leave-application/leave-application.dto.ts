@@ -63,10 +63,41 @@ export class CreateLeaveApplicationDto {
   @IsEnum(LeaveApplicationStatus, { message: 'Invalid leave application status' })
   status: LeaveApplicationStatus;
 
+  @IsOptional()
+  hrmoApprovalDate: Date;
+
+  @IsOptional()
+  supervisorApprovalDate: Date;
+
+  @IsOptional()
+  supervisorDisapprovalRemarks: string;
+
+  @IsOptional()
+  hrdmApprovalDate: Date;
+
+  @IsOptional()
+  hrdmDisapprovalRemarks: string;
+
   leaveApplicationDates: Date[] | { from: Date; to: Date };
 }
 export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) {}
 
-export class UpdateLeaveApplicationStatusDto extends PickType(CreateLeaveApplicationDto, ['status']) {
+export class UpdateLeaveApplicationHrmoStatusDto extends PickType(CreateLeaveApplicationDto, ['status', 'hrmoApprovalDate']) {
+  id: string;
+}
+
+export class UpdateLeaveApplicationHrdmStatusDto extends PickType(CreateLeaveApplicationDto, [
+  'status',
+  'hrdmApprovalDate',
+  'hrdmDisapprovalRemarks',
+]) {
+  id: string;
+}
+
+export class UpdateLeaveApplicationSupervisorStatusDto extends PickType(CreateLeaveApplicationDto, [
+  'status',
+  'supervisorApprovalDate',
+  'supervisorDisapprovalRemarks',
+]) {
   id: string;
 }

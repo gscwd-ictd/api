@@ -1,16 +1,20 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { EmployeeSchedule, PassSlip, PassSlipApproval, PassSlipDto } from '@gscwd-api/models';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { PassSlip, PassSlipApproval, PassSlipDto, UpdatePassSlipTimeRecordDto } from '@gscwd-api/models';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { PassSlipApprovalStatus } from '@gscwd-api/utils';
+import { PassSlipApprovalStatus, PassSlipForLedger } from '@gscwd-api/utils';
 import { DataSource } from 'typeorm';
+import { Cron } from '@nestjs/schedule';
+import dayjs = require('dayjs');
+import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
   constructor(
     private readonly crudService: CrudService<PassSlip>,
     private readonly passSlipApprovalService: PassSlipApprovalService,
+    private readonly leaveCardLedgerDebitService: LeaveCardLedgerDebitService,
     private readonly client: MicroserviceClient,
     private readonly dataSource: DataSource
   ) {
@@ -340,6 +344,115 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     });
     return abbreviation;
   }
+
+  async updatePassSlipTimeRecord(updatePassSlipTimeRecordDto: UpdatePassSlipTimeRecordDto) {
+    const { id, ...rest } = updatePassSlipTimeRecordDto;
+    const updateResult = await this.crud().update({ dto: rest, updateBy: { id }, onError: () => new InternalServerErrorException() });
+    if (updateResult.affected > 0) return updatePassSlipTimeRecordDto;
+  }
+
+  @Cron('0 0 0 * * 0-6')
+  async addPassSlipsToLedger() {
+    //1. fetch approved pass slips from yesterday (Personal Business Only)
+    const passSlips = (await this.rawQuery(`
+        SELECT 
+          ps.pass_slip_id id, 
+          employee_id_fk employeeId, 
+          date_of_application dateOfApplication, 
+          nature_of_business natureOfBusiness,
+          time_in timeIn,
+          time_out timeOut,
+          ps.ob_transportation obTransportation,
+          ps.estimate_hours estimateHours,
+          ps.purpose_destination purposeDestination,
+          ps.is_cancelled isCancelled,
+          ps.created_at createdAt,
+          ps.updated_at updatedAt,
+          ps.deleted_at deletedAt
+          FROM pass_slip ps 
+          INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
+        WHERE date_of_application < DATE_FORMAT(now(),'%Y-%m-%d') AND psa.status = 'approved' 
+        AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
+    `)) as PassSlipForLedger[];
+    //2. check time in and time out
+    //console.log('PASS SLIPS!!!', passSlips);
+    const passSlipsToLedger = await Promise.all(
+      passSlips.map(async (passSlip) => {
+        const {
+          id,
+          timeIn,
+          timeOut,
+          natureOfBusiness,
+          employeeId,
+          dateOfApplication,
+          estimateHours,
+          isCancelled,
+          obTransportation,
+          purposeDestination,
+          createdAt,
+          updatedAt,
+          deletedAt,
+        } = passSlip;
+        const { passSlipCount } = (
+          await this.rawQuery(`SELECT count(*) passSlipCount FROM employee_monitoring.leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [id])
+        )[0];
+
+        console.log('ASDASDASDASD', passSlipCount);
+
+        if (passSlipCount === '0') {
+          if (timeIn === null && timeOut === null) {
+            await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.UNUSED }, updateBy: { passSlipId: { id } } });
+            return;
+          }
+          //2.1 if time in is null and time out is null update status to unused;
+          console.log('null time in and time out');
+
+          //2.2  if time in is not null and time out is null check if not undertime
+          if (timeOut !== null && timeIn === null) {
+            console.log('not null timein and null time out');
+            if (natureOfBusiness === 'Undertime' || natureOfBusiness === 'Half Day' || natureOfBusiness === 'Personal Business') {
+              //2.2.1 set time out to scheduled time out;
+              //get employee current schedule schedule from dtr
+              const employeeAssignment = await this.getEmployeeAssignment(employeeId);
+              const { scheduleTimeOut } = (
+                await this.rawQuery(
+                  `
+                SELECT s.time_out scheduleTimeOut 
+                FROM daily_time_record dtr INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
+                WHERE dtr_date = ? AND dtr.company_id_fk= ?;`,
+                  [dateOfApplication, employeeAssignment.companyId]
+                )
+              )[0];
+              await this.crud().update({ dto: { timeIn: scheduleTimeOut }, updateBy: { id } });
+            }
+          }
+          //2.2. INSERT TO LEDGER
+          const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [passSlip.id]))[0];
+          console.log('the debit value: ', debitValue);
+          await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+            passSlipId: {
+              id: passSlip.id,
+              employeeId,
+              dateOfApplication: passSlip.dateOfApplication,
+              natureOfBusiness: passSlip.natureOfBusiness,
+              estimateHours,
+              isCancelled,
+              obTransportation,
+              purposeDestination,
+              timeIn,
+              timeOut,
+              createdAt,
+              updatedAt,
+              deletedAt,
+            },
+            debitValue,
+          });
+        }
+      })
+    );
+    console.log('-------------- PASS SLIP CRON JOB DONE --------------------');
+  }
+
   //notes: CREATE MODULE FOR employee sungkit from microservice,
   //create functions under utils;
 }

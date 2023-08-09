@@ -358,7 +358,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: EmployeeScheduleType) {
     const { isIncompleteDtr } = (await this.rawQuery(`SELECT is_incomplete_dtr(?) isIncompleteDtr;`, [currEmployeeDtr.id]))[0];
-    if (isIncompleteDtr === 1) {
+    console.log(schedule.shift);
+    if (parseInt(isIncompleteDtr) === 1) {
       switch (schedule.shift) {
         case 'day':
           return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);

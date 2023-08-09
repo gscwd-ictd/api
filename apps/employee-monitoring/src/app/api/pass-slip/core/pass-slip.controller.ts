@@ -1,4 +1,4 @@
-import { PassSlipDto, UpdatePassSlipApprovalDto } from '@gscwd-api/models';
+import { PassSlipDto, UpdatePassSlipApprovalDto, UpdatePassSlipTimeRecordDto } from '@gscwd-api/models';
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { PassSlipService } from './pass-slip.service';
@@ -45,5 +45,15 @@ export class PassSlipController {
   @Patch()
   async updatePassSlipStatus(@Body() updatePassSlipApprovalDto: UpdatePassSlipApprovalDto) {
     return await this.passSlipApprovalService.updatePassSlipStatus(updatePassSlipApprovalDto);
+  }
+
+  @Patch('time-record/')
+  async updatePassSlipTimeRecord(@Body() updatePassSlipTimeRecordDto: UpdatePassSlipTimeRecordDto) {
+    return await this.passSlipService.updatePassSlipTimeRecord(updatePassSlipTimeRecordDto);
+  }
+
+  @Post('test-cron')
+  async testCron() {
+    return await this.passSlipService.addPassSlipsToLedger();
   }
 }
