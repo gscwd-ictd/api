@@ -17,8 +17,6 @@ export * from './lsp-organization-affiliations';
 export * from './lsp-organization-awards';
 export * from './lsp-organization-certifications';
 export * from './lsp-organization-coachings';
-export * from './lsp-organization-educations';
-export * from './lsp-organization-projects';
 export * from './lsp-organization-trainings';
 
 //tags
@@ -29,6 +27,7 @@ export * from './training-sources';
 export * from './training-types';
 export * from './course-contents';
 export * from './nominee-qualifications';
+export * from './post-training-requirements';
 
 //training
 export * from './training-details';

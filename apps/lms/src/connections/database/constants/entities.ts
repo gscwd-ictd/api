@@ -20,8 +20,6 @@ import {
   LspOrganizationAward,
   LspOrganizationCertification,
   LspOrganizationCoaching,
-  LspOrganizationEducation,
-  LspOrganizationProject,
   LspOrganizationTraining,
   TrainingLspIndividual,
   TrainingLspOrganization,
@@ -45,8 +43,6 @@ export const DB_ENTITIES = [
   LspOrganizationAward,
   LspOrganizationCertification,
   LspOrganizationCoaching,
-  LspOrganizationEducation,
-  LspOrganizationProject,
   LspOrganizationTraining,
 
   Tag,

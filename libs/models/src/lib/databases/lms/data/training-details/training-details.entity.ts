@@ -44,6 +44,12 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'number_of_participants' })
   numberOfParticipants: number;
 
+  @Column({ name: 'recommended_employees', type: 'jsonb', nullable: false })
+  recommendedEmployee: string;
+
+  @Column({ name: 'post_training_requirements', type: 'jsonb', nullable: false })
+  postTrainingRequirements: string;
+
   @Column({ name: 'status', type: 'enum', enum: TrainingStatus, default: TrainingStatus.ON_GOING_NOMINATION })
   status: TrainingStatus;
 }
