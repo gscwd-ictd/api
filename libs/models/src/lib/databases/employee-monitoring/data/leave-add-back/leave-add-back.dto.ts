@@ -1,6 +1,6 @@
 import { LeaveApplicationDates } from '@gscwd-api/models';
 
-export class LeaveAddBackDto {
+export class CreateLeaveAddBackDto {
   id: string;
   leaveApplicationDatesId: LeaveApplicationDates;
   reason: string;

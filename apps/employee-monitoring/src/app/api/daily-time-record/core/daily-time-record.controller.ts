@@ -26,4 +26,9 @@ export class DailyTimeRecordController {
   async updateEmployeeDTR(@Body() dailyTimeRecordDto: UpdateDailyTimeRecordDto) {
     return await this.dailyTimeRecordService.updateEmployeeDTR(dailyTimeRecordDto);
   }
+
+  @Get('testing')
+  async getEmployeeIds() {
+    return await this.dailyTimeRecordService.addDTRToLedger();
+  }
 }

@@ -7,6 +7,7 @@ import { LeaveApplicationStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { count } from 'console';
 import dayjs = require('dayjs');
+import { EmployeesService } from '../../employees/core/employees.service';
 import { LeaveApplicationService } from '../components/leave-application/core/leave-application.service';
 import { LeaveCardLedgerCreditService } from '../components/leave-card-ledger-credit/core/leave-card-ledger-credit.service';
 import { LeaveCardLedgerDebitService } from '../components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
@@ -18,7 +19,8 @@ export class LeaveService {
     private readonly leaveApplicationService: LeaveApplicationService,
     private readonly leaveCardLedgerDebitService: LeaveCardLedgerDebitService,
     private readonly leaveCardLedgerCreditService: LeaveCardLedgerCreditService,
-    private readonly leaveCreditEarningsService: LeaveCreditEarningsService
+    private readonly leaveCreditEarningsService: LeaveCreditEarningsService,
+    private readonly employeesService: EmployeesService
   ) {}
 
   async getLeavesUnderSupervisor(supervisorId: string) {
@@ -30,7 +32,7 @@ export class LeaveService {
   }
 
   async getLeavesForHrdmApproval() {
-    return await this.leaveApplicationService.getLeavesForHrmd();
+    return await this.leaveApplicationService.getLeavesForHrdm();
   }
 
   async getLeaveLedger(employeeId: string, companyId: string) {

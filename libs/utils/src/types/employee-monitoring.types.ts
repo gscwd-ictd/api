@@ -185,6 +185,25 @@ export type PassSlipForLedger = {
   deletedAt: Date;
 };
 
+export type LeaveLedger = {
+  ID: number;
+  period: Date;
+  particulars: string;
+  forcedLeave: number;
+  forcedLeaveBalance: number;
+  vacationLeave: number;
+  vacationLeaveBalance: number;
+  sickLeave: number;
+  sickLeaveBalance: number;
+  specialLeaveBenefit: number;
+  specialLeaveBenefitBalance: number;
+  specialPrivilegeLeave: number;
+  specialPrivilegeLeaveBalance: number;
+  leaveDates: string;
+  actionType: string;
+  remarks: string;
+};
+
 // {
 //   day: dayjs(currDate).format('YYYY-MM-DD'),
 //   holidayType,

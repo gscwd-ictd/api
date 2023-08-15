@@ -1,9 +1,19 @@
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 
 @Injectable()
 export class EmployeesService {
   constructor(private readonly client: MicroserviceClient) {}
 
-  async getAllPermanentEmployeeIds() {}
+  async getAllPermanentEmployeeIds() {
+    //get_all_regular_employee_ids
+    const employees = (await this.client.call<string, object, []>({
+      action: 'send',
+      pattern: 'get_all_regular_employee_ids',
+      payload: {},
+      onError: () => new InternalServerErrorException(),
+    })) as { employeeId: string; companyId: string }[];
+
+    return employees;
+  }
 }

@@ -3,8 +3,8 @@ import { PickType } from '@nestjs/swagger';
 
 export class CreateLeaveCreditEarningsDto {
   employeeId: string;
-  leaveBenefitsId: LeaveBenefits;
-  dailyTimeRecordId: DailyTimeRecord;
+  leaveBenefitsId?: LeaveBenefits;
+  dailyTimeRecordId?: DailyTimeRecord;
   creditDate: Date;
   creditValue: number;
 }

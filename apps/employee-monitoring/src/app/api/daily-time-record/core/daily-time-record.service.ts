@@ -4,7 +4,9 @@ import { MicroserviceClient } from '@gscwd-api/microservices';
 import { DailyTimeRecord, UpdateDailyTimeRecordDto } from '@gscwd-api/models';
 import { DtrPayload, IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
+import { EmployeesService } from '../../employees/core/employees.service';
 import { HolidaysService } from '../../holidays/core/holidays.service';
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
@@ -16,7 +18,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     private readonly client: MicroserviceClient,
     private readonly employeeScheduleService: EmployeeScheduleService,
     private readonly holidayService: HolidaysService,
-    private readonly leaveCardLedgerDebitService: LeaveCardLedgerDebitService
+    private readonly leaveCardLedgerDebitService: LeaveCardLedgerDebitService,
+    private readonly employeeService: EmployeesService
   ) {
     super(crudService);
   }
@@ -227,7 +230,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     try {
       const dateCurrent = dayjs(data.date).toDate();
       const id = data.companyId.replace('-', '');
+
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
+
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
 
       const employeeIvmsDtr = (await this.client.call<string, { companyId: string; date: Date }, IvmsEntry[]>({
@@ -358,17 +363,62 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: EmployeeScheduleType) {
     const { isIncompleteDtr } = (await this.rawQuery(`SELECT is_incomplete_dtr(?) isIncompleteDtr;`, [currEmployeeDtr.id]))[0];
-    console.log(schedule.shift);
+
     if (parseInt(isIncompleteDtr) === 1) {
       switch (schedule.shift) {
         case 'day':
-          return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);
+          if (schedule.lunchOut !== null && schedule.lunchIn !== null) {
+            return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);
+          } else return await this.updateRegularWithOutLunch(currEmployeeDtr, ivmsEntry, schedule);
         case 'night':
           return '';
         default:
           break;
       }
     }
+  }
+
+  async updateRegularWithOutLunch(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
+    let _timeIn = null;
+    let _timeOut = null;
+    const { timeIn, timeOut } = schedule;
+    const result = await Promise.all(
+      ivmsEntry.map(async (ivmsEntryItem, idx) => {
+        const { time, ...rest } = ivmsEntryItem;
+        if (idx === 0) {
+          //check mo kung umaga nag in
+          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn))) {
+            _timeIn = time;
+          } else {
+            //baka halfday lang siya
+            if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))) {
+              _timeIn = time;
+            }
+          }
+        } else {
+          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))) {
+            if (_timeIn === null) _timeIn = time;
+          }
+          if (
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
+            dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(2, 'hour'))
+          ) {
+            _timeOut = time;
+          }
+        }
+      })
+    );
+    return await this.crudService.create({
+      dto: {
+        id: currEmployeeDtr.id,
+        companyId: currEmployeeDtr.companyId,
+        dtrDate: ivmsEntry[0].date,
+        scheduleId: schedule,
+        timeIn: _timeIn,
+        timeOut: _timeOut,
+      },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   async updateFrontlineScheduleShiftB(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
@@ -495,26 +545,57 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   async saveDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: EmployeeScheduleType) {
     switch (schedule.shift) {
       case 'day':
-        return await this.addRegularMorningDtr(companyId, ivmsEntry, schedule);
+        if (schedule.lunchOut !== null && schedule.lunchIn !== null) {
+          return await this.addRegularMorningDtr(companyId, ivmsEntry, schedule);
+        } else return await this.addRegularWithOutLunch(companyId, ivmsEntry, schedule);
       case 'night':
         return await this.addNightScheduleDtr(companyId, ivmsEntry, schedule);
       default:
         break;
     }
-    // switch (schedule.scheduleName) {
-    //   case 'Regular Morning Schedule':
-    //     return await this.addRegularMorningDtr(companyId, ivmsEntry, schedule);
-    //   case 'Regular Morning Schedule Without Lunch':
-    //     return await this.addRegularMorningDtr(companyId, ivmsEntry, schedule);
-    //   case 'Frontline Schedule Shift B':
-    //     return await this.addFrontlineShiftBDtr(companyId, ivmsEntry, schedule);
-    //   case 'Station Morning Schedule':
-    //     return await this.addFrontlineShiftBDtr(companyId, ivmsEntry, schedule);
-    //   case 'Station Night Schedule':
-    //     return await this.addNightScheduleDtr(companyId, ivmsEntry, schedule);
-    //   default:
-    //     break;
-    // }
+  }
+
+  //#region add functionalities for different kinds of schedule
+  async addRegularWithOutLunch(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
+    let _timeIn = null;
+    let _timeOut = null;
+    const { timeIn, timeOut } = schedule;
+    const result = await Promise.all(
+      ivmsEntry.map(async (ivmsEntryItem, idx) => {
+        const { time, ...rest } = ivmsEntryItem;
+        if (idx === 0) {
+          //check mo kung umaga nag in
+          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn))) {
+            _timeIn = time;
+          } else {
+            //baka halfday lang siya
+            if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))) {
+              _timeIn = time;
+            }
+          }
+        } else {
+          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))) {
+            if (_timeIn === null) _timeIn = time;
+          }
+          if (
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
+            dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(2, 'hour'))
+          ) {
+            _timeOut = time;
+          }
+        }
+      })
+    );
+    return await this.crudService.create({
+      dto: {
+        companyId,
+        dtrDate: ivmsEntry[0].date,
+        scheduleId: schedule,
+        timeIn: _timeIn,
+        timeOut: _timeOut,
+      },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   //#region add functionalities for different kinds of schedule
@@ -682,10 +763,29 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   //#endregion
-
   async updateEmployeeDTR(dailyTimeRecordDto: UpdateDailyTimeRecordDto) {
     const { dtrDate, companyId, ...rest } = dailyTimeRecordDto;
     const updateResult = await this.crud().update({ dto: rest, updateBy: { companyId, dtrDate }, onError: () => new InternalServerErrorException() });
     if (updateResult.affected > 0) return dailyTimeRecordDto;
+  }
+
+  @Cron('0 59 23 * * 0-6')
+  async addDTRToLedger() {
+    //try {
+    const employees = (await this.employeeService.getAllPermanentEmployeeIds()) as { employeeId: string; companyId: string }[];
+    //console.log(employees);
+    const ledger = await Promise.all(
+      employees.map(async (employee) => {
+        const now = dayjs();
+        const { companyId } = employee;
+        const data = { companyId, date: dayjs(now.format('YYYY-MM-DD')).toDate() };
+        await this.getDtrByCompanyIdAndDay(data);
+      })
+    );
+    // } catch (error) {
+    //   //console.log(error);
+    //   //
+    // }
+    console.log('CRON Job for DTR Ledger');
   }
 }

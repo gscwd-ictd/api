@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { EmployeesModule } from '../../employees/core/employees.module';
 import { LeaveAddBackModule } from '../components/leave-add-back/core/leave-add-back.module';
 import { LeaveApplicationDatesModule } from '../components/leave-application-dates/core/leave-application-dates.module';
 import { LeaveApplicationModule } from '../components/leave-application/core/leave-application.module';
@@ -18,6 +19,7 @@ import { LeaveService } from './leave.service';
     LeaveCardLedgerDebitModule,
     LeaveCardLedgerCreditModule,
     LeaveAddBackModule,
+    EmployeesModule,
   ],
   providers: [LeaveService],
   controllers: [LeaveController],
