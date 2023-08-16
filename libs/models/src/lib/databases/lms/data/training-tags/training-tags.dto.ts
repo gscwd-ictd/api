@@ -3,10 +3,17 @@ import { TrainingDetails } from '../training-details';
 import { Tag } from '../tags';
 import { PartialType } from '@nestjs/swagger';
 
+//for insert training tag
 export class CreateTrainingTagDto {
   @IsUUID('4')
   trainingDetails: TrainingDetails;
 
+  @IsUUID('4')
+  tag: Tag;
+}
+
+//for training details dto
+export class TrainingTagDto {
   @IsUUID('4')
   tag: Tag;
 }
