@@ -176,6 +176,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
 
       return {
         ...rest,
+        fullName: `${rest.firstName} ${rest.middleName[0].toUpperCase()} ${rest.lastName}`,
         expertise: JSON.parse(expertise),
         affiliations,
         awards,
@@ -208,10 +209,10 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
         });
 
         //delete all learning service provider child details
-        const deleteAllLspDetailsChild = await this.deleteAllLspDetailsChild(id, entityManager);
+        await this.deleteAllLspDetailsChild(id, entityManager);
 
         //insert new affiliations
-        const lspAffiliations = await Promise.all(
+        await Promise.all(
           affiliations.map(async (affiliationItem) => {
             return await this.lspIndividualAffiliationsService.addAffiliations(
               {
@@ -224,7 +225,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
         );
 
         //insert new awards
-        const lspAwards = await Promise.all(
+        await Promise.all(
           awards.map(async (awardItem) => {
             return await this.lspIndividualAwardsService.addAwards(
               {
@@ -237,7 +238,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
         );
 
         //insert new affiliations
-        const lspIndividualCertifications = await Promise.all(
+        await Promise.all(
           certifications.map(async (certificationItem) => {
             return await this.lspIndividualCertificationService.addCertifications(
               {
@@ -250,7 +251,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
         );
 
         //insert new coaching
-        const lspCoaching = await Promise.all(
+        await Promise.all(
           coaching.map(async (coachingItem) => {
             return await this.lspIndividualCoachingsService.addCoachings(
               {
@@ -263,7 +264,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
         );
 
         //insert new education
-        const lspEducation = await Promise.all(
+        await Promise.all(
           education.map(async (educationItem) => {
             return await this.lspIndividualEducationsService.addEducations(
               {
@@ -276,7 +277,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
         );
 
         //insert new projects
-        const lspProjects = await Promise.all(
+        await Promise.all(
           projects.map(async (projectItem) => {
             return await this.lspIndividualProjectsService.addProjects(
               {
@@ -289,7 +290,7 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
         );
 
         //insert new trainings
-        const lspTrainings = await Promise.all(
+        await Promise.all(
           trainings.map(async (trainingItem) => {
             return await this.lspIndividualTrainingsService.addTrainings(
               {
