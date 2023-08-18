@@ -10,6 +10,7 @@ import { TrainingLspIndividualModule } from '../components/training-lsp-individu
 import { TrainingLspOrganizationModule } from '../components/training-lsp-organization/core/training-lsp-organization.module';
 import { LspIndividualDetailsModule } from '../../lsp-individual-details';
 import { LspOrganizationDetailsModule } from '../../lsp-organization-details';
+import { TrainingRecommendedEmployeeModule } from '../components/training-recommended-employee';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { LspOrganizationDetailsModule } from '../../lsp-organization-details';
     TrainingLspIndividualModule,
     TrainingLspOrganizationModule,
     TrainingDistributionsModule,
+    TrainingRecommendedEmployeeModule,
     TrainingNomineesModule,
     TrainingTagsModule,
     LspIndividualDetailsModule,

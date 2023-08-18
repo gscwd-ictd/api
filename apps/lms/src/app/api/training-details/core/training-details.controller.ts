@@ -5,8 +5,6 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
   InternalServerErrorException,
   Param,
   ParseIntPipe,
@@ -29,14 +27,7 @@ export class TrainingDetailsController {
   //post method for creating a training and distribution of slots
   @Post()
   async create(@Query('lsp-type') lspType: LspType, @Body() data: CreateTrainingDetailsDto) {
-    switch (lspType) {
-      case LspType.INDIVIDUAL:
-        return await this.trainingDetailsService.addTrainingLspIndividual(data);
-      case LspType.ORGANIZATION:
-        return await this.trainingDetailsService.addTrainingLspOrganization(data);
-      default:
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-    }
+    return await this.trainingDetailsService.addTrainingDetails(lspType, data);
   }
 
   @Get()
