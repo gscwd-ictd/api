@@ -351,12 +351,12 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
     const trainings = await this.lspIndividualTrainingsService.deleteTrainings(lspDetailsId, entityManager);
 
     if (
-      affiliations.affected > 0 &&
-      awards.affected > 0 &&
-      certifications.affected > 0 &&
-      coaching.affected > 0 &&
-      education.affected > 0 &&
-      projects.affected > 0 &&
+      affiliations.affected > 0 ||
+      awards.affected > 0 ||
+      certifications.affected > 0 ||
+      coaching.affected > 0 ||
+      education.affected > 0 ||
+      projects.affected > 0 ||
       trainings.affected > 0
     )
       return { affected: 1 };
