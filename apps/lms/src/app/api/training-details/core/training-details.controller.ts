@@ -11,12 +11,14 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CreateTrainingDetailsDto, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
 import { TrainingDetailsService } from './training-details.service';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { LspType } from '@gscwd-api/utils';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { FindAllTrainingDetailsInterceptor } from '../misc/interceptors/training-details-test.interceptor';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -30,6 +32,7 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.addTrainingDetails(lspType, data);
   }
 
+  @UseInterceptors(FindAllTrainingDetailsInterceptor)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
