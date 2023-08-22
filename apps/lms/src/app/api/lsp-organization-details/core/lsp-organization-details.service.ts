@@ -301,5 +301,6 @@ export class LspOrganizationDetailsService extends CrudHelper<LspOrganizationDet
 
     if (affiliations.affected > 0 || awards.affected > 0 || certifications.affected > 0 || coaching.affected > 0 || trainings.affected > 0)
       return { affected: 1 };
+    else return { affected: 0 };
   }
 }

@@ -360,5 +360,6 @@ export class LspIndividualDetailsService extends CrudHelper<LspIndividualDetails
       trainings.affected > 0
     )
       return { affected: 1 };
+    else return { affected: 0 };
   }
 }
