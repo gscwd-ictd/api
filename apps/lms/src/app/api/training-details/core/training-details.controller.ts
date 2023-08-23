@@ -32,7 +32,7 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.addTrainingDetails(lspType, data);
   }
 
-  @UseInterceptors(FindAllTrainingDetailsInterceptor)
+  //@UseInterceptors(FindAllTrainingDetailsInterceptor)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -65,11 +65,7 @@ export class TrainingDetailsController {
   //delete method to remove trainings by training id
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return this.trainingDetailsService.crud().delete({
-      deleteBy: { id },
-      softDelete: false,
-      onError: () => new BadRequestException(),
-    });
+    return this.trainingDetailsService.deleteTrainingDetails(id);
   }
 
   //Employee Portal

@@ -1,7 +1,18 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingDetailsDto, LspIndividualDetails, LspOrganizationDetails, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
+import {
+  CreateTrainingDetailsDto,
+  LspIndividualDetails,
+  LspOrganizationDetails,
+  TrainingDetails,
+  TrainingDistribution,
+  TrainingLspIndividual,
+  TrainingLspOrganization,
+  TrainingRecommendedEmployee,
+  TrainingTag,
+  UpdateTrainingDetailsDto,
+} from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, DeleteResult } from 'typeorm';
 import { TrainingDistributionsService } from '../components/training-distributions';
 import { TrainingTagsService } from '../components/training-tags';
 import { LspIndividualDetailsService } from '../../lsp-individual-details';
@@ -292,6 +303,77 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       });
 
       //return update training details transaction result
+      return result;
+    } catch (error) {
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async deleteTrainingDetails(trainingId: string): Promise<DeleteResult> {
+    try {
+      //transaction result
+      const result = await this.datasource.transaction(async (entityManager) => {
+        //delete all learning service provider child
+        //const lspChilds = await this.deleteAllLspDetailsChild(lspDetailsId, entityManager);
+
+        const lspIndividualDetails = await this.trainingLspIndividualService
+          .crud()
+          .transact<TrainingLspIndividual>(entityManager)
+          .delete({
+            softDelete: false,
+            deleteBy: { trainingDetails: { id: trainingId } },
+          });
+
+        const lspOrganizationDetails = await this.trainingLspOrganizationService
+          .crud()
+          .transact<TrainingLspOrganization>(entityManager)
+          .delete({
+            softDelete: false,
+            deleteBy: { trainingDetails: { id: trainingId } },
+          });
+
+        const trainingTags = await this.trainingTagsService
+          .crud()
+          .transact<TrainingTag>(entityManager)
+          .delete({
+            softDelete: false,
+            deleteBy: { trainingDetails: { id: trainingId } },
+          });
+
+        const distributions = (await this.trainingDistributionsService
+          .crud()
+          .transact<TrainingDistribution>(entityManager)
+          .findAll({
+            find: { where: { trainingDetails: { id: trainingId } } },
+          })) as TrainingDistribution[];
+
+        const recommendedEmployee = await Promise.all(
+          distributions.map(async (distributionItem) => {
+            return await this.trainingRecommendedEmployeeService
+              .crud()
+              .transact<TrainingRecommendedEmployee>(entityManager)
+              .delete({ softDelete: false, deleteBy: { trainingDistribution: distributionItem } });
+          })
+        );
+
+        const trainingDistribution = await this.trainingDistributionsService
+          .crud()
+          .transact<TrainingDistribution>(entityManager)
+          .delete({
+            softDelete: false,
+            deleteBy: { trainingDetails: { id: trainingId } },
+          });
+
+        //delete training details
+        const trainingDetails = await this.crudService
+          .transact<TrainingDetails>(entityManager)
+          .delete({ softDelete: false, deleteBy: { id: trainingId } });
+
+        return trainingDetails;
+        //if (lspChilds.affected > 0 && lspDetails.affected > 0) return lspDetails;
+      });
+
+      //return result
       return result;
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);

@@ -22,16 +22,16 @@ import { TrainingDetails, TrainingDistribution, TrainingSource, TrainingTag, Tra
 })
 export class TrainingDetailsView {
   @ViewColumn()
-  created_at: string;
+  createdAt: string;
 
   @ViewColumn()
-  updated_at: string;
+  updatedAt: string;
 
   @ViewColumn()
-  deleted_at: string;
+  deletedAt: string;
 
   @ViewColumn()
-  training_details_id: string;
+  id: string;
 }
 
 /* SELECT PD.PROJECT_NAME,
