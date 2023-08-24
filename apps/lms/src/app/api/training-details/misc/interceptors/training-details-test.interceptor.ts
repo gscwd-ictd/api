@@ -8,11 +8,11 @@ export class FindAllTrainingDetailsInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
     return next.handle().pipe(
       map((result: Pagination<TrainingDetailsView>) => {
-        const items = result.items.map((views: any) => {
+        const items = result.items.map((views) => {
           console.log(views);
           return {
-            id: views.training_details_id,
-            code: `${views.createdAt}-${views.updatedAt}-${views.deletedAt}`,
+            id: result.items[0].id,
+            code: `${result.items[0].createdAt}-${views.updatedAt}-${views.deletedAt}`,
           };
         });
         return { ...result, items };
