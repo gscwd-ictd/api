@@ -18,7 +18,6 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
-    const { trainingDetails, ...rest } = results;
-    return rest;
+    return results;
   }
 }

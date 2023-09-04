@@ -5,20 +5,20 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
   InternalServerErrorException,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CreateTrainingDetailsDto, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
 import { TrainingDetailsService } from './training-details.service';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { LspType } from '@gscwd-api/utils';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { FindAllTrainingDetailsInterceptor } from '../misc/interceptors/training-details-test.interceptor';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -29,16 +29,10 @@ export class TrainingDetailsController {
   //post method for creating a training and distribution of slots
   @Post()
   async create(@Query('lsp-type') lspType: LspType, @Body() data: CreateTrainingDetailsDto) {
-    switch (lspType) {
-      case LspType.INDIVIDUAL:
-        return await this.trainingDetailsService.addTrainingLspIndividual(data);
-      case LspType.ORGANIZATION:
-        return await this.trainingDetailsService.addTrainingLspOrganization(data);
-      default:
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-    }
+    return await this.trainingDetailsService.addTrainingDetails(lspType, data);
   }
 
+  //@UseInterceptors(FindAllTrainingDetailsInterceptor)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -71,11 +65,7 @@ export class TrainingDetailsController {
   //delete method to remove trainings by training id
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return this.trainingDetailsService.crud().delete({
-      deleteBy: { id },
-      softDelete: false,
-      onError: () => new BadRequestException(),
-    });
+    return this.trainingDetailsService.deleteTrainingDetails(id);
   }
 
   //Employee Portal
