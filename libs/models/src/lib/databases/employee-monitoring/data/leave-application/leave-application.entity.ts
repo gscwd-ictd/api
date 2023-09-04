@@ -57,6 +57,12 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ type: 'enum', enum: LeaveApplicationStatus, default: LeaveApplicationStatus.FOR_HRMO_APPROVAL, nullable: true })
   status: LeaveApplicationStatus;
 
+  @Column({ type: 'text', name: 'cancel_reason', nullable: true })
+  cancelReason: string;
+
+  @Column({ type: 'datetime', name: 'cancel_date', nullable: true })
+  cancelDate: Date;
+
   @Column({ type: 'date', name: 'hrmo_approval_date', nullable: true })
   hrmoApprovalDate: Date;
 

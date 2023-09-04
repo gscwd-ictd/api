@@ -8,6 +8,7 @@ import { DataSource } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
+import { time } from 'console';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -108,11 +109,32 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           pattern: 'get_employee_supervisor_names',
           onError: (error) => new NotFoundException(error),
         });
-
         return { ...passSlipId, ...names, ...restOfPassSlip };
       })
     );
-    return { forApproval, completed: { approved, disapproved } };
+
+    const passSlipsCancelled = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
+      find: {
+        relations: { passSlipId: true },
+        select: { supervisorId: true, status: true },
+        where: { supervisorId, status: PassSlipApprovalStatus.CANCELLED },
+      },
+    });
+    const cancelled = await Promise.all(
+      passSlipsCancelled.map(async (passSlip) => {
+        const { passSlipId, ...restOfPassSlip } = passSlip;
+
+        const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
+          action: 'send',
+          payload: { employeeId: passSlip.passSlipId.employeeId, supervisorId: passSlip.supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        });
+        return { ...passSlipId, ...names, ...restOfPassSlip };
+      })
+    );
+
+    return { forApproval, completed: { approved, disapproved, cancelled } };
   }
 
   async getApprovedPassSlipsByEmployeeId(employeeId: string) {
@@ -204,6 +226,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ob_transportation obTransportation, 
         estimate_hours estimateHours,
         purpose_destination purposeDestination,
+        time_in timeIn,
+        time_out timeOut,
         is_cancelled isCancelled
       FROM pass_slip_approval psa 
         INNER JOIN pass_slip ps ON ps.pass_slip_id = psa.pass_slip_id_fk 
@@ -346,8 +370,26 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
 
   async updatePassSlipTimeRecord(updatePassSlipTimeRecordDto: UpdatePassSlipTimeRecordDto) {
-    const { id, ...rest } = updatePassSlipTimeRecordDto;
-    const updateResult = await this.crud().update({ dto: rest, updateBy: { id }, onError: () => new InternalServerErrorException() });
+    const { id, action } = updatePassSlipTimeRecordDto;
+    const timeNow = dayjs().format('HH:mm');
+    let timeIn = null,
+      timeOut = null;
+    action === 'time in' ? (timeIn = timeNow) : (timeOut = timeNow);
+    let updateResult = null;
+
+    if (action === 'time in') {
+      updateResult = await this.crud().update({
+        dto: { id, timeIn },
+        updateBy: { id },
+        onError: () => new InternalServerErrorException(),
+      });
+    } else {
+      updateResult = await this.crud().update({
+        dto: { id, timeOut },
+        updateBy: { id },
+        onError: () => new InternalServerErrorException(),
+      });
+    }
     if (updateResult.affected > 0) return updatePassSlipTimeRecordDto;
   }
 
@@ -375,7 +417,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
     `)) as PassSlipForLedger[];
     //2. check time in and time out
-    //console.log('PASS SLIPS!!!', passSlips);
+
     const passSlipsToLedger = await Promise.all(
       passSlips.map(async (passSlip) => {
         const {
@@ -397,19 +439,15 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           await this.rawQuery(`SELECT count(*) passSlipCount FROM employee_monitoring.leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [id])
         )[0];
 
-        console.log('ASDASDASDASD', passSlipCount);
-
         if (passSlipCount === '0') {
           if (timeIn === null && timeOut === null) {
             await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.UNUSED }, updateBy: { passSlipId: { id } } });
             return;
           }
           //2.1 if time in is null and time out is null update status to unused;
-          console.log('null time in and time out');
 
           //2.2  if time in is not null and time out is null check if not undertime
           if (timeOut !== null && timeIn === null) {
-            console.log('not null timein and null time out');
             if (natureOfBusiness === 'Undertime' || natureOfBusiness === 'Half Day' || natureOfBusiness === 'Personal Business') {
               //2.2.1 set time out to scheduled time out;
               //get employee current schedule schedule from dtr
@@ -428,7 +466,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           }
           //2.2. INSERT TO LEDGER
           const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [passSlip.id]))[0];
-          console.log('the debit value: ', debitValue);
+
           await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
             passSlipId: {
               id: passSlip.id,

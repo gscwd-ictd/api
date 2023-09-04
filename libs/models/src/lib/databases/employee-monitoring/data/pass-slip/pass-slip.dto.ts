@@ -33,9 +33,5 @@ export class PassSlipDto {
 export class UpdatePassSlipTimeRecordDto {
   id: string;
 
-  @IsOptional()
-  timeOut: number;
-
-  @IsOptional()
-  timeIn: number;
+  action: 'time in' | 'time out';
 }

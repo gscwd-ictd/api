@@ -11,7 +11,9 @@ export class EmployeesService {
       action: 'send',
       pattern: 'get_all_regular_employee_ids',
       payload: {},
-      onError: () => new InternalServerErrorException(),
+      onError: (error) => {
+        throw new InternalServerErrorException();
+      },
     })) as { employeeId: string; companyId: string }[];
 
     return employees;

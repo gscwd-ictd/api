@@ -6,6 +6,7 @@ import { LeaveApplicationModule } from '../components/leave-application/core/lea
 import { LeaveBenefitsModule } from '../components/leave-benefits/core/leave-benefits.module';
 import { LeaveCardLedgerCreditModule } from '../components/leave-card-ledger-credit/core/leave-card-ledger-credit.module';
 import { LeaveCardLedgerDebitModule } from '../components/leave-card-ledger-debit/core/leave-card-ledger-debit.module';
+import { LeaveCreditDeductionsModule } from '../components/leave-credit-deductions/core/leave-credit-deductions.module';
 import { LeaveCreditEarningsModule } from '../components/leave-credit-earnings/core/leave-credit-earnings.module';
 import { LeaveController } from './leave.controller';
 import { LeaveService } from './leave.service';
@@ -16,6 +17,7 @@ import { LeaveService } from './leave.service';
     LeaveApplicationDatesModule,
     LeaveBenefitsModule,
     LeaveCreditEarningsModule,
+    LeaveCreditDeductionsModule,
     LeaveCardLedgerDebitModule,
     LeaveCardLedgerCreditModule,
     LeaveAddBackModule,
@@ -31,6 +33,7 @@ import { LeaveService } from './leave.service';
     LeaveCardLedgerDebitModule,
     LeaveCardLedgerCreditModule,
     LeaveCreditEarningsModule,
+    LeaveCreditDeductionsModule,
   ],
 })
 export class LeaveModule {}

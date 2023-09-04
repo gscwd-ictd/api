@@ -64,6 +64,12 @@ export class CreateLeaveApplicationDto {
   status: LeaveApplicationStatus;
 
   @IsOptional()
+  cancelDate: Date;
+
+  @IsOptional()
+  cancelReason: string;
+
+  @IsOptional()
   hrmoApprovalDate: Date;
 
   @IsOptional()
@@ -99,5 +105,9 @@ export class UpdateLeaveApplicationSupervisorStatusDto extends PickType(CreateLe
   'supervisorApprovalDate',
   'supervisorDisapprovalRemarks',
 ]) {
+  id: string;
+}
+
+export class UpdateLeaveApplicationEmployeeStatus extends PickType(CreateLeaveApplicationDto, ['cancelReason']) {
   id: string;
 }

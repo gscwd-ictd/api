@@ -23,6 +23,7 @@ export class LeaveCreditEarningsService extends CrudHelper<LeaveCreditEarnings> 
     const { id, ...rest } = leaveCreditEarningsDto;
     const updateResult = await this.crudService.update({
       dto: rest,
+
       updateBy: { id },
     });
     if (updateResult.affected > 0) return leaveCreditEarningsDto;

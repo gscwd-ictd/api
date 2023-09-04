@@ -276,6 +276,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
               dailyTimeRecordId: dtr,
               debitValue,
+              createdAt: dtr.dtrDate,
             });
           }
         }
@@ -771,9 +772,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   @Cron('0 59 23 * * 0-6')
   async addDTRToLedger() {
-    //try {
     const employees = (await this.employeeService.getAllPermanentEmployeeIds()) as { employeeId: string; companyId: string }[];
-    //console.log(employees);
+
     const ledger = await Promise.all(
       employees.map(async (employee) => {
         const now = dayjs();
@@ -782,10 +782,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         await this.getDtrByCompanyIdAndDay(data);
       })
     );
-    // } catch (error) {
-    //   //console.log(error);
-    //   //
-    // }
+
     console.log('CRON Job for DTR Ledger');
   }
 }

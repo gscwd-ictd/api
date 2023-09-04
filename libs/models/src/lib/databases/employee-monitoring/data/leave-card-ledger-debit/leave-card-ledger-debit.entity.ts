@@ -3,6 +3,7 @@ import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { LeaveApplication } from '../leave-application';
 import { PassSlip } from '../pass-slip';
 import { DailyTimeRecord } from '../daily-time-record';
+import { LeaveBenefits } from '../leave-benefits';
 
 @Entity()
 export class LeaveCardLedgerDebit extends DatabaseEntity implements IEntity {

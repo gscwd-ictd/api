@@ -1,10 +1,12 @@
 import {
+  UpdateLeaveApplicationEmployeeStatus,
   UpdateLeaveApplicationHrdmStatusDto,
   UpdateLeaveApplicationHrmoStatusDto,
   UpdateLeaveApplicationSupervisorStatusDto,
 } from '@gscwd-api/models';
-import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import dayjs = require('dayjs');
+import { LeaveAdjustmentDto } from '../data/leave-adjustment.dto';
 import { LeaveService } from './leave.service';
 
 @Controller({ version: '1', path: 'leave' })
@@ -48,5 +50,15 @@ export class LeaveController {
   @Get('ledger/:employee_id/:company_id')
   async getLeaveLedger(@Param('employee_id') employeeId: string, @Param('company_id') companyId: string) {
     return await this.leaveService.getLeaveLedger(employeeId, companyId);
+  }
+
+  @Patch('employee')
+  async cancelLeave(@Body() updateLeaveApplicationEmployeeStatus: UpdateLeaveApplicationEmployeeStatus) {
+    return await this.leaveService.cancelLeave(updateLeaveApplicationEmployeeStatus);
+  }
+
+  @Post('adjustment')
+  async addAdjustment(@Body() leaveAdjustmentDto: LeaveAdjustmentDto) {
+    return await this.leaveService.addAdjustment(leaveAdjustmentDto);
   }
 }
