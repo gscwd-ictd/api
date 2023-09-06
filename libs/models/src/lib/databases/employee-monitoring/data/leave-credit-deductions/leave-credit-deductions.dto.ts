@@ -8,4 +8,6 @@ export class LeaveCreditDeductionsDto {
   leaveBenefitsId: LeaveBenefits;
 
   debitValue: number;
+
+  remarks: string;
 }

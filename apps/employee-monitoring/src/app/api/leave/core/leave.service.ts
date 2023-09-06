@@ -181,14 +181,27 @@ export class LeaveService {
     //
     const { category, leaveBenefitsId, remarks, value, employeeId } = leaveAdjustmentDto;
     let adjustment;
-    if (category === 'debit')
-      adjustment = await this.leaveCardLedgerDebitService
-        .crud()
-        .create({ dto: { debitValue: value }, onError: () => new InternalServerErrorException() });
-    else if (category === 'credit') {
+    if (category === 'debit') {
+      console.log(value);
+      const leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
+        dto: {
+          debitValue: value,
+          remarks,
+          leaveBenefitsId,
+          employeeId,
+        },
+      });
+      adjustment = await this.leaveCardLedgerDebitService.crud().create({
+        dto: {
+          leaveCreditDeductionsId,
+          debitValue: value,
+        },
+        onError: () => new InternalServerErrorException(),
+      });
+    } else if (category === 'credit') {
       const leaveCreditEarningId = await this.leaveCreditEarningsService
         .crud()
-        .create({ dto: { creditDate: dayjs().toDate(), creditValue: value, leaveBenefitsId, employeeId } });
+        .create({ dto: { creditDate: dayjs().toDate(), creditValue: value, leaveBenefitsId, employeeId, remarks } });
       adjustment = await this.leaveCardLedgerCreditService.crud().create({
         dto: { leaveCreditEarningId },
         onError: () => new InternalServerErrorException(),
