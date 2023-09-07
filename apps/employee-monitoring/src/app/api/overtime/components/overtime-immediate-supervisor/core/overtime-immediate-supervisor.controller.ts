@@ -12,5 +12,7 @@ export class OvertimeImmediateSupervisorController {
   }
 
   @Get()
-  async getOvertimeSupervisors() {}
+  async getOvertimeSupervisors() {
+    return '';
+  }
 }

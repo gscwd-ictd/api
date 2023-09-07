@@ -204,6 +204,11 @@ export type LeaveLedger = {
   remarks: string;
 };
 
+export enum OvertimeStatus {
+  APPROVED = 'approved',
+  DISAPPROVED = 'disapproved',
+  PENDING = 'pending',
+}
 // {
 //   day: dayjs(currDate).format('YYYY-MM-DD'),
 //   holidayType,
