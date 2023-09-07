@@ -1,11 +1,15 @@
 import { OvertimeApplication } from '@gscwd-api/models';
+import { IsOptional } from 'class-validator';
 
 export class CreateOvertimeApprovalDto {
   overtimeApplicationId: OvertimeApplication;
 
-  dateApproved: Date;
+  @IsOptional()
+  dateApproved?: Date;
 
-  managerId: string;
+  @IsOptional()
+  managerId?: string;
 
-  remarks: string;
+  @IsOptional()
+  remarks?: string;
 }

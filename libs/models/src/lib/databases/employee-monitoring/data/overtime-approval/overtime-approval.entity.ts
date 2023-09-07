@@ -11,12 +11,12 @@ export class OvertimeApproval extends DatabaseEntity implements IEntity {
   @ManyToOne(() => OvertimeApplication, (overtimeApplication) => overtimeApplication.id)
   overtimeApplicationId: OvertimeApplication;
 
-  @Column({ name: 'date_approved' })
+  @Column({ name: 'date_approved', nullable: true })
   dateApproved: Date;
 
-  @Column({ name: 'manager_id_fk', type: 'uuid' })
+  @Column({ name: 'manager_id_fk', type: 'uuid', nullable: true })
   managerId: string;
 
-  @Column({ name: 'remarks', type: 'text' })
+  @Column({ name: 'remarks', type: 'text', nullable: true })
   remarks: string;
 }
