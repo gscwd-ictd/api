@@ -23,6 +23,7 @@ import {
   OvertimeApplication,
   OvertimeEmployee,
   OvertimeApproval,
+  OvertimeAccomplishment,
 } from '@gscwd-api/models';
 import { EmployeeRestDay } from 'libs/models/src/lib/databases/employee-monitoring/data/employee-rest-day/employee-rest-day.entity';
 
@@ -52,4 +53,5 @@ export const typeOrmEntities = [
   OvertimeApplication,
   OvertimeEmployee,
   OvertimeApproval,
+  OvertimeAccomplishment,
 ];

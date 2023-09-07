@@ -1,4 +1,4 @@
-import { OvertimeApproval } from '@gscwd-api/models';
+import { OvertimeAccomplishment, OvertimeApproval } from '@gscwd-api/models';
 import { CustomGroupsModule } from '../app/api/custom-groups/core/custom-groups.module';
 import { EmployeeScheduleModule } from '../app/api/daily-time-record/components/employee-schedule/core/employee-schedule.module';
 import { ScheduleModule } from '../app/api/daily-time-record/components/schedule/core/schedule.module';
@@ -26,4 +26,5 @@ export const appModules = [
   OvertimeApplicationModule,
   OvertimeEmployeeModule,
   OvertimeApproval,
+  OvertimeAccomplishment,
 ];
