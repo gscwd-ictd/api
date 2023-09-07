@@ -4,6 +4,7 @@ import {
   LspIndividualDetails,
   LspOrganizationDetails,
   TrainingDetails,
+  TrainingDetailsView,
   TrainingDistribution,
   TrainingLspIndividual,
   TrainingLspOrganization,
