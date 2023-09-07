@@ -7,4 +7,7 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
   constructor(private readonly crudService: CrudService<OvertimeApplication>) {
     super(crudService);
   }
+  async createOvertimeApplication() {
+    return '';
+  }
 }
