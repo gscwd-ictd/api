@@ -26,7 +26,11 @@ async function bootstrap() {
   /**
    * enable cors policy to allow browser access
    */
-  app.enableCors();
+  app.enableCors({
+    credentials: true,
+    origin: ['http://172.20.10.45:3002', 'http://localhost:3002'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
   /**
    * enable api versioning
    */
