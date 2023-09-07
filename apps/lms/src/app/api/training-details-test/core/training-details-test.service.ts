@@ -1,5 +1,5 @@
 import { CrudService } from '@gscwd-api/crud';
-import { BadRequestException, HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { TrainingDetailsTestView } from '../data/training-details-test.view';
 
 @Injectable()
