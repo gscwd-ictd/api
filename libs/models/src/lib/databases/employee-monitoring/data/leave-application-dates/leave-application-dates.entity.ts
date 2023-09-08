@@ -9,7 +9,7 @@ export class LeaveApplicationDates extends DatabaseEntity implements IEntity {
 
   @JoinColumn({ name: 'leave_application_id_fk' })
   @ManyToOne(() => LeaveApplication, (leaveApplication) => leaveApplication.id)
-  leaveApplicationId: string;
+  leaveApplicationId: LeaveApplication;
 
   @Column({ name: 'leave_date', type: 'date' })
   leaveDate: Date;

@@ -8,6 +8,7 @@ import { DataSource, EntityManager } from 'typeorm';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
+import { typeOrmEntities } from 'apps/employee-monitoring/src/constants/entities';
 
 @Injectable()
 export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
@@ -60,7 +61,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         ...rest,
         supervisorId,
         dateOfFiling: new Date(now),
-        status: LeaveApplicationStatus.ONGOING,
+        status: LeaveApplicationStatus.FOR_HRMO_APPROVAL,
         forMonetization: false,
         leaveApplicationDates,
       });
@@ -72,7 +73,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           leaveApplicationDates.map(async (leaveDate) => {
             return await this.leaveApplicationDatesService.createApplicationDatesTransaction(transactionEntityManager, {
               leaveDate,
-              leaveApplicationId: leaveApplication.id,
+              leaveApplicationId: leaveApplication,
             });
           })
         );
@@ -93,10 +94,11 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
   async getLeaveApplicationByEmployeeId(employeeId: string) {
     try {
-      const ongoing = await this.getLeaveApplicationByEmployeeIdStatus(employeeId, LeaveApplicationStatus.ONGOING);
+      const ongoing = await this.getOngoingLeaveApplicationByEmployeeIdStatus(employeeId);
       const approved = await this.getLeaveApplicationByEmployeeIdStatus(employeeId, LeaveApplicationStatus.APPROVED);
-      const disapproved = await this.getLeaveApplicationByEmployeeIdStatus(employeeId, LeaveApplicationStatus.DISAPPROVED);
+      const disapproved = await this.getDisapprovedLeaveApplicationByEmployeeIdStatus(employeeId);
       const cancelled = await this.getLeaveApplicationByEmployeeIdStatus(employeeId, LeaveApplicationStatus.CANCELLED);
+
       return {
         ongoing,
         completed: [...approved, ...disapproved, ...cancelled],
@@ -110,17 +112,97 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     try {
       const leaveApplications = await this.rawQuery<string, LeaveApplicationType[]>(
         `SELECT
-            la.leave_application_id id,
-            lb.leave_name leaveName,
-            DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
-            la.status \`status\` 
+        la.leave_application_id id,
+        lb.leave_name leaveName,
+        lb.leave_types leaveType,
+        DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
+        la.status \`status\`,
+        DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d') hrmoApprovalDate,
+        DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d') supervisorApprovalDate,
+        la.supervisor_disapproval_remarks supervisorDisapprovalRemarks,
+        DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d') hrdmApprovalDate,
+        la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
+        la.cancel_reason cancelReason,
+        DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
           WHERE la.leave_application_id = ? 
           ORDER BY la.date_of_filing DESC;`,
         [id]
       );
-      let dates = [];
+
+      const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue`, [id]))[0];
+
+      const leaveApplicationsWithDates = await Promise.all(
+        leaveApplications.map(async (leaveApplication) => {
+          const leaveDates = await this.rawQuery<string, { leaveDate: string }[]>(
+            `
+              SELECT DATE_FORMAT(leave_date,'%Y-%m-%d') leaveDate FROM leave_application_dates WHERE leave_application_id_fk = ? ORDER BY leave_date ASC; 
+          `,
+            [leaveApplication.id]
+          );
+          return { ...leaveApplication, debitValue, leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)) };
+        })
+      );
+
+      return leaveApplicationsWithDates;
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
+    }
+  }
+
+  async getOngoingLeaveApplicationByEmployeeIdStatus(employeeId: string) {
+    try {
+      const leaveApplications = await this.rawQuery<string, LeaveApplicationType[]>(
+        `SELECT
+            la.leave_application_id id,
+            lb.leave_name leaveName,
+            DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
+            la.status \`status\`,
+            la.cancel_reason cancelReason,
+            DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate 
+            FROM leave_application la 
+              INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
+          WHERE la.employee_id_fk = ? AND la.status <> 'approved' AND la.status NOT LIKE '%disapproved%' AND la.status <> 'cancelled' 
+          ORDER BY la.date_of_filing DESC;`,
+        [employeeId]
+      );
+
+      const leaveApplicationsWithDates = await Promise.all(
+        leaveApplications.map(async (leaveApplication) => {
+          const leaveDates = await this.rawQuery<string, { leaveDate: string }[]>(
+            `
+              SELECT DATE_FORMAT(leave_date,'%Y-%m-%d') leaveDate FROM leave_application_dates WHERE leave_application_id_fk = ? ORDER BY leave_date ASC; 
+          `,
+            [leaveApplication.id]
+          );
+          return { ...leaveApplication, leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)) };
+        })
+      );
+
+      return leaveApplicationsWithDates;
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
+    }
+  }
+
+  async getDisapprovedLeaveApplicationByEmployeeIdStatus(employeeId: string) {
+    try {
+      const leaveApplications = await this.rawQuery<string, LeaveApplicationType[]>(
+        `SELECT
+            la.leave_application_id id,
+            lb.leave_name leaveName,
+            DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
+            la.status \`status\`,
+            la.cancel_reason cancelReason,
+            DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate 
+            FROM leave_application la 
+              INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
+          WHERE la.employee_id_fk = ? AND (la.status = 'disapproved by hrmo' OR la.status = 'disapproved by supervisor' OR la.status = 'disapproved by hrdm')  
+          ORDER BY la.date_of_filing DESC;`,
+        [employeeId]
+      );
+
       const leaveApplicationsWithDates = await Promise.all(
         leaveApplications.map(async (leaveApplication) => {
           const leaveDates = await this.rawQuery<string, { leaveDate: string }[]>(
@@ -146,14 +228,21 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             la.leave_application_id id,
             lb.leave_name leaveName,
             DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
-            la.status \`status\` 
+            la.status \`status\`,
+            DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d') hrmoApprovalDate,
+            DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d') supervisorApprovalDate,
+            la.supervisor_disapproval_remarks supervisorDisapprovalRemarks,
+            DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d') hrdmApprovalDate,
+            la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
+            la.cancel_reason cancelReason,
+            DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
           WHERE la.employee_id_fk = ? AND la.status = ? 
           ORDER BY la.date_of_filing DESC;`,
         [employeeId, status]
       );
-      let dates = [];
+
       const leaveApplicationsWithDates = await Promise.all(
         leaveApplications.map(async (leaveApplication) => {
           const leaveDates = await this.rawQuery<string, { leaveDate: string }[]>(
@@ -266,7 +355,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     });
 
     const { leaveName } = leaveApplicationBasicInfo;
-    if (leaveName === 'Vacation Leave') {
+    if (leaveName === 'Vacation Leave' || leaveName === 'Special Privilege Leave') {
       const leaveApplicationDetails = await this.getVacationLeaveDetails(leaveApplicationId);
       return { employeeDetails, leaveApplicationBasicInfo, leaveApplicationDetails };
     } else if (leaveName === 'Sick Leave') {
@@ -290,7 +379,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       FROM 
       ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
         INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
-        WHERE la.employee_id_fk = ?  AND (la.status = 'approved' OR la.status='ongoing'))
+        WHERE la.employee_id_fk = ?  AND (la.status = 'approved' OR la.status='for hrmo approval' OR la.status='for hrmd approval' or la.status='for supervisor approval'))
       UNION 
       (SELECT DATE_FORMAT(holiday_date, '%Y-%m-%d') unavailableDate,'Holiday' AS type  FROM holidays WHERE holiday_date > now())) AS unavailableDates 
       ORDER BY unavailableDates.unavailableDate ASC`,
@@ -302,12 +391,59 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     return await this.getLeavesByLeaveApplicationStatus(LeaveApplicationStatus.ONGOING);
   }
 
-  async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
-    const leaves = <LeaveApplication[]>await this.crud().findAll({ find: { where: { status: leaveApplicationStatus } } });
+  async getLeavesForHrdm() {
+    const forApproval = await this.getLeavesByLeaveApplicationStatus(LeaveApplicationStatus.FOR_HRDM_APPROVAL);
+    const completed = await this.getCompletedLeavesForHrdm();
+    return { forApproval, completed: { approved: completed.approved, disapproved: completed.disapproved, cancelled: completed.cancelled } };
+  }
+
+  async getCompletedLeavesForHrdm() {
+    const leaves = <LeaveApplication[]>await this.crud().findAll({
+      find: {
+        select: {
+          id: true,
+          abroad: true,
+          dateOfFiling: true,
+          employeeId: true,
+          forBarBoardReview: true,
+          forMastersCompletion: true,
+          forMonetization: true,
+          hrdmApprovalDate: true,
+          hrdmDisapprovalRemarks: true,
+          hrmoApprovalDate: true,
+          supervisorApprovalDate: true,
+          supervisorDisapprovalRemarks: true,
+          inHospital: true,
+          inPhilippines: true,
+          supervisorId: true,
+          studyLeaveOther: true,
+          isTerminalLeave: true,
+          outPatient: true,
+          cancelDate: true,
+          cancelReason: true,
+          requestedCommutation: true,
+          splWomen: true,
+          leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
+          status: true,
+        },
+        relations: { leaveBenefitsId: true },
+        where: [
+          { status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM },
+          { status: LeaveApplicationStatus.APPROVED },
+          { status: LeaveApplicationStatus.DISAPPROVED_BY_HRMO },
+          { status: LeaveApplicationStatus.DISAPPROVED_BY_SUPERVISOR },
+          { status: LeaveApplicationStatus.CANCELLED },
+        ],
+      },
+    });
+
+    const approved = [];
+    const disapproved = [];
+    const cancelled = [];
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
-        const { employeeId, supervisorId, ...rest } = leave;
+        const { employeeId, supervisorId, leaveBenefitsId, ...rest } = leave;
         const employeeSupervisorNames = (await this.client.call<
           string,
           { employeeId: string; supervisorId: string },
@@ -319,20 +455,176 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           onError: (error) => new NotFoundException(error),
         })) as { employeeName: string; supervisorName: string };
 
+        const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
+          find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
+        })) as LeaveApplicationDates[];
+
+        const _leaveDates = await Promise.all(
+          leaveDates.map(async (leaveDate) => {
+            return leaveDate.leaveDate;
+          })
+        );
         const { employeeName, supervisorName } = employeeSupervisorNames;
 
-        return { ...rest, employee: { employeeId, employeeName }, supervisor: { supervisorId, supervisorName } };
+        switch (leave.status) {
+          case LeaveApplicationStatus.DISAPPROVED_BY_HRDM ||
+            LeaveApplicationStatus.DISAPPROVED_BY_HRMO ||
+            LeaveApplicationStatus.DISAPPROVED_BY_SUPERVISOR:
+            disapproved.push({
+              ...rest,
+              employee: { employeeId, employeeName },
+              supervisor: { supervisorId, supervisorName },
+              leaveBenefitsId: leaveBenefitsId.id,
+              leaveName: leaveBenefitsId.leaveName,
+              leaveDates: _leaveDates,
+            });
+            break;
+          case LeaveApplicationStatus.APPROVED:
+            approved.push({
+              ...rest,
+              employee: { employeeId, employeeName },
+              supervisor: { supervisorId, supervisorName },
+              leaveBenefitsId: leaveBenefitsId.id,
+              leaveName: leaveBenefitsId.leaveName,
+              leaveDates: _leaveDates,
+            });
+            break;
+          case LeaveApplicationStatus.CANCELLED:
+            cancelled.push({
+              ...rest,
+              employee: { employeeId, employeeName },
+              supervisor: { supervisorId, supervisorName },
+              leaveBenefitsId: leaveBenefitsId.id,
+              leaveName: leaveBenefitsId.leaveName,
+              leaveDates: _leaveDates,
+            });
+            break;
+          default:
+            break;
+        }
+
+        // return {
+        //   ...rest,
+        //   employee: { employeeId, employeeName },
+        //   supervisor: { supervisorId, supervisorName },
+        //   leaveName: leaveBenefitsId.leaveName,
+        //   leaveDates: _leaveDates,
+        // };
+      })
+    );
+    //return leavesDetails;
+    return { approved, disapproved, cancelled };
+  }
+
+  async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
+    const leaves = <LeaveApplication[]>await this.crud().findAll({
+      find: {
+        select: {
+          id: true,
+          abroad: true,
+          dateOfFiling: true,
+          employeeId: true,
+          forBarBoardReview: true,
+          forMastersCompletion: true,
+          forMonetization: true,
+          hrdmApprovalDate: true,
+          hrdmDisapprovalRemarks: true,
+          hrmoApprovalDate: true,
+          supervisorApprovalDate: true,
+          supervisorDisapprovalRemarks: true,
+          inHospital: true,
+          inPhilippines: true,
+          isTerminalLeave: true,
+          supervisorId: true,
+          studyLeaveOther: true,
+          outPatient: true,
+          cancelDate: true,
+          cancelReason: true,
+          requestedCommutation: true,
+          splWomen: true,
+          leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
+          status: true,
+        },
+        relations: { leaveBenefitsId: true },
+        where: { status: leaveApplicationStatus },
+      },
+    });
+
+    const leavesDetails = await Promise.all(
+      leaves.map(async (leave) => {
+        const { employeeId, supervisorId, leaveBenefitsId, ...rest } = leave;
+        const employeeSupervisorNames = (await this.client.call<
+          string,
+          { employeeId: string; supervisorId: string },
+          { employeeName: string; supervisorName: string }
+        >({
+          action: 'send',
+          payload: { employeeId, supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        })) as { employeeName: string; supervisorName: string };
+
+        const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
+          find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
+        })) as LeaveApplicationDates[];
+
+        const _leaveDates = await Promise.all(
+          leaveDates.map(async (leaveDate) => {
+            return leaveDate.leaveDate;
+          })
+        );
+        const { employeeName, supervisorName } = employeeSupervisorNames;
+        return {
+          ...rest,
+          leaveBenefitsId: leaveBenefitsId.id,
+          leaveName: leaveBenefitsId.leaveName,
+          employee: { employeeId, employeeName },
+          supervisor: { supervisorId, supervisorName },
+          //leaveName: leaveBenefitsId.leaveName,
+          leaveDates: _leaveDates,
+        };
       })
     );
     return leavesDetails;
   }
 
-  async getLeavesUnderSupervisor(supervisorId: string) {
-    const leaves = <LeaveApplication[]>await this.crud().findAll({ find: { where: { supervisorId, status: LeaveApplicationStatus.HR_APPROVED } } });
+  async getApprovedLeavesUnderSupervisor(supervisorId: string) {
+    const leaves = <LeaveApplication[]>await this.crud().findAll({
+      find: {
+        select: {
+          id: true,
+          abroad: true,
+          dateOfFiling: true,
+          employeeId: true,
+          forBarBoardReview: true,
+          forMastersCompletion: true,
+          forMonetization: true,
+          hrdmApprovalDate: true,
+          hrdmDisapprovalRemarks: true,
+          hrmoApprovalDate: true,
+          supervisorApprovalDate: true,
+          supervisorDisapprovalRemarks: true,
+          inHospital: true,
+          inPhilippines: true,
+          supervisorId: true,
+          studyLeaveOther: true,
+          isTerminalLeave: true,
+          outPatient: true,
+          requestedCommutation: true,
+          cancelDate: true,
+          cancelReason: true,
+          splWomen: true,
+          leaveBenefitsId: { leaveName: true, leaveType: true },
+          status: true,
+        },
+        relations: { leaveBenefitsId: true },
+        where: [{ supervisorId, status: LeaveApplicationStatus.FOR_HRDM_APPROVAL }],
+      },
+    });
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
-        const { employeeId, supervisorId, ...rest } = leave;
+        const { employeeId, leaveBenefitsId, ...rest } = leave;
         const employeeSupervisorNames = (await this.client.call<
           string,
           { employeeId: string; supervisorId: string },
@@ -344,7 +636,196 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           onError: (error) => new NotFoundException(error),
         })) as { employeeName: string; supervisorName: string };
         const { employeeName, supervisorName } = employeeSupervisorNames;
-        return { ...rest, employee: { employeeId, employeeName }, supervisor: { supervisorId, supervisorName } };
+
+        const leaveDates = await this.rawQuery<string, { leaveDate: string }[]>(
+          `
+                SELECT DATE_FORMAT(leave_date,'%Y-%m-%d') leaveDate FROM leave_application_dates WHERE leave_application_id_fk = ? ORDER BY leave_date ASC; 
+            `,
+          [leave.id]
+        );
+        return {
+          ...rest,
+          leaveBenefitsId: leaveBenefitsId.id,
+          leaveName: leaveBenefitsId.leaveName,
+          leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
+          employee: { employeeId, employeeName },
+          supervisor: { supervisorId, supervisorName },
+        };
+      })
+    );
+    return leavesDetails;
+  }
+
+  async getDisapprovedCancelledLeavesUnderSupervisor(supervisorId: string) {
+    const leaves = <LeaveApplication[]>await this.crud().findAll({
+      find: {
+        select: {
+          id: true,
+          abroad: true,
+          dateOfFiling: true,
+          employeeId: true,
+          forBarBoardReview: true,
+          forMastersCompletion: true,
+          forMonetization: true,
+          hrdmApprovalDate: true,
+          hrdmDisapprovalRemarks: true,
+          hrmoApprovalDate: true,
+          supervisorApprovalDate: true,
+          supervisorDisapprovalRemarks: true,
+          inHospital: true,
+          inPhilippines: true,
+          supervisorId: true,
+          studyLeaveOther: true,
+          isTerminalLeave: true,
+          outPatient: true,
+          cancelDate: true,
+          cancelReason: true,
+          requestedCommutation: true,
+          splWomen: true,
+          leaveBenefitsId: { leaveName: true, leaveType: true },
+          status: true,
+        },
+        relations: { leaveBenefitsId: true },
+        where: [
+          { supervisorId, status: LeaveApplicationStatus.CANCELLED },
+          { supervisorId, status: LeaveApplicationStatus.DISAPPROVED_BY_SUPERVISOR },
+          { supervisorId, status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM },
+        ],
+      },
+    });
+    // const approved: LeaveApplication[];
+    const disapproved = [];
+    const cancelled = [];
+
+    const leavesDetails = await Promise.all(
+      leaves.map(async (leave) => {
+        const { employeeId, leaveBenefitsId, ...rest } = leave;
+        const employeeSupervisorNames = (await this.client.call<
+          string,
+          { employeeId: string; supervisorId: string },
+          { employeeName: string; supervisorName: string }
+        >({
+          action: 'send',
+          payload: { employeeId, supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        })) as { employeeName: string; supervisorName: string };
+        const { employeeName, supervisorName } = employeeSupervisorNames;
+
+        const leaveDates = await this.rawQuery<string, { leaveDate: string }[]>(
+          `
+                SELECT DATE_FORMAT(leave_date,'%Y-%m-%d') leaveDate FROM leave_application_dates WHERE leave_application_id_fk = ? ORDER BY leave_date ASC; 
+            `,
+          [leave.id]
+        );
+
+        switch (leave.status) {
+          case 'cancelled':
+            cancelled.push({
+              ...rest,
+              leaveBenefitsId: leaveBenefitsId.id,
+              leaveName: leaveBenefitsId.leaveName,
+              leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
+              employee: { employeeId, employeeName },
+              supervisor: { supervisorId, supervisorName },
+            });
+            break;
+          default:
+            disapproved.push({
+              ...rest,
+              leaveBenefitsId: leaveBenefitsId.id,
+              leaveName: leaveBenefitsId.leaveName,
+              leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
+              employee: { employeeId, employeeName },
+              supervisor: { supervisorId, supervisorName },
+            });
+            break;
+        }
+
+        // return {
+        //   cancelled,
+        //   disapproved,
+        // };
+      })
+    );
+    return { cancelled, disapproved };
+  }
+
+  async getLeavesUnderSupervisor(supervisorId: string) {
+    const forApproval = await this.getPendingLeavesUnderSupervisor(supervisorId);
+    const { cancelled, disapproved } = await this.getDisapprovedCancelledLeavesUnderSupervisor(supervisorId);
+
+    const completed = {
+      approved: await this.getApprovedLeavesUnderSupervisor(supervisorId),
+      cancelled,
+      disapproved,
+    };
+    return { forApproval, completed };
+  }
+
+  async getPendingLeavesUnderSupervisor(supervisorId: string) {
+    const leaves = <LeaveApplication[]>await this.crud().findAll({
+      find: {
+        select: {
+          id: true,
+          abroad: true,
+          dateOfFiling: true,
+          employeeId: true,
+          forBarBoardReview: true,
+          forMastersCompletion: true,
+          forMonetization: true,
+          hrdmApprovalDate: true,
+          hrdmDisapprovalRemarks: true,
+          hrmoApprovalDate: true,
+          supervisorApprovalDate: true,
+          supervisorDisapprovalRemarks: true,
+          inHospital: true,
+          inPhilippines: true,
+          isTerminalLeave: true,
+          outPatient: true,
+          requestedCommutation: true,
+          supervisorId: true,
+          studyLeaveOther: true,
+          cancelDate: true,
+          cancelReason: true,
+          splWomen: true,
+          leaveBenefitsId: { leaveName: true, leaveType: true },
+          status: true,
+        },
+        relations: { leaveBenefitsId: true },
+        where: [{ supervisorId, status: LeaveApplicationStatus.FOR_SUPERVISOR_APPROVAL }],
+      },
+    });
+
+    const leavesDetails = await Promise.all(
+      leaves.map(async (leave) => {
+        const { employeeId, leaveBenefitsId, ...rest } = leave;
+        const employeeSupervisorNames = (await this.client.call<
+          string,
+          { employeeId: string; supervisorId: string },
+          { employeeName: string; supervisorName: string }
+        >({
+          action: 'send',
+          payload: { employeeId, supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        })) as { employeeName: string; supervisorName: string };
+        const { employeeName, supervisorName } = employeeSupervisorNames;
+
+        const leaveDates = await this.rawQuery<string, { leaveDate: string }[]>(
+          `
+                SELECT DATE_FORMAT(leave_date,'%Y-%m-%d') leaveDate FROM leave_application_dates WHERE leave_application_id_fk = ? ORDER BY leave_date ASC; 
+            `,
+          [leave.id]
+        );
+        return {
+          ...rest,
+          leaveBenefitsId: leaveBenefitsId.id,
+          leaveName: leaveBenefitsId.leaveName,
+          leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
+          employee: { employeeId, employeeName },
+          supervisor: { supervisorId, supervisorName },
+        };
       })
     );
     return leavesDetails;

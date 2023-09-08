@@ -18,8 +18,8 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
     });
   }
 
-  async createApplicationDatesTransactionRawQuery(transactionEntityManager, 
-    createLeaveApplicationDatesDto: { employeeId: string, leaveApplicationId: string, from: Date, to: Date }){
-      
-  }
+  async createApplicationDatesTransactionRawQuery(
+    transactionEntityManager,
+    createLeaveApplicationDatesDto: { employeeId: string; leaveApplicationId: string; from: Date; to: Date }
+  ) {}
 }

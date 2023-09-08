@@ -1,7 +1,7 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { HolidayType } from '@gscwd-api/utils';
 import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
-@Unique('holiday_name_ukey', ['name'])
+@Unique('holiday_name_ukey', ['name', 'holidayDate'])
 @Entity('holidays')
 export class Holidays extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'holiday_id' })
