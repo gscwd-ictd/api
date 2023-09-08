@@ -1,50 +1,31 @@
-import { Type } from 'class-transformer';
-import { IsArray, IsString, Length, ValidateNested } from 'class-validator';
-import { RationaleDto } from '../rationale';
-import { CourseDescriptionDto } from '../course-descriptions';
-import { CourseObjectiveDto } from '../course-objectives';
-import { TargetParticipants } from '../target-participants';
-import { MethodologyDto } from '../methodologies';
-import { ExpectedOutputDto } from '../expected-outputs/expected-output.dto';
-import { RecognitionDto } from '../recognitions';
+import { PartialType } from '@nestjs/swagger';
+import { IsString, Length } from 'class-validator';
 
 export class CreateTrainingDesignDto {
   @IsString({ message: 'training design course title must be a string' })
   @Length(1, 100, { message: 'training design course title must be between 1 to 100 characters' })
   courseTitle: string;
 
-  @ValidateNested({ each: true })
-  @IsArray()
-  @Type(() => RationaleDto)
-  rationale: RationaleDto[];
+  @IsString({ message: 'training design rationale must be a string' })
+  rationale: string;
 
-  @ValidateNested({ each: true })
-  @IsArray()
-  @Type(() => CourseDescriptionDto)
-  courseDescription: CourseDescriptionDto[];
+  @IsString({ message: 'training design course description must be a string' })
+  courseDescription: string;
 
-  @ValidateNested({ each: true })
-  @IsArray()
-  @Type(() => CourseObjectiveDto)
-  courseObjective: CourseObjectiveDto[];
+  @IsString({ message: 'training design course objective must be a string' })
+  courseObjective: string;
 
-  @ValidateNested({ each: true })
-  @IsArray()
-  @Type(() => TargetParticipants)
-  targetParticipants: TargetParticipants[];
+  @IsString({ message: 'training design target participants must be a string' })
+  targetParticipants: string;
 
-  @ValidateNested({ each: true })
-  @IsArray()
-  @Type(() => MethodologyDto)
-  methodologies: MethodologyDto[];
+  @IsString({ message: 'training design methodologies must be a string' })
+  methodologies: string;
 
-  @ValidateNested({ each: true })
-  @IsArray()
-  @Type(() => ExpectedOutputDto)
-  expectedOutput: ExpectedOutputDto[];
+  @IsString({ message: 'training design expected output must be a string' })
+  expectedOutput: string;
 
-  @ValidateNested({ each: true })
-  @IsArray()
-  @Type(() => RecognitionDto)
-  recognition: RecognitionDto[];
+  @IsString({ message: 'training design recognition must be a string' })
+  recognition: string;
 }
+
+export class UpdateTrainingDesignDto extends PartialType(CreateTrainingDesignDto) {}
