@@ -1,4 +1,4 @@
-import { CreateOvertimeDto } from '@gscwd-api/models';
+import { CreateOvertimeDto, OvertimeApplication } from '@gscwd-api/models';
 import { OvertimeStatus } from '@gscwd-api/utils';
 import { Injectable } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
@@ -57,5 +57,33 @@ export class OvertimeService {
       return { application, approval, employees: overtimeEmployees };
     });
     return result;
+  }
+
+  async getOvertimeApplications() {
+    /*
+      export type Overtime = {
+        id: string;
+        plannedDate: string;
+        immediateSupervisorName: string;
+        employees: Array<EmployeeOvertimeDetails>;
+        estimatedNoOfHours: number;
+        purpose: string;
+        status: OvertimeStatus;
+      };  
+    */
+    const overtimes = (await this.overtimeApplicationService.crud().findAll()) as OvertimeApplication[];
+
+    return await Promise.all(
+      overtimes.map(async (overtime) => {
+        //TODO get employee names and assignments by employee id
+        const employees = await this.overtimeEmployeeService.crud().findAll({
+          find: {
+            select: { employeeId: true },
+            where: { overtimeApplicationId: { id: overtime.id } },
+          },
+        });
+        return { overtime, employees };
+      })
+    );
   }
 }
