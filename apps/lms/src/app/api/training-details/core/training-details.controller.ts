@@ -17,7 +17,6 @@ import { CreateTrainingDetailsDto, TrainingDetails, UpdateTrainingDetailsDto } f
 import { TrainingDetailsService } from './training-details.service';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { LspType } from '@gscwd-api/utils';
-import { Pagination } from 'nestjs-typeorm-paginate';
 import { FindAllTrainingDetailsInterceptor } from '../misc/interceptors/training-details-test.interceptor';
 
 @Controller({ version: '1', path: 'training-details' })
@@ -32,12 +31,12 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.addTrainingDetails(lspType, data);
   }
 
-  //@UseInterceptors(FindAllTrainingDetailsInterceptor)
+  @UseInterceptors(FindAllTrainingDetailsInterceptor)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+  ) {
     return await this.trainingDetailsService.crud().findAll({
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),

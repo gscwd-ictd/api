@@ -1,5 +1,13 @@
 import { ViewColumn, ViewEntity } from 'typeorm';
-import { TrainingDetails, TrainingDistribution, TrainingSource, TrainingTag, TrainingType } from '../data';
+import {
+  TrainingDetails,
+  TrainingDistribution,
+  TrainingLspIndividual,
+  TrainingLspOrganization,
+  TrainingSource,
+  TrainingTag,
+  TrainingType,
+} from '../data';
 
 @ViewEntity({
   name: 'training_details_view',
@@ -10,15 +18,16 @@ import { TrainingDetails, TrainingDistribution, TrainingSource, TrainingTag, Tra
       .addSelect('training_details.updated_at', 'updated_at')
       .addSelect('training_details.deleted_at', 'deleted_at')
       .addSelect('training_details.training_details_id', 'training_details_id')
+      .addSelect('training_sources.training_source_id')
+      .addSelect('training_sources.name, training_source_name')
+      .addSelect('training_types.training_type_id, training_type_id')
+      .addSelect('training_types.name', 'training_type_name')
+      .addSelect(
+        'coalesce(get_lsp(training_lsp_individual.lsp_individual_details_id_fk), get_lsp(training_lsp_organization.lsp_organization_details_id_fk)) as lsp'
+      )
       .from(TrainingDetails, 'training_details')
-      .innerJoin(TrainingSource, 'training_source', 'training_details.training_source_id_fk = training_source.training_source_id')
-      .innerJoin(TrainingType, 'training_type', 'training_details.training_type_id_fk = training_type.training_type_id')
-      .innerJoin(TrainingTag, 'training_tag', 'training_details.training_details_id = training_tag.training_details_id_fk')
-      .innerJoin(
-        TrainingDistribution,
-        'training_distribution',
-        'training_details.training_details_id = training_distribution.training_details_id_fk'
-      ),
+      .leftJoin(TrainingLspIndividual, 'training_details.training_details_id = training_lsp_individual.training_details_id_fk')
+      .leftJoin(TrainingLspOrganization, 'training_details.training_details_id = training_lsp_organization.training_details_id_fk'),
 })
 export class TrainingDetailsView {
   @ViewColumn()
@@ -32,32 +41,48 @@ export class TrainingDetailsView {
 
   @ViewColumn()
   id: string;
+
+  @ViewColumn()
+  trainingSource: string;
+
+  @ViewColumn()
+  trainingType: string;
 }
 
-/* SELECT PD.PROJECT_NAME,
-	PD.LOCATION,
-	PD.SUBJECT,
-	PD.WORK_DESCRIPTION,
-	PD.QUANTITY,
-	PD.OUTPUT_PER_DAY,
-	BD.STATUS,
-	BT.NAME,
-	GL.NAME,
-	MC.SPECIFICATION_ID,
-	MC.QUANTITY,
-	MC.UNIT_COST,
-	LC.SPECIFICATION_ID,
-	LC.NUMBER_OF_PERSON,
-	LC.NUMBER_OF_DAYS,
-	LC.UNIT_COST,
-	EC.EQUIPMENT_DESCRIPTION,
-	EC.NUMBER_OF_UNIT,
-	EC.number_of_days,
-	EC.UNIT_COST
-FROM PROJECT_DETAILS AS PD
-INNER JOIN BUDGET_DETAILS AS BD ON BD.BUDGET_DETAILS_ID = PD.BUDGET_DETAILS_ID_FK
-INNER JOIN BUDGET_TYPES AS BT ON BT.BUDGET_TYPE_ID = BD.BUDGET_TYPE_ID_FK
-INNER JOIN GENERAL_LEDGER_ACCOUNTS AS GL ON GL.GENERAL_LEDGER_ACCOUNT_ID = BD.GENERAL_LEDGER_ACCOUNT_ID_FK
-INNER JOIN MATERIAL_COSTS AS MC ON MC.PROJECT_DETAILS_ID_FK = PD.PROJECT_DETAILS_ID
-INNER JOIN LABOR_COSTS AS LC ON LC.PROJECT_DETAILS_ID_FK = PD.PROJECT_DETAILS_ID
-INNER JOIN EQUIPMENT_COSTS AS EC ON EC.PROJECT_DETAIL_ID_FK = PD.PROJECT_DETAILS_ID */
+/* 
+  
+  SELECT TRAINING_DETAILS.CREATED_AT,
+	TRAINING_DETAILS.UPDATED_AT,
+	TRAINING_DETAILS.DELETED_AT,
+	TRAINING_DETAILS.TRAINING_DETAILS_ID,
+	TRAINING_SOURCE_ID_FK,
+	TRAINING_SOURCES.NAME,
+	TRAINING_TYPE_ID_FK,
+	TRAINING_TYPES.NAME,
+	COALESCE(GET_LSP(TRAINING_LSP_INDIVIDUAL.LSP_INDIVIDUAL_DETAILS_ID_FK),
+
+		GET_LSP(TRAINING_LSP_ORGANIZATION.lsp_organization_details_id_fk)) AS LSP,
+	TRAINING_DETAILS.LOCATION,
+	TRAINING_DETAILS.COURSE_TITLE,
+	TRAINING_DETAILS.TRAINING_START,
+	TRAINING_DETAILS.TRAINING_END,
+	TRAINING_DETAILS.NUMBER_OF_HOURS,
+	TRAINING_DETAILS.COURSE_CONTENT,
+	TRAINING_DETAILS.DEADLINE_FOR_SUBMISSION,
+	TRAINING_DETAILS.INVITATION_URL,
+	TRAINING_DETAILS.NUMBER_OF_PARTICIPANTS,
+	TRAINING_DETAILS.POST_TRAINING_REQUIREMENTS,
+	TRAINING_DETAILS.STATUS,
+	TRAINING_TAGS.TRAINING_TAG_ID,
+	TRAINING_DISTRIBUTIONS.TRAINING_DISTRIBUTION_ID,
+	TRAINING_DISTRIBUTIONS.NO_OF_SLOTS,
+	TRAINING_RECOMMENDED_EMPLOYEES.EMPLOYEE_ID_FK
+FROM TRAINING_DETAILS
+INNER JOIN TRAINING_SOURCES ON TRAINING_DETAILS.TRAINING_SOURCE_ID_FK = TRAINING_SOURCES.TRAINING_SOURCE_ID
+INNER JOIN TRAINING_TYPES ON TRAINING_DETAILS.TRAINING_TYPE_ID_FK = TRAINING_TYPES.TRAINING_TYPE_ID
+LEFT JOIN TRAINING_LSP_INDIVIDUAL ON TRAINING_DETAILS.TRAINING_DETAILS_ID = TRAINING_LSP_INDIVIDUAL.TRAINING_DETAILS_ID_FK
+LEFT JOIN TRAINING_LSP_ORGANIZATION ON TRAINING_DETAILS.TRAINING_DETAILS_ID = TRAINING_LSP_ORGANIZATION.TRAINING_DETAILS_ID_FK
+INNER JOIN TRAINING_TAGS ON TRAINING_DETAILS.TRAINING_DETAILS_ID = TRAINING_TAGS.TRAINING_DETAILS_ID_FK
+INNER JOIN TRAINING_DISTRIBUTIONS ON TRAINING_DETAILS.TRAINING_DETAILS_ID = TRAINING_DISTRIBUTIONS.TRAINING_DETAILS_ID_FK
+INNER JOIN TRAINING_RECOMMENDED_EMPLOYEES ON TRAINING_DISTRIBUTIONS.TRAINING_DISTRIBUTION_ID = TRAINING_RECOMMENDED_EMPLOYEES.TRAINING_DISTRIBUTION_ID_FK
+*/
