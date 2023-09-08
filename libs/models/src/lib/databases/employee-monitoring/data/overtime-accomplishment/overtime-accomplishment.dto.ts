@@ -6,21 +6,22 @@ export class CreateOvertimeAccomplishmentDto {
   overtimeEmployeeId: OvertimeEmployee;
 
   @IsOptional()
-  ivmsTimeIn: number;
+  ivmsTimeIn?: number;
 
   @IsOptional()
-  ivmsTimeOut: number;
+  ivmsTimeOut?: number;
 
   @IsOptional()
-  encodedTimeIn: number;
+  encodedTimeIn?: number;
 
   @IsOptional()
-  encodedTimeOut: number;
+  encodedTimeOut?: number;
 
   @IsOptional()
-  accomplishments: string;
+  accomplishments?: string;
 
-  followEstimatedHrs: boolean;
+  @IsOptional()
+  followEstimatedHrs?: boolean;
 
   status: OvertimeStatus;
 }
