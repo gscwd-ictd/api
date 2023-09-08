@@ -1,4 +1,5 @@
 import { CreateOvertimeDto } from '@gscwd-api/models';
+import { OvertimeStatus } from '@gscwd-api/utils';
 import { Injectable } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
 import { OvertimeAccomplishmentService } from '../components/overtime-accomplishment/core/overtime-accomplishment.service';
@@ -19,7 +20,7 @@ export class OvertimeService {
   ) {}
 
   async createOvertime(createOverTimeDto: CreateOvertimeDto) {
-    await this.dataSource.transaction(async (entityManager: EntityManager) => {
+    const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       const { overtimeApplication, employees } = createOverTimeDto;
 
       //1. insert to overtime application
@@ -34,16 +35,27 @@ export class OvertimeService {
       //3. insert to overtime employees
       const overtimeEmployees = await Promise.all(
         employees.map(async (employee) => {
-          return await this.overtimeEmployeeService.createOvertimeEmployees(
+          const overtimeEmployeeId = await this.overtimeEmployeeService.createOvertimeEmployees(
             {
               overtimeApplicationId: application,
               employeeId: employee,
             },
             entityManager
           );
+          //4. insert to overtime accomplishment (default status)
+          const accomplishment = await this.overtimeAccomplishmentService.createOvertimeAccomplishment(
+            {
+              overtimeEmployeeId,
+              status: OvertimeStatus.PENDING,
+            },
+            entityManager
+          );
+
+          return { overtimeEmployeeId, accomplishment };
         })
       );
-      //TODO 4. insert to overtime accomplishment (default status)
+      return { application, approval, employees: overtimeEmployees };
     });
+    return result;
   }
 }
