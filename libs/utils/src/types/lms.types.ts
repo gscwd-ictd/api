@@ -6,7 +6,7 @@ export enum TrainingStatus {
 }
 
 export enum TrainingNomineeStatus {
-  CONTINUED = 'continued',
+  CONTINUED = 'continued', //ask eric
   DECLINED = 'declined',
   PENDING = 'pending',
 }
