@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "sql-parser": {
+      "type": "library",
+      "root": "libs/sql-parser",
+      "entryFile": "index",
+      "sourceRoot": "libs/sql-parser/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/sql-parser/tsconfig.lib.json"
+      }
+    }
+  },
+  "compilerOptions": {
+    "webpack": true
+  }
+}

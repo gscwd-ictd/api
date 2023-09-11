@@ -11,6 +11,8 @@ import {
 } from '../components';
 import { ItemsController } from './items.controller';
 import { ItemsService } from './items.service';
+import { getProjectRootDir } from '@gscwd-api/utils';
+
 
 @Module({
   imports: [
