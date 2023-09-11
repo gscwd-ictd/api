@@ -9,6 +9,9 @@ import { EmployeeScheduleModule } from '../components/employee-schedule/core/emp
 import { HolidaysModule } from '../../holidays/core/holidays.module';
 import { ScheduleModule } from '../components/schedule/core/schedule.module';
 import { LeaveCardLedgerDebitModule } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.module';
+import { LeaveCardLedgerCreditModule } from '../../leave/components/leave-card-ledger-credit/core/leave-card-ledger-credit.module';
+import { LeaveAddBackModule } from '../../leave/components/leave-add-back/core/leave-add-back.module';
+import { EmployeesModule } from '../../employees/core/employees.module';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { LeaveCardLedgerDebitModule } from '../../leave/components/leave-card-le
     HolidaysModule,
     ScheduleModule,
     LeaveCardLedgerDebitModule,
+    LeaveCardLedgerCreditModule,
+    LeaveAddBackModule,
+    EmployeesModule,
   ],
   providers: [DailyTimeRecordService, MicroserviceClient],
   controllers: [DailyTimeRecordController],

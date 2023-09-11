@@ -11,10 +11,13 @@ export enum CreditDistribution {
 
 export enum LeaveApplicationStatus {
   APPROVED = 'approved',
-  HR_APPROVED = 'hr approved',
   ONGOING = 'ongoing',
-  FOR_APPROVAL = 'For approval',
-  DISAPPROVED = 'disapproved',
+  FOR_HRMO_APPROVAL = 'for hrmo approval',
+  FOR_SUPERVISOR_APPROVAL = 'for supervisor approval',
+  FOR_HRDM_APPROVAL = 'for hrdm approval',
+  DISAPPROVED_BY_SUPERVISOR = 'disapproved by supervisor',
+  DISAPPROVED_BY_HRDM = 'disapproved by hrdm',
+  DISAPPROVED_BY_HRMO = 'disapproved by hrmo',
   CANCELLED = 'cancelled',
 }
 
@@ -50,6 +53,7 @@ export enum PassSlipApprovalStatus {
   FOR_APPROVAL = 'for approval',
   USED = 'used',
   CANCELLED = 'cancelled',
+  UNUSED = 'unused',
 }
 
 export enum HolidayType {
@@ -165,6 +169,46 @@ export type DtrSummary = {
   isHalfDay: boolean;
 };
 
+export type PassSlipForLedger = {
+  id: string;
+  employeeId: string;
+  dateOfApplication: Date;
+  natureOfBusiness: NatureOfBusiness;
+  timeIn: number;
+  timeOut: number;
+  obTransportation: ObTransportation;
+  estimateHours: number;
+  purposeDestination: string;
+  isCancelled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date;
+};
+
+export type LeaveLedger = {
+  ID: number;
+  period: Date;
+  particulars: string;
+  forcedLeave: number;
+  forcedLeaveBalance: number;
+  vacationLeave: number;
+  vacationLeaveBalance: number;
+  sickLeave: number;
+  sickLeaveBalance: number;
+  specialLeaveBenefit: number;
+  specialLeaveBenefitBalance: number;
+  specialPrivilegeLeave: number;
+  specialPrivilegeLeaveBalance: number;
+  leaveDates: string;
+  actionType: string;
+  remarks: string;
+};
+
+export enum OvertimeStatus {
+  APPROVED = 'approved',
+  DISAPPROVED = 'disapproved',
+  PENDING = 'pending',
+}
 // {
 //   day: dayjs(currDate).format('YYYY-MM-DD'),
 //   holidayType,

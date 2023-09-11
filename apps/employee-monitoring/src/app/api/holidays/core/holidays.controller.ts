@@ -25,4 +25,9 @@ export class HolidaysController {
   async deleteHoliday(@Param('holiday_id') id: string) {
     return await this.holidayService.deleteHoliday(id);
   }
+
+  @Post('testing')
+  async addRegularHolidaysForCurrentYear() {
+    return await this.holidayService.addRegularHolidaysForCurrentYear();
+  }
 }

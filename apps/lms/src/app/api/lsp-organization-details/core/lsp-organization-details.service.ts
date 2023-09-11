@@ -117,7 +117,6 @@ export class LspOrganizationDetailsService extends CrudHelper<LspOrganizationDet
       //return result
       return result;
     } catch (error) {
-      console.log(error);
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
   }

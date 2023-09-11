@@ -21,6 +21,8 @@ export class CreateLeaveBenefitsDto {
 
   @IsBoolean({ message: 'canBeCarriedOver value must only be true of false' })
   canBeCarriedOver: boolean;
+
+  maximumCredits?: number;
 }
 
 export class UpdateLeaveBenefitsDto extends PartialType(CreateLeaveBenefitsDto) {

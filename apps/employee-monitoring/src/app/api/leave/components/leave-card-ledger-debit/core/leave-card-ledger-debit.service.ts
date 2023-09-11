@@ -20,7 +20,6 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     try {
       return (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [id]))[0].debitValue;
     } catch (error) {
-      console.log(error);
       throw new HttpException(error.message, error.status);
     }
   }
