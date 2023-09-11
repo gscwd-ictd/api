@@ -4,7 +4,6 @@ import { getProjectRootDir } from './root-dir-finder';
 
 export const parseSql = (filePath: string) => {
   // read the file and return the raw sql statement.
-  console.log(getProjectRootDir());
   try {
     return readFileSync(join(getProjectRootDir(), filePath), 'utf-8');
   } catch (error) {
