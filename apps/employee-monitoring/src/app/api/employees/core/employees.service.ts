@@ -1,6 +1,7 @@
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { EmployeeDetails } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { stringify } from 'querystring';
 
 @Injectable()
 export class EmployeesService {
@@ -46,8 +47,20 @@ export class EmployeesService {
     return assignment;
   }
 
+  async getEmployeeDetails(employeeId: string) {
+    //find_employee_details
+    const employeeDetails = (await this.client.call({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_employee_details',
+      onError: (error) => new NotFoundException(error),
+    })) as EmployeeDetails;
+
+    return employeeDetails;
+  }
+
   async getEmployeeAndSupervisorName(employeeId: string, supervisorId: string) {
-    (await this.client.call<string, { employeeId: string; supervisorId: string }, { employeeName: string; supervisorName: string }>({
+    return (await this.client.call<string, { employeeId: string; supervisorId: string }, { employeeName: string; supervisorName: string }>({
       action: 'send',
       payload: { employeeId, supervisorId },
       pattern: 'get_employee_supervisor_names',
@@ -56,11 +69,22 @@ export class EmployeesService {
   }
 
   async getEmployeeSupervisorId(employeeId: string) {
-    await this.client.call<string, string, string>({
+    return await this.client.call<string, string, string>({
       action: 'send',
       payload: employeeId,
       pattern: 'get_employee_supervisor_id',
       onError: (error) => new NotFoundException(error),
     });
+  }
+
+  async getEmployeeName(employeeId: string) {
+    return (
+      (await this.client.call<{ msg: string }, string, { fullName: string }>({
+        action: 'send',
+        payload: employeeId,
+        pattern: { msg: 'get_employee_name' },
+        onError: (error) => new NotFoundException(error),
+      })) as { fullName: string }
+    ).fullName;
   }
 }

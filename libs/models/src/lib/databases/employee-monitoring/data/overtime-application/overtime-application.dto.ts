@@ -5,10 +5,10 @@ import { OvertimeImmediateSupervisor } from '../overtime-immediate-supervisor';
 
 export class CreateOvertimeApplicationDto {
   overtimeImmediateSupervisorId: OvertimeImmediateSupervisor;
-  plannedDate: string;
+  plannedDate: Date;
   estimatedHours: number;
   purpose: string;
-  status: OvertimeStatus;
+  status?: OvertimeStatus;
 }
 
 export class CreateOvertimeDto {

@@ -1,7 +1,9 @@
-import { CreateOvertimeDto, OvertimeApplication } from '@gscwd-api/models';
+import { CreateOvertimeDto, OvertimeAccomplishment, OvertimeApplication } from '@gscwd-api/models';
 import { OvertimeStatus } from '@gscwd-api/utils';
 import { Injectable } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
+import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
+import { EmployeesService } from '../../employees/core/employees.service';
 import { OvertimeAccomplishmentService } from '../components/overtime-accomplishment/core/overtime-accomplishment.service';
 import { OvertimeApplicationService } from '../components/overtime-application/core/overtime-application.service';
 import { OvertimeApprovalService } from '../components/overtime-approval/core/overtime-approval.service';
@@ -16,6 +18,8 @@ export class OvertimeService {
     private readonly overtimeApplicationService: OvertimeApplicationService,
     private readonly overtimeImmediateService: OvertimeImmediateSupervisorService,
     private readonly overtimeApprovalService: OvertimeApprovalService,
+    private readonly employeeService: EmployeesService,
+    private readonly employeeScheduleService: EmployeeScheduleService,
     private readonly dataSource: DataSource
   ) {}
 
@@ -60,30 +64,63 @@ export class OvertimeService {
   }
 
   async getOvertimeApplications() {
-    /*
-      export type Overtime = {
-        id: string;
-        plannedDate: string;
-        immediateSupervisorName: string;
-        employees: Array<EmployeeOvertimeDetails>;
-        estimatedNoOfHours: number;
-        purpose: string;
-        status: OvertimeStatus;
-      };  
-    */
-    const overtimes = (await this.overtimeApplicationService.crud().findAll()) as OvertimeApplication[];
-
+    const overtimes = (await this.overtimeApplicationService.crud().findAll({
+      find: {
+        select: {
+          id: true,
+          plannedDate: true,
+          estimatedHours: true,
+          purpose: true,
+          status: true,
+          overtimeImmediateSupervisorId: { employeeId: true },
+        },
+        relations: { overtimeImmediateSupervisorId: true },
+      },
+    })) as OvertimeApplication[];
     return await Promise.all(
       overtimes.map(async (overtime) => {
-        //TODO get employee names and assignments by employee id
-        const employees = await this.overtimeEmployeeService.crud().findAll({
+        const { overtimeImmediateSupervisorId, ...rest } = overtime;
+        const employees = (await this.overtimeEmployeeService.crud().findAll({
           find: {
             select: { employeeId: true },
             where: { overtimeApplicationId: { id: overtime.id } },
           },
-        });
-        return { overtime, employees };
+        })) as { employeeId: string }[];
+
+        const immediateSupervisorName = await this.employeeService.getEmployeeName(overtimeImmediateSupervisorId.employeeId);
+
+        const employeesDetails = (await Promise.all(
+          employees.map(async (employee) => {
+            const { employeeId } = employee;
+
+            const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
+            const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
+            const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
+            const { companyId, employeeFullName, positionTitle, assignment, photoUrl } = employeeDetails;
+            return {
+              employeeId,
+              companyId,
+              fullName: employeeFullName,
+              positionTitle,
+              scheduleBase,
+              avatarUrl: photoUrl,
+              assignment: assignment.name,
+            };
+          })
+        )) as [];
+
+        return { ...rest, immediateSupervisorName, employees: employeesDetails };
       })
     );
+  }
+
+  async getOvertimeDetails(employeeId: string, overtimeApplicationId: string) {
+    const overtimeDetails = (await this.overtimeAccomplishmentService.crud().findOne({
+      find: { where: { overtimeEmployeeId: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } } },
+    })) as OvertimeAccomplishment;
+
+    const { createdAt, updatedAt, deletedAt, ...rest } = overtimeDetails;
+
+    return rest;
   }
 }

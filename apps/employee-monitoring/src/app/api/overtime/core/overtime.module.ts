@@ -6,6 +6,8 @@ import { OvertimeApplicationModule } from '../components/overtime-application/co
 import { OvertimeApprovalModule } from '../components/overtime-approval/core/overtime-approval.module';
 import { OvertimeEmployeeModule } from '../components/overtime-employee/core/overtime-employee.module';
 import { OvertimeImmediateSupervisorModule } from '../components/overtime-immediate-supervisor/core/overtime-immediate-supervisor.module';
+import { EmployeesModule } from '../../employees/core/employees.module';
+import { EmployeeScheduleModule } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { OvertimeImmediateSupervisorModule } from '../components/overtime-immedi
     OvertimeImmediateSupervisorModule,
     OvertimeApprovalModule,
     OvertimeEmployeeModule,
+    EmployeesModule,
+    EmployeeScheduleModule,
   ],
   providers: [OvertimeService],
   controllers: [OvertimeController],
