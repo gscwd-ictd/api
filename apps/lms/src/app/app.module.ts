@@ -12,6 +12,7 @@ import { TagsModule } from './api/tags';
 import { LspOrganizationDetailsModule } from './api/lsp-organization-details';
 import { EmployeeTagsModule } from './services/employee-tags/core/employee-tags.module';
 import { TrainingDetailsTestModule } from './api/training-details-test/core/training-details-test.module';
+import { TrainingDesignsModule } from './api/training-designs';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { TrainingDetailsTestModule } from './api/training-details-test/core/trai
     TrainingTypesModule,
 
     //trainings
+    TrainingDesignsModule,
     TrainingDetailsModule,
     TrainingDetailsTestModule,
 
