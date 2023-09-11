@@ -35,8 +35,8 @@ import { TrainingDesignsModule } from './api/training-designs';
 
     //trainings
     TrainingDesignsModule,
-    TrainingDetailsModule,
-    TrainingDetailsTestModule,
+    //TrainingDetailsModule,
+    //TrainingDetailsTestModule,
 
     //tags
     TagsModule,

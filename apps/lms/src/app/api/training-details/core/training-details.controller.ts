@@ -31,7 +31,7 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.addTrainingDetails(lspType, data);
   }
 
-  @UseInterceptors(FindAllTrainingDetailsInterceptor)
+  //@UseInterceptors(FindAllTrainingDetailsInterceptor)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
