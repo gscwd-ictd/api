@@ -9,10 +9,14 @@ export class FindAllTrainingDetailsInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((result: Pagination<TrainingDetailsView>) => {
         const items = result.items.map((views) => {
-          console.log(views);
           return {
-            id: result.items[0].id,
-            code: `${result.items[0].createdAt}-${views.updatedAt}-${views.deletedAt}`,
+            createdAt: result.items[0].createdAt,
+            updateAt: result.items[0].updatedAt,
+            deletedAt: result.items[0].deletedAt,
+            id: views.id,
+            trainingSource: views.trainingSource,
+            trainingType: result.items[0].trainingType,
+            //trainingSourceId: views.trainingTypeId,
           };
         });
         return { ...result, items };

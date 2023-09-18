@@ -24,7 +24,10 @@ import {
   TrainingLspIndividual,
   TrainingLspOrganization,
   TrainingRecommendedEmployee,
+  TrainingDetailsView,
+  TrainingDesign,
 } from '@gscwd-api/models';
+import { TrainingDetailsTestView } from 'apps/lms/src/app/api/training-details-test/data/training-details-test.view';
 
 export const DB_ENTITIES = [
   // entities
@@ -51,6 +54,7 @@ export const DB_ENTITIES = [
   TrainingSource,
   TrainingType,
 
+  TrainingDesign,
   TrainingDetails,
   TrainingLspIndividual,
   TrainingLspOrganization,
@@ -58,5 +62,7 @@ export const DB_ENTITIES = [
   TrainingRecommendedEmployee,
   TrainingNominee,
   TrainingTag,
+
+  TrainingDetailsTestView,
   // views
 ];

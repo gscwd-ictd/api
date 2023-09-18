@@ -30,6 +30,7 @@ export * from './nominee-qualifications';
 export * from './post-training-requirements';
 
 //training
+export * from './training-designs';
 export * from './training-details';
 export * from './training-lsp-individual';
 export * from './training-lsp-organization';
