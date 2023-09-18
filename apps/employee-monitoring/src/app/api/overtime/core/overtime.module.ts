@@ -8,6 +8,7 @@ import { OvertimeEmployeeModule } from '../components/overtime-employee/core/ove
 import { OvertimeImmediateSupervisorModule } from '../components/overtime-immediate-supervisor/core/overtime-immediate-supervisor.module';
 import { EmployeesModule } from '../../employees/core/employees.module';
 import { EmployeeScheduleModule } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.module';
+import { OvertimeMSController } from './overtime-ms.controller';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { EmployeeScheduleModule } from '../../daily-time-record/components/emplo
     EmployeeScheduleModule,
   ],
   providers: [OvertimeService],
-  controllers: [OvertimeController],
+  controllers: [OvertimeController, OvertimeMSController],
 })
 export class OvertimeModule {}

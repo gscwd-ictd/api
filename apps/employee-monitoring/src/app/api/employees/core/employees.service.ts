@@ -59,6 +59,10 @@ export class EmployeesService {
     return employeeDetails;
   }
 
+  // async getEmployeesUnderOrganizationId(orgId: string){
+
+  // }
+
   async getEmployeeAndSupervisorName(employeeId: string, supervisorId: string) {
     return (await this.client.call<string, { employeeId: string; supervisorId: string }, { employeeName: string; supervisorName: string }>({
       action: 'send',
@@ -86,5 +90,22 @@ export class EmployeesService {
         onError: (error) => new NotFoundException(error),
       })) as { fullName: string }
     ).fullName;
+  }
+
+  async getEmployeesByOrgId(orgId: string) {
+    return (await this.client.call<string, string, { value: string; label: string }[]>({
+      action: 'send',
+      payload: orgId,
+      pattern: 'get_employees_by_org_id',
+    })) as { value: string; label: string }[];
+  }
+
+  async getEmployeesByOrgIdAlone(orgId: string) {
+    //get_employees_by_org_id_alone
+    return (await this.client.call<string, string, { value: string; label: string }[]>({
+      action: 'send',
+      payload: orgId,
+      pattern: 'get_employees_by_org_id_alone',
+    })) as { value: string; label: string }[];
   }
 }

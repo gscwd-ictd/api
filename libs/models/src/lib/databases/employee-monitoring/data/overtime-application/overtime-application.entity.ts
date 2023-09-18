@@ -12,6 +12,9 @@ export class OvertimeApplication extends DatabaseEntity implements IEntity {
   @ManyToOne(() => OvertimeImmediateSupervisor, (overtimeImmediateSupervisor) => overtimeImmediateSupervisor.id)
   overtimeImmediateSupervisorId: OvertimeImmediateSupervisor;
 
+  @Column({ name: 'manager_id_fk', type: 'uuid', nullable: true })
+  managerId: string;
+
   @Column({ name: 'planned_date', type: 'date' })
   plannedDate: Date;
 

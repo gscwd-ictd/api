@@ -31,7 +31,7 @@ export type EmployeeDetails = {
   companyId: string;
   positionId: string;
   positionTitle: string;
-  assignment: { id: string; name: string };
+  assignment: { id: string; name: string; positionId: string; positionTitle: string };
   photoUrl: string;
   userRole: string;
 };

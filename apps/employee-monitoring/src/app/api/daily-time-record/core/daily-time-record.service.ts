@@ -519,9 +519,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             if (_lunchIn === null) _lunchIn = time;
           }
           if (
-            (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut)) ||
+            (_timeIn && _lunchOut && _lunchIn && idx === ivmsEntry.length - 1 && dayjs('2023-01-01 ' + time).isAfter('2023-01-01 12:59:00')) ||
+            ((dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut)) ||
               dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut))) &&
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59'))
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')))
           ) {
             _timeOut = time;
           }
@@ -740,9 +741,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             if (_lunchIn === null) _lunchIn = time;
           }
           if (
-            (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut)) ||
+            (idx === ivmsEntry.length - 1 && dayjs('2023-01-01 ' + time).isAfter('2023-01-01 12:59:00')) ||
+            ((dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut)) ||
               dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut))) &&
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59'))
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')))
           ) {
             _timeOut = time;
           }
