@@ -9,6 +9,7 @@ import { OvertimeImmediateSupervisorModule } from '../components/overtime-immedi
 import { EmployeesModule } from '../../employees/core/employees.module';
 import { EmployeeScheduleModule } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.module';
 import { OvertimeMSController } from './overtime-ms.controller';
+import { DailyTimeRecordModule } from '../../daily-time-record/core/daily-time-record.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { OvertimeMSController } from './overtime-ms.controller';
     OvertimeEmployeeModule,
     EmployeesModule,
     EmployeeScheduleModule,
+    DailyTimeRecordModule,
   ],
   providers: [OvertimeService],
   controllers: [OvertimeController, OvertimeMSController],

@@ -33,6 +33,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     });
   }
 
+  async getHasIvms(data: { companyId: string; entryDate: Date }) {
+    return (await this.client.call<string, { companyId: string; entryDate: Date }, boolean>({
+      action: 'send',
+      payload: data,
+      pattern: 'get_has_ivms',
+    })) as boolean;
+  }
+
   private getDayRange(numberOfDays: number) {
     switch (numberOfDays) {
       case 28:
