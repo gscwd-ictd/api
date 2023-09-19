@@ -1,3 +1,13 @@
+export enum LspSource {
+  INTERNAL = 'internal',
+  EXTERNAL = 'external',
+}
+
+export enum LspType {
+  INDIVIDUAL = 'individual',
+  ORGANIZATION = 'organization',
+}
+
 export enum TrainingStatus {
   ON_GOING_NOMINATION = 'on going nomination',
   PDC_APPROVAL = 'for pdc approval',
@@ -10,13 +20,6 @@ export enum TrainingNomineeStatus {
   DECLINED = 'declined',
   PENDING = 'pending',
 }
-
-export enum LspType {
-  INDIVIDUAL = 'individual',
-  ORGANIZATION = 'organization',
-}
-
-// export type LspType = 'individual' | 'organization';
 
 export type RawTag = {
   tag: string;

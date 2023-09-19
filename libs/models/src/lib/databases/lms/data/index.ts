@@ -38,3 +38,7 @@ export * from './training-distributions';
 export * from './training-recommended-employees';
 export * from './training-nominees';
 export * from './training-tags';
+
+//new
+
+export * from './lsp-details';
