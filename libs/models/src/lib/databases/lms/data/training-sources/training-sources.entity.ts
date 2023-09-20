@@ -6,6 +6,6 @@ export class TrainingSource extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_source_id' })
   id: string;
 
-  @Column({ unique: true, length: 50 })
+  @Column({ type: 'varchar', unique: true, length: 50, nullable: false })
   name: string;
 }

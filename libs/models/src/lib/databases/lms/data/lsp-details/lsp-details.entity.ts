@@ -1,4 +1,5 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
+import { LspSource, LspType } from '@gscwd-api/utils';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'lsp-details' })
@@ -53,4 +54,10 @@ export class LspDetails extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'introduction', length: 250, nullable: true })
   introduction: string;
+
+  @Column({ name: 'lsp_type', type: 'enum', enum: LspType, nullable: false })
+  lspType: LspType;
+
+  @Column({ name: 'lsp_source', type: 'enum', enum: LspSource, nullable: false })
+  lspSource: LspSource;
 }
