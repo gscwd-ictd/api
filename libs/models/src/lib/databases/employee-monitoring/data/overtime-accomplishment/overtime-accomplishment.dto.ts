@@ -25,10 +25,11 @@ export class CreateOvertimeAccomplishmentDto {
   @IsOptional()
   followEstimatedHrs?: boolean;
 
-  status: OvertimeStatus;
+  @IsOptional()
+  status?: OvertimeStatus;
 }
 
-export class UpdateOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAccomplishmentDto, ['overtimeEmployeeId']) {
+export class UpdateOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAccomplishmentDto, ['overtimeEmployeeId'] as const) {
   employeeId: string;
   overtimeApplicationId: OvertimeApplication;
 }

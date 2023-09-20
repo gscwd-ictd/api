@@ -1,6 +1,5 @@
 import { OvertimeStatus } from '@gscwd-api/utils';
-import { PickType } from '@nestjs/swagger';
-import { CreateOvertimeEmployeeDto } from '../overtime-employee';
+import { PartialType, PickType } from '@nestjs/swagger';
 import { OvertimeImmediateSupervisor } from '../overtime-immediate-supervisor';
 
 export class CreateOvertimeApplicationDto {
@@ -12,6 +11,8 @@ export class CreateOvertimeApplicationDto {
   status?: OvertimeStatus;
 }
 
+export class ApproveOvertimeApplicationDto extends PartialType(CreateOvertimeApplicationDto) {}
+
 export class CreateOvertimeDto extends PickType(CreateOvertimeApplicationDto, [
   'estimatedHours',
   'overtimeImmediateSupervisorId',
@@ -21,3 +22,5 @@ export class CreateOvertimeDto extends PickType(CreateOvertimeApplicationDto, [
 ]) {
   employees: string[];
 }
+
+//export class

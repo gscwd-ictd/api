@@ -182,7 +182,6 @@ export class LeaveService {
     const { category, leaveBenefitsId, remarks, value, employeeId } = leaveAdjustmentDto;
     let adjustment;
     if (category === 'debit') {
-      console.log(value);
       const leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
         dto: {
           debitValue: value,
