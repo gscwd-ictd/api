@@ -22,4 +22,9 @@ export class DailyTimeRecordController {
   async getEmployeeDtrByDayAndCompanyId(@Payload() dailyTimeRecordPayloadForSingleEmployee: DailyTimeRecordPayloadForSingleEmployee) {
     return await this.dailyTimeRecordService.getEmployeeDtrByDayAndCompanyId(dailyTimeRecordPayloadForSingleEmployee);
   }
+
+  @MessagePattern('get_has_ivms')
+  async getHasDtr(@Payload() data: { companyId: string; entryDate: Date }) {
+    return await this.dailyTimeRecordService.getHasDtr(data);
+  }
 }

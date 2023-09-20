@@ -14,23 +14,26 @@ export class OvertimeAccomplishment extends DatabaseEntity implements IEntity {
   @ManyToOne(() => OvertimeEmployee, (overtimeEmployee) => overtimeEmployee.id)
   overtimeEmployeeId: OvertimeEmployee;
 
-  @Column({ name: 'ivms_time_in', type: 'time' })
+  @Column({ name: 'ivms_time_in', type: 'time', default: null })
   ivmsTimeIn: number;
 
-  @Column({ name: 'ivms_time_out', type: 'time' })
+  @Column({ name: 'ivms_time_out', type: 'time', default: null })
   ivmsTimeOut: number;
 
-  @Column({ name: 'encoded_time_in', type: 'time' })
+  @Column({ name: 'encoded_time_in', type: 'time', default: null })
   encodedTimeIn: number;
 
-  @Column({ name: 'encoded_time_out', type: 'time' })
+  @Column({ name: 'encoded_time_out', type: 'time', default: null })
   encodedTimeOut: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', default: null })
   accomplishments: string;
 
-  @Column({ name: 'follow_estimated_hrs', type: 'boolean' })
+  @Column({ name: 'follow_estimated_hrs', type: 'boolean', default: null })
   followEstimatedHrs: boolean;
+
+  @Column({ name: 'remarks', type: 'text', nullable: true })
+  remarks: string;
 
   @Column({ type: 'enum', enum: OvertimeStatus, default: OvertimeStatus.PENDING })
   status: OvertimeStatus;

@@ -57,4 +57,15 @@ export class DailyTimeRecordService extends CrudHelper<IvmsDailyTimeRecord> {
     );
     return { companyId, dtrDatesResults };
   }
+
+  async getHasDtr(data: { companyId: string; entryDate: Date }) {
+    const { companyId, entryDate } = data;
+
+    if (dayjs(entryDate).isAfter(dayjs())) return null;
+
+    const hasData = (await this.rawQuery(`SELECT count(ID) countAttendance FROM atteninfo WHERE ID = @0 AND date = @1;`, [companyId, entryDate]))[0]
+      .countAttendance;
+
+    return parseInt(hasData) > 0 ? true : false;
+  }
 }
