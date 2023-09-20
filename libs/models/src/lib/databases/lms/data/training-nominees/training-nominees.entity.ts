@@ -1,9 +1,10 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { TrainingDistribution } from '../training-distributions';
 import { TrainingNomineeStatus } from '@gscwd-api/utils';
 
 @Entity({ name: 'training_nominees' })
+@Unique(['trainingDistribution', 'employeeId'])
 export class TrainingNominee extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_nominee_id' })
   id: string;

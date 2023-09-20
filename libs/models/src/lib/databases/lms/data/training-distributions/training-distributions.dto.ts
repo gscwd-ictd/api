@@ -1,12 +1,12 @@
 import { IsArray, IsInt, IsUUID, ValidateNested } from 'class-validator';
-import { TrainingDetails } from '../training-details';
 import { Type } from 'class-transformer';
 import { TrainingRecommendedEmployeeDto } from '../training-recommended-employees';
+import { Training } from '../trainings';
 
 //insert training distribution dto
 export class CreateTrainingDistributionDto {
   @IsUUID('4')
-  trainingDetails: TrainingDetails;
+  training: Training;
 
   @IsUUID('all')
   supervisorId: string;
