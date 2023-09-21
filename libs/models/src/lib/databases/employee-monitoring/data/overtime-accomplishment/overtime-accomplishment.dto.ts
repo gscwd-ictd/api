@@ -27,6 +27,9 @@ export class CreateOvertimeAccomplishmentDto {
 
   @IsOptional()
   status?: OvertimeStatus;
+
+  @IsOptional()
+  remarks?: string;
 }
 
 export class UpdateOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAccomplishmentDto, ['overtimeEmployeeId'] as const) {

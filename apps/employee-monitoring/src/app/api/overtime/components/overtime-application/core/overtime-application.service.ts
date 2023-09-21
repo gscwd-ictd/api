@@ -2,7 +2,6 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateOvertimeApplicationDto, OvertimeApplication } from '@gscwd-api/models';
 import { OvertimeStatus } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { stat } from 'fs';
 import { DataSource, EntityManager } from 'typeorm';
 
 @Injectable()

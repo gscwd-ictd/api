@@ -36,6 +36,11 @@ export class OvertimeController {
     return await this.overtimeService.approveOvertime(updateOvertimeApprovalDto);
   }
 
+  @Patch('/accomplishments/approval')
+  async approveOvertimeAccomplishment(@Body() updateOvertimeAccomplishmentDto: UpdateOvertimeAccomplishmentDto) {
+    return await this.overtimeService.updateOvertimeAccomplishment(updateOvertimeAccomplishmentDto);
+  }
+
   @Patch(':employee_id/:overtime_application_id')
   async updateOvertimeAccomplishment(@Body() updateOvertimeAccomplishmentDto: UpdateOvertimeAccomplishmentDto) {
     return await this.overtimeService.updateOvertimeAccomplishment(updateOvertimeAccomplishmentDto);

@@ -444,6 +444,8 @@ export class OvertimeService {
         id: id.id,
       },
     });
+
+    if (result.affected > 0) return updateOvertimeAccomplishmentDto;
   }
 
   async getEmployeeListBySupervisorId(employeeId: string) {
