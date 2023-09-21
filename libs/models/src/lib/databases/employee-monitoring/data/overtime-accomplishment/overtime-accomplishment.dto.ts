@@ -32,7 +32,20 @@ export class CreateOvertimeAccomplishmentDto {
   remarks?: string;
 }
 
-export class UpdateOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAccomplishmentDto, ['overtimeEmployeeId'] as const) {
+export class UpdateOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAccomplishmentDto, [
+  'overtimeEmployeeId',
+  'encodedTimeIn',
+  'encodedTimeOut',
+] as const) {
   employeeId: string;
   overtimeApplicationId: OvertimeApplication;
+}
+
+export class UpdateOvertimeAccomplishmentByEmployeeDto extends PickType(CreateOvertimeAccomplishmentDto, [
+  'accomplishments',
+  'encodedTimeIn',
+  'encodedTimeOut',
+]) {
+  employeeId: string;
+  overtimeApplicationId: string;
 }

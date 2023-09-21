@@ -4,11 +4,12 @@ import {
   OvertimeAccomplishment,
   OvertimeApplication,
   OvertimeImmediateSupervisor,
+  UpdateOvertimeAccomplishmentByEmployeeDto,
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
 import { OvertimeStatus, ScheduleBase } from '@gscwd-api/utils';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { DataSource, EntityManager } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
@@ -484,5 +485,69 @@ export class OvertimeService {
       if (overtimeApproval.affected > 0) return updateOvertimeApprovalDto;
     }
     return {};
+  }
+
+  async updateAccomplishments(updateOvertimeAccomplishmentByEmployeeDto: UpdateOvertimeAccomplishmentByEmployeeDto) {
+    //
+    const { employeeId, overtimeApplicationId, accomplishments } = updateOvertimeAccomplishmentByEmployeeDto;
+    const overtimeEmployeeId = await this.overtimeEmployeeService
+      .crud()
+      .findOne({ find: { select: { id: true }, where: { overtimeApplicationId: { id: overtimeApplicationId }, employeeId } } });
+
+    const result = await this.overtimeAccomplishmentService.crud().update({
+      dto: { accomplishments },
+      updateBy: { overtimeEmployeeId: { id: overtimeEmployeeId.id } },
+    });
+
+    if (result.affected > 0) return updateOvertimeAccomplishmentByEmployeeDto;
+  }
+
+  async getOvertimeAccomplishmentByEmployeeId(employeeId: string) {
+    const overtimes = (await this.overtimeAccomplishmentService.crud().findAll({
+      find: {
+        select: {
+          overtimeEmployeeId: {
+            id: true,
+            employeeId: true,
+            overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true },
+          },
+          remarks: true,
+          status: true,
+          followEstimatedHrs: true,
+          id: true,
+        },
+        where: {
+          overtimeEmployeeId: { employeeId, overtimeApplicationId: { status: OvertimeStatus.APPROVED } },
+        },
+        relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
+        loadRelationIds: true,
+        loadEagerRelations: true,
+        relationLoadStrategy: 'query',
+      },
+      onError: () => new NotFoundException(),
+    })) as OvertimeAccomplishment[];
+
+    const result = await Promise.all(
+      overtimes.map(async (overtime) => {
+        const { overtimeEmployeeId, remarks, status } = overtime;
+
+        const { overtimeApplicationId, employeeId } = overtimeEmployeeId;
+        const { estimatedHours, plannedDate, purpose } = overtimeApplicationId;
+
+        const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
+
+        return {
+          ...overtimeAccomplishmentDetails,
+          overtimeApplicationId: overtimeApplicationId.id,
+          estimatedHours,
+          plannedDate,
+          employeeId,
+          purpose,
+          remarks,
+          status,
+        };
+      })
+    );
+    return result;
   }
 }
