@@ -4,6 +4,7 @@ import { join } from 'path';
 import { DatabaseModule } from '../connections';
 import { LspDetailsModule } from './api/lsp-details';
 import { TagsModule } from './api/tags';
+import { EmployeesModule } from './services/employees';
 
 @Module({
   imports: [
@@ -31,15 +32,15 @@ import { TagsModule } from './api/tags';
     // //tags
     // TagsModule,
 
-    // //microservice
-    // EmployeesModule,
-    // EmployeeTagsModule,
-
     //new learning service provider
     LspDetailsModule,
 
     //tags
     TagsModule,
+
+    //microservice
+    EmployeesModule,
+    //EmployeeTagsModule,
   ],
 })
 export class AppModule {}

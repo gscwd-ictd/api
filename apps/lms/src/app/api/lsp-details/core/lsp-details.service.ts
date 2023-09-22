@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
-import { LspSource, LspType } from '@gscwd-api/utils';
+import { LspSource, LspType, RawEmployee } from '@gscwd-api/utils';
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';
@@ -10,6 +10,7 @@ import { LspCoachingsService } from '../components/lsp-coachings';
 import { LspEducationsService } from '../components/lsp-educations';
 import { LspProjectsService } from '../components/lsp-projects';
 import { LspTrainingsService } from '../components/lsp-trainings';
+import { EmployeesService } from '../../../services/employees';
 
 @Injectable()
 export class LspDetailsService extends CrudHelper<LspDetails> {
@@ -22,9 +23,56 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     private readonly lspEducationsService: LspEducationsService,
     private readonly lspProjectsService: LspProjectsService,
     private readonly lspTrainingsService: LspTrainingsService,
+    private readonly employeesService: EmployeesService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
+  }
+
+  async findLspIndividual() {
+    const lsp = await this.datasource.getRepository(LspDetails).find({
+      select: {
+        id: true,
+        employeeId: true,
+        firstName: true,
+        middleName: true,
+        lastName: true,
+        prefixName: true,
+        suffixName: true,
+        extensionName: true,
+        email: true,
+        lspSource: true,
+        postalAddress: true,
+      },
+      where: { lspType: LspType.INDIVIDUAL },
+    });
+
+    const employees = Promise.all(
+      lsp.map(async (lspItems) => {
+        let name: RawEmployee;
+        if (lspItems.employeeId != null) {
+          name = await this.employeesService.findEmployeesById(lspItems.employeeId);
+        } else {
+          name = {
+            fullName: `${lspItems.prefixName ? lspItems.prefixName + ' ' : ''}${lspItems.firstName} ${lspItems.middleName} ${lspItems.lastName}${
+              lspItems.extensionName ? lspItems.extensionName + ' ' : ''
+            }${lspItems.suffixName ? lspItems.suffixName + ' ' : ''}`,
+          };
+        }
+
+        return {
+          id: lspItems.id,
+          name: name.fullName,
+          email: lspItems.email,
+          lspSource: lspItems.lspSource,
+          postalAddress: lspItems.postalAddress,
+        };
+      })
+    );
+
+    return employees;
+
+    //const employees = await this.employeesService.findEmployeesById(lspEmployeeIds);
   }
 
   // add lsp (type = individual, source = internal)
