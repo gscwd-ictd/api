@@ -10,15 +10,15 @@ export class TrainingTagsService extends CrudHelper<TrainingTag> {
   }
 
   //HR insert training tag
-  async addTrainingTag(data: CreateTrainingTagDto, entityManager: EntityManager) {
-    //transaction results
-    const results = await this.crudService.transact<TrainingTag>(entityManager).create({
-      dto: data,
-      onError: ({ error }) => {
-        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
-      },
-    });
-    const { trainingDetails, ...rest } = results;
-    return rest;
-  }
+  // async addTrainingTag(data: CreateTrainingTagDto, entityManager: EntityManager) {
+  //   //transaction results
+  //   const results = await this.crudService.transact<TrainingTag>(entityManager).create({
+  //     dto: data,
+  //     onError: ({ error }) => {
+  //       return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+  //     },
+  //   });
+  //   const { trainingDetails, ...rest } = results;
+  //   return rest;
+  // }
 }

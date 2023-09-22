@@ -29,8 +29,6 @@ export enum TrainingNomineeStatus {
   PENDING = 'pending',
 }
 
-// export type LspType = 'individual' | 'organization';
-
 export type RawTag = {
   tag: string;
 };

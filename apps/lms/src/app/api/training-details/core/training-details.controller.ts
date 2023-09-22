@@ -23,49 +23,49 @@ import { FindAllTrainingDetailsInterceptor } from '../misc/interceptors/training
 export class TrainingDetailsController {
   constructor(private readonly trainingDetailsService: TrainingDetailsService) {}
 
-  // HR
+  // // HR
 
-  //post method for creating a training and distribution of slots
-  @Post()
-  async create(@Query('lsp-type') lspType: LspType, @Body() data: CreateTrainingDetailsDto) {
-    return await this.trainingDetailsService.addTrainingDetails(lspType, data);
-  }
-
-  //@UseInterceptors(FindAllTrainingDetailsInterceptor)
-  @Get()
-  async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ) {
-    return await this.trainingDetailsService.crud().findAll({
-      pagination: { page, limit },
-      onError: () => new InternalServerErrorException(),
-    });
-  }
-
-  //get training details by training id
-  @Get(':id')
-  async findById(@Param('id') id: string): Promise<TrainingDetails> {
-    return this.trainingDetailsService.getTrainingDetailsById(id);
-  }
-
-  // //get all nominees by training id
-  // @Get(':id/nominees')
-  // async findNomineeById(@Param('id') id: string) {
-  //   return `training nominees by training id ${id}`;
+  // //post method for creating a training and distribution of slots
+  // @Post()
+  // async create(@Query('lsp-type') lspType: LspType, @Body() data: CreateTrainingDetailsDto) {
+  //   return await this.trainingDetailsService.addTrainingDetails(lspType, data);
   // }
 
-  //patch method to update training details by training id
-  @Patch()
-  async update(@Body() data: UpdateTrainingDetailsDto): Promise<UpdateResult> {
-    return this.trainingDetailsService.updateTrainingDetails(data);
-  }
+  // //@UseInterceptors(FindAllTrainingDetailsInterceptor)
+  // @Get()
+  // async findAll(
+  //   @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+  //   @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  // ) {
+  //   return await this.trainingDetailsService.crud().findAll({
+  //     pagination: { page, limit },
+  //     onError: () => new InternalServerErrorException(),
+  //   });
+  // }
 
-  //delete method to remove trainings by training id
-  @Delete(':id')
-  async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return this.trainingDetailsService.deleteTrainingDetails(id);
-  }
+  // //get training details by training id
+  // @Get(':id')
+  // async findById(@Param('id') id: string): Promise<TrainingDetails> {
+  //   return this.trainingDetailsService.getTrainingDetailsById(id);
+  // }
+
+  // // //get all nominees by training id
+  // // @Get(':id/nominees')
+  // // async findNomineeById(@Param('id') id: string) {
+  // //   return `training nominees by training id ${id}`;
+  // // }
+
+  // //patch method to update training details by training id
+  // @Patch()
+  // async update(@Body() data: UpdateTrainingDetailsDto): Promise<UpdateResult> {
+  //   return this.trainingDetailsService.updateTrainingDetails(data);
+  // }
+
+  // //delete method to remove trainings by training id
+  // @Delete(':id')
+  // async delete(@Param('id') id: string): Promise<DeleteResult> {
+  //   return this.trainingDetailsService.deleteTrainingDetails(id);
+  // }
 
   //Employee Portal
 

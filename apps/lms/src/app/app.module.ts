@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { DatabaseModule } from '../connections';
-import { LspDetails } from '@gscwd-api/models';
+import { LspDetailsModule } from './api/lsp-details';
+import { TagsModule } from './api/tags';
 
 @Module({
   imports: [
@@ -34,8 +35,11 @@ import { LspDetails } from '@gscwd-api/models';
     // EmployeesModule,
     // EmployeeTagsModule,
 
-    //new
-    LspDetails,
+    //new learning service provider
+    LspDetailsModule,
+
+    //tags
+    TagsModule,
   ],
 })
 export class AppModule {}

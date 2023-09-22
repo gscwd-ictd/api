@@ -7,7 +7,7 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'lsp_details_id' })
   id: string;
 
-  @Column({ name: 'employee_id_fk', nullable: true })
+  @Column({ name: 'employee_id_fk', unique: true, nullable: true })
   employeeId: string;
 
   @Column({ name: 'first_name', type: 'varchar', length: '50', nullable: true })
@@ -37,7 +37,7 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'email', type: 'varchar', length: '50', nullable: true })
   email: string;
 
-  @Column({ name: 'postal_address', type: 'varchar', length: 100 })
+  @Column({ name: 'postal_address', type: 'varchar', length: 100, nullable: true })
   postalAddress: string;
 
   @Column({ name: 'subject_matter_expertise', type: 'jsonb', nullable: true })

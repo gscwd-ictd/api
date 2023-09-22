@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 
-export class LspSubjectDto {
+export class SubjectMatterExperts {
   @IsString()
   subjectMatter: string;
 }
