@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 
 @Controller({ version: '1', path: 'employees' })
@@ -8,5 +8,10 @@ export class EmployeesController {
   @Get('q')
   async findEmployeesByName(@Query('name') name: string) {
     return await this.employeesService.findEmployeesByName(name);
+  }
+
+  @Get(':id')
+  async findId(@Param('id') id: string) {
+    return await this.employeesService.findEmployeesById(id);
   }
 }

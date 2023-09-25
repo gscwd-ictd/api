@@ -4,6 +4,7 @@ export enum GetAllManagersPatterns {
 
 export enum FindEmployeesPatterns {
   GET_EMPLOYEES_BY_NAME_MATCH = 'get_employees_by_name_match',
+  GET_EMPLOYEES_BY_ID = 'get_employee_name',
 }
 
 export enum EmployeeTagsPatterns {

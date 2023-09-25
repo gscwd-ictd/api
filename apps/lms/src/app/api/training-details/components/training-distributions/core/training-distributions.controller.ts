@@ -28,21 +28,21 @@ export class TrainingDistributionsController {
   //   });
   // }
 
-  @Get(':id')
-  async findTrainingByManagerIdAndStatus(
-    @Param('id') id: string,
-    @Query('status', new ParseEnumPipe(TrainingStatus)) status: TrainingStatus,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<TrainingDistribution> | TrainingDistribution[]> {
-    return await this.trainingDistributionsService.crud().findAll({
-      find: {
-        relations: { trainingDetails: true },
-        select: { trainingDetails: { id: true, status: true } },
-        where: { supervisorId: id, trainingDetails: { status } },
-      },
-      pagination: { page, limit },
-      onError: () => new InternalServerErrorException(),
-    });
-  }
+  // @Get(':id')
+  // async findTrainingByManagerIdAndStatus(
+  //   @Param('id') id: string,
+  //   @Query('status', new ParseEnumPipe(TrainingStatus)) status: TrainingStatus,
+  //   @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+  //   @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  // ): Promise<Pagination<TrainingDistribution> | TrainingDistribution[]> {
+  //   return await this.trainingDistributionsService.crud().findAll({
+  //     find: {
+  //       relations: { trainingDetails: true },
+  //       select: { trainingDetails: { id: true, status: true } },
+  //       where: { supervisorId: id, trainingDetails: { status } },
+  //     },
+  //     pagination: { page, limit },
+  //     onError: () => new InternalServerErrorException(),
+  //   });
+  // }
 }

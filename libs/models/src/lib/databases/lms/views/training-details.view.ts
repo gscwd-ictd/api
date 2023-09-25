@@ -1,13 +1,5 @@
 import { ViewColumn, ViewEntity } from 'typeorm';
-import {
-  TrainingDetails,
-  TrainingDistribution,
-  TrainingLspIndividual,
-  TrainingLspOrganization,
-  TrainingSource,
-  TrainingTag,
-  TrainingType,
-} from '../data';
+import { TrainingDetails, TrainingDistribution, TrainingSource, TrainingTag } from '../data';
 
 @ViewEntity({
   name: 'training_details_view',
@@ -22,12 +14,7 @@ import {
       .addSelect('training_sources.name, training_source_name')
       .addSelect('training_types.training_type_id, training_type_id')
       .addSelect('training_types.name', 'training_type_name')
-      .addSelect(
-        'coalesce(get_lsp(training_lsp_individual.lsp_individual_details_id_fk), get_lsp(training_lsp_organization.lsp_organization_details_id_fk)) as lsp'
-      )
-      .from(TrainingDetails, 'training_details')
-      .leftJoin(TrainingLspIndividual, 'training_details.training_details_id = training_lsp_individual.training_details_id_fk')
-      .leftJoin(TrainingLspOrganization, 'training_details.training_details_id = training_lsp_organization.training_details_id_fk'),
+      .from(TrainingDetails, 'training_details'),
 })
 export class TrainingDetailsView {
   @ViewColumn()

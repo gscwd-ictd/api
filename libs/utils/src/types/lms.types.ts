@@ -1,3 +1,21 @@
+export enum LspType {
+  INDIVIDUAL = 'individual',
+  ORGANIZATION = 'organizaation',
+}
+
+export enum LspSource {
+  INTERNAL = 'internal',
+  EXTERNAL = 'external',
+}
+
+export enum TrainingType {
+  FOUNDATIONAL = 'foundational',
+  TECHNICAL = 'technical',
+  PROFESSIONAL = 'professional',
+  SUPERVISOR = 'supervisor',
+  LEADERSHIP_MANAGERIAL = 'leadership/managerial',
+}
+
 export enum TrainingStatus {
   ON_GOING_NOMINATION = 'on going nomination',
   PDC_APPROVAL = 'for pdc approval',
@@ -11,12 +29,9 @@ export enum TrainingNomineeStatus {
   PENDING = 'pending',
 }
 
-export enum LspType {
-  INDIVIDUAL = 'individual',
-  ORGANIZATION = 'organization',
-}
-
-// export type LspType = 'individual' | 'organization';
+export type RawEmployee = {
+  fullName: string;
+};
 
 export type RawTag = {
   tag: string;
