@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
-import { LspSource, LspType, RawEmployee } from '@gscwd-api/utils';
+import { LspSource, LspType, RawEmployeeFullName } from '@gscwd-api/utils';
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';
@@ -49,7 +49,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
 
     const employees = Promise.all(
       lsp.map(async (lspItems) => {
-        let name: RawEmployee;
+        let name: RawEmployeeFullName;
         if (lspItems.employeeId != null) {
           name = await this.employeesService.findEmployeesById(lspItems.employeeId);
         } else {

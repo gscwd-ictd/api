@@ -5,6 +5,7 @@ import { DatabaseModule } from '../connections';
 import { LspDetailsModule } from './api/lsp-details';
 import { TagsModule } from './api/tags';
 import { EmployeesModule } from './services/employees';
+import { EmployeeTagsModule } from './services/employee-tags/core/employee-tags.module';
 
 @Module({
   imports: [
@@ -16,21 +17,10 @@ import { EmployeesModule } from './services/employees';
 
     //Api Modules
 
-    //lsp
-    // LspIndividualDetailsModule,
-    // LspOrganizationDetailsModule,
-
-    // //trainings
-    // TrainingSourcesModule,
-    // TrainingTypesModule,
-
     // //trainings
     // TrainingDesignsModule,
     // //TrainingDetailsModule,
     // //TrainingDetailsTestModule,
-
-    // //tags
-    // TagsModule,
 
     //new learning service provider
     LspDetailsModule,
@@ -40,7 +30,7 @@ import { EmployeesModule } from './services/employees';
 
     //microservice
     EmployeesModule,
-    //EmployeeTagsModule,
+    EmployeeTagsModule,
   ],
 })
 export class AppModule {}

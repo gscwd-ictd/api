@@ -1,31 +1,11 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  DefaultValuePipe,
-  Delete,
-  Get,
-  InternalServerErrorException,
-  Param,
-  ParseIntPipe,
-  Post,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { LspDetailsService } from './lsp-details.service';
 import { DeleteResult } from 'typeorm';
-import { LspType } from '@gscwd-api/utils';
 import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto } from '@gscwd-api/models';
-import { FindLspIndividualInterceptor, FindLspOrganizationInterceptor } from '../misc/interceptors';
 
 @Controller({ version: '1', path: 'lsp-details' })
 export class LspDetailsController {
   constructor(private readonly lspDetailsService: LspDetailsService) {}
-
-  @Get('/individual')
-  async findAllLspIndividual() {
-    return await this.lspDetailsService.findLspIndividual();
-  }
 
   // @UseInterceptors(FindLspIndividualInterceptor)
   // @Get('/individual')
@@ -81,17 +61,22 @@ export class LspDetailsController {
   //   });
   // }
 
-  @Post('individual/internal')
+  @Get('/individual')
+  async findLspIndividual() {
+    return await this.lspDetailsService.findLspIndividual();
+  }
+
+  @Post('/individual/internal')
   async createLspIndividualInternal(@Body() data: CreateLspIndividualInternalDto) {
     return await this.lspDetailsService.addLspIndividualInternal(data);
   }
 
-  @Post('individual/external')
+  @Post('/individual/external')
   async createLspIndividualExternal(@Body() data: CreateLspIndividualExternalDto) {
     return await this.lspDetailsService.addLspIndividualExternal(data);
   }
 
-  @Post('organization/external')
+  @Post('/organization/external')
   async createLspOrganizationExternal(@Body() data: CreateLspOrganizationExternalDto) {
     return await this.lspDetailsService.addLspOrganizationExternal(data);
   }

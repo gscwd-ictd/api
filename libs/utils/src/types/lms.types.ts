@@ -29,7 +29,7 @@ export enum TrainingNomineeStatus {
   PENDING = 'pending',
 }
 
-export type RawEmployee = {
+export type RawEmployeeFullName = {
   fullName: string;
 };
 

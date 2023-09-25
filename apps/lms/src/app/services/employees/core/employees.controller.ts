@@ -11,7 +11,7 @@ export class EmployeesController {
   }
 
   @Get(':id')
-  async findId(@Param('id') id: string) {
+  async findEmployeesById(@Param('id') id: string) {
     return await this.employeesService.findEmployeesById(id);
   }
 }
