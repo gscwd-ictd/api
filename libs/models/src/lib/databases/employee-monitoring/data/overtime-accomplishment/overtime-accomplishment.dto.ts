@@ -1,5 +1,7 @@
 import { OvertimeStatus } from '@gscwd-api/utils';
+import { OmitType, PickType } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
+import { OvertimeApplication } from '../overtime-application';
 import { OvertimeEmployee } from '../overtime-employee';
 
 export class CreateOvertimeAccomplishmentDto {
@@ -23,5 +25,11 @@ export class CreateOvertimeAccomplishmentDto {
   @IsOptional()
   followEstimatedHrs?: boolean;
 
-  status: OvertimeStatus;
+  @IsOptional()
+  status?: OvertimeStatus;
+}
+
+export class UpdateOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAccomplishmentDto, ['overtimeEmployeeId'] as const) {
+  employeeId: string;
+  overtimeApplicationId: OvertimeApplication;
 }
