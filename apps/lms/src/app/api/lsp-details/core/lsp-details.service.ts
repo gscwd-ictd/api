@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
-import { LspSource, LspType, EmployeeFullName } from '@gscwd-api/utils';
-import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { LspSource, LspType } from '@gscwd-api/utils';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';
 import { LspAwardsService } from '../components/lsp-awards';
@@ -30,44 +30,48 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
   }
 
   async findLspIndividual() {
-    const lsp = await this.datasource.getRepository(LspDetails).find({
-      select: {
-        id: true,
-        employeeId: true,
-        firstName: true,
-        middleName: true,
-        lastName: true,
-        prefixName: true,
-        suffixName: true,
-        extensionName: true,
-        email: true,
-        lspSource: true,
-        postalAddress: true,
-      },
-      where: { lspType: LspType.INDIVIDUAL },
-    });
+    try {
+      const lsp = await this.datasource.getRepository(LspDetails).find({
+        select: {
+          id: true,
+          employeeId: true,
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          prefixName: true,
+          suffixName: true,
+          extensionName: true,
+          email: true,
+          lspSource: true,
+          postalAddress: true,
+        },
+        where: { lspType: LspType.INDIVIDUAL },
+      });
 
-    const employees = Promise.all(
-      lsp.map(async (lspItems) => {
-        let name: string;
+      const result = Promise.all(
+        lsp.map(async (lspItems) => {
+          let name: string;
 
-        if (lspItems.employeeId !== null) {
-          name = (await this.employeesService.findEmployeesById(lspItems.employeeId)).fullName;
-        } else {
-          name = (await this.datasource.query('select get_lsp_fullname($1) fullname', [lspItems.id]))[0].fullname;
-        }
+          if (lspItems.employeeId !== null) {
+            name = (await this.employeesService.findEmployeesById(lspItems.employeeId)).fullName;
+          } else {
+            name = (await this.datasource.query('select get_lsp_fullname($1) fullname', [lspItems.id]))[0].fullname;
+          }
 
-        return {
-          id: lspItems.id,
-          name: name,
-          email: lspItems.email,
-          lspSource: lspItems.lspSource,
-          postalAddress: lspItems.postalAddress,
-        };
-      })
-    );
+          return {
+            id: lspItems.id,
+            name: name,
+            email: lspItems.email,
+            lspSource: lspItems.lspSource,
+            postalAddress: lspItems.postalAddress,
+          };
+        })
+      );
 
-    return employees;
+      return result;
+    } catch (error) {
+      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   // add lsp (type = individual, source = internal)
