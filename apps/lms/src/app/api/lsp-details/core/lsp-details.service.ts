@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
-import { LspSource, LspType, RawEmployeeFullName } from '@gscwd-api/utils';
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { LspSource, LspType, EmployeeFullName } from '@gscwd-api/utils';
+import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';
 import { LspAwardsService } from '../components/lsp-awards';
@@ -49,20 +49,17 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
 
     const employees = Promise.all(
       lsp.map(async (lspItems) => {
-        let name: RawEmployeeFullName;
-        if (lspItems.employeeId != null) {
-          name = await this.employeesService.findEmployeesById(lspItems.employeeId);
+        let name: string;
+
+        if (lspItems.employeeId !== null) {
+          name = (await this.employeesService.findEmployeesById(lspItems.employeeId)).fullName;
         } else {
-          name = {
-            fullName: `${lspItems.prefixName ? lspItems.prefixName + ' ' : ''}${lspItems.firstName} ${lspItems.middleName} ${lspItems.lastName}${
-              lspItems.extensionName ? lspItems.extensionName + ' ' : ''
-            }${lspItems.suffixName ? lspItems.suffixName + ' ' : ''}`,
-          };
+          name = (await this.datasource.query('select get_lsp_fullname($1) fullname', [lspItems.id]))[0].fullname;
         }
 
         return {
           id: lspItems.id,
-          name: name.fullName,
+          name: name,
           email: lspItems.email,
           lspSource: lspItems.lspSource,
           postalAddress: lspItems.postalAddress,
@@ -71,8 +68,6 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     );
 
     return employees;
-
-    //const employees = await this.employeesService.findEmployeesById(lspEmployeeIds);
   }
 
   // add lsp (type = individual, source = internal)

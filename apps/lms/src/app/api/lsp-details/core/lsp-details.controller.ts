@@ -1,7 +1,23 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
+  InternalServerErrorException,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
 import { LspDetailsService } from './lsp-details.service';
 import { DeleteResult } from 'typeorm';
-import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto } from '@gscwd-api/models';
+import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { FindLspOrganizationInterceptor } from '../misc/interceptors';
+import { LspType } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'lsp-details' })
 export class LspDetailsController {
@@ -64,6 +80,28 @@ export class LspDetailsController {
   @Get('/individual')
   async findLspIndividual() {
     return await this.lspDetailsService.findLspIndividual();
+  }
+
+  @UseInterceptors(FindLspOrganizationInterceptor)
+  @Get('/organization')
+  async findLspOrganization(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<LspDetails> | LspDetails[]> {
+    return await this.lspDetailsService.crud().findAll({
+      find: {
+        select: {
+          id: true,
+          organizationName: true,
+          email: true,
+          lspSource: true,
+          postalAddress: true,
+        },
+        where: { lspType: LspType.ORGANIZATION },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   @Post('/individual/internal')
