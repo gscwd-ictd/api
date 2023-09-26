@@ -77,7 +77,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
   // add lsp (type = individual, source = internal)
   async addLspIndividualInternal(data: CreateLspIndividualInternalDto) {
     //deconstruct data
-    const { expertise, coaching, projects, trainings, ...rest } = data;
+    const { expertise, affiliations, coaching, projects, trainings, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
         // insert lsp details
@@ -91,10 +91,23 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           onError: () => new BadRequestException(),
         });
 
+        //insert lsp affiliations
+        await Promise.all(
+          affiliations.map(async (affiliationItem) => {
+            return await this.lspAffiliationsService.create(
+              {
+                lspDetails,
+                ...affiliationItem,
+              },
+              entityManager
+            );
+          })
+        );
+
         //insert lsp coaching
         await Promise.all(
           coaching.map(async (coachingItem) => {
-            return await this.lspCertificationsService.create(
+            return await this.lspCoachingsService.create(
               {
                 lspDetails,
                 ...coachingItem,
@@ -120,7 +133,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         //insert lsp trainings
         await Promise.all(
           trainings.map(async (trainingItem) => {
-            return await this.lspProjectsService.create(
+            return await this.lspTrainingsService.create(
               {
                 lspDetails,
                 ...trainingItem,

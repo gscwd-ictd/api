@@ -27,6 +27,9 @@ export class CreateLspIndividualInternalDto {
   @Length(1, 250, { message: 'lsp introduction must be between 1 to 250 characters' })
   introduction: string;
 
+  @IsArray({ message: 'lsp affiliations must be an array' })
+  affiliations: CreateLspAffiliationDto[];
+
   @IsArray({ message: 'lsp coaching must be an array' })
   coaching: CreateLspCoachingDto[];
 
