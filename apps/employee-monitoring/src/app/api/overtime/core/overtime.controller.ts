@@ -41,6 +41,11 @@ export class OvertimeController {
     return await this.overtimeService.getOvertimeAccomplishmentByEmployeeId(employeeId);
   }
 
+  @Get('/employees/:employee_id/list')
+  async getOvertimesByEmployeeId(@Param('employee_id') employeeId: string) {
+    return await this.overtimeService.getOvertimesByEmployeeId(employeeId);
+  }
+
   @Patch('/approval')
   async approveOvertime(@Body() updateOvertimeApprovalDto: UpdateOvertimeApprovalDto) {
     return await this.overtimeService.approveOvertime(updateOvertimeApprovalDto);
