@@ -11,7 +11,7 @@ export class EmployeeTagsController {
     return await this.employeeTagsService.addEmployeeTags(data);
   }
 
-  @Get(':id')
+  @Get('employee/:id')
   async findTagsByEmployeeId(@Param('id') id: string) {
     return await this.employeeTagsService.findTagsByEmployeeId(id);
   }

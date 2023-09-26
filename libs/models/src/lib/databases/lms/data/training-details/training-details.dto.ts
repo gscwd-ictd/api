@@ -1,7 +1,4 @@
-import { TrainingStatus } from '@gscwd-api/utils';
-import { TrainingSource } from '../training-sources';
-import { TrainingType } from '../training-types';
-import { IsArray, IsDateString, IsEnum, IsInt, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
+import { IsArray, IsDateString, IsInt, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { PartialType } from '@nestjs/swagger';
@@ -10,12 +7,6 @@ import { TrainingTag, TrainingTagDto } from '../training-tags';
 import { PostTrainingRequirementsDto } from '../post-training-requirements';
 
 export class CreateTrainingDetailsDto {
-  @IsUUID('4')
-  trainingSource: TrainingSource;
-
-  @IsUUID('4')
-  trainingType: TrainingType;
-
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => TrainingTagDto)
@@ -69,7 +60,4 @@ export class CreateTrainingDetailsDto {
 export class UpdateTrainingDetailsDto extends PartialType(CreateTrainingDetailsDto) {
   @IsUUID('4')
   id: string;
-
-  @IsEnum(TrainingStatus)
-  status: TrainingStatus;
 }

@@ -2,17 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { DatabaseModule } from '../connections';
-import { TrainingSourcesModule } from './api/training-sources';
-import { TrainingTypesModule } from './api/training-types';
-import { LspIndividualDetailsModule } from './api/lsp-individual-details';
-import { TrainingDetailsModule } from './api/training-details';
-import { EmployeesModule } from './services/employees';
-import { LspSourcesModule } from './api/lsp-sources';
+import { LspDetailsModule } from './api/lsp-details';
 import { TagsModule } from './api/tags';
-import { LspOrganizationDetailsModule } from './api/lsp-organization-details';
+import { EmployeesModule } from './services/employees';
 import { EmployeeTagsModule } from './services/employee-tags/core/employee-tags.module';
-import { TrainingDetailsTestModule } from './api/training-details-test/core/training-details-test.module';
-import { TrainingDesignsModule } from './api/training-designs';
 
 @Module({
   imports: [
@@ -24,19 +17,13 @@ import { TrainingDesignsModule } from './api/training-designs';
 
     //Api Modules
 
-    //lsp
-    LspSourcesModule,
-    LspIndividualDetailsModule,
-    LspOrganizationDetailsModule,
+    // //trainings
+    // TrainingDesignsModule,
+    // //TrainingDetailsModule,
+    // //TrainingDetailsTestModule,
 
-    //trainings
-    TrainingSourcesModule,
-    TrainingTypesModule,
-
-    //trainings
-    TrainingDesignsModule,
-    TrainingDetailsModule,
-    TrainingDetailsTestModule,
+    //new learning service provider
+    LspDetailsModule,
 
     //tags
     TagsModule,
