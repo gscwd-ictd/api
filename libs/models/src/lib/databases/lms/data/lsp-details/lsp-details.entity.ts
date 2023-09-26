@@ -2,7 +2,7 @@ import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { LspSource, LspType } from '@gscwd-api/utils';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({ name: 'lsp-details' })
+@Entity({ name: 'lsp_details' })
 export class LspDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'lsp_details_id' })
   id: string;

@@ -3,7 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 import { TrainingDesign } from '../training-designs';
 import { TrainingDetails } from '../training-details';
 import { TrainingSource } from '../training-sources';
-import { TrainingStatus, TrainingType } from '@gscwd-api/utils';
+import { TrainingPreparationStatus, TrainingStatus, TrainingType } from '@gscwd-api/utils';
 import { LspDetails } from '../lsp-details';
 
 @Entity({ name: 'trainings' })
@@ -30,6 +30,15 @@ export class Training extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'lsp_details_id_fk' })
   lspDetails: LspDetails;
 
-  @Column({ name: 'status', type: 'enum', enum: TrainingStatus, default: TrainingStatus.ON_GOING_NOMINATION, nullable: false })
+  @Column({
+    name: 'training_preparation_status',
+    type: 'enum',
+    enum: TrainingPreparationStatus,
+    default: TrainingPreparationStatus.ON_GOING_NOMINATION,
+    nullable: false,
+  })
+  trainingPreparationStatus: TrainingPreparationStatus;
+
+  @Column({ name: 'status', type: 'enum', enum: TrainingStatus, nullable: true })
   status: TrainingStatus;
 }

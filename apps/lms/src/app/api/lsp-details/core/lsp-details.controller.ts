@@ -14,18 +14,14 @@ import {
 } from '@nestjs/common';
 import { LspDetailsService } from './lsp-details.service';
 import { DeleteResult } from 'typeorm';
+import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { FindLspOrganizationInterceptor } from '../misc/interceptors';
 import { LspType } from '@gscwd-api/utils';
-import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto } from '@gscwd-api/models';
-import { FindLspIndividualInterceptor, FindLspOrganizationInterceptor } from '../misc/interceptors';
 
 @Controller({ version: '1', path: 'lsp-details' })
 export class LspDetailsController {
   constructor(private readonly lspDetailsService: LspDetailsService) {}
-
-  @Get('/individual')
-  async findAllLspIndividual() {
-    return await this.lspDetailsService.findLspIndividual();
-  }
 
   // @UseInterceptors(FindLspIndividualInterceptor)
   // @Get('/individual')
@@ -81,17 +77,44 @@ export class LspDetailsController {
   //   });
   // }
 
-  @Post('individual/internal')
+  @Get('/individual')
+  async findLspIndividual() {
+    return await this.lspDetailsService.findLspIndividual();
+  }
+
+  @UseInterceptors(FindLspOrganizationInterceptor)
+  @Get('/organization')
+  async findLspOrganization(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<LspDetails> | LspDetails[]> {
+    return await this.lspDetailsService.crud().findAll({
+      find: {
+        select: {
+          id: true,
+          organizationName: true,
+          email: true,
+          lspSource: true,
+          postalAddress: true,
+        },
+        where: { lspType: LspType.ORGANIZATION },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
+
+  @Post('/individual/internal')
   async createLspIndividualInternal(@Body() data: CreateLspIndividualInternalDto) {
     return await this.lspDetailsService.addLspIndividualInternal(data);
   }
 
-  @Post('individual/external')
+  @Post('/individual/external')
   async createLspIndividualExternal(@Body() data: CreateLspIndividualExternalDto) {
     return await this.lspDetailsService.addLspIndividualExternal(data);
   }
 
-  @Post('organization/external')
+  @Post('/organization/external')
   async createLspOrganizationExternal(@Body() data: CreateLspOrganizationExternalDto) {
     return await this.lspDetailsService.addLspOrganizationExternal(data);
   }

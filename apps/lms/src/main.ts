@@ -26,9 +26,17 @@ async function bootstrap() {
   /**
    * enable cors policy to allow browser access
    */
+  const whitelist = [
+    'http://172.20.110.45:3002',
+    'http://localhost:3002',
+    'http://172.20.10.57:3000',
+    'http://172.20.10.57:3010',
+    'http://172.20.110.45:3010',
+  ];
+
   app.enableCors({
     credentials: true,
-    origin: ['http://172.20.110.45:3002', 'http://localhost:3002', 'http://172.20.10.57:3000', 'http://172.20.10.57:3010'],
+    origin: whitelist,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
   /**

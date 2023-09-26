@@ -16,11 +16,18 @@ export enum TrainingType {
   LEADERSHIP_MANAGERIAL = 'leadership/managerial',
 }
 
-export enum TrainingStatus {
+export enum TrainingPreparationStatus {
   ON_GOING_NOMINATION = 'on going nomination',
   PDC_APPROVAL = 'for pdc approval',
   GM_APPROVAL = 'for gm approval',
+  NOMINATION_DONE = 'nomination done',
   DONE = 'done',
+}
+
+export enum TrainingStatus {
+  UPCOMING = 'upcoming',
+  ONGOING = 'on going',
+  COMPLETED = 'completed',
 }
 
 export enum TrainingNomineeStatus {
@@ -29,7 +36,7 @@ export enum TrainingNomineeStatus {
   PENDING = 'pending',
 }
 
-export type RawEmployee = {
+export type EmployeeFullName = {
   fullName: string;
 };
 
