@@ -10,7 +10,6 @@ import { LspCoachingsService } from '../components/lsp-coachings';
 import { LspEducationsService } from '../components/lsp-educations';
 import { LspProjectsService } from '../components/lsp-projects';
 import { LspTrainingsService } from '../components/lsp-trainings';
-import { EmployeesService } from '../../../services/employees';
 
 @Injectable()
 export class LspDetailsService extends CrudHelper<LspDetails> {
@@ -23,55 +22,9 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     private readonly lspEducationsService: LspEducationsService,
     private readonly lspProjectsService: LspProjectsService,
     private readonly lspTrainingsService: LspTrainingsService,
-    private readonly employeesService: EmployeesService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
-  }
-
-  async findLspIndividual() {
-    try {
-      const lsp = await this.datasource.getRepository(LspDetails).find({
-        select: {
-          id: true,
-          employeeId: true,
-          firstName: true,
-          middleName: true,
-          lastName: true,
-          prefixName: true,
-          suffixName: true,
-          extensionName: true,
-          email: true,
-          lspSource: true,
-          postalAddress: true,
-        },
-        where: { lspType: LspType.INDIVIDUAL },
-      });
-
-      const result = Promise.all(
-        lsp.map(async (lspItems) => {
-          let name: string;
-
-          if (lspItems.employeeId !== null) {
-            name = (await this.employeesService.findEmployeesById(lspItems.employeeId)).fullName;
-          } else {
-            name = (await this.datasource.query('select get_lsp_fullname($1) fullname', [lspItems.id]))[0].fullname;
-          }
-
-          return {
-            id: lspItems.id,
-            name: name,
-            email: lspItems.email,
-            lspSource: lspItems.lspSource,
-            postalAddress: lspItems.postalAddress,
-          };
-        })
-      );
-
-      return result;
-    } catch (error) {
-      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
   }
 
   // add lsp (type = individual, source = internal)
