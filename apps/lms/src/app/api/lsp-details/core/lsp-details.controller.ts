@@ -16,70 +16,39 @@ import { LspDetailsService } from './lsp-details.service';
 import { DeleteResult } from 'typeorm';
 import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { FindLspOrganizationInterceptor } from '../misc/interceptors';
+import { FindLspIndividualInterceptor, FindLspOrganizationInterceptor } from '../misc/interceptors';
 import { LspType } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'lsp-details' })
 export class LspDetailsController {
   constructor(private readonly lspDetailsService: LspDetailsService) {}
 
-  // @UseInterceptors(FindLspIndividualInterceptor)
-  // @Get('/individual')
-  // async findAllLspIndividual(
-  //   @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  //   @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  // ) {
-  //   return await this.lspDetailsService.crud().findAll({
-  //     find: {
-  //       select: {
-  //         id: true,
-  //         employeeId: true,
-  //         firstName: true,
-  //         middleName: true,
-  //         lastName: true,
-  //         prefixName: true,
-  //         suffixName: true,
-  //         extensionName: true,
-  //         email: true,
-  //         lspSource: true,
-  //         postalAddress: true,
-  //       },
-  //       where: {
-  //         lspType: LspType.INDIVIDUAL,
-  //       },
-  //     },
-  //     pagination: { page, limit },
-  //     onError: () => new InternalServerErrorException(),
-  //   });
-  // }
-
-  // @UseInterceptors(FindLspOrganizationInterceptor)
-  // @Get('/organization')
-  // async findAllLspOrganization(
-  //   @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  //   @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  // ) {
-  //   return await this.lspDetailsService.crud().findAll({
-  //     find: {
-  //       select: {
-  //         id: true,
-  //         organizationName: true,
-  //         email: true,
-  //         lspSource: true,
-  //         postalAddress: true,
-  //       },
-  //       where: {
-  //         lspType: LspType.ORGANIZATION,
-  //       },
-  //     },
-  //     pagination: { page, limit },
-  //     onError: () => new InternalServerErrorException(),
-  //   });
-  // }
-
+  @UseInterceptors(FindLspIndividualInterceptor)
   @Get('/individual')
-  async findLspIndividual() {
-    return await this.lspDetailsService.findLspIndividual();
+  async findLspIndividual(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ): Promise<Pagination<LspDetails> | LspDetails[]> {
+    return await this.lspDetailsService.crud().findAll({
+      find: {
+        select: {
+          id: true,
+          employeeId: true,
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          prefixName: true,
+          suffixName: true,
+          extensionName: true,
+          email: true,
+          lspSource: true,
+          postalAddress: true,
+        },
+        where: { lspType: LspType.INDIVIDUAL },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   @UseInterceptors(FindLspOrganizationInterceptor)
