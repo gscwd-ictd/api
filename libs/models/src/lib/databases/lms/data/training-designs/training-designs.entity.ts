@@ -9,30 +9,24 @@ export class TrainingDesign extends DatabaseEntity implements IEntity {
   @Column({ name: 'course_title', type: 'varchar', nullable: false, unique: true })
   courseTitle: string;
 
-  @Column({ name: 'course_description', type: 'varchar', nullable: false })
+  @Column({ name: 'course_description', type: 'jsonb', nullable: false })
   courseDescription: string;
 
-  @Column({ name: 'course_objective', type: 'varchar', nullable: false })
+  @Column({ name: 'course_objective', type: 'jsonb', nullable: false })
   courseObjective: string;
 
-  @Column({ name: 'rationale', type: 'varchar', nullable: false })
+  @Column({ name: 'rationale', type: 'jsonb', nullable: false })
   rationale: string;
 
-  @Column({ name: 'target_participants', type: 'varchar', nullable: false })
+  @Column({ name: 'target_participants', type: 'jsonb', nullable: false })
   targetParticipants: string;
 
-  @Column({ name: 'methodologies', type: 'varchar', nullable: false })
+  @Column({ name: 'methodologies', type: 'jsonb', nullable: false })
   methodologies: string;
 
-  @Column({ name: 'expected_output', type: 'varchar', nullable: false })
+  @Column({ name: 'expected_output', type: 'jsonb', nullable: false })
   expectedOutput: string;
 
-  @Column({ name: 'recognition', type: 'varchar', nullable: false })
+  @Column({ name: 'recognition', type: 'jsonb', nullable: false })
   recognition: string;
-
-  @Column({ name: 'training_start', type: 'timestamp' })
-  trainingStart: Date;
-
-  @Column({ name: 'training_end', type: 'timestamp' })
-  trainingEnd: Date;
 }

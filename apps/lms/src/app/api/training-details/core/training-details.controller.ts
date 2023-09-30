@@ -1,27 +1,20 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  DefaultValuePipe,
-  Delete,
-  Get,
-  InternalServerErrorException,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common';
-import { CreateTrainingDetailsDto, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
+import { Body, Controller, Post } from '@nestjs/common';
 import { TrainingDetailsService } from './training-details.service';
-import { DeleteResult, UpdateResult } from 'typeorm';
-import { LspType } from '@gscwd-api/utils';
-import { FindAllTrainingDetailsInterceptor } from '../misc/interceptors/training-details-test.interceptor';
+import { CreateTrainingInternalDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
   constructor(private readonly trainingDetailsService: TrainingDetailsService) {}
+
+  @Post('/internal')
+  async createTrainingInternal(@Body() data: CreateTrainingInternalDto) {
+    return await this.trainingDetailsService.addTrainingInternal(data);
+  }
+
+  @Post('/external')
+  async createTrainingExternal(@Body() data: CreateTrainingInternalDto) {
+    return await this.trainingDetailsService.addTrainingInternal(data);
+  }
 
   // // HR
 
