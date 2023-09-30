@@ -7,6 +7,7 @@ import { TrainingType } from '@gscwd-api/utils';
 import { LspDetails } from '../lsp-details';
 import { CreateTrainingTagDto } from '../training-tags';
 import { PartialType } from '@nestjs/swagger';
+import { CreateTrainingDistributionDto } from '../training-distributions';
 
 export class TrainingDetailsDto {
   @IsUUID('4')
@@ -49,6 +50,11 @@ export class TrainingDetailsDto {
   @IsArray()
   @Type(() => CreateTrainingTagDto)
   trainingTags: CreateTrainingTagDto[];
+
+  @ValidateNested({ each: true })
+  @IsArray()
+  @Type(() => CreateTrainingDistributionDto)
+  slotDistribution: CreateTrainingDistributionDto[];
 }
 
 export class CreateTrainingInternalDto extends PartialType(TrainingDetailsDto) {

@@ -3,7 +3,6 @@ export * from './course-contents';
 export * from './nominee-qualifications';
 
 //training
-export * from './training-recommended-employees';
 export * from './training-nominees';
 
 //new learning service provider
@@ -28,3 +27,4 @@ export * from './training-designs';
 export * from './training-details';
 export * from './training-tags';
 export * from './training-distributions';
+export * from './training-recommended-employees';

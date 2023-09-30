@@ -3,12 +3,14 @@ import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nes
 import { CreateTrainingInternalDto, TrainingDetails } from '@gscwd-api/models';
 import { DataSource } from 'typeorm';
 import { TrainingTagsService } from '../components/training-tags';
+import { TrainingDistributionsService } from '../components/training-distributions';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   constructor(
     private readonly crudService: CrudService<TrainingDetails>,
     private readonly trainingTagsService: TrainingTagsService,
+    private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -16,7 +18,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
   //training internal
   async addTrainingInternal(data: CreateTrainingInternalDto) {
-    const { trainingTags, ...rest } = data;
+    const { trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
         const trainingDetails = await this.crudService.create({
@@ -31,6 +33,19 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
               {
                 trainingDetails,
                 ...trainingTagsItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert training slot distributions
+        await Promise.all(
+          slotDistribution.map(async (slotDistributionsItem) => {
+            return await this.trainingDistributionsService.create(
+              {
+                trainingDetails,
+                ...slotDistributionsItem,
               },
               entityManager
             );
