@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateTrainingInternalDto, TrainingDetails } from '@gscwd-api/models';
+import { CreateTrainingExternalDto, CreateTrainingInternalDto, TrainingDetails } from '@gscwd-api/models';
 import { DataSource } from 'typeorm';
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
@@ -18,6 +18,51 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
   //training internal
   async addTrainingInternal(data: CreateTrainingInternalDto) {
+    const { trainingTags, slotDistribution, ...rest } = data;
+    try {
+      const result = await this.datasource.transaction(async (entityManager) => {
+        const trainingDetails = await this.crudService.create({
+          dto: rest,
+          onError: () => new BadRequestException(),
+        });
+
+        //insert training tags
+        await Promise.all(
+          trainingTags.map(async (trainingTagsItem) => {
+            return await this.trainingTagsService.create(
+              {
+                trainingDetails,
+                ...trainingTagsItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert training slot distributions
+        await Promise.all(
+          slotDistribution.map(async (slotDistributionsItem) => {
+            return await this.trainingDistributionsService.create(
+              {
+                trainingDetails,
+                ...slotDistributionsItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        return data;
+      });
+
+      return result;
+    } catch (error) {
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  //training internal
+  async addTrainingExternal(data: CreateTrainingExternalDto) {
     const { trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {

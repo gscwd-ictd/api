@@ -1,6 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Get, InternalServerErrorException, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { TrainingDetailsService } from './training-details.service';
-import { CreateTrainingInternalDto } from '@gscwd-api/models';
+import { CreateTrainingExternalDto, CreateTrainingInternalDto, TrainingDetails } from '@gscwd-api/models';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -12,8 +13,23 @@ export class TrainingDetailsController {
   }
 
   @Post('/external')
-  async createTrainingExternal(@Body() data: CreateTrainingInternalDto) {
-    return await this.trainingDetailsService.addTrainingInternal(data);
+  async createTrainingExternal(@Body() data: CreateTrainingExternalDto) {
+    return await this.trainingDetailsService.addTrainingExternal(data);
+  }
+
+  @Get()
+  async findAll(
+    @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      find: {
+        relations: { trainingSource: true },
+        select: { id: true, courseTitle: true, trainingSource: { name: true }, trainingType: true },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
   }
 
   // // HR

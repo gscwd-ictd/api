@@ -34,7 +34,7 @@ export class TrainingDesignsController implements ICrudRoutes {
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+    @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number
   ): Promise<Pagination<TrainingDesign> | TrainingDesign[]> {
     return await this.trainingDesignsService.crud().findAll({
       find: { select: { id: true, courseTitle: true, createdAt: true, updatedAt: true } },
