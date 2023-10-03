@@ -10,23 +10,23 @@ export class TrainingDesign extends DatabaseEntity implements IEntity {
   courseTitle: string;
 
   @Column({ name: 'course_description', type: 'jsonb', nullable: false })
-  courseDescription: string;
+  courseDescription: object;
 
   @Column({ name: 'course_objective', type: 'jsonb', nullable: false })
-  courseObjective: string;
+  courseObjective: object;
 
   @Column({ name: 'rationale', type: 'jsonb', nullable: false })
-  rationale: string;
+  rationale: object;
 
   @Column({ name: 'target_participants', type: 'jsonb', nullable: false })
-  targetParticipants: string;
+  targetParticipants: object;
 
   @Column({ name: 'methodologies', type: 'jsonb', nullable: false })
-  methodologies: string;
+  methodologies: object;
 
   @Column({ name: 'expected_output', type: 'jsonb', nullable: false })
-  expectedOutput: string;
+  expectedOutput: object;
 
   @Column({ name: 'recognition', type: 'jsonb', nullable: false })
-  recognition: string;
+  recognition: object;
 }

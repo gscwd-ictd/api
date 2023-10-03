@@ -1,31 +1,31 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsString, Length } from 'class-validator';
+import { IsObject, IsString, Length } from 'class-validator';
 
 export class CreateTrainingDesignDto {
   @IsString({ message: 'training design course title must be a string' })
   @Length(1, 100, { message: 'training design course title must be between 1 to 100 characters' })
   courseTitle: string;
 
-  @IsString({ message: 'training design course description must be a string' })
-  courseDescription: string;
+  @IsObject({ message: 'training design course description must be a object' })
+  courseDescription: object;
 
-  @IsString({ message: 'training design course objective must be a string' })
-  courseObjective: string;
+  @IsObject({ message: 'training design course objective must be a object' })
+  courseObjective: object;
 
-  @IsString({ message: 'training design rationale must be a string' })
-  rationale: string;
+  @IsObject({ message: 'training design rationale must be a object' })
+  rationale: object;
 
-  @IsString({ message: 'training design target participants must be a string' })
-  targetParticipants: string;
+  @IsObject({ message: 'training design target participants must be a object' })
+  targetParticipants: object;
 
-  @IsString({ message: 'training design methodologies must be a string' })
-  methodologies: string;
+  @IsObject({ message: 'training design methodologies must be a object' })
+  methodologies: object;
 
-  @IsString({ message: 'training design expected output must be a string' })
-  expectedOutput: string;
+  @IsObject({ message: 'training design expected output must be a object' })
+  expectedOutput: object;
 
-  @IsString({ message: 'training design recognition must be a string' })
-  recognition: string;
+  @IsObject({ message: 'training design recognition must be a object' })
+  recognition: object;
 }
 
 export class UpdateTrainingDesignDto extends PartialType(CreateTrainingDesignDto) {}
