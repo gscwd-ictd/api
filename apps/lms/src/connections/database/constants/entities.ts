@@ -1,24 +1,25 @@
-import { LspAffiliation, LspAward, LspCertification, LspCoaching, LspDetails, LspEducation, LspProject, LspTraining, Tag } from '@gscwd-api/models';
+import {
+  LspAffiliation,
+  LspAward,
+  LspCertification,
+  LspCoaching,
+  LspDetails,
+  LspEducation,
+  LspProject,
+  LspTraining,
+  Tag,
+  TrainingDesign,
+  TrainingDetails,
+  TrainingDistribution,
+  TrainingRecommendedEmployee,
+  TrainingSource,
+  TrainingTag,
+} from '@gscwd-api/models';
 
 export const DB_ENTITIES = [
   // entities
 
-  // Tag,
-
-  // TrainingSource,
-  // TrainingType,
-
-  // TrainingDesign,
-  // TrainingDetails,
-  // TrainingLspIndividual,
-  // TrainingLspOrganization,
-  // TrainingDistribution,
-  // TrainingRecommendedEmployee,
-  // TrainingNominee,
-  // TrainingTag,
-
   //new learning service provider
-
   LspDetails,
   LspAffiliation,
   LspAward,
@@ -30,5 +31,14 @@ export const DB_ENTITIES = [
 
   //new tag
   Tag,
+
+  //new training
+  TrainingSource,
+  TrainingDesign,
+  TrainingDetails,
+  TrainingTag,
+  TrainingDistribution,
+  TrainingRecommendedEmployee,
+
   // views
 ];

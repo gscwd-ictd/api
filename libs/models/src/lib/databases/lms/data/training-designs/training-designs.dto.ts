@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsDateString, IsString, Length } from 'class-validator';
+import { IsString, Length } from 'class-validator';
 
 export class CreateTrainingDesignDto {
   @IsString({ message: 'training design course title must be a string' })
@@ -26,12 +26,6 @@ export class CreateTrainingDesignDto {
 
   @IsString({ message: 'training design recognition must be a string' })
   recognition: string;
-
-  @IsDateString()
-  trainingStart: Date;
-
-  @IsDateString()
-  trainingEnd: Date;
 }
 
 export class UpdateTrainingDesignDto extends PartialType(CreateTrainingDesignDto) {}
