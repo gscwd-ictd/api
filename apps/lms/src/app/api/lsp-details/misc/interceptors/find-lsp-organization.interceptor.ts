@@ -13,7 +13,7 @@ export class FindLspOrganizationInterceptor implements NestInterceptor {
           name: `${item.organizationName}`,
           email: item.email,
           source: item.lspSource,
-          address: item.postalAddress,
+          postalAddress: item.postalAddress,
         }));
 
         return { ...result, items: lspDetails };
