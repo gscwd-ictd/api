@@ -1,7 +1,8 @@
-import { Body, Controller, DefaultValuePipe, Get, InternalServerErrorException, ParseIntPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Get, InternalServerErrorException, ParseIntPipe, Post, Query, UseInterceptors } from '@nestjs/common';
 import { TrainingDetailsService } from './training-details.service';
 import { CreateTrainingExternalDto, CreateTrainingInternalDto, TrainingDetails } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { FindTrainingDetailsInterceptor } from '../misc/interceptors';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -17,6 +18,7 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.addTrainingExternal(data);
   }
 
+  @UseInterceptors(FindTrainingDetailsInterceptor)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
@@ -24,8 +26,18 @@ export class TrainingDetailsController {
   ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
     return await this.trainingDetailsService.crud().findAll({
       find: {
-        relations: { trainingSource: true },
-        select: { id: true, courseTitle: true, trainingSource: { name: true }, trainingType: true },
+        relations: { trainingSource: true, trainingDesign: true },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          trainingDesign: { courseTitle: true },
+          courseTitle: true,
+          location: true,
+          trainingSource: { name: true },
+          trainingType: true,
+        },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
@@ -38,18 +50,6 @@ export class TrainingDetailsController {
   // @Post()
   // async create(@Query('lsp-type') lspType: LspType, @Body() data: CreateTrainingDetailsDto) {
   //   return await this.trainingDetailsService.addTrainingDetails(lspType, data);
-  // }
-
-  // //@UseInterceptors(FindAllTrainingDetailsInterceptor)
-  // @Get()
-  // async findAll(
-  //   @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  //   @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  // ) {
-  //   return await this.trainingDetailsService.crud().findAll({
-  //     pagination: { page, limit },
-  //     onError: () => new InternalServerErrorException(),
-  //   });
   // }
 
   // //get training details by training id
