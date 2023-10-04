@@ -24,7 +24,7 @@ export class EmployeeTagsService {
       pattern: EmployeeTagsPatterns.GET_TAGS_BY_EMPLOYEE_ID,
       payload: id,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    })) as string[];
+    })) as Array<string>;
 
     return await Promise.all(tagIds.map(async (tagId) => await this.tagsService.crud().findOneBy({ findBy: { id: tagId } })));
   }

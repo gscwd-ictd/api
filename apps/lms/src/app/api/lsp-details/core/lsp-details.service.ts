@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
 import { LspSource, LspType } from '@gscwd-api/utils';
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';
 import { LspAwardsService } from '../components/lsp-awards';
@@ -311,5 +311,12 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async getLspById(id: string) {
+    return await this.crudService.findOneBy({
+      findBy: { id: id },
+      onError: () => new NotFoundException(),
+    });
   }
 }

@@ -18,11 +18,11 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
   //training internal
   async addTrainingInternal(data: CreateTrainingInternalDto) {
-    const { trainingTags, slotDistribution, ...rest } = data;
+    const { courseContent, trainingRequirements, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
         const trainingDetails = await this.crudService.create({
-          dto: rest,
+          dto: { courseContent: JSON.stringify(courseContent), trainingRequirements: JSON.stringify(trainingRequirements), ...rest },
           onError: () => new BadRequestException(),
         });
 
@@ -63,11 +63,11 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
   //training internal
   async addTrainingExternal(data: CreateTrainingExternalDto) {
-    const { trainingTags, slotDistribution, ...rest } = data;
+    const { courseContent, trainingRequirements, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
         const trainingDetails = await this.crudService.create({
-          dto: rest,
+          dto: { courseContent: JSON.stringify(courseContent), trainingRequirements: JSON.stringify(trainingRequirements), ...rest },
           onError: () => new BadRequestException(),
         });
 

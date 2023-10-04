@@ -1,4 +1,4 @@
-import { IsArray, IsDateString, IsEnum, IsInt, IsNotEmpty, IsString, IsUUID, Length, ValidateNested, isNotEmpty } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsInt, IsNotEmpty, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { TrainingDesign } from '../training-designs';
@@ -22,7 +22,7 @@ export class TrainingDetailsDto {
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CourseContentDto)
-  courseContent: string;
+  courseContent: CourseContentDto[];
 
   @IsString({ message: 'training location must be a string' })
   @Length(1, 100, { message: 'training location must be between 1 to 100 characters' })
@@ -44,7 +44,7 @@ export class TrainingDetailsDto {
   numberOfParticipants: number;
 
   @IsString({ message: 'training details training requirements must be a string' })
-  trainingRequirements: string;
+  trainingRequirements: Array<string>;
 
   @ValidateNested({ each: true })
   @IsArray()
