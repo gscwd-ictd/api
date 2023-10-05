@@ -88,6 +88,11 @@ export class LspDetailsController {
     return await this.lspDetailsService.addLspOrganizationExternal(data);
   }
 
+  @Get(':id')
+  async findLspById(@Param('id') id: string) {
+    return await this.lspDetailsService.getLspById(id);
+  }
+
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<DeleteResult> {
     return this.lspDetailsService.crud().delete({
