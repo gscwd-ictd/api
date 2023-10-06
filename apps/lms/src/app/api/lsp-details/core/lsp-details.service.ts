@@ -10,6 +10,7 @@ import { LspCoachingsService } from '../components/lsp-coachings';
 import { LspEducationsService } from '../components/lsp-educations';
 import { LspProjectsService } from '../components/lsp-projects';
 import { LspTrainingsService } from '../components/lsp-trainings';
+import { EmployeesService } from '../../../services/employees';
 
 @Injectable()
 export class LspDetailsService extends CrudHelper<LspDetails> {
@@ -22,6 +23,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     private readonly lspEducationsService: LspEducationsService,
     private readonly lspProjectsService: LspProjectsService,
     private readonly lspTrainingsService: LspTrainingsService,
+    private readonly employeesService: EmployeesService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -314,9 +316,53 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
   }
 
   async getLspById(id: string) {
-    return await this.crudService.findOneBy({
-      findBy: { id: id },
+    const lspDetails = await this.crudService.findOne({
+      find: { select: { lspType: true, lspSource: true }, where: { id: id } },
       onError: () => new NotFoundException(),
     });
+
+    switch (true) {
+      case lspDetails.lspType === LspType.INDIVIDUAL && lspDetails.lspSource === LspSource.INTERNAL:
+        return await this.getLspIndividualInternal(id);
+      case lspDetails.lspType === LspType.INDIVIDUAL && lspDetails.lspSource === LspSource.EXTERNAL:
+        return 'Individual External';
+      case lspDetails.lspType === LspType.ORGANIZATION && lspDetails.lspSource === LspSource.EXTERNAL:
+        return 'Organization External';
+      default:
+        return () => new NotFoundException();
+    }
+  }
+
+  async getLspIndividualInternal(id: string) {
+    const lspDetails = await this.crudService.findOne({
+      find: {
+        select: { employeeId: true, expertise: true, experience: true, introduction: true, lspType: true, lspSource: true },
+        where: { id: id },
+      },
+      onError: () => new NotFoundException(),
+    });
+
+    const name = (await this.employeesService.findEmployeesById(lspDetails.employeeId)).fullName;
+
+    const affiliations = await this.lspAffiliationsService.crud().findAll({ find: { where: { lspDetails: lspDetails } } });
+    const awards = [];
+    const certifications = [];
+    const coaching = await this.lspCoachingsService.crud().findAll({ find: { where: { lspDetails: lspDetails } } });
+    const education = [];
+    const projects = await this.lspProjectsService.crud().findAll({ find: { where: { lspDetails: lspDetails } } });
+    const trainings = await this.lspTrainingsService.crud().findAll({ find: { where: { lspDetails: lspDetails } } });
+
+    return {
+      ...lspDetails,
+      expertise: JSON.parse(lspDetails.expertise),
+      name,
+      affiliations,
+      awards,
+      certifications,
+      coaching,
+      education,
+      projects,
+      trainings,
+    };
   }
 }
