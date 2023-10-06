@@ -6,6 +6,9 @@ import { LspDetailsModule } from './api/lsp-details';
 import { TagsModule } from './api/tags';
 import { EmployeesModule } from './services/employees';
 import { EmployeeTagsModule } from './services/employee-tags/core/employee-tags.module';
+import { TrainingSourcesModule } from './api/training-sources';
+import { TrainingDesignsModule } from './api/training-designs';
+import { TrainingDetailsModule } from './api/training-details';
 
 @Module({
   imports: [
@@ -24,6 +27,11 @@ import { EmployeeTagsModule } from './services/employee-tags/core/employee-tags.
 
     //new learning service provider
     LspDetailsModule,
+
+    //new trainings
+    TrainingSourcesModule,
+    TrainingDesignsModule,
+    TrainingDetailsModule,
 
     //tags
     TagsModule,

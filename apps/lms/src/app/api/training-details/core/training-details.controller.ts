@@ -1,27 +1,48 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  DefaultValuePipe,
-  Delete,
-  Get,
-  InternalServerErrorException,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common';
-import { CreateTrainingDetailsDto, TrainingDetails, UpdateTrainingDetailsDto } from '@gscwd-api/models';
+import { Body, Controller, DefaultValuePipe, Get, InternalServerErrorException, ParseIntPipe, Post, Query, UseInterceptors } from '@nestjs/common';
 import { TrainingDetailsService } from './training-details.service';
-import { DeleteResult, UpdateResult } from 'typeorm';
-import { LspType } from '@gscwd-api/utils';
-import { FindAllTrainingDetailsInterceptor } from '../misc/interceptors/training-details-test.interceptor';
+import { CreateTrainingExternalDto, CreateTrainingInternalDto, TrainingDetails } from '@gscwd-api/models';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { FindTrainingDetailsInterceptor } from '../misc/interceptors';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
   constructor(private readonly trainingDetailsService: TrainingDetailsService) {}
+
+  @Post('/internal')
+  async createTrainingInternal(@Body() data: CreateTrainingInternalDto) {
+    return await this.trainingDetailsService.addTrainingInternal(data);
+  }
+
+  @Post('/external')
+  async createTrainingExternal(@Body() data: CreateTrainingExternalDto) {
+    return await this.trainingDetailsService.addTrainingExternal(data);
+  }
+
+  @UseInterceptors(FindTrainingDetailsInterceptor)
+  @Get()
+  async findAll(
+    @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      find: {
+        relations: { trainingSource: true, trainingDesign: true },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          trainingDesign: { courseTitle: true },
+          courseTitle: true,
+          location: true,
+          trainingSource: { name: true },
+          trainingType: true,
+        },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
 
   // // HR
 
@@ -29,18 +50,6 @@ export class TrainingDetailsController {
   // @Post()
   // async create(@Query('lsp-type') lspType: LspType, @Body() data: CreateTrainingDetailsDto) {
   //   return await this.trainingDetailsService.addTrainingDetails(lspType, data);
-  // }
-
-  // //@UseInterceptors(FindAllTrainingDetailsInterceptor)
-  // @Get()
-  // async findAll(
-  //   @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  //   @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  // ) {
-  //   return await this.trainingDetailsService.crud().findAll({
-  //     pagination: { page, limit },
-  //     onError: () => new InternalServerErrorException(),
-  //   });
   // }
 
   // //get training details by training id

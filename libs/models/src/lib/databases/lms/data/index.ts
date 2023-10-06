@@ -1,12 +1,8 @@
 export * from './subject-matter-experts';
-
 export * from './course-contents';
 export * from './nominee-qualifications';
-export * from './post-training-requirements';
 
 //training
-
-export * from './training-recommended-employees';
 export * from './training-nominees';
 
 //new learning service provider
@@ -29,6 +25,6 @@ export * from './employee-tags';
 export * from './training-sources';
 export * from './training-designs';
 export * from './training-details';
-export * from './trainings';
 export * from './training-tags';
 export * from './training-distributions';
+export * from './training-recommended-employees';

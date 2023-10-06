@@ -1,23 +1,40 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingDistributionDto, TrainingDistribution } from '@gscwd-api/models';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
+import { TrainingRecommendedEmployeeService } from '../../training-recommended-employees';
 
 @Injectable()
 export class TrainingDistributionsService extends CrudHelper<TrainingDistribution> {
-  constructor(private readonly crudService: CrudService<TrainingDistribution>) {
+  constructor(
+    private readonly crudService: CrudService<TrainingDistribution>,
+    private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService
+  ) {
     super(crudService);
   }
 
   //HR distribute slots to selected managers
-  async addTrainingDistribution(data: CreateTrainingDistributionDto, entityManager: EntityManager) {
-    //transaction results
-    const results = await this.crudService.transact<TrainingDistribution>(entityManager).create({
-      dto: data,
-      onError: ({ error }) => {
-        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
-      },
+  async create(data: CreateTrainingDistributionDto, entityManager: EntityManager) {
+    const { recommendedEmployee, ...rest } = data;
+
+    const trainingDistribution = await this.crudService.transact<TrainingDistribution>(entityManager).create({
+      dto: rest,
+      onError: () => new BadRequestException(),
     });
-    return results;
+
+    //insert training recommended employees
+    await Promise.all(
+      recommendedEmployee.map(async (recommendedEmployeeItem) => {
+        return await this.trainingRecommendedEmployeesService.create(
+          {
+            trainingDistribution,
+            ...recommendedEmployeeItem,
+          },
+          entityManager
+        );
+      })
+    );
+
+    return trainingDistribution;
   }
 }

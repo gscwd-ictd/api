@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
 import { LspSource, LspType } from '@gscwd-api/utils';
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';
 import { LspAwardsService } from '../components/lsp-awards';
@@ -27,51 +27,6 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     private readonly datasource: DataSource
   ) {
     super(crudService);
-  }
-
-  async findLspIndividual() {
-    try {
-      const lsp = await this.datasource.getRepository(LspDetails).find({
-        select: {
-          id: true,
-          employeeId: true,
-          firstName: true,
-          middleName: true,
-          lastName: true,
-          prefixName: true,
-          suffixName: true,
-          extensionName: true,
-          email: true,
-          lspSource: true,
-          postalAddress: true,
-        },
-        where: { lspType: LspType.INDIVIDUAL },
-      });
-
-      const result = Promise.all(
-        lsp.map(async (lspItems) => {
-          let name: string;
-
-          if (lspItems.employeeId !== null) {
-            name = (await this.employeesService.findEmployeesById(lspItems.employeeId)).fullName;
-          } else {
-            name = (await this.datasource.query('select get_lsp_fullname($1) fullname', [lspItems.id]))[0].fullname;
-          }
-
-          return {
-            id: lspItems.id,
-            name: name,
-            email: lspItems.email,
-            lspSource: lspItems.lspSource,
-            postalAddress: lspItems.postalAddress,
-          };
-        })
-      );
-
-      return result;
-    } catch (error) {
-      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
   }
 
   // add lsp (type = individual, source = internal)
@@ -358,5 +313,56 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async getLspById(id: string) {
+    const lspDetails = await this.crudService.findOne({
+      find: { select: { lspType: true, lspSource: true }, where: { id: id } },
+      onError: () => new NotFoundException(),
+    });
+
+    switch (true) {
+      case lspDetails.lspType === LspType.INDIVIDUAL && lspDetails.lspSource === LspSource.INTERNAL:
+        return await this.getLspIndividualInternal(id);
+      case lspDetails.lspType === LspType.INDIVIDUAL && lspDetails.lspSource === LspSource.EXTERNAL:
+        return 'Individual External';
+      case lspDetails.lspType === LspType.ORGANIZATION && lspDetails.lspSource === LspSource.EXTERNAL:
+        return 'Organization External';
+      default:
+        return () => new NotFoundException();
+    }
+  }
+
+  async getLspIndividualInternal(id: string) {
+    const lspDetails = await this.crudService.findOne({
+      find: {
+        select: { employeeId: true, expertise: true, experience: true, introduction: true, lspType: true, lspSource: true },
+        where: { id: id },
+      },
+      onError: () => new NotFoundException(),
+    });
+
+    const name = (await this.employeesService.findEmployeesById(lspDetails.employeeId)).fullName;
+
+    const affiliations = await this.lspAffiliationsService.crud().findAll({ find: { where: { lspDetails: lspDetails } } });
+    const awards = [];
+    const certifications = [];
+    const coaching = await this.lspCoachingsService.crud().findAll({ find: { where: { lspDetails: lspDetails } } });
+    const education = [];
+    const projects = await this.lspProjectsService.crud().findAll({ find: { where: { lspDetails: lspDetails } } });
+    const trainings = await this.lspTrainingsService.crud().findAll({ find: { where: { lspDetails: lspDetails } } });
+
+    return {
+      ...lspDetails,
+      expertise: JSON.parse(lspDetails.expertise),
+      name,
+      affiliations,
+      awards,
+      certifications,
+      coaching,
+      education,
+      projects,
+      trainings,
+    };
   }
 }
