@@ -1,6 +1,6 @@
 export enum LspType {
   INDIVIDUAL = 'individual',
-  ORGANIZATION = 'organizaation',
+  ORGANIZATION = 'organization',
 }
 
 export enum LspSource {
