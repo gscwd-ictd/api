@@ -48,6 +48,8 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
           ).toDate();
           const leaveCredits = await Promise.all(
             leaveBenefits.map(async (leaveBenefit) => {
+              console.log(employee.companyId, leaveBenefit.accumulatedCredits);
+
               const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
                 {
                   createdAt,
@@ -55,6 +57,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                   creditDate,
                   creditValue: parseFloat(leaveBenefit.accumulatedCredits),
                   leaveBenefitsId: leaveBenefit.leaveBenefitsId,
+                  remarks: '',
                 },
                 entityManager
               );
@@ -122,6 +125,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                   employeeId,
                   creditValue: 0,
                   creditDate,
+                  remarks: '',
                 },
                 onError: () => new InternalServerErrorException(),
               });
@@ -249,6 +253,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                   creditDate,
                   creditValue: parseFloat(leaveBenefit.accumulatedCredits),
                   leaveBenefitsId: leaveBenefit.leaveBenefitsId,
+                  remarks: '',
                 },
                 entityManager
               );

@@ -3,12 +3,13 @@ import { HttpException, HttpStatus, Injectable, InternalServerErrorException, No
 import { PassSlip, PassSlipApproval, PassSlipDto, UpdatePassSlipTimeRecordDto } from '@gscwd-api/models';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { PassSlipApprovalStatus, PassSlipForLedger } from '@gscwd-api/utils';
-import { DataSource } from 'typeorm';
+import { NatureOfBusiness, PassSlipApprovalStatus, PassSlipForLedger } from '@gscwd-api/utils';
+import { DataSource, IsNull, Not } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { time } from 'console';
+import { timeout } from 'cron';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -163,11 +164,68 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     return approved;
   }
 
+  async getCurrentPassSlipsByEmployeeId(employeeId: string) {
+    const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
+      find: {
+        relations: { passSlipId: true },
+        select: { supervisorId: true, status: true },
+        where: [
+          {
+            passSlipId: {
+              employeeId,
+              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              natureOfBusiness: NatureOfBusiness.PERSONAL,
+              timeIn: IsNull(),
+            },
+            status: PassSlipApprovalStatus.APPROVED,
+          },
+          {
+            passSlipId: {
+              employeeId,
+              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              natureOfBusiness: NatureOfBusiness.OFFICIAL_BUSINESS,
+              timeIn: IsNull(),
+            },
+            status: PassSlipApprovalStatus.APPROVED,
+          },
+          {
+            passSlipId: {
+              employeeId,
+              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              timeOut: IsNull(),
+              natureOfBusiness: NatureOfBusiness.HALF_DAY,
+            },
+            status: PassSlipApprovalStatus.APPROVED,
+          },
+        ],
+      },
+    });
+
+    const approved = await Promise.all(
+      passSlipsApproved.map(async (passSlip) => {
+        const { passSlipId, ...restOfPassSlip } = passSlip;
+
+        const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
+          action: 'send',
+          payload: { employeeId: passSlip.passSlipId.employeeId, supervisorId: passSlip.supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        });
+
+        return { ...passSlipId, ...names, ...restOfPassSlip };
+      })
+    );
+
+    return approved;
+    //return passSlips;
+  }
+
   async getPassSlipsByEmployeeId(employeeId: string) {
     const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true },
+
         where: { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED },
       },
     });
@@ -250,7 +308,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       })
     );
 
-    const passSlips = { forApproval, completed: approvedDisapproved };
+    const allowedToApplyForNew = (await this.getCurrentPassSlipsByEmployeeId(employeeId)).length > 0 ? false : true;
+    const passSlips = { forApproval, completed: approvedDisapproved, allowedToApplyForNew };
     return passSlips;
   }
 
@@ -275,6 +334,29 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true },
         order: { createdAt: 'DESC', status: 'ASC' },
+      },
+    });
+
+    const passSlipDetails = await Promise.all(
+      passSlips.map(async (passSlip) => {
+        const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
+
+        const assignment = await this.getEmployeeAssignment(passSlip.passSlipId.employeeId);
+
+        const { passSlipId, ...restOfPassSlip } = passSlip;
+        return { ...restOfPassSlip, ...passSlipId, ...names, assignmentName: assignment.assignment.name };
+      })
+    );
+    return passSlipDetails;
+  }
+
+  async getAllOngoingPassSlips() {
+    const passSlips = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
+      find: {
+        relations: { passSlipId: true },
+        select: { supervisorId: true, status: true },
+        order: { createdAt: 'DESC', status: 'ASC' },
+        where: [{ passSlipId: { timeIn: Not(IsNull()), timeOut: IsNull() } }, { passSlipId: { timeIn: IsNull(), timeOut: IsNull() } }],
       },
     });
 

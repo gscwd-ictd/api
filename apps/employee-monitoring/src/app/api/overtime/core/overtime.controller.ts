@@ -4,7 +4,7 @@ import {
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { OvertimeService } from './overtime.service';
 
 @Controller({ version: '1', path: 'overtime' })
@@ -19,6 +19,11 @@ export class OvertimeController {
   @Get()
   async getOvertimeApplications() {
     return await this.overtimeService.getOvertimeApplications();
+  }
+
+  @Get('immediate-supervisors')
+  async getImmediateSupervisorList() {
+    return await this.overtimeService.getImmediateSupervisorList();
   }
 
   @Get(':manager_id/approval')
@@ -66,13 +71,13 @@ export class OvertimeController {
     return await this.overtimeService.getEmployeeListBySupervisorId(employeeId);
   }
 
-  @Get('immediate-supervisors')
-  async getImmediateSupervisorList() {
-    return await this.overtimeService.getImmediateSupervisorList();
-  }
-
   @Patch('employees/accomplishments')
   async updateAccomplishments(@Body() updateOvertimeAccomplishmentByEmployeeDto: UpdateOvertimeAccomplishmentByEmployeeDto) {
     return await this.overtimeService.updateAccomplishments(updateOvertimeAccomplishmentByEmployeeDto);
+  }
+
+  @Delete('/immediate-supervisors/:overtime_immediate_supervisor_id')
+  async deleteAccomplishments(@Param('overtime_immediate_supervisor_id') overtimeImmediateSupervisorId: string) {
+    return await this.overtimeService.deleteImmediateSupervisor(overtimeImmediateSupervisorId);
   }
 }

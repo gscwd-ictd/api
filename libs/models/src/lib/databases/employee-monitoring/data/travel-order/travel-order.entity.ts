@@ -18,6 +18,6 @@ export class TravelOrder extends DatabaseEntity implements IEntity {
   @Column({ name: 'travel_order_no' })
   travelOrderNo: string;
 
-  @Column({ name: 'is_ptr_required' })
+  @Column({ name: 'is_ptr_required', nullable: true })
   isPtrRequired: boolean;
 }
