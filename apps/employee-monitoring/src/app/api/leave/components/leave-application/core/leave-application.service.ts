@@ -117,6 +117,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         lb.leave_types leaveType,
         DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
         la.status \`status\`,
+        lb.maximum_credits maximumCredits,
         DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d') hrmoApprovalDate,
         DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d') supervisorApprovalDate,
         la.supervisor_disapproval_remarks supervisorDisapprovalRemarks,
@@ -547,6 +548,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         },
         relations: { leaveBenefitsId: true },
         where: { status: leaveApplicationStatus },
+        order: { dateOfFiling: 'DESC' },
       },
     });
 

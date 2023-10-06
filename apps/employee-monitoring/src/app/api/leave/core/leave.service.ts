@@ -122,6 +122,7 @@ export class LeaveService {
               dailyTimeRecordId: null,
               employeeId: leaveApplicationId.employeeId,
               leaveBenefitsId: leaveApplicationId.leaveBenefitsId,
+              remarks: leaveApplicationId.leaveBenefitsId.leaveType,
             });
             const leaveCardLedgerCredit = await this.leaveCardLedgerCreditService.crud().create({
               dto: { leaveCreditEarningId: leaveCreditEarning },

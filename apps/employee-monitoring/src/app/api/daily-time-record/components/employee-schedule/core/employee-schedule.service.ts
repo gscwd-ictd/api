@@ -94,7 +94,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     RIGHT JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
     WHERE emr.employee_id_fk = ? AND emr.date_from = es.date_from AND emr.date_to = es.date_to 
     GROUP BY s.schedule_id,es.created_at,emr.employee_rest_day_id,scheduleRange 
-    ORDER BY DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC `,
+    ORDER BY DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC;`,
       [employeeId]
     );
 
