@@ -94,11 +94,7 @@ export class LspDetailsController {
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<DeleteResult> {
-    return this.lspDetailsService.crud().delete({
-      deleteBy: { id },
-      softDelete: false,
-      onError: () => new BadRequestException(),
-    });
+  async delete(@Param('id') id: string) {
+    return this.lspDetailsService.deleteLspById(id);
   }
 }

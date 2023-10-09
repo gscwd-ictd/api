@@ -16,10 +16,8 @@ export class LspAffiliationsService extends CrudHelper<LspAffiliation> {
       dto: data,
       onError: () => new BadRequestException(),
     });
-
-    //deconstruct and return result
-    const { lspDetails, ...rest } = result;
-    return rest;
+    // return result
+    return result;
   }
 
   //delete learning service provider affiliations by lsp details id

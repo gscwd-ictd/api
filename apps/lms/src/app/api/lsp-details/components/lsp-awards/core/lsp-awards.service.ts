@@ -17,9 +17,8 @@ export class LspAwardsService extends CrudHelper<LspAward> {
       onError: () => new BadRequestException(),
     });
 
-    //deconstruct and return result
-    const { lspDetails, ...rest } = result;
-    return rest;
+    // return result
+    return result;
   }
 
   //delete learning service provider awards by lsp details id
@@ -31,7 +30,7 @@ export class LspAwardsService extends CrudHelper<LspAward> {
       onError: () => new BadRequestException(),
     });
 
-    //return result
+    // return result
     return result;
   }
 }

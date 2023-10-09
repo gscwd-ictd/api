@@ -9,29 +9,28 @@ export class LspCoachingsService extends CrudHelper<LspCoaching> {
     super(crudService);
   }
 
-  //insert learning service provider coaching
+  // insert learning service provider coaching
   async create(data: CreateLspCoachingDto, entityManager: EntityManager) {
+    // transaction result
     const result = await this.crudService.transact<LspCoaching>(entityManager).create({
       dto: data,
       onError: () => new BadRequestException(),
     });
 
-    //deconstruct and return result
-    const { lspDetails, ...rest } = result;
-
-    return rest;
+    // return result
+    return result;
   }
 
-  //delete learning service provider coaching by lsp details id
+  // delete learning service provider coaching by lsp details id
   async delete(lspDetailsId: string, entityManager: EntityManager) {
-    //transaction result
+    // transaction result
     const result = await this.crudService.transact<LspCoaching>(entityManager).delete({
       deleteBy: { lspDetails: { id: lspDetailsId } },
       softDelete: false,
       onError: () => new BadRequestException(),
     });
 
-    //return result
+    // return result
     return result;
   }
 }

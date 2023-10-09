@@ -8,6 +8,7 @@ import { CreateLspCoachingDto } from '../lsp-coachings';
 import { CreateLspEducationDto } from '../lsp-educations';
 import { CreateLspProjectDto } from '../lsp-projects';
 import { CreateLspTrainingDto } from '../lsp-trainings';
+import { PartialType } from '@nestjs/swagger';
 
 // create lsp (type = individual , source = internal)
 export class CreateLspIndividualInternalDto {
@@ -202,4 +203,22 @@ export class CreateLspOrganizationExternalDto {
   @IsArray({ message: 'lsp trainings must be an array' })
   @Type(() => CreateLspTrainingDto)
   trainings: CreateLspTrainingDto[];
+}
+
+// update lsp (type = individual , source = internal)
+export class UpdateLspIndividualInternalDto extends PartialType(CreateLspIndividualInternalDto) {
+  @IsUUID()
+  id: string;
+}
+
+// update lsp (type = individual , source = external)
+export class UpdateLspIndividualExternalDto extends PartialType(CreateLspIndividualInternalDto) {
+  @IsUUID()
+  id: string;
+}
+
+// update lsp (type = organization, source = external)
+export class UpdateLspOrganizationExternalDto extends PartialType(CreateLspOrganizationExternalDto) {
+  @IsUUID()
+  id: string;
 }
