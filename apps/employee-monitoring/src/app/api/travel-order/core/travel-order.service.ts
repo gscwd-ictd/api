@@ -18,9 +18,8 @@ export class TravelOrderService extends CrudHelper<TravelOrder> {
 
   async createTravelOrderTransaction(travelOrderDto: TravelOrderDto) {
     const createdTravelOrder = await this.dataSource.transaction(async (entityManager) => {
-      const { itinerary, ...travelOrder } = travelOrderDto;
-      const { employee, ...restOfTravelOrder } = travelOrder;
-      const { employeeId, fullName } = employee;
+      const { itinerary, employeeId, ...travelOrder } = travelOrderDto;
+      const { ...restOfTravelOrder } = travelOrder;
 
       const newTravelOrder = await this.crudService.transact<TravelOrder>(entityManager).create({
         dto: { employeeId, ...restOfTravelOrder },
@@ -82,8 +81,8 @@ export class TravelOrderService extends CrudHelper<TravelOrder> {
   }
 
   async updateTravelOrder(updateTravelOrder: UpdateTravelOrderDto) {
-    const { id, employee, purposeOfTravel, travelOrderNo, itinerary, isPtrRequired, dateRequested } = updateTravelOrder;
-    const { employeeId, fullName } = employee;
+    const { id, employeeId, purposeOfTravel, travelOrderNo, itinerary, isPtrRequired, dateRequested } = updateTravelOrder;
+
     const updateTravelOrderResult = await this.dataSource.transaction(async (entityManager) => {
       const updateResult = await this.crudService.transact(entityManager).update({
         dto: { employeeId, purposeOfTravel, travelOrderNo },

@@ -79,6 +79,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(companyId);
           // #endregion
           const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, currDate]))[0];
+
           return {
             day: dayjs(currDate).format('YYYY-MM-DD'),
             holidayType,
@@ -312,30 +313,32 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     } catch (error) {
       const dateCurrent = dayjs(data.date).toDate();
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
+      const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
       const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dateCurrent]))[0];
       let noAttendance = 1;
       if (remarks !== null || remarks !== '') noAttendance = 0;
       return {
         //fetch day if may leave, holiday, pass slip
-        schedule: {
-          id: null,
-          esDateFrom: null,
-          esDateTo: null,
-          dateFrom: null,
-          dateTo: null,
-          scheduleBase: null,
-          scheduleRange: null,
-          lunchIn: null,
-          lunchOut: null,
-          restDaysNames: null,
-          restDaysNumbers: null,
-          schedule: null,
-          scheduleName: null,
-          scheduleType: null,
-          shift: null,
-          timeIn: null,
-          timeOut: null,
-        },
+        // schedule: {
+        //   id: null,
+        //   esDateFrom: null,
+        //   esDateTo: null,
+        //   dateFrom: null,
+        //   dateTo: null,
+        //   scheduleBase: null,
+        //   scheduleRange: null,
+        //   lunchIn: null,
+        //   lunchOut: null,
+        //   restDaysNames: null,
+        //   restDaysNumbers: null,
+        //   schedule: null,
+        //   scheduleName: null,
+        //   scheduleType: null,
+        //   shift: null,
+        //   timeIn: null,
+        //   timeOut: null,
+        // },
+        schedule,
         dtr: {
           companyId: null,
           createdAt: null,

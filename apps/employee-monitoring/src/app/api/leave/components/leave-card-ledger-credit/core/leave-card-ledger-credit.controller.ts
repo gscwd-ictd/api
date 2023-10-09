@@ -7,7 +7,7 @@ export class LeaveCardLedgerCreditController {
 
   @Get('test')
   async test() {
-    //await this.leaveCardLedgerCreditService.creditBeginningBalance();
+    await this.leaveCardLedgerCreditService.creditBeginningBalance();
     await this.leaveCardLedgerCreditService.creditRecurringLeaves();
     await this.leaveCardLedgerCreditService.creditCumulativeLeaves();
   }
