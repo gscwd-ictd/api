@@ -1,8 +1,16 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
+import {
+  CreateLspIndividualExternalDto,
+  CreateLspIndividualInternalDto,
+  CreateLspOrganizationExternalDto,
+  LspDetails,
+  UpdateLspIndividualExternalDto,
+  UpdateLspIndividualInternalDto,
+  UpdateLspOrganizationExternalDto,
+} from '@gscwd-api/models';
 import { LspSource, LspType } from '@gscwd-api/utils';
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';
 import { LspAwardsService } from '../components/lsp-awards';
 import { LspCertificationsService } from '../components/lsp-certifications';
@@ -315,7 +323,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     }
   }
 
-  //get lsp by id
+  // get lsp by id
   async getLspById(id: string) {
     const lspDetails = await this.crudService.findOne({
       find: { select: { lspType: true, lspSource: true }, where: { id: id } },
@@ -334,7 +342,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     }
   }
 
-  //get lsp (type = individual, source = internal)
+  // get lsp (type = individual, source = internal)
   async getLspIndividualInternal(id: string) {
     const lspDetails = await this.crudService.findOne({
       find: {
@@ -368,12 +376,18 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     };
   }
 
-  //get lsp (type = individual, source = external)
+  // get lsp (type = individual, source = external)
   async getLspIndividualExternal(id: string) {
     const lspDetails = await this.crudService.findOne({
       find: {
         select: {
           id: true,
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          prefixName: true,
+          suffixName: true,
+          extensionName: true,
           expertise: true,
           contactNumber: true,
           email: true,
@@ -390,8 +404,6 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       onError: () => new NotFoundException(),
     });
 
-    const name = (await this.datasource.query('select get_lsp_fullname($1) fullname', [lspDetails.id]))[0].fullname;
-
     const affiliations = await this.lspAffiliationsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
     const awards = await this.lspAwardsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
     const certifications = await this.lspCertificationsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
@@ -403,7 +415,6 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     return {
       ...lspDetails,
       expertise: JSON.parse(lspDetails.expertise),
-      name,
       affiliations,
       awards,
       certifications,
@@ -414,7 +425,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     };
   }
 
-  //get lsp (type = organization, source = internal)
+  // get lsp by id (type = organization, source = internal)
   async getLspOrganizationInternal(id: string) {
     const lspDetails = await this.crudService.findOne({
       find: {
@@ -452,5 +463,58 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       coaching,
       trainings,
     };
+  }
+
+  // update lsp by id (type = individual, source = internal)
+  async updateLspIndividualInternal(data: UpdateLspIndividualInternalDto) {
+    return await 'update lsp individual internal';
+  }
+
+  // update lsp by id (type = individual, source = external)
+  async updateLspIndividualExternal(data: UpdateLspIndividualExternalDto) {
+    return await 'update lsp individual external';
+  }
+
+  // update lsp (type = organization, source = external)
+  async updateLspOrganizationExternal(data: UpdateLspOrganizationExternalDto) {
+    return await 'update lsp organization external';
+  }
+
+  // delete lsp by id
+  async deleteLspById(id: string) {
+    try {
+      const result = await this.datasource.transaction(async (entityManager) => {
+        // delete lsp components by lsp id
+        await this.deleteLspComponentsById(id, entityManager);
+
+        const lspDetails = await this.crudService.transact<LspDetails>(entityManager).delete({
+          softDelete: false,
+          deleteBy: { id },
+        });
+        return lspDetails;
+      });
+      return result;
+    } catch (error) {
+      throw new BadRequestException();
+    }
+  }
+
+  // delete lsp components by id
+  async deleteLspComponentsById(id: string, entityManager: EntityManager) {
+    try {
+      const affiliations = await this.lspAffiliationsService.delete(id, entityManager);
+      const awards = await this.lspAwardsService.delete(id, entityManager);
+      const certifications = await this.lspCertificationsService.delete(id, entityManager);
+      const coachings = await this.lspCoachingsService.delete(id, entityManager);
+      const educations = await this.lspEducationsService.delete(id, entityManager);
+      const projects = await this.lspProjectsService.delete(id, entityManager);
+      const trainings = await this.lspTrainingsService.delete(id, entityManager);
+
+      const result = await Promise.all([affiliations, awards, certifications, coachings, educations, projects, trainings]);
+
+      return result;
+    } catch (error) {
+      throw new BadRequestException();
+    }
   }
 }
