@@ -49,6 +49,9 @@ export class TrainingDetailsDto {
   @Type(() => TrainingRequirements)
   trainingRequirements: TrainingRequirements[];
 
+  @IsArray()
+  bucketFiles: Array<string>;
+
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CreateTrainingTagDto)
