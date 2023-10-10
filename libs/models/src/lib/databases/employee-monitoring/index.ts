@@ -24,4 +24,3 @@ export * from './data/overtime-application';
 export * from './data/overtime-employee';
 export * from './data/overtime-approval';
 export * from './data/overtime-accomplishment';
-export * from './data/users';

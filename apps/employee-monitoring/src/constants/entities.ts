@@ -55,5 +55,4 @@ export const typeOrmEntities = [
   OvertimeEmployee,
   OvertimeApproval,
   OvertimeAccomplishment,
-  Users,
 ];
