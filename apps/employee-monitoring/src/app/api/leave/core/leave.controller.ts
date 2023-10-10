@@ -23,6 +23,11 @@ export class LeaveController {
     return await this.leaveService.getLeavesUnderSupervisor(supervisorId);
   }
 
+  @Get('supervisor/v2/:supervisor_id')
+  async getLeavesUnderSupervisorV2(@Param('supervisor_id') supervisorId: string) {
+    return await this.leaveService.getLeavesUnderSupervisorV2(supervisorId);
+  }
+
   @Get('hrdm/')
   async getLeavesForHrmdApproval() {
     return await this.leaveService.getLeavesForHrdmApproval();
