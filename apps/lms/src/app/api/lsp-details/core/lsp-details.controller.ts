@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   DefaultValuePipe,
@@ -9,12 +8,20 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   UseInterceptors,
 } from '@nestjs/common';
 import { LspDetailsService } from './lsp-details.service';
-import { DeleteResult } from 'typeorm';
-import { CreateLspIndividualExternalDto, CreateLspIndividualInternalDto, CreateLspOrganizationExternalDto, LspDetails } from '@gscwd-api/models';
+import {
+  CreateLspIndividualExternalDto,
+  CreateLspIndividualInternalDto,
+  CreateLspOrganizationExternalDto,
+  LspDetails,
+  UpdateLspIndividualExternalDto,
+  UpdateLspIndividualInternalDto,
+  UpdateLspOrganizationExternalDto,
+} from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { FindLspIndividualInterceptor, FindLspOrganizationInterceptor } from '../misc/interceptors';
 import { LspType } from '@gscwd-api/utils';
@@ -86,6 +93,21 @@ export class LspDetailsController {
   @Post('/organization/external')
   async createLspOrganizationExternal(@Body() data: CreateLspOrganizationExternalDto) {
     return await this.lspDetailsService.addLspOrganizationExternal(data);
+  }
+
+  @Put('/individual/internal')
+  async updateLspIndividualInternal(@Body() data: UpdateLspIndividualInternalDto) {
+    return await this.lspDetailsService.updateLspIndividualInternal(data);
+  }
+
+  @Put('/individual/external')
+  async updateLspIndividualExternal(@Body() data: UpdateLspIndividualExternalDto) {
+    return await this.lspDetailsService.updateLspIndividualExternal(data);
+  }
+
+  @Put('/organization/external')
+  async updateLspOrganizationExternal(@Body() data: UpdateLspOrganizationExternalDto) {
+    return await this.lspDetailsService.updateLspOrganizationExternal(data);
   }
 
   @Get(':id')

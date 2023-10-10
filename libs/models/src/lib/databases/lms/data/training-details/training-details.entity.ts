@@ -59,7 +59,7 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
     name: 'training_preparation_status',
     type: 'enum',
     enum: TrainingPreparationStatus,
-    default: TrainingPreparationStatus.ON_GOING_NOMINATION,
+    default: TrainingPreparationStatus.PENDING,
     nullable: false,
   })
   trainingPreparationStatus: TrainingPreparationStatus;

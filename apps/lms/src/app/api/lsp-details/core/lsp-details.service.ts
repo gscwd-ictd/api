@@ -9,7 +9,7 @@ import {
   UpdateLspOrganizationExternalDto,
 } from '@gscwd-api/models';
 import { LspSource, LspType } from '@gscwd-api/utils';
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';
 import { LspAwardsService } from '../components/lsp-awards';
@@ -111,7 +111,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
 
       return result;
     } catch (error) {
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      Logger.log(error);
+      throw new BadRequestException();
     }
   }
 
@@ -229,7 +230,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
 
       return result;
     } catch (error) {
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      Logger.log(error);
+      throw new BadRequestException();
     }
   }
 
@@ -467,17 +469,293 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
 
   // update lsp by id (type = individual, source = internal)
   async updateLspIndividualInternal(data: UpdateLspIndividualInternalDto) {
-    return await 'update lsp individual internal';
+    const { id, expertise, affiliations, coaching, projects, trainings, ...rest } = data;
+
+    try {
+      const result = await this.datasource.transaction(async (entityManager) => {
+        await this.deleteLspComponentsById(id, entityManager);
+        await this.crudService.transact<LspDetails>(entityManager).update({
+          updateBy: { id },
+          dto: {
+            ...rest,
+            expertise: JSON.stringify(expertise),
+          },
+          onError: () => new BadRequestException(),
+        });
+
+        const lspDetails = await this.crudService.findOneBy({ findBy: { id } });
+
+        //insert lsp affiliations
+        await Promise.all(
+          affiliations.map(async (affiliationItem) => {
+            return await this.lspAffiliationsService.create(
+              {
+                lspDetails,
+                ...affiliationItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp coaching
+        await Promise.all(
+          coaching.map(async (coachingItem) => {
+            return await this.lspCoachingsService.create(
+              {
+                lspDetails,
+                ...coachingItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp projects
+        await Promise.all(
+          projects.map(async (projectItem) => {
+            return await this.lspProjectsService.create(
+              {
+                lspDetails,
+                ...projectItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp trainings
+        await Promise.all(
+          trainings.map(async (trainingItem) => {
+            return await this.lspTrainingsService.create(
+              {
+                lspDetails,
+                ...trainingItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        return data;
+      });
+
+      // return result
+      return result;
+    } catch (error) {
+      throw new BadRequestException();
+    }
   }
 
   // update lsp by id (type = individual, source = external)
   async updateLspIndividualExternal(data: UpdateLspIndividualExternalDto) {
-    return await 'update lsp individual external';
+    const { id, expertise, affiliations, awards, certifications, coaching, education, projects, trainings, ...rest } = data;
+
+    try {
+      const result = await this.datasource.transaction(async (entityManager) => {
+        await this.deleteLspComponentsById(id, entityManager);
+        await this.crudService.transact<LspDetails>(entityManager).update({
+          updateBy: { id },
+          dto: {
+            ...rest,
+            expertise: JSON.stringify(expertise),
+          },
+          onError: () => new BadRequestException(),
+        });
+
+        const lspDetails = await this.crudService.findOneBy({ findBy: { id } });
+
+        //insert lsp affiliations
+        await Promise.all(
+          affiliations.map(async (affiliationItem) => {
+            return await this.lspAffiliationsService.create(
+              {
+                lspDetails,
+                ...affiliationItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp awards
+        await Promise.all(
+          awards.map(async (awardItem) => {
+            return await this.lspAwardsService.create(
+              {
+                lspDetails,
+                ...awardItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp certifications
+        await Promise.all(
+          certifications.map(async (certificationItem) => {
+            return await this.lspCertificationsService.create(
+              {
+                lspDetails,
+                ...certificationItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp coaching
+        await Promise.all(
+          coaching.map(async (coachingItem) => {
+            return await this.lspCoachingsService.create(
+              {
+                lspDetails,
+                ...coachingItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp educations
+        await Promise.all(
+          education.map(async (educationItem) => {
+            return await this.lspEducationsService.create(
+              {
+                lspDetails,
+                ...educationItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp projects
+        await Promise.all(
+          projects.map(async (projectItem) => {
+            return await this.lspProjectsService.create(
+              {
+                lspDetails,
+                ...projectItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp trainings
+        await Promise.all(
+          trainings.map(async (trainingItem) => {
+            return await this.lspTrainingsService.create(
+              {
+                lspDetails,
+                ...trainingItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        return data;
+      });
+
+      return result;
+    } catch (error) {
+      Logger.log(error);
+      throw new BadRequestException();
+    }
   }
 
   // update lsp (type = organization, source = external)
   async updateLspOrganizationExternal(data: UpdateLspOrganizationExternalDto) {
-    return await 'update lsp organization external';
+    const { id, expertise, affiliations, awards, certifications, coaching, trainings, ...rest } = data;
+
+    try {
+      const result = await this.datasource.transaction(async (entityManager) => {
+        await this.deleteLspComponentsById(id, entityManager);
+        await this.crudService.transact<LspDetails>(entityManager).update({
+          updateBy: { id },
+          dto: {
+            ...rest,
+            expertise: JSON.stringify(expertise),
+          },
+          onError: () => new BadRequestException(),
+        });
+
+        const lspDetails = await this.crudService.findOneBy({ findBy: { id } });
+
+        //insert lsp affiliations
+        await Promise.all(
+          affiliations.map(async (affiliationItem) => {
+            return await this.lspAffiliationsService.create(
+              {
+                lspDetails,
+                ...affiliationItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp awards
+        await Promise.all(
+          awards.map(async (awardItem) => {
+            return await this.lspAwardsService.create(
+              {
+                lspDetails,
+                ...awardItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp certifications
+        await Promise.all(
+          certifications.map(async (certificationItem) => {
+            return await this.lspCertificationsService.create(
+              {
+                lspDetails,
+                ...certificationItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp coaching
+        await Promise.all(
+          coaching.map(async (coachingItem) => {
+            return await this.lspCoachingsService.create(
+              {
+                lspDetails,
+                ...coachingItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert lsp trainings
+        await Promise.all(
+          trainings.map(async (trainingItem) => {
+            return await this.lspTrainingsService.create(
+              {
+                lspDetails,
+                ...trainingItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        return data;
+      });
+
+      return result;
+    } catch (error) {
+      throw new BadRequestException();
+    }
   }
 
   // delete lsp by id
