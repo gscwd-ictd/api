@@ -22,6 +22,9 @@ export class FindLspIndividualInterceptor implements NestInterceptor {
             }
 
             return {
+              createdAt: lspItems.createdAt,
+              updatedAt: lspItems.updatedAt,
+              deletedAt: lspItems.deletedAt,
               id: lspItems.id,
               name: name,
               email: lspItems.email,

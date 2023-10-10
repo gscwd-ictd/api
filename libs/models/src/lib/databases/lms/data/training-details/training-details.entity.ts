@@ -55,11 +55,14 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'training_requirements', type: 'jsonb', nullable: false })
   trainingRequirements: string;
 
+  @Column({ name: 'bucket_files', type: 'jsonb', nullable: true })
+  bucketFiles: string;
+
   @Column({
     name: 'training_preparation_status',
     type: 'enum',
     enum: TrainingPreparationStatus,
-    default: TrainingPreparationStatus.ON_GOING_NOMINATION,
+    default: TrainingPreparationStatus.PENDING,
     nullable: false,
   })
   trainingPreparationStatus: TrainingPreparationStatus;

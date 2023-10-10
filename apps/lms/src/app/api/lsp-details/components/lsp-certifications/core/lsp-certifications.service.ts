@@ -17,10 +17,8 @@ export class LspCertificationsService extends CrudHelper<LspCertification> {
       onError: () => new BadRequestException(),
     });
 
-    //deconstruct and return result
-    const { lspDetails, ...rest } = result;
-
-    return rest;
+    // return result
+    return result;
   }
 
   //delete learning service provider certifications by lsp details id
@@ -31,7 +29,8 @@ export class LspCertificationsService extends CrudHelper<LspCertification> {
       softDelete: false,
       onError: () => new BadRequestException(),
     });
-    //return result
+
+    // return result
     return result;
   }
 }

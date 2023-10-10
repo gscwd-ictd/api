@@ -7,6 +7,7 @@ import { TrainingType } from '@gscwd-api/utils';
 import { LspDetails } from '../lsp-details';
 import { CreateTrainingTagDto } from '../training-tags';
 import { CreateTrainingDistributionDto } from '../training-distributions';
+import { TrainingRequirements } from '../training-requirements';
 
 export class TrainingDetailsDto {
   @IsUUID('4')
@@ -43,8 +44,13 @@ export class TrainingDetailsDto {
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
 
-  @IsString({ message: 'training details training requirements must be a string' })
-  trainingRequirements: Array<string>;
+  @ValidateNested({ each: true })
+  @IsArray()
+  @Type(() => TrainingRequirements)
+  trainingRequirements: TrainingRequirements[];
+
+  @IsArray()
+  bucketFiles: Array<string>;
 
   @ValidateNested({ each: true })
   @IsArray()
