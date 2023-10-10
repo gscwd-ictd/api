@@ -212,7 +212,7 @@ export class UpdateLspIndividualInternalDto extends PartialType(CreateLspIndivid
 }
 
 // update lsp (type = individual , source = external)
-export class UpdateLspIndividualExternalDto extends PartialType(CreateLspIndividualInternalDto) {
+export class UpdateLspIndividualExternalDto extends PartialType(CreateLspIndividualExternalDto) {
   @IsUUID()
   id: string;
 }
