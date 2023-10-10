@@ -321,6 +321,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
 
       return result;
     } catch (error) {
+      Logger.log(error);
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
   }
@@ -338,7 +339,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       case lspDetails.lspType === LspType.INDIVIDUAL && lspDetails.lspSource === LspSource.EXTERNAL:
         return await this.getLspIndividualExternal(id);
       case lspDetails.lspType === LspType.ORGANIZATION && lspDetails.lspSource === LspSource.EXTERNAL:
-        return await this.getLspOrganizationInternal(id);
+        return await this.getLspOrganizationExternal(id);
       default:
         return () => new NotFoundException();
     }
@@ -346,36 +347,43 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
 
   // get lsp (type = individual, source = internal)
   async getLspIndividualInternal(id: string) {
-    const lspDetails = await this.crudService.findOne({
-      find: {
-        select: { employeeId: true, expertise: true, experience: true, introduction: true, lspType: true, lspSource: true },
-        where: { id: id },
-      },
-      onError: () => new NotFoundException(),
-    });
+    try {
+      const lspDetails = await this.crudService.findOne({
+        find: {
+          select: { employeeId: true, expertise: true, experience: true, introduction: true, lspType: true, lspSource: true },
+          where: { id: id },
+        },
+        onError: () => new NotFoundException(),
+      });
 
-    const name = (await this.employeesService.findEmployeesById(lspDetails.employeeId)).fullName;
+      const name = (await this.employeesService.findEmployeesById(lspDetails.employeeId)).fullName;
 
-    const affiliations = await this.lspAffiliationsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const awards = [];
-    const certifications = [];
-    const coaching = await this.lspCoachingsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const education = [];
-    const projects = await this.lspProjectsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const trainings = await this.lspTrainingsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
+      const affiliations = await this.lspAffiliationsService
+        .crud()
+        .findAll({ find: { select: { position: true, institution: true }, where: { lspDetails: { id } } } });
+      const awards = [];
+      const certifications = [];
+      const coaching = await this.lspCoachingsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
+      const education = [];
+      const projects = await this.lspProjectsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
+      const trainings = await this.lspTrainingsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
 
-    return {
-      ...lspDetails,
-      expertise: JSON.parse(lspDetails.expertise),
-      name,
-      affiliations,
-      awards,
-      certifications,
-      coaching,
-      education,
-      projects,
-      trainings,
-    };
+      return {
+        ...lspDetails,
+        expertise: JSON.parse(lspDetails.expertise),
+        name,
+        affiliations,
+        awards,
+        certifications,
+        coaching,
+        education,
+        projects,
+        trainings,
+      };
+    } catch (error) {
+      Logger.log(error);
+      throw new NotFoundException();
+    }
   }
 
   // get lsp (type = individual, source = external)
@@ -406,13 +414,17 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       onError: () => new NotFoundException(),
     });
 
-    const affiliations = await this.lspAffiliationsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const awards = await this.lspAwardsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const certifications = await this.lspCertificationsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const coaching = await this.lspCoachingsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const education = await this.lspEducationsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const projects = await this.lspProjectsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const trainings = await this.lspTrainingsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
+    const affiliations = await this.lspAffiliationsService
+      .crud()
+      .findAll({ find: { select: { position: true, institution: true }, where: { lspDetails: { id } } } });
+    const awards = await this.lspAwardsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
+    const certifications = await this.lspCertificationsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
+    const coaching = await this.lspCoachingsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
+    const education = await this.lspEducationsService
+      .crud()
+      .findAll({ find: { select: { degree: true, institution: true }, where: { lspDetails: { id } } } });
+    const projects = await this.lspProjectsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
+    const trainings = await this.lspTrainingsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
 
     return {
       ...lspDetails,
@@ -427,8 +439,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     };
   }
 
-  // get lsp by id (type = organization, source = internal)
-  async getLspOrganizationInternal(id: string) {
+  // get lsp by id (type = organization, source = external)
+  async getLspOrganizationExternal(id: string) {
     const lspDetails = await this.crudService.findOne({
       find: {
         select: {
@@ -450,11 +462,13 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       onError: () => new NotFoundException(),
     });
 
-    const affiliations = await this.lspAffiliationsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const awards = await this.lspAwardsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const certifications = await this.lspCertificationsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const coaching = await this.lspCoachingsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
-    const trainings = await this.lspTrainingsService.crud().findAll({ find: { where: { lspDetails: { id } } } });
+    const affiliations = await this.lspAffiliationsService
+      .crud()
+      .findAll({ find: { select: { position: true, institution: true }, where: { lspDetails: { id } } } });
+    const awards = await this.lspAwardsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
+    const certifications = await this.lspCertificationsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
+    const coaching = await this.lspCoachingsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
+    const trainings = await this.lspTrainingsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
 
     return {
       ...lspDetails,
