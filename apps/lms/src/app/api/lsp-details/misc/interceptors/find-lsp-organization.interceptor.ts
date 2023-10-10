@@ -9,6 +9,9 @@ export class FindLspOrganizationInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((result: Pagination<LspDetails>) => {
         const lspDetails = result.items.map((item) => ({
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          deletedAt: item.deletedAt,
           id: item.id,
           name: `${item.organizationName}`,
           email: item.email,

@@ -39,6 +39,9 @@ export class LspDetailsController {
     return await this.lspDetailsService.crud().findAll({
       find: {
         select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
           id: true,
           employeeId: true,
           firstName: true,
@@ -67,6 +70,9 @@ export class LspDetailsController {
     return await this.lspDetailsService.crud().findAll({
       find: {
         select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
           id: true,
           organizationName: true,
           email: true,
