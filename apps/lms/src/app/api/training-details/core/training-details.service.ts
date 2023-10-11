@@ -1,9 +1,10 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateTrainingExternalDto, CreateTrainingInternalDto, TrainingDetails } from '@gscwd-api/models';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { CreateTrainingExternalDto, CreateTrainingInternalDto, TrainingDetails, TrainingDistribution, TrainingTag } from '@gscwd-api/models';
 import { DataSource } from 'typeorm';
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
+import { TrainingRecommendedEmployeeService } from '../components/training-recommended-employees';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -11,21 +12,21 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly crudService: CrudService<TrainingDetails>,
     private readonly trainingTagsService: TrainingTagsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
+    private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
   }
 
-  //training internal
+  // training internal
   async addTrainingInternal(data: CreateTrainingInternalDto) {
-    const { courseContent, trainingRequirements, bucketFiles, trainingTags, slotDistribution, ...rest } = data;
+    const { courseContent, trainingRequirements, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
         const trainingDetails = await this.crudService.create({
           dto: {
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
-            bucketFiles: JSON.stringify(bucketFiles),
             ...rest,
           },
           onError: () => new BadRequestException(),
@@ -66,7 +67,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  //training internal
+  // training external
   async addTrainingExternal(data: CreateTrainingExternalDto) {
     const { courseContent, trainingRequirements, bucketFiles, trainingTags, slotDistribution, ...rest } = data;
     try {
@@ -115,6 +116,119 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  async getTrainingById(id: string) {
+    const trainingDetails = await this.crudService.findOne({
+      find: { relations: { trainingDesign: true }, where: { id } },
+      onError: () => new NotFoundException(),
+    });
+
+    switch (true) {
+      case trainingDetails.trainingDesign !== null:
+        return await this.getTrainingInternal(id);
+      //return await this.getLspIndividualInternal(id);
+      case trainingDetails.trainingDesign === null:
+        return 'external';
+      //return await this.getLspIndividualExternal(id);
+      default:
+        return () => new NotFoundException();
+    }
+  }
+
+  //
+  async getTrainingInternal(id: string) {
+    try {
+      const trainingDetails = await this.crudService.findOne({
+        find: {
+          relations: { trainingDesign: true, trainingSource: true },
+          select: {
+            id: true,
+            trainingDesign: { id: true, courseTitle: true },
+            courseContent: true,
+            location: true,
+            trainingStart: true,
+            trainingEnd: true,
+            numberOfHours: true,
+            deadlineForSubmission: true,
+            numberOfParticipants: true,
+            trainingRequirements: true,
+            bucketFiles: true,
+            trainingSource: { id: true, name: true },
+            trainingType: true,
+          },
+          where: { id: id },
+        },
+        onError: () => new NotFoundException(),
+      });
+
+      const trainingTags = (await this.trainingTagsService.crud().findAll({
+        find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
+      })) as TrainingTag[];
+
+      const distribution = (await this.trainingDistributionsService.crud().findAll({
+        find: { select: { id: true, supervisorId: true, numberOfSlots: true }, where: { trainingDetails: { id } } },
+      })) as TrainingDistribution[];
+
+      const slotDistribution = await Promise.all(
+        distribution.map(async (distributionItem) => {
+          const recommended = await this.trainingRecommendedEmployeesService
+            .crud()
+            .findAll({ find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionItem.id } } } });
+
+          return {
+            ...distributionItem,
+            recommended,
+          };
+        })
+      );
+
+      return {
+        id: trainingDetails.id,
+        courseTitle: trainingDetails.trainingDesign.courseTitle,
+        courseContent: JSON.parse(trainingDetails.courseContent),
+        location: trainingDetails.location,
+        trainingStart: trainingDetails.trainingStart,
+        trainingEnd: trainingDetails.trainingEnd,
+        numberOfHours: trainingDetails.numberOfHours,
+        deadlineForSubmission: trainingDetails.deadlineForSubmission,
+        numberOfParticipants: trainingDetails.numberOfParticipants,
+        trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
+        bucketFiles: trainingDetails.bucketFiles,
+        trainingSource: trainingDetails.trainingSource.name,
+        trainingType: trainingDetails.trainingType,
+        trainingTags,
+        slotDistribution,
+      };
+    } catch (error) {
+      throw new NotFoundException();
+    }
+  }
+
+  // async getTrainingExternal(id: string) {
+  //   try {
+  //     const trainingDetails = await this.crudService.findOne({
+  //       find: {
+  //         select: {
+  //           id: true,
+  //           courseTitle: true,
+  //           courseContent: true,
+  //           location: true,
+  //           trainingStart: true,
+  //           trainingEnd: true,
+  //           numberOfHours: true,
+  //           deadlineForSubmission: true,
+  //           numberOfParticipants: true,
+  //           trainingRequirements: true,
+  //           bucketFiles: true,
+  //         },
+  //         where: { id: id },
+  //       },
+  //       onError: () => new NotFoundException(),
+  //     });
+  //   } catch (error) {
+  //     throw new NotFoundException();
+  //   }
+  // }
 
   //HR create training individual details and distribute slots to selected managers
 

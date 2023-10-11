@@ -1,4 +1,15 @@
-import { Body, Controller, DefaultValuePipe, Get, InternalServerErrorException, ParseIntPipe, Post, Query, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Get,
+  InternalServerErrorException,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
 import { TrainingDetailsService } from './training-details.service';
 import { CreateTrainingExternalDto, CreateTrainingInternalDto, TrainingDetails } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -35,13 +46,21 @@ export class TrainingDetailsController {
           trainingDesign: { courseTitle: true },
           courseTitle: true,
           location: true,
+          trainingStart: true,
+          trainingEnd: true,
           trainingSource: { name: true },
           trainingType: true,
+          trainingPreparationStatus: true,
         },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
     });
+  }
+
+  @Get(':id')
+  async findTrainingDetailsById(@Param('id') id: string) {
+    return await this.trainingDetailsService.getTrainingById(id);
   }
 
   // // HR

@@ -18,5 +18,5 @@ export class CreateTrainingDistributionDto {
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CreateTrainingRecommendedEmployeeDto)
-  recommendedEmployee: CreateTrainingRecommendedEmployeeDto[];
+  recommendedEmployees: CreateTrainingRecommendedEmployeeDto[];
 }
