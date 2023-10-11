@@ -5,9 +5,10 @@ import { TrainingDetailsService } from './training-details.service';
 import { TrainingDetailsController } from './training-details.controller';
 import { TrainingTagsModule } from '../components/training-tags';
 import { TrainingDistributionsModule } from '../components/training-distributions';
+import { TrainingRecommendedEmployeesModule } from '../components/training-recommended-employees';
 
 @Module({
-  imports: [CrudModule.register(TrainingDetails), TrainingTagsModule, TrainingDistributionsModule],
+  imports: [CrudModule.register(TrainingDetails), TrainingTagsModule, TrainingDistributionsModule, TrainingRecommendedEmployeesModule],
   controllers: [TrainingDetailsController],
   providers: [TrainingDetailsService],
   exports: [TrainingDetailsService],

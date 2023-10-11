@@ -15,16 +15,19 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
 
   //HR distribute slots to selected managers
   async create(data: CreateTrainingDistributionDto, entityManager: EntityManager) {
-    const { recommendedEmployee, ...rest } = data;
+    const { employees, supervisor, ...rest } = data;
 
     const trainingDistribution = await this.crudService.transact<TrainingDistribution>(entityManager).create({
-      dto: rest,
+      dto: {
+        supervisorId: supervisor.supervisorId,
+        ...rest,
+      },
       onError: () => new BadRequestException(),
     });
 
     //insert training recommended employees
     await Promise.all(
-      recommendedEmployee.map(async (recommendedEmployeeItem) => {
+      employees.map(async (recommendedEmployeeItem) => {
         return await this.trainingRecommendedEmployeesService.create(
           {
             trainingDistribution,
