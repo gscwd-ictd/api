@@ -9,6 +9,7 @@ import { EmployeeTagsModule } from './services/employee-tags/core/employee-tags.
 import { TrainingSourcesModule } from './api/training-sources';
 import { TrainingDesignsModule } from './api/training-designs';
 import { TrainingDetailsModule } from './api/training-details';
+import { PortalEmployeesModule } from './services/portal';
 
 @Module({
   imports: [
@@ -39,6 +40,9 @@ import { TrainingDetailsModule } from './api/training-details';
     //microservice
     EmployeesModule,
     EmployeeTagsModule,
+
+    // portal microservices
+    PortalEmployeesModule,
   ],
 })
 export class AppModule {}

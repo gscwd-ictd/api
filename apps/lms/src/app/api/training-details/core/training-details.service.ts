@@ -178,6 +178,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       return {
         id: trainingDetails.id,
+        trainingDesign: trainingDetails.trainingDesign.id,
         courseTitle: trainingDetails.courseTitle || trainingDetails.trainingDesign.courseTitle,
         courseContent: JSON.parse(trainingDetails.courseContent),
         location: trainingDetails.location,
@@ -187,7 +188,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         deadlineForSubmission: trainingDetails.deadlineForSubmission,
         numberOfParticipants: trainingDetails.numberOfParticipants,
         trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
-        bucketFiles: trainingDetails.bucketFiles,
+        bucketFiles: JSON.parse(trainingDetails.bucketFiles),
         trainingSource: trainingDetails.trainingSource.name,
         trainingType: trainingDetails.trainingType,
         traingTags,
