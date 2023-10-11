@@ -1,10 +1,11 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateTrainingExternalDto, CreateTrainingInternalDto, TrainingDetails, TrainingDistribution, TrainingTag } from '@gscwd-api/models';
 import { DataSource } from 'typeorm';
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
 import { TrainingRecommendedEmployeeService } from '../components/training-recommended-employees';
+import { LspDetailsService } from '../../lsp-details';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -13,6 +14,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly trainingTagsService: TrainingTagsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
+    private readonly lspDetailsService: LspDetailsService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -122,7 +124,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       const trainingDetails = await this.crudService.findOne({
         find: {
-          relations: { trainingDesign: true, trainingSource: true },
+          relations: { trainingDesign: true, trainingSource: true, lspDetails: true },
           select: {
             id: true,
             trainingDesign: { id: true, courseTitle: true },
@@ -138,17 +140,20 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             bucketFiles: true,
             trainingSource: { id: true, name: true },
             trainingType: true,
+            lspDetails: { id: true },
           },
           where: { id: id },
         },
         onError: () => new NotFoundException(),
       });
 
+      const lspDetails = await this.lspDetailsService.findLspDetailsById(trainingDetails.lspDetails.id);
+
       const tag = (await this.trainingTagsService.crud().findAll({
         find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
       })) as TrainingTag[];
 
-      const traingTags = await Promise.all(
+      const trainingTags = await Promise.all(
         tag.map(async (tagItem) => {
           return {
             tag: tagItem.tag.name,
@@ -162,7 +167,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       const slotDistribution = await Promise.all(
         distribution.map(async (distributionItem) => {
-          const recommended = await this.trainingRecommendedEmployeesService
+          const employees = await this.trainingRecommendedEmployeesService
             .crud()
             .findAll({ find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionItem.id } } } });
 
@@ -171,7 +176,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
               supervisorId: distributionItem.supervisorId,
             },
             numberOfSlots: distributionItem.numberOfSlots,
-            recommended,
+            employees,
           };
         })
       );
@@ -179,6 +184,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       return {
         id: trainingDetails.id,
         trainingDesign: trainingDetails.trainingDesign.id,
+        lspDetails,
         courseTitle: trainingDetails.courseTitle || trainingDetails.trainingDesign.courseTitle,
         courseContent: JSON.parse(trainingDetails.courseContent),
         location: trainingDetails.location,
@@ -191,10 +197,11 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         bucketFiles: JSON.parse(trainingDetails.bucketFiles),
         trainingSource: trainingDetails.trainingSource.name,
         trainingType: trainingDetails.trainingType,
-        traingTags,
+        trainingTags,
         slotDistribution,
       };
     } catch (error) {
+      Logger.log(error);
       throw new NotFoundException();
     }
   }
