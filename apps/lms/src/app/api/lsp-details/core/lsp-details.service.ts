@@ -350,7 +350,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     return {
       id: result.id,
       name: name,
-      lspType: result.lspType,
+      type: result.lspType,
     };
   }
 
