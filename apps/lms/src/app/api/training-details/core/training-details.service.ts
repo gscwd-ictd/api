@@ -117,26 +117,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
+  // get training details by id
   async getTrainingById(id: string) {
-    const trainingDetails = await this.crudService.findOne({
-      find: { relations: { trainingDesign: true }, where: { id } },
-      onError: () => new NotFoundException(),
-    });
-
-    switch (true) {
-      case trainingDetails.trainingDesign !== null:
-        return await this.getTrainingInternal(id);
-      //return await this.getLspIndividualInternal(id);
-      case trainingDetails.trainingDesign === null:
-        return 'external';
-      //return await this.getLspIndividualExternal(id);
-      default:
-        return () => new NotFoundException();
-    }
-  }
-
-  //
-  async getTrainingInternal(id: string) {
     try {
       const trainingDetails = await this.crudService.findOne({
         find: {
@@ -144,6 +126,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           select: {
             id: true,
             trainingDesign: { id: true, courseTitle: true },
+            courseTitle: true,
             courseContent: true,
             location: true,
             trainingStart: true,
@@ -161,9 +144,17 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         onError: () => new NotFoundException(),
       });
 
-      const trainingTags = (await this.trainingTagsService.crud().findAll({
+      const tag = (await this.trainingTagsService.crud().findAll({
         find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
       })) as TrainingTag[];
+
+      const traingTags = await Promise.all(
+        tag.map(async (tagItem) => {
+          return {
+            tag: tagItem.tag.name,
+          };
+        })
+      );
 
       const distribution = (await this.trainingDistributionsService.crud().findAll({
         find: { select: { id: true, supervisorId: true, numberOfSlots: true }, where: { trainingDetails: { id } } },
@@ -176,7 +167,10 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             .findAll({ find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionItem.id } } } });
 
           return {
-            ...distributionItem,
+            supervisor: {
+              supervisorId: distributionItem.supervisorId,
+            },
+            numberOfSlots: distributionItem.numberOfSlots,
             recommended,
           };
         })
@@ -184,7 +178,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       return {
         id: trainingDetails.id,
-        courseTitle: trainingDetails.trainingDesign.courseTitle,
+        courseTitle: trainingDetails.courseTitle || trainingDetails.trainingDesign.courseTitle,
         courseContent: JSON.parse(trainingDetails.courseContent),
         location: trainingDetails.location,
         trainingStart: trainingDetails.trainingStart,
@@ -196,7 +190,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         bucketFiles: trainingDetails.bucketFiles,
         trainingSource: trainingDetails.trainingSource.name,
         trainingType: trainingDetails.trainingType,
-        trainingTags,
+        traingTags,
         slotDistribution,
       };
     } catch (error) {
