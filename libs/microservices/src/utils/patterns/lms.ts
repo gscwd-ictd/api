@@ -5,6 +5,7 @@ export enum GetAllManagersPatterns {
 export enum FindEmployeesPatterns {
   GET_EMPLOYEES_BY_NAME_MATCH = 'get_employees_by_name_match',
   GET_EMPLOYEES_BY_ID = 'get_employee_name',
+  GET_EMPLOYEES_DETAILS_BY_ID = 'get_lsp_pds_details',
 }
 
 export enum EmployeeTagsPatterns {

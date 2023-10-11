@@ -11,6 +11,7 @@ import { LspEducationsModule } from '../components/lsp-educations';
 import { LspProjectsModule } from '../components/lsp-projects';
 import { LspTrainingsModule } from '../components/lsp-trainings';
 import { EmployeesModule } from '../../../services/employees';
+import { PortalEmployeesModule } from '../../../services/portal';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { EmployeesModule } from '../../../services/employees';
     LspProjectsModule,
     LspTrainingsModule,
     EmployeesModule,
+    PortalEmployeesModule,
   ],
   controllers: [LspDetailsController],
   providers: [LspDetailsService],

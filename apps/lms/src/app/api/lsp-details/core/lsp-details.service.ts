@@ -19,6 +19,7 @@ import { LspEducationsService } from '../components/lsp-educations';
 import { LspProjectsService } from '../components/lsp-projects';
 import { LspTrainingsService } from '../components/lsp-trainings';
 import { EmployeesService } from '../../../services/employees';
+import { PortalEmployeesService } from '../../../services/portal';
 
 @Injectable()
 export class LspDetailsService extends CrudHelper<LspDetails> {
@@ -32,6 +33,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     private readonly lspProjectsService: LspProjectsService,
     private readonly lspTrainingsService: LspTrainingsService,
     private readonly employeesService: EmployeesService,
+    private readonly portalEmployeesService: PortalEmployeesService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -356,27 +358,31 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         onError: () => new NotFoundException(),
       });
 
-      const name = (await this.employeesService.findEmployeesById(lspDetails.employeeId)).fullName;
+      const employeeDetails = await this.portalEmployeesService.findEmployeesDetailsById(lspDetails.employeeId);
 
       const affiliations = await this.lspAffiliationsService
         .crud()
         .findAll({ find: { select: { position: true, institution: true }, where: { lspDetails: { id } } } });
-      const awards = [];
-      const certifications = [];
       const coaching = await this.lspCoachingsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
-      const education = [];
       const projects = await this.lspProjectsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
       const trainings = await this.lspTrainingsService.crud().findAll({ find: { select: { name: true }, where: { lspDetails: { id } } } });
 
       return {
-        ...lspDetails,
+        employeeId: employeeDetails.employeeId,
+        name: employeeDetails.fullName,
         expertise: JSON.parse(lspDetails.expertise),
-        name,
+        contactNumber: employeeDetails.contactNumber,
+        email: employeeDetails.email,
+        postalAddress: employeeDetails.postalAddress,
+        photoUrl: employeeDetails.photoUrl,
+        tin: employeeDetails.tin,
+        experience: lspDetails.experience,
+        introduction: lspDetails.introduction,
         affiliations,
-        awards,
-        certifications,
+        awards: employeeDetails.awards,
+        certifications: employeeDetails.certifications,
         coaching,
-        education,
+        education: employeeDetails.educations,
         projects,
         trainings,
       };
