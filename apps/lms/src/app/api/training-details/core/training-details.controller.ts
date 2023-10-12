@@ -59,8 +59,8 @@ export class TrainingDetailsController {
   }
 
   @Get(':id')
-  async findTrainingDetailsById(@Param('id') id: string) {
-    return await this.trainingDetailsService.getTrainingById(id);
+  async findTrainingById(@Param('id') id: string) {
+    return await this.trainingDetailsService.findTrainingById(id);
   }
 
   // // HR

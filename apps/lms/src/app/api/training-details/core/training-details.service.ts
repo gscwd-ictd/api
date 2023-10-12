@@ -119,8 +119,26 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  // get training details by id
-  async getTrainingById(id: string) {
+  async findTrainingById(id: string) {
+    const trainingDetails = await this.crudService.findOne({
+      find: { relations: { trainingDesign: true }, select: { trainingDesign: { id: true } }, where: { id: id } },
+      onError: () => new NotFoundException(),
+    });
+
+    console.log(trainingDetails);
+
+    switch (true) {
+      case trainingDetails.trainingDesign !== null:
+        return await this.findTrainingInternalById(id);
+      case trainingDetails.trainingDesign === null:
+        return await this.findTrainingExternalById(id);
+      default:
+        return () => new NotFoundException();
+    }
+  }
+
+  // get training details internal by id
+  async findTrainingInternalById(id: string) {
     try {
       const trainingDetails = await this.crudService.findOne({
         find: {
@@ -128,7 +146,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           select: {
             id: true,
             trainingDesign: { id: true, courseTitle: true },
-            courseTitle: true,
             courseContent: true,
             location: true,
             trainingStart: true,
@@ -137,10 +154,10 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             deadlineForSubmission: true,
             numberOfParticipants: true,
             trainingRequirements: true,
-            bucketFiles: true,
             trainingSource: { id: true, name: true },
             trainingType: true,
             lspDetails: { id: true },
+            trainingPreparationStatus: true,
           },
           where: { id: id },
         },
@@ -185,7 +202,93 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         id: trainingDetails.id,
         trainingDesign: trainingDetails.trainingDesign.id,
         lspDetails,
-        courseTitle: trainingDetails.courseTitle || trainingDetails.trainingDesign.courseTitle,
+        courseTitle: trainingDetails.trainingDesign.courseTitle,
+        courseContent: JSON.parse(trainingDetails.courseContent),
+        location: trainingDetails.location,
+        trainingStart: trainingDetails.trainingStart,
+        trainingEnd: trainingDetails.trainingEnd,
+        numberOfHours: trainingDetails.numberOfHours,
+        deadlineForSubmission: trainingDetails.deadlineForSubmission,
+        numberOfParticipants: trainingDetails.numberOfParticipants,
+        trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
+        trainingSource: trainingDetails.trainingSource.name,
+        trainingType: trainingDetails.trainingType,
+        preparationStatus: trainingDetails.trainingPreparationStatus,
+        trainingTags,
+        slotDistribution,
+      };
+    } catch (error) {
+      Logger.log(error);
+      throw new NotFoundException();
+    }
+  }
+
+  // get training details external by id
+  async findTrainingExternalById(id: string) {
+    try {
+      const trainingDetails = await this.crudService.findOne({
+        find: {
+          relations: { trainingSource: true, lspDetails: true },
+          select: {
+            id: true,
+            courseTitle: true,
+            courseContent: true,
+            location: true,
+            trainingStart: true,
+            trainingEnd: true,
+            numberOfHours: true,
+            deadlineForSubmission: true,
+            numberOfParticipants: true,
+            trainingRequirements: true,
+            bucketFiles: true,
+            trainingSource: { id: true, name: true },
+            trainingType: true,
+            trainingPreparationStatus: true,
+            lspDetails: { id: true },
+          },
+          where: { id: id },
+        },
+        onError: () => new NotFoundException(),
+      });
+
+      const lspDetails = await this.lspDetailsService.findLspDetailsById(trainingDetails.lspDetails.id);
+
+      const tag = (await this.trainingTagsService.crud().findAll({
+        find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
+      })) as TrainingTag[];
+
+      const trainingTags = await Promise.all(
+        tag.map(async (tagItem) => {
+          return {
+            tag: tagItem.tag.name,
+          };
+        })
+      );
+
+      const distribution = (await this.trainingDistributionsService.crud().findAll({
+        find: { select: { id: true, supervisorId: true, numberOfSlots: true }, where: { trainingDetails: { id } } },
+      })) as TrainingDistribution[];
+
+      const slotDistribution = await Promise.all(
+        distribution.map(async (distributionItem) => {
+          const employees = await this.trainingRecommendedEmployeesService
+            .crud()
+            .findAll({ find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionItem.id } } } });
+
+          return {
+            supervisor: {
+              supervisorId: distributionItem.supervisorId,
+            },
+            numberOfSlots: distributionItem.numberOfSlots,
+            employees,
+          };
+        })
+      );
+
+      return {
+        id: trainingDetails.id,
+        lspDetails,
+        courseTitle: trainingDetails.courseTitle,
         courseContent: JSON.parse(trainingDetails.courseContent),
         location: trainingDetails.location,
         trainingStart: trainingDetails.trainingStart,
@@ -197,6 +300,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         bucketFiles: JSON.parse(trainingDetails.bucketFiles),
         trainingSource: trainingDetails.trainingSource.name,
         trainingType: trainingDetails.trainingType,
+        preparationStatus: trainingDetails.trainingPreparationStatus,
         trainingTags,
         slotDistribution,
       };
