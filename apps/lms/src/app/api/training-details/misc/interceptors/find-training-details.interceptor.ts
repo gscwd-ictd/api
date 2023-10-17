@@ -16,8 +16,11 @@ export class FindTrainingDetailsInterceptor implements NestInterceptor {
               id: results.id,
               courseTitle: results.courseTitle || results.trainingDesign.courseTitle,
               location: results.location,
+              trainingStart: results.trainingStart,
+              trainingEnd: results.trainingEnd,
               trainingSource: results.trainingSource.name,
               trainingType: results.trainingType,
+              preparationStatus: results.trainingPreparationStatus,
             };
           })
         );

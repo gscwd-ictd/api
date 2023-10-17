@@ -49,9 +49,6 @@ export class TrainingDetailsDto {
   @Type(() => TrainingRequirements)
   trainingRequirements: TrainingRequirements[];
 
-  @IsArray()
-  bucketFiles: Array<string>;
-
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CreateTrainingTagDto)
@@ -74,7 +71,6 @@ export class CreateTrainingExternalDto extends TrainingDetailsDto {
   @Length(1, 100, { message: 'training course title must be between 1 to 100 characters' })
   courseTitle: string;
 
-  @IsNotEmpty()
-  @IsString({ message: 'training invitation url must be a string' })
-  invitationUrl: string;
+  @IsArray()
+  bucketFiles: Array<string>;
 }

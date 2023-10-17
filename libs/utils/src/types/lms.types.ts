@@ -41,6 +41,19 @@ export type EmployeeFullName = {
   fullName: string;
 };
 
+export type PortalEmployeeDetails = {
+  employeeId: string;
+  contactNumber: string;
+  email: string;
+  postalAddress: string;
+  photoUrl: string;
+  tin: string;
+  fullName: string;
+  awards: [name: string];
+  certifications: [name: string];
+  educations: [degree: string, institution: string];
+};
+
 export type RawTag = {
   tag: string;
 };
