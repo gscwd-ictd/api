@@ -22,5 +22,6 @@ export class UpdatePassSlipApprovalDto {
   hrmoApprovalDate?: Date;
   encodedTimeOut?: number;
   encodedTimeIn?: number;
+  isDisputeApproved?: boolean;
   disputeRemarks?: string;
 }

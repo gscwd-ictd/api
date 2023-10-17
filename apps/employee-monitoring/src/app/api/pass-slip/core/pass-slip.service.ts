@@ -541,29 +541,29 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     //1. fetch approved pass slips from yesterday (Personal Business Only)
     const passSlips = (await this.rawQuery(`
         SELECT 
-          ps.pass_slip_id id, 
-          employee_id_fk employeeId, 
-          date_of_application dateOfApplication, 
-          nature_of_business natureOfBusiness,
-          time_in timeIn,
-          time_out timeOut,
-          encoded_time_in encodedTimeIn,
-          encoded_time_out encodedTimeOut,
-          ps.ob_transportation obTransportation,
-          ps.estimate_hours estimateHours,
-          ps.purpose_destination purposeDestination,
-          ps.is_cancelled isCancelled,
-          ps.dispute_remarks disputeRemarks,
-          ps.created_at createdAt,
-          ps.updated_at updatedAt,
-          ps.deleted_at deletedAt
+            ps.pass_slip_id id, 
+            employee_id_fk employeeId, 
+            date_of_application dateOfApplication, 
+            nature_of_business natureOfBusiness,
+            time_in timeIn,
+            time_out timeOut,
+            encoded_time_in encodedTimeIn,
+            encoded_time_out encodedTimeOut,
+            ps.ob_transportation obTransportation,
+            ps.estimate_hours estimateHours,
+            ps.purpose_destination purposeDestination,
+            ps.is_cancelled isCancelled,
+            ps.dispute_remarks disputeRemarks,
+            ps.created_at createdAt,
+            ps.updated_at updatedAt,
+            ps.deleted_at deletedAt,
+            ps.is_dispute_approved disputeApproved
           FROM pass_slip ps 
           INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
-        WHERE date_of_application < DATE_FORMAT(now(),'%Y-%m-%d') AND psa.status = 'approved' 
+        WHERE get_date_after_num_of_working_days(date_of_application, 2) = DATE_FORMAT(now(),'%Y-%m-%d') AND psa.status = 'approved' 
         AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
     `)) as PassSlipForLedger[];
     //2. check time in and time out
-
     const passSlipsToLedger = await Promise.all(
       passSlips.map(async (passSlip) => {
         const {
@@ -580,6 +580,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           encodedTimeOut,
           purposeDestination,
           disputeRemarks,
+          isDisputeApproved,
           createdAt,
           updatedAt,
           deletedAt,
@@ -631,6 +632,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
               encodedTimeIn,
               encodedTimeOut,
               disputeRemarks,
+              isDisputeApproved,
               createdAt,
               updatedAt,
               deletedAt,

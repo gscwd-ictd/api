@@ -11,17 +11,13 @@ export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {
     super(crudService);
   }
 
-  async getPassSlipsForApproval(supervisorId: string) {
-    return await this.crudService.findAll({});
-  }
-
   async updatePassSlipStatus(updatePassSlipApprovalDto: UpdatePassSlipApprovalDto) {
-    const { status, passSlipId, disputeRemarks, encodedTimeIn } = updatePassSlipApprovalDto;
+    const { status, passSlipId, disputeRemarks, encodedTimeIn, isDisputeApproved } = updatePassSlipApprovalDto;
 
     let updateResult;
-    if (status === PassSlipApprovalStatus.APPROVED || status === PassSlipApprovalStatus.DISAPPROVED_BY_HRMO)
+    if (status === PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL || status === PassSlipApprovalStatus.DISAPPROVED_BY_HRMO)
       updateResult = await this.crudService.update({ dto: { status, hrmoApprovalDate: dayjs().toDate() }, updateBy: { passSlipId } });
-    else if (status === PassSlipApprovalStatus.FOR_HRMO_APPROVAL || status === PassSlipApprovalStatus.DISAPPROVED)
+    else if (status === PassSlipApprovalStatus.APPROVED || status === PassSlipApprovalStatus.DISAPPROVED)
       updateResult = await this.crudService.update({ dto: { status, supervisorApprovalDate: dayjs().toDate() }, updateBy: { passSlipId } });
     else if (status === PassSlipApprovalStatus.FOR_DISPUTE) {
       updateResult = await this.crudService.update({ dto: { status }, updateBy: { passSlipId } });
@@ -30,6 +26,9 @@ export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {
         disputeRemarks,
         passSlipId,
       ]);
+    } else if (isDisputeApproved) {
+      updateResult = await this.crudService.update({ dto: { status: PassSlipApprovalStatus.APPROVED }, updateBy: { passSlipId } });
+      await this.rawQuery(`UPDATE pass_slip SET is_dispute_approved=? WHERE pass_slip_id = ?`, [isDisputeApproved, passSlipId]);
     }
 
     if (updateResult.affected > 0) return updatePassSlipApprovalDto;

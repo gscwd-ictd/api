@@ -187,6 +187,7 @@ export type PassSlipForLedger = {
   encodedTimeOut: number;
   purposeDestination: string;
   disputeRemarks: string;
+  isDisputeApproved: boolean;
   isCancelled: boolean;
   createdAt: Date;
   updatedAt: Date;

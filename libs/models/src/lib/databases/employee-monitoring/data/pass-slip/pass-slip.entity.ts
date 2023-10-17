@@ -42,4 +42,7 @@ export class PassSlip extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'dispute_remarks', type: 'text', nullable: true })
   disputeRemarks: string;
+
+  @Column({ name: 'is_dispute_approved', type: 'boolean', default: null })
+  isDisputeApproved: boolean;
 }

@@ -348,6 +348,17 @@ export class OvertimeService {
             const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
             const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
             const { companyId, employeeFullName, positionTitle, assignment, photoUrl } = employeeDetails;
+            const { isAccomplishmentSubmitted } = (
+              await this.employeeScheduleService.rawQuery(
+                `
+            SELECT IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted 
+              FROM overtime_accomplishment oa 
+              INNER JOIN overtime_employee oe ON oe.overtime_employee_id = oa.overtime_employee_id_fk 
+            WHERE oe.employee_id_fk = ? AND oe.overtime_application_id_fk = ?;`,
+                [employeeId, overtime.id]
+              )
+            )[0];
+
             return {
               employeeId,
               companyId,
@@ -356,6 +367,7 @@ export class OvertimeService {
               scheduleBase,
               avatarUrl: photoUrl,
               assignment: assignment.name,
+              isAccomplishmentSubmitted,
             };
           })
         )) as [];
