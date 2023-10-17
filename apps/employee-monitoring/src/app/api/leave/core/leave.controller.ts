@@ -30,7 +30,7 @@ export class LeaveController {
 
   @Get('hrdm/')
   async getLeavesForHrmdApproval() {
-    return await this.leaveService.getLeavesForHrdmApproval();
+    return await this.leaveService.getLeavesForHrdmApprovalV2();
   }
 
   //!todo supervisor guard

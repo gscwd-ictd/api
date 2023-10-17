@@ -48,6 +48,10 @@ export class LeaveService {
     return await this.leaveApplicationService.getLeavesForHrdm();
   }
 
+  async getLeavesForHrdmApprovalV2() {
+    return await this.leaveApplicationService.getLeavesForHrdmV2();
+  }
+
   async getLeaveLedger(employeeId: string, companyId: string) {
     return (await this.leaveApplicationService.crud().getRepository().query(`CALL sp_generate_leave_ledger_view(?,?);`, [employeeId, companyId]))[0];
   }

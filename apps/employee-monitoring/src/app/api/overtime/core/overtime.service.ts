@@ -10,9 +10,9 @@ import {
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
 import { OvertimeStatus, ScheduleBase } from '@gscwd-api/utils';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
-import { DataSource, EntityManager, TreeLevelColumn } from 'typeorm';
+import { DataSource, EntityManager, EntityMetadata, TreeLevelColumn } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
@@ -74,6 +74,54 @@ export class OvertimeService {
       return { application, approval, employees: overtimeEmployees };
     });
     return result;
+  }
+
+  async getOvertimeApplicationsForApprovalV2(managerId: string) {
+    //
+    //1. get manager organization id
+    const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
+    //2. get employeeIds from organization id
+    const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
+
+    const employeeIds = await Promise.all(
+      employeesUnderOrgId.map(async (employee) => {
+        return employee.value;
+      })
+    );
+
+    //3. get overtime employee ids for approval
+    const overtimeApplications = await this.overtimeApplicationService.getOvertimeApplicationsByEmployeeIds(employeeIds);
+
+    const overtimeApplicationsWithSupervisorName = await Promise.all(
+      overtimeApplications.map(async (overtimeApplication) => {
+        const { employeeId, overtimeApplicationId, ...rest } = overtimeApplication;
+        const immediateSupervisorName = (await this.employeeService.getEmployeeDetails(employeeId)).employeeFullName;
+        const employees = (await this.overtimeEmployeeService
+          .crud()
+          .findAll({ find: { select: { employeeId: true }, where: { overtimeApplicationId: { id: overtimeApplicationId } } } })) as {
+          employeeId: string;
+        }[];
+
+        const employeesWithDetails = await Promise.all(
+          employees.map(async (employee) => {
+            const { employeeId } = employee;
+            const employeeDetail = await this.employeeService.getEmployeeDetails(employeeId);
+            const { assignment, employeeFullName, companyId, photoUrl } = employeeDetail;
+            return {
+              employeeId,
+              companyId,
+              fullName: employeeFullName,
+              positionTitle: assignment.positionTitle,
+              avatarUrl: photoUrl,
+              assignment: assignment.name,
+            };
+          })
+        );
+        return { id: overtimeApplicationId, ...rest, immediateSupervisorName, employees: employeesWithDetails };
+      })
+    );
+
+    return overtimeApplicationsWithSupervisorName;
   }
 
   async getOvertimeApplicationsForApproval(managerId: string) {
@@ -681,9 +729,15 @@ export class OvertimeService {
   }
 
   async deleteImmediateSupervisor(id: string) {
-    const deleteResult = await this.overtimeImmediateSupervisorService
-      .crud()
-      .delete({ deleteBy: { id }, softDelete: false, onError: () => new NotFoundException() });
+    const deleteResult = await this.overtimeImmediateSupervisorService.crud().delete({
+      deleteBy: { id },
+      softDelete: false,
+      onError: (error: { error: { errno: number }; metadata: EntityMetadata }) => {
+        if (error.error.errno === 1451) throw new HttpException('Supervisor currently has ongoing overtime application/s', HttpStatus.BAD_REQUEST);
+        else throw new InternalServerErrorException();
+      },
+    });
     if (deleteResult.affected > 0) return { deletedImmediateSupervisor: id };
+    throw new InternalServerErrorException();
   }
 }

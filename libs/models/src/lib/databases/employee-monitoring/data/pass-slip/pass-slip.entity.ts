@@ -33,4 +33,13 @@ export class PassSlip extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'time_in', type: 'time', nullable: true })
   timeIn: number;
+
+  @Column({ name: 'encoded_time_out', type: 'time', nullable: true })
+  encodedTimeOut: number;
+
+  @Column({ name: 'encoded_time_in', type: 'time', nullable: true })
+  encodedTimeIn: number;
+
+  @Column({ name: 'dispute_remarks', type: 'text', nullable: true })
+  disputeRemarks: string;
 }
