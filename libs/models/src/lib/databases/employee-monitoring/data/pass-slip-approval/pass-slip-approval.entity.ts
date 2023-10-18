@@ -21,6 +21,9 @@ export class PassSlipApproval extends DatabaseEntity implements IEntity {
   @Column({ name: 'hrmo_approval_date', nullable: true, default: null })
   hrmoApprovalDate: Date;
 
+  @Column({ name: 'hrmo_disapproval_remarks', nullable: true, default: null, type: 'text' })
+  hrmoDisapprovalRemarks: string;
+
   @Column({ name: 'status', type: 'enum', enum: PassSlipApprovalStatus })
   status: PassSlipApprovalStatus;
 }

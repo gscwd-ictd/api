@@ -10,7 +10,7 @@ export class PassSlip extends DatabaseEntity implements IEntity {
   @Column({ name: 'employee_id_fk', type: 'uuid' })
   employeeId: string;
 
-  @Column({ name: 'date_of_application', type: 'date' })
+  @Column({ name: 'date_of_application', type: 'datetime', nullable: true })
   dateOfApplication: Date;
 
   @Column({ name: 'nature_of_business', type: 'enum', enum: NatureOfBusiness })

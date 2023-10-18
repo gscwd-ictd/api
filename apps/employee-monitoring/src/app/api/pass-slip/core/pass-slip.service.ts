@@ -3,11 +3,12 @@ import { HttpException, HttpStatus, Injectable, InternalServerErrorException, No
 import { PassSlip, PassSlipApproval, PassSlipDto, UpdatePassSlipTimeRecordDto } from '@gscwd-api/models';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { NatureOfBusiness, PassSlipApprovalStatus, PassSlipForDispute, PassSlipForLedger } from '@gscwd-api/utils';
+import { NatureOfBusiness, ObTransportation, PassSlipApprovalStatus, PassSlipForDispute, PassSlipForLedger } from '@gscwd-api/utils';
 import { DataSource, IsNull, Not } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
+import { EmployeesService } from '../../employees/core/employees.service';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -16,6 +17,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     private readonly passSlipApprovalService: PassSlipApprovalService,
     private readonly leaveCardLedgerDebitService: LeaveCardLedgerDebitService,
     private readonly client: MicroserviceClient,
+    private readonly employeeService: EmployeesService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -307,7 +309,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       find: {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true },
-        where: { passSlipId: { employeeId }, status: PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL },
+        where: [
+          { passSlipId: { employeeId }, status: PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL },
+          { passSlipId: { employeeId }, status: PassSlipApprovalStatus.FOR_HRMO_APPROVAL },
+        ],
         order: { createdAt: 'DESC' },
       },
     });
@@ -327,7 +332,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       })
     );
 
-    const passSlipsApprovedDisapprovedForDispute = <PassSlipApproval[]>await this.rawQuery(
+    const passSlipsApprovedDisapprovedForDispute = (await this.rawQuery(
       `
       SELECT 
         psa.created_at createdAt,
@@ -344,20 +349,39 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         purpose_destination purposeDestination,
         time_in timeIn,
         time_out timeOut,
+        ps.is_dispute_approved isDisputeApproved,
         ps.dispute_remarks disputeRemarks,
         ps.encoded_time_in encodedTimeIn,
         is_cancelled isCancelled
       FROM pass_slip_approval psa 
         INNER JOIN pass_slip ps ON ps.pass_slip_id = psa.pass_slip_id_fk 
       WHERE ps.employee_id_fk = ? AND (status = 'approved' OR status = 'disapproved' OR status = 'for dispute') 
-      ORDER BY status ASC, ps.date_of_application DESC  
+      ORDER BY status DESC, ps.date_of_application DESC  
     `,
       [employeeId]
-    );
+    )) as {
+      createdAt: Date;
+      updatedAt: Date;
+      deletedAt: Date;
+      id: string;
+      employeeId: string;
+      supervisorId: string;
+      status: PassSlipApprovalStatus;
+      natureOfBusiness: NatureOfBusiness;
+      obTransportation: ObTransportation;
+      estimateHours: number;
+      purposeDestination: string;
+      timeIn: number;
+      timeOut: number;
+      isDisputeApproved: boolean;
+      disputeRemarks: string;
+      encodedTimeIn: number;
+      isCancelled: boolean;
+    }[];
 
     const approvedDisapproved = await Promise.all(
       passSlipsApprovedDisapprovedForDispute.map(async (passSlip) => {
-        const { passSlipId, ...restOfPassSlip } = passSlip;
+        const { ...restOfPassSlip } = passSlip;
 
         const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
           action: 'send',
@@ -365,7 +389,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           pattern: 'get_employee_supervisor_names',
           onError: (error) => new NotFoundException(error),
         });
-        return { ...passSlipId, ...names, ...restOfPassSlip };
+        return { ...names, ...restOfPassSlip };
       })
     );
 
@@ -403,9 +427,9 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
 
         const assignment = await this.getEmployeeAssignment(passSlip.passSlipId.employeeId);
-
+        const avatarUrl = (await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId)).photoUrl;
         const { passSlipId, ...restOfPassSlip } = passSlip;
-        return { ...restOfPassSlip, ...passSlipId, ...names, assignmentName: assignment.assignment.name };
+        return { ...restOfPassSlip, ...passSlipId, ...names, avatarUrl, assignmentName: assignment.assignment.name };
       })
     );
     return passSlipDetails;

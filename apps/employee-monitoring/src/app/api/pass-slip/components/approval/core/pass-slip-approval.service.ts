@@ -12,12 +12,18 @@ export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {
   }
 
   async updatePassSlipStatus(updatePassSlipApprovalDto: UpdatePassSlipApprovalDto) {
-    const { status, passSlipId, disputeRemarks, encodedTimeIn, isDisputeApproved } = updatePassSlipApprovalDto;
+    const { status, passSlipId, disputeRemarks, encodedTimeIn, isDisputeApproved, hrmoDisapprovalRemarks } = updatePassSlipApprovalDto;
 
     let updateResult;
-    if (status === PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL || status === PassSlipApprovalStatus.DISAPPROVED_BY_HRMO)
-      updateResult = await this.crudService.update({ dto: { status, hrmoApprovalDate: dayjs().toDate() }, updateBy: { passSlipId } });
-    else if (status === PassSlipApprovalStatus.APPROVED || status === PassSlipApprovalStatus.DISAPPROVED)
+    if (status === PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL || status === PassSlipApprovalStatus.DISAPPROVED_BY_HRMO) {
+      if (status === PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL)
+        updateResult = await this.crudService.update({ dto: { status, hrmoApprovalDate: dayjs().toDate() }, updateBy: { passSlipId } });
+      else if (status === PassSlipApprovalStatus.DISAPPROVED_BY_HRMO)
+        updateResult = await this.crudService.update({
+          dto: { status, hrmoApprovalDate: dayjs().toDate(), hrmoDisapprovalRemarks },
+          updateBy: { passSlipId },
+        });
+    } else if (status === PassSlipApprovalStatus.APPROVED || status === PassSlipApprovalStatus.DISAPPROVED)
       updateResult = await this.crudService.update({ dto: { status, supervisorApprovalDate: dayjs().toDate() }, updateBy: { passSlipId } });
     else if (status === PassSlipApprovalStatus.FOR_DISPUTE) {
       updateResult = await this.crudService.update({ dto: { status }, updateBy: { passSlipId } });
@@ -26,10 +32,15 @@ export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {
         disputeRemarks,
         passSlipId,
       ]);
-    } else if (isDisputeApproved) {
+    } else if (typeof isDisputeApproved === 'boolean') {
       updateResult = await this.crudService.update({ dto: { status: PassSlipApprovalStatus.APPROVED }, updateBy: { passSlipId } });
-      await this.rawQuery(`UPDATE pass_slip SET is_dispute_approved=? WHERE pass_slip_id = ?`, [isDisputeApproved, passSlipId]);
-    }
+      if (isDisputeApproved === true)
+        await this.rawQuery(`UPDATE pass_slip SET is_dispute_approved=?,time_in = encoded_time_in WHERE pass_slip_id = ?`, [
+          isDisputeApproved,
+          passSlipId,
+        ]);
+      else await this.rawQuery(`UPDATE pass_slip SET is_dispute_approved=? WHERE pass_slip_id = ?`, [isDisputeApproved, passSlipId]);
+    } else updateResult = await this.crudService.update({ dto: { status }, updateBy: { passSlipId } });
 
     if (updateResult.affected > 0) return updatePassSlipApprovalDto;
   }

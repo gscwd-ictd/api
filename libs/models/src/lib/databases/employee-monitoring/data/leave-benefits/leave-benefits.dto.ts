@@ -1,6 +1,6 @@
 import { LeaveTypes, CreditDistribution } from '@gscwd-api/utils';
 import { PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDecimal, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateLeaveBenefitsDto {
   @IsString({ message: 'Please specify leave name' })
@@ -22,9 +22,12 @@ export class CreateLeaveBenefitsDto {
   @IsBoolean({ message: 'canBeCarriedOver value must only be true of false' })
   canBeCarriedOver: boolean;
 
+  @IsOptional()
+  @IsDecimal()
   maximumCredits?: number;
 }
 
 export class UpdateLeaveBenefitsDto extends PartialType(CreateLeaveBenefitsDto) {
+  @IsUUID(4)
   id: string;
 }
