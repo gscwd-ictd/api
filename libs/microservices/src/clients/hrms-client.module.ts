@@ -13,8 +13,8 @@ import { MS_CLIENT } from '../utils/ms-provider';
         return ClientProxyFactory.create({
           transport: Transport.REDIS,
           options: {
-            host: configService.getOrThrow<string>('HRMS_REDIS_HOST'),
-            port: parseInt(configService.getOrThrow<string>('HRMS_REDIS_PORT')),
+            host: configService.getOrThrow<string>('HRMS_HOST'),
+            port: parseInt(configService.getOrThrow<string>('HRMS_PORT')),
           },
         });
       },

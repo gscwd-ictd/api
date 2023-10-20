@@ -14,3 +14,7 @@ export enum EmployeeTagsPatterns {
   GET_EMPLOYEES_BY_TAG_ID = 'get_employee_by_tag_id',
   DELETE_EMPLOYEE_TAGS = 'delete_employee_tags',
 }
+
+export enum TrainingPatterns {
+  FIND_TRAINING_RECOMMENDED_EMPLOYEE_BY_SUPERVISOR_ID = 'find_training_recommended_employee_by_supervisor_id',
+}

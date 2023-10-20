@@ -21,11 +21,6 @@ import { PortalEmployeesModule } from './services/portal';
 
     //Api Modules
 
-    // //trainings
-    // TrainingDesignsModule,
-    // //TrainingDetailsModule,
-    // //TrainingDetailsTestModule,
-
     //new learning service provider
     LspDetailsModule,
 

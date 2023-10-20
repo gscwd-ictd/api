@@ -32,16 +32,16 @@ export enum TrainingStatus {
 }
 
 export enum TrainingNomineeStatus {
-  CONTINUED = 'continued', //ask eric
+  CONTINUED = 'continued',
   DECLINED = 'declined',
   PENDING = 'pending',
 }
 
-export type EmployeeFullName = {
+export type EmployeeFullNameRaw = {
   fullName: string;
 };
 
-export type PortalEmployeeDetails = {
+export type PortalEmployeeDetailsRaw = {
   employeeId: string;
   contactNumber: string;
   email: string;
@@ -52,25 +52,4 @@ export type PortalEmployeeDetails = {
   awards: [name: string];
   certifications: [name: string];
   educations: [degree: string, institution: string];
-};
-
-export type RawTag = {
-  tag: string;
-};
-
-export type RawTrainingDetails = {
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
-  id: string;
-  location: string;
-  courseTitle: string;
-  trainingStart: Date;
-  trainingEnd: Date;
-  numberOfHours: number;
-  deadlineForSubmission: Date;
-  invitationUrl: string;
-  numberOfParticipants: number;
-  status: TrainingStatus;
-  nomineeQualifications: RawTag[];
 };
