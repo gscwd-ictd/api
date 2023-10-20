@@ -4,7 +4,7 @@
  */
 
 import { HybridApp } from '@gscwd-api/microservices';
-import { Logger, VersioningType } from '@nestjs/common';
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -56,7 +56,7 @@ async function bootstrap() {
   // })
 
   app.startAllMicroservices();
-
+  app.useGlobalPipes(new ValidationPipe());
   app.enableCors({
     credentials: true,
     origin: whitelist,
