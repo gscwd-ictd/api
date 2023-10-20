@@ -2,6 +2,8 @@ import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { ConfigService } from '@nestjs/config';
+import { HybridApp } from '@gscwd-api/microservices';
+import { Transport } from '@nestjs/microservices';
 
 /**
  *  Copyright (C) General Santos City Water District - All Rights Reserved
@@ -82,6 +84,36 @@ async function bootstrap() {
       skipMissingProperties: true,
     })
   );
+
+  /**
+   *  enable hybrid application to listen to microservice requests
+   */
+  HybridApp.startMicroservice(app, {
+    /**
+     * set redis as the transport broker for this microservice
+     */
+    transport: Transport.REDIS,
+
+    /**
+     * provide connection settings
+     */
+    options: {
+      /**
+       * identify redis host
+       */
+      host: configService.getOrThrow<string>('LND_HOST'),
+
+      /**
+       * identify redis port
+       */
+      port: parseInt(configService.getOrThrow<string>('LND_PORT')),
+
+      /**
+       * identify redis password
+       */
+      password: configService.getOrThrow<string>('LND_PASS'),
+    },
+  });
 
   await app.listen(port);
   Logger.log(`🚀 Application is running on: http://localhost:${port}/api/lms`, 'LMS');
