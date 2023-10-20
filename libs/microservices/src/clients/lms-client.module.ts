@@ -15,7 +15,6 @@ import { MS_CLIENT } from '../utils/ms-provider';
           options: {
             host: configService.getOrThrow<string>('HRMS_HOST'),
             port: parseInt(configService.getOrThrow<string>('HRMS_PORT')),
-            // password: configService.getOrThrow<string>('REDIS_PASS'),
           },
         });
       },

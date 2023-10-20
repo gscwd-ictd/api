@@ -1,5 +1,5 @@
 import { FindEmployeesPatterns, MicroserviceClient } from '@gscwd-api/microservices';
-import { PortalEmployeeDetails } from '@gscwd-api/utils';
+import { PortalEmployeeDetailsRaw } from '@gscwd-api/utils';
 import { HttpException, Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -13,6 +13,6 @@ export class PortalEmployeesService {
       pattern: FindEmployeesPatterns.GET_EMPLOYEES_DETAILS_BY_ID,
       payload: id,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    })) as PortalEmployeeDetails;
+    })) as PortalEmployeeDetailsRaw;
   }
 }
