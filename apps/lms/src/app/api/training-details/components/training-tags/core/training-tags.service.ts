@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingTagDto, TrainingTag } from '@gscwd-api/models';
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { EntityManager, QueryFailedError } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class TrainingTagsService extends CrudHelper<TrainingTag> {

@@ -94,7 +94,11 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     } catch (error) {
       Logger.log(error);
       if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
         throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
       } else {
         // Handle other errors as needed
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
@@ -107,14 +111,16 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     const { courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
-        const trainingDetails = await this.crudService.create({
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
           dto: {
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
             bucketFiles: JSON.stringify(bucketFiles),
             ...rest,
           },
-          onError: () => new BadRequestException(),
+          onError: (error) => {
+            throw error;
+          },
         });
 
         //insert training lsp details
@@ -163,7 +169,11 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     } catch (error) {
       Logger.log(error);
       if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
         throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
       } else {
         // Handle other errors as needed
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
@@ -176,8 +186,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       find: { relations: { trainingDesign: true }, select: { trainingDesign: { id: true } }, where: { id: id } },
       onError: () => new NotFoundException(),
     });
-
-    console.log(trainingDetails);
 
     switch (true) {
       case trainingDetails.trainingDesign !== null:
@@ -215,16 +223,16 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         onError: () => new NotFoundException(),
       });
 
-      //const lspDetails = await this.lspDetailsService.findLspDetailsById(trainingDetails.lspDetails.id);
-
       const lspDetails = (await this.trainingLspDetailsService.crud().findAll({
-        find: { select: { lspDetails: { id: true } }, where: { trainingDetails: { id } } },
+        find: { relations: { lspDetails: true }, select: { lspDetails: { id: true } }, where: { trainingDetails: { id } } },
       })) as Array<TrainingLspDetails>;
 
       const trainingLspDetails = await Promise.all(
-        lspDetails.map(async (lspDetails) => {
+        lspDetails.map(async (lspDetailsItem) => {
+          const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
           return {
-            lspDetails: lspDetails.id,
+            lspDetailsId: lspDetailsItem.lspDetails.id,
+            name: lsp.name,
           };
         })
       );
@@ -313,16 +321,16 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         onError: () => new NotFoundException(),
       });
 
-      //const lspDetails = await this.lspDetailsService.findLspDetailsById(trainingDetails.lspDetails.id);
-
       const lspDetails = (await this.trainingLspDetailsService.crud().findAll({
-        find: { select: { lspDetails: { id: true } }, where: { trainingDetails: { id } } },
+        find: { relations: { lspDetails: true }, select: { lspDetails: { id: true } }, where: { trainingDetails: { id } } },
       })) as Array<TrainingLspDetails>;
 
       const trainingLspDetails = await Promise.all(
-        lspDetails.map(async (lspDetails) => {
+        lspDetails.map(async (lspDetailsItem) => {
+          const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
           return {
-            lspDetails: lspDetails.id,
+            lspDetailsId: lspDetailsItem.lspDetails.id,
+            name: lsp.name,
           };
         })
       );
