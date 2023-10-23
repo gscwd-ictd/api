@@ -1,9 +1,8 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { TrainingDesign } from '../training-designs';
 import { TrainingSource } from '../training-sources';
 import { TrainingPreparationStatus, TrainingStatus, TrainingType } from '@gscwd-api/utils';
-import { LspDetails } from '../lsp-details';
 
 @Entity('training_details')
 export class TrainingDetails extends DatabaseEntity implements IEntity {
@@ -16,10 +15,6 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'training_type', type: 'enum', enum: TrainingType, nullable: false })
   trainingType: TrainingType;
-
-  @ManyToOne(() => LspDetails, (lspDetails) => lspDetails.id, { nullable: false })
-  @JoinColumn({ name: 'lsp_details_id_fk' })
-  lspDetails: LspDetails;
 
   @ManyToOne(() => TrainingDesign, (trainingDesign) => trainingDesign.id, { nullable: true })
   @JoinColumn({ name: 'training_design_id_fk' })

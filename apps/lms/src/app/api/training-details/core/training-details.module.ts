@@ -8,10 +8,12 @@ import { TrainingDistributionsModule } from '../components/training-distribution
 import { TrainingRecommendedEmployeesModule } from '../components/training-recommended-employees';
 import { LspDetailsModule } from '../../lsp-details';
 import { PortalEmployeesModule } from '../../../services/portal';
+import { TrainingLspDetailsModule } from '../components/training-lsp-details';
 
 @Module({
   imports: [
     CrudModule.register(TrainingDetails),
+    TrainingLspDetailsModule,
     TrainingTagsModule,
     TrainingDistributionsModule,
     TrainingRecommendedEmployeesModule,
