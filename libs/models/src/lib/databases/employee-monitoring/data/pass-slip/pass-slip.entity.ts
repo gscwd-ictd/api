@@ -10,7 +10,7 @@ export class PassSlip extends DatabaseEntity implements IEntity {
   @Column({ name: 'employee_id_fk', type: 'uuid' })
   employeeId: string;
 
-  @Column({ name: 'date_of_application', type: 'date' })
+  @Column({ name: 'date_of_application', type: 'datetime', nullable: true })
   dateOfApplication: Date;
 
   @Column({ name: 'nature_of_business', type: 'enum', enum: NatureOfBusiness })
@@ -33,4 +33,16 @@ export class PassSlip extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'time_in', type: 'time', nullable: true })
   timeIn: number;
+
+  @Column({ name: 'encoded_time_out', type: 'time', nullable: true })
+  encodedTimeOut: number;
+
+  @Column({ name: 'encoded_time_in', type: 'time', nullable: true })
+  encodedTimeIn: number;
+
+  @Column({ name: 'dispute_remarks', type: 'text', nullable: true })
+  disputeRemarks: string;
+
+  @Column({ name: 'is_dispute_approved', type: 'boolean', default: null })
+  isDisputeApproved: boolean;
 }

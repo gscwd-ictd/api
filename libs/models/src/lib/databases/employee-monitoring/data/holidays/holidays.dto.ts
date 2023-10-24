@@ -1,6 +1,6 @@
 import { HolidayType } from '@gscwd-api/utils';
 import { PartialType } from '@nestjs/swagger';
-import { IsDate, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsDate, IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class HolidaysDto {
   @IsString()
@@ -16,5 +16,6 @@ export class HolidaysDto {
 }
 
 export class UpdateHolidayDto extends PartialType(HolidaysDto) {
+  @IsUUID(4)
   id: string;
 }

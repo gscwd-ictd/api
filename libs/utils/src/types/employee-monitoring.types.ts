@@ -1,3 +1,5 @@
+import { LargeNumberLike } from 'crypto';
+
 export enum LeaveTypes {
   RECURRING = 'recurring',
   CUMULATIVE = 'cumulative',
@@ -49,8 +51,11 @@ export enum ObTransportation {
 export enum PassSlipApprovalStatus {
   APPROVED = 'approved',
   ONGOING = 'ongoing',
+  DISAPPROVED_BY_HRMO = 'disapproved by hrmo',
   DISAPPROVED = 'disapproved',
-  FOR_APPROVAL = 'for approval',
+  FOR_HRMO_APPROVAL = 'for hrmo approval',
+  FOR_SUPERVISOR_APPROVAL = 'for supervisor approval',
+  FOR_DISPUTE = 'for dispute',
   USED = 'used',
   CANCELLED = 'cancelled',
   UNUSED = 'unused',
@@ -178,7 +183,11 @@ export type PassSlipForLedger = {
   timeOut: number;
   obTransportation: ObTransportation;
   estimateHours: number;
+  encodedTimeIn: number;
+  encodedTimeOut: number;
   purposeDestination: string;
+  disputeRemarks: string;
+  isDisputeApproved: boolean;
   isCancelled: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -209,3 +218,12 @@ export enum OvertimeStatus {
   DISAPPROVED = 'disapproved',
   PENDING = 'pending',
 }
+
+export type PassSlipForDispute = {
+  passSlipId: string;
+  supervisorId: string;
+  status: string;
+  employeeId: string;
+  timeIn: number;
+  timeOut: number;
+};
