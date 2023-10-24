@@ -41,9 +41,14 @@ export class PassSlipController {
     return await this.passSlipService.deletePassSlip(id);
   }
 
+  @Get('employees/:employee_id/for-dispute/')
+  async getPassSlipsForDispute(@Param('employee_id') employeeId: string) {
+    return await this.passSlipService.getPassSlipsForDispute(employeeId);
+  }
+
   @Get('/supervisor/:supervisor_id')
   async getPassSlipsForApproval(@Param('supervisor_id') supervisorId: string) {
-    return await this.passSlipService.getPassSlipsBySupervisorId(supervisorId);
+    return await this.passSlipService.getPassSlipsBySupervisorIdV2(supervisorId);
   }
 
   @Patch()

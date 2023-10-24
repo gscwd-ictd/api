@@ -36,12 +36,20 @@ export class LeaveService {
     return await this.leaveApplicationService.getLeavesUnderSupervisor(supervisorId);
   }
 
+  async getLeavesUnderSupervisorV2(supervisorId: string) {
+    return await this.leaveApplicationService.getAllLeavesUnderSupervisor(supervisorId);
+  }
+
   async getLeavesForHrmoApproval() {
     return await this.leaveApplicationService.getLeavesByLeaveApplicationStatus(null);
   }
 
   async getLeavesForHrdmApproval() {
     return await this.leaveApplicationService.getLeavesForHrdm();
+  }
+
+  async getLeavesForHrdmApprovalV2() {
+    return await this.leaveApplicationService.getLeavesForHrdmV2();
   }
 
   async getLeaveLedger(employeeId: string, companyId: string) {

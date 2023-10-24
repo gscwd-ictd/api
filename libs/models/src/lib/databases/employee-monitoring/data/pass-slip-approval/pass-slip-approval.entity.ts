@@ -15,6 +15,15 @@ export class PassSlipApproval extends DatabaseEntity implements IEntity {
   @Column({ name: 'supervisor_id_fk' })
   supervisorId: string;
 
-  @Column({ name: 'status', type: 'enum', enum: PassSlipApprovalStatus, default: PassSlipApprovalStatus.FOR_APPROVAL })
+  @Column({ name: 'supervisor_approval_date', nullable: true, default: null })
+  supervisorApprovalDate: Date;
+
+  @Column({ name: 'hrmo_approval_date', nullable: true, default: null })
+  hrmoApprovalDate: Date;
+
+  @Column({ name: 'hrmo_disapproval_remarks', nullable: true, default: null, type: 'text' })
+  hrmoDisapprovalRemarks: string;
+
+  @Column({ name: 'status', type: 'enum', enum: PassSlipApprovalStatus })
   status: PassSlipApprovalStatus;
 }
