@@ -1,24 +1,28 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
   TrainingDetails,
   TrainingDistribution,
+  TrainingLspDetails,
   TrainingRecommendedEmployee,
   TrainingTag,
 } from '@gscwd-api/models';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryFailedError } from 'typeorm';
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
 import { TrainingRecommendedEmployeeService } from '../components/training-recommended-employees';
 import { LspDetailsService } from '../../lsp-details';
 import { PortalEmployeesService } from '../../../services/portal';
+import { TrainingLspDetailsService } from '../components/training-lsp-details';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   constructor(
     private readonly crudService: CrudService<TrainingDetails>,
+    private readonly trainingLspDetailsService: TrainingLspDetailsService,
     private readonly trainingTagsService: TrainingTagsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
@@ -31,18 +35,31 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
   // training internal
   async addTrainingInternal(data: CreateTrainingInternalDto) {
-    const { courseContent, trainingRequirements, trainingTags, slotDistribution, ...rest } = data;
+    const { courseContent, trainingRequirements, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
-        const trainingDetails = await this.crudService.create({
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
           dto: {
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
             ...rest,
           },
-          onError: () => new BadRequestException(),
+          onError: (error) => {
+            throw error;
+          },
         });
-
+        //insert training lsp details
+        await Promise.all(
+          trainingLspDetails.map(async (trainingLspDetailsItem) => {
+            return await this.trainingLspDetailsService.create(
+              {
+                trainingDetails,
+                ...trainingLspDetailsItem,
+              },
+              entityManager
+            );
+          })
+        );
         //insert training tags
         await Promise.all(
           trainingTags.map(async (trainingTagsItem) => {
@@ -55,7 +72,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
-
         //insert training slot distributions
         await Promise.all(
           slotDistribution.map(async (slotDistributionsItem) => {
@@ -68,30 +84,53 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
-
         return data;
       });
-
       return result;
     } catch (error) {
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      Logger.log(error);
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
+        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else {
+        // Handle other errors as needed
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      }
     }
   }
 
   // training external
   async addTrainingExternal(data: CreateTrainingExternalDto) {
-    const { courseContent, trainingRequirements, bucketFiles, trainingTags, slotDistribution, ...rest } = data;
+    const { courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
-        const trainingDetails = await this.crudService.create({
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
           dto: {
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
             bucketFiles: JSON.stringify(bucketFiles),
             ...rest,
           },
-          onError: () => new BadRequestException(),
+          onError: (error) => {
+            throw error;
+          },
         });
+
+        //insert training lsp details
+        await Promise.all(
+          trainingLspDetails.map(async (trainingLspDetailsItem) => {
+            return await this.trainingLspDetailsService.create(
+              {
+                trainingDetails,
+                ...trainingLspDetailsItem,
+              },
+              entityManager
+            );
+          })
+        );
 
         //insert training tags
         await Promise.all(
@@ -124,7 +163,17 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       return result;
     } catch (error) {
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      Logger.log(error);
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
+        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else {
+        // Handle other errors as needed
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      }
     }
   }
 
@@ -133,8 +182,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       find: { relations: { trainingDesign: true }, select: { trainingDesign: { id: true } }, where: { id: id } },
       onError: () => new NotFoundException(),
     });
-
-    console.log(trainingDetails);
 
     switch (true) {
       case trainingDetails.trainingDesign !== null:
@@ -151,7 +198,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       const trainingDetails = await this.crudService.findOne({
         find: {
-          relations: { trainingDesign: true, trainingSource: true, lspDetails: true },
+          relations: { trainingDesign: true, trainingSource: true },
           select: {
             id: true,
             trainingDesign: { id: true, courseTitle: true },
@@ -165,7 +212,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             trainingRequirements: true,
             trainingSource: { id: true, name: true },
             trainingType: true,
-            lspDetails: { id: true },
             trainingPreparationStatus: true,
           },
           where: { id: id },
@@ -173,7 +219,19 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         onError: () => new NotFoundException(),
       });
 
-      const lspDetails = await this.lspDetailsService.findLspDetailsById(trainingDetails.lspDetails.id);
+      const lspDetails = (await this.trainingLspDetailsService.crud().findAll({
+        find: { relations: { lspDetails: true }, select: { lspDetails: { id: true } }, where: { trainingDetails: { id } } },
+      })) as Array<TrainingLspDetails>;
+
+      const trainingLspDetails = await Promise.all(
+        lspDetails.map(async (lspDetailsItem) => {
+          const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
+          return {
+            lspDetailsId: lspDetailsItem.lspDetails.id,
+            name: lsp.name,
+          };
+        })
+      );
 
       const tag = (await this.trainingTagsService.crud().findAll({
         find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
@@ -210,7 +268,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       return {
         id: trainingDetails.id,
         trainingDesign: trainingDetails.trainingDesign.id,
-        lspDetails,
         courseTitle: trainingDetails.trainingDesign.courseTitle,
         courseContent: JSON.parse(trainingDetails.courseContent),
         location: trainingDetails.location,
@@ -223,6 +280,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         trainingSource: trainingDetails.trainingSource.name,
         trainingType: trainingDetails.trainingType,
         preparationStatus: trainingDetails.trainingPreparationStatus,
+        trainingLspDetails,
         trainingTags,
         slotDistribution,
       };
@@ -237,7 +295,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       const trainingDetails = await this.crudService.findOne({
         find: {
-          relations: { trainingSource: true, lspDetails: true },
+          relations: { trainingSource: true },
           select: {
             id: true,
             courseTitle: true,
@@ -253,14 +311,25 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             trainingSource: { id: true, name: true },
             trainingType: true,
             trainingPreparationStatus: true,
-            lspDetails: { id: true },
           },
           where: { id: id },
         },
         onError: () => new NotFoundException(),
       });
 
-      const lspDetails = await this.lspDetailsService.findLspDetailsById(trainingDetails.lspDetails.id);
+      const lspDetails = (await this.trainingLspDetailsService.crud().findAll({
+        find: { relations: { lspDetails: true }, select: { lspDetails: { id: true } }, where: { trainingDetails: { id } } },
+      })) as Array<TrainingLspDetails>;
+
+      const trainingLspDetails = await Promise.all(
+        lspDetails.map(async (lspDetailsItem) => {
+          const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
+          return {
+            lspDetailsId: lspDetailsItem.lspDetails.id,
+            name: lsp.name,
+          };
+        })
+      );
 
       const tag = (await this.trainingTagsService.crud().findAll({
         find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
@@ -296,7 +365,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       return {
         id: trainingDetails.id,
-        lspDetails,
         courseTitle: trainingDetails.courseTitle,
         courseContent: JSON.parse(trainingDetails.courseContent),
         location: trainingDetails.location,
@@ -310,6 +378,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         trainingSource: trainingDetails.trainingSource.name,
         trainingType: trainingDetails.trainingType,
         preparationStatus: trainingDetails.trainingPreparationStatus,
+        trainingLspDetails,
         trainingTags,
         slotDistribution,
       };
@@ -319,7 +388,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  // find recommended employees by supervisor id
+  // find recommended employees by supervisor id (microservices)
   async findTrainingRecommendedEmployeeBySupervisorId(supervisorId: string) {
     try {
       const distribution = (await this.trainingDistributionsService.crud().findAll({
@@ -385,7 +454,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       return trainingDetails;
     } catch (error) {
       Logger.log(error);
-      throw new BadRequestException();
+      throw new RpcException(error);
     }
   }
 }

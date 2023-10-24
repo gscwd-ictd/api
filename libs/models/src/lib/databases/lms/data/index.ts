@@ -25,6 +25,7 @@ export * from './employee-tags';
 export * from './training-sources';
 export * from './training-designs';
 export * from './training-details';
+export * from './training-lsp-details';
 export * from './training-tags';
 export * from './training-distributions';
 export * from './training-recommended-employees';

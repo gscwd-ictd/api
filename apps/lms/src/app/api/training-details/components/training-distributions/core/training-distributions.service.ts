@@ -22,7 +22,9 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
         supervisorId: supervisor.supervisorId,
         ...rest,
       },
-      onError: () => new BadRequestException(),
+      onError: (error) => {
+        throw error;
+      },
     });
 
     //insert training recommended employees
