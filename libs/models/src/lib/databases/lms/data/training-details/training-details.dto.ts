@@ -16,7 +16,6 @@ export class TrainingDetailsDto {
   @IsEnum(TrainingType)
   @IsNotEmpty()
   trainingType: TrainingType;
-
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CourseContentDto)
@@ -76,4 +75,14 @@ export class CreateTrainingExternalDto extends TrainingDetailsDto {
 
   @IsArray()
   bucketFiles: Array<string>;
+}
+
+export class UpdateTrainingInternalDto extends CreateTrainingInternalDto {
+  @IsUUID('4')
+  id: string;
+}
+
+export class UpdateTrainingExternalDto extends CreateTrainingExternalDto {
+  @IsUUID('4')
+  id: string;
 }

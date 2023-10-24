@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
@@ -16,6 +16,7 @@ import { TrainingRecommendedEmployeeService } from '../components/training-recom
 import { LspDetailsService } from '../../lsp-details';
 import { PortalEmployeesService } from '../../../services/portal';
 import { TrainingLspDetailsService } from '../components/training-lsp-details';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -47,7 +48,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             throw error;
           },
         });
-
         //insert training lsp details
         await Promise.all(
           trainingLspDetails.map(async (trainingLspDetailsItem) => {
@@ -60,7 +60,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
-
         //insert training tags
         await Promise.all(
           trainingTags.map(async (trainingTagsItem) => {
@@ -73,7 +72,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
-
         //insert training slot distributions
         await Promise.all(
           slotDistribution.map(async (slotDistributionsItem) => {
@@ -86,10 +84,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
-
         return data;
       });
-
       return result;
     } catch (error) {
       Logger.log(error);
@@ -392,7 +388,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  // find recommended employees by supervisor id
+  // find recommended employees by supervisor id (microservices)
   async findTrainingRecommendedEmployeeBySupervisorId(supervisorId: string) {
     try {
       const distribution = (await this.trainingDistributionsService.crud().findAll({
@@ -458,7 +454,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       return trainingDetails;
     } catch (error) {
       Logger.log(error);
-      throw new BadRequestException();
+      throw new RpcException(error);
     }
   }
 }
