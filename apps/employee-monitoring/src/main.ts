@@ -8,6 +8,9 @@ import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import * as session from 'express-session';
+import * as redis from 'redis';
+import RedisStore from 'connect-redis';
 
 import { AppModule } from './app/app.module';
 
@@ -30,6 +33,10 @@ const whitelist = [
   'http://172.20.110.45:3001',
   'http://172.20.110.45:3002',
 ];
+
+const redisClient = redis.createClient({
+  url: `redis://${process.env.MS_HOST_LOCAL}:6479`,
+});
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -55,8 +62,29 @@ async function bootstrap() {
   //   }
   // })
 
+  app.use(
+    '/',
+    session({
+      store: new RedisStore({
+        client: redisClient,
+      }),
+      name: 'ssid_hrms',
+      secret: '1234',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        signed: true,
+        secure: false,
+        maxAge: 86000000,
+        path: '/',
+        //expires: new Date(new Date(Date.now()).setSeconds(new Date(Date.now()).getSeconds() + 86400)),
+      },
+    })
+  );
+
   app.startAllMicroservices();
-  app.useGlobalPipes(new ValidationPipe());
+  //app.useGlobalPipes(new ValidationPipe({ enableDebugMessages: true }));
   app.enableCors({
     credentials: true,
     origin: whitelist,
