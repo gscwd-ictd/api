@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingDistributionDto, TrainingDistribution } from '@gscwd-api/models';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../training-recommended-employees';
 
@@ -22,7 +22,9 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
         supervisorId: supervisor.supervisorId,
         ...rest,
       },
-      onError: () => new BadRequestException(),
+      onError: (error) => {
+        throw error;
+      },
     });
 
     //insert training recommended employees

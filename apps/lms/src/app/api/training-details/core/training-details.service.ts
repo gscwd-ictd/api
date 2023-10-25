@@ -1,20 +1,33 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { CreateTrainingExternalDto, CreateTrainingInternalDto, TrainingDetails, TrainingDistribution, TrainingTag } from '@gscwd-api/models';
-import { DataSource } from 'typeorm';
+import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  CreateTrainingExternalDto,
+  CreateTrainingInternalDto,
+  TrainingDetails,
+  TrainingDistribution,
+  TrainingLspDetails,
+  TrainingRecommendedEmployee,
+  TrainingTag,
+} from '@gscwd-api/models';
+import { DataSource, QueryFailedError } from 'typeorm';
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
 import { TrainingRecommendedEmployeeService } from '../components/training-recommended-employees';
 import { LspDetailsService } from '../../lsp-details';
+import { PortalEmployeesService } from '../../../services/portal';
+import { TrainingLspDetailsService } from '../components/training-lsp-details';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   constructor(
     private readonly crudService: CrudService<TrainingDetails>,
+    private readonly trainingLspDetailsService: TrainingLspDetailsService,
     private readonly trainingTagsService: TrainingTagsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
     private readonly lspDetailsService: LspDetailsService,
+    private readonly portalEmployeesService: PortalEmployeesService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -22,18 +35,31 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
   // training internal
   async addTrainingInternal(data: CreateTrainingInternalDto) {
-    const { courseContent, trainingRequirements, trainingTags, slotDistribution, ...rest } = data;
+    const { courseContent, trainingRequirements, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
-        const trainingDetails = await this.crudService.create({
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
           dto: {
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
             ...rest,
           },
-          onError: () => new BadRequestException(),
+          onError: (error) => {
+            throw error;
+          },
         });
-
+        //insert training lsp details
+        await Promise.all(
+          trainingLspDetails.map(async (trainingLspDetailsItem) => {
+            return await this.trainingLspDetailsService.create(
+              {
+                trainingDetails,
+                ...trainingLspDetailsItem,
+              },
+              entityManager
+            );
+          })
+        );
         //insert training tags
         await Promise.all(
           trainingTags.map(async (trainingTagsItem) => {
@@ -46,7 +72,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
-
         //insert training slot distributions
         await Promise.all(
           slotDistribution.map(async (slotDistributionsItem) => {
@@ -59,30 +84,53 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
-
         return data;
       });
-
       return result;
     } catch (error) {
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      Logger.log(error);
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
+        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else {
+        // Handle other errors as needed
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      }
     }
   }
 
   // training external
   async addTrainingExternal(data: CreateTrainingExternalDto) {
-    const { courseContent, trainingRequirements, bucketFiles, trainingTags, slotDistribution, ...rest } = data;
+    const { courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
-        const trainingDetails = await this.crudService.create({
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
           dto: {
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
             bucketFiles: JSON.stringify(bucketFiles),
             ...rest,
           },
-          onError: () => new BadRequestException(),
+          onError: (error) => {
+            throw error;
+          },
         });
+
+        //insert training lsp details
+        await Promise.all(
+          trainingLspDetails.map(async (trainingLspDetailsItem) => {
+            return await this.trainingLspDetailsService.create(
+              {
+                trainingDetails,
+                ...trainingLspDetailsItem,
+              },
+              entityManager
+            );
+          })
+        );
 
         //insert training tags
         await Promise.all(
@@ -115,7 +163,17 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       return result;
     } catch (error) {
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      Logger.log(error);
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
+        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else {
+        // Handle other errors as needed
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      }
     }
   }
 
@@ -124,8 +182,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       find: { relations: { trainingDesign: true }, select: { trainingDesign: { id: true } }, where: { id: id } },
       onError: () => new NotFoundException(),
     });
-
-    console.log(trainingDetails);
 
     switch (true) {
       case trainingDetails.trainingDesign !== null:
@@ -142,7 +198,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       const trainingDetails = await this.crudService.findOne({
         find: {
-          relations: { trainingDesign: true, trainingSource: true, lspDetails: true },
+          relations: { trainingDesign: true, trainingSource: true },
           select: {
             id: true,
             trainingDesign: { id: true, courseTitle: true },
@@ -156,7 +212,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             trainingRequirements: true,
             trainingSource: { id: true, name: true },
             trainingType: true,
-            lspDetails: { id: true },
             trainingPreparationStatus: true,
           },
           where: { id: id },
@@ -164,7 +219,21 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         onError: () => new NotFoundException(),
       });
 
-      const lspDetails = await this.lspDetailsService.findLspDetailsById(trainingDetails.lspDetails.id);
+      const lspDetails = (await this.trainingLspDetailsService.crud().findAll({
+        find: { relations: { lspDetails: true }, select: { lspDetails: { id: true } }, where: { trainingDetails: { id } } },
+      })) as Array<TrainingLspDetails>;
+
+      const trainingLspDetails = await Promise.all(
+        lspDetails.map(async (lspDetailsItem) => {
+          const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
+          return {
+            lspDetailsId: lspDetailsItem.lspDetails.id,
+            name: lsp.name,
+            email: lsp.email,
+            type: lsp.type,
+          };
+        })
+      );
 
       const tag = (await this.trainingTagsService.crud().findAll({
         find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
@@ -201,7 +270,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       return {
         id: trainingDetails.id,
         trainingDesign: trainingDetails.trainingDesign.id,
-        lspDetails,
         courseTitle: trainingDetails.trainingDesign.courseTitle,
         courseContent: JSON.parse(trainingDetails.courseContent),
         location: trainingDetails.location,
@@ -214,6 +282,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         trainingSource: trainingDetails.trainingSource.name,
         trainingType: trainingDetails.trainingType,
         preparationStatus: trainingDetails.trainingPreparationStatus,
+        trainingLspDetails,
         trainingTags,
         slotDistribution,
       };
@@ -228,7 +297,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       const trainingDetails = await this.crudService.findOne({
         find: {
-          relations: { trainingSource: true, lspDetails: true },
+          relations: { trainingSource: true },
           select: {
             id: true,
             courseTitle: true,
@@ -244,14 +313,27 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             trainingSource: { id: true, name: true },
             trainingType: true,
             trainingPreparationStatus: true,
-            lspDetails: { id: true },
           },
           where: { id: id },
         },
         onError: () => new NotFoundException(),
       });
 
-      const lspDetails = await this.lspDetailsService.findLspDetailsById(trainingDetails.lspDetails.id);
+      const lspDetails = (await this.trainingLspDetailsService.crud().findAll({
+        find: { relations: { lspDetails: true }, select: { lspDetails: { id: true } }, where: { trainingDetails: { id } } },
+      })) as Array<TrainingLspDetails>;
+
+      const trainingLspDetails = await Promise.all(
+        lspDetails.map(async (lspDetailsItem) => {
+          const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
+          return {
+            lspDetailsId: lspDetailsItem.lspDetails.id,
+            name: lsp.name,
+            email: lsp.email,
+            type: lsp.type,
+          };
+        })
+      );
 
       const tag = (await this.trainingTagsService.crud().findAll({
         find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
@@ -287,7 +369,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       return {
         id: trainingDetails.id,
-        lspDetails,
         courseTitle: trainingDetails.courseTitle,
         courseContent: JSON.parse(trainingDetails.courseContent),
         location: trainingDetails.location,
@@ -301,6 +382,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         trainingSource: trainingDetails.trainingSource.name,
         trainingType: trainingDetails.trainingType,
         preparationStatus: trainingDetails.trainingPreparationStatus,
+        trainingLspDetails,
         trainingTags,
         slotDistribution,
       };
@@ -310,371 +392,73 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  // async getTrainingExternal(id: string) {
-  //   try {
-  //     const trainingDetails = await this.crudService.findOne({
-  //       find: {
-  //         select: {
-  //           id: true,
-  //           courseTitle: true,
-  //           courseContent: true,
-  //           location: true,
-  //           trainingStart: true,
-  //           trainingEnd: true,
-  //           numberOfHours: true,
-  //           deadlineForSubmission: true,
-  //           numberOfParticipants: true,
-  //           trainingRequirements: true,
-  //           bucketFiles: true,
-  //         },
-  //         where: { id: id },
-  //       },
-  //       onError: () => new NotFoundException(),
-  //     });
-  //   } catch (error) {
-  //     throw new NotFoundException();
-  //   }
-  // }
+  // find recommended employees by supervisor id (microservices)
+  async findTrainingRecommendedEmployeeBySupervisorId(supervisorId: string) {
+    try {
+      const distribution = (await this.trainingDistributionsService.crud().findAll({
+        find: {
+          relations: { trainingDetails: true },
+          select: {
+            id: true,
+            supervisorId: true,
+            numberOfSlots: true,
+            trainingDetails: {
+              id: true,
+            },
+          },
+          where: { supervisorId },
+        },
+      })) as Array<TrainingDistribution>;
 
-  //HR create training individual details and distribute slots to selected managers
+      const trainingDetails = await Promise.all(
+        distribution.map(async (distributionItem) => {
+          const { trainingDetails } = distributionItem;
+          const training = await this.crudService.findOne({
+            find: {
+              relations: { trainingDesign: true },
+              select: {
+                id: true,
+                courseTitle: true,
+                trainingDesign: { courseTitle: true },
+                location: true,
+                trainingStart: true,
+                trainingEnd: true,
+                trainingPreparationStatus: true,
+              },
+              where: { id: trainingDetails.id },
+            },
+          });
 
-  // async addTrainingDetails(lspType: LspType, data: CreateTrainingDetailsDto) {
-  //   //disconstruct dto
-  //   const { courseContent, postTrainingRequirements, lspDetails, trainingTags, slotDistribution, ...rest } = data;
+          const employees = (await this.trainingRecommendedEmployeesService.crud().findAll({
+            find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionItem.id } } },
+          })) as Array<TrainingRecommendedEmployee>;
 
-  //   try {
-  //     //transaction result
-  //     const result = await this.datasource.transaction(async (entityManager) => {
-  //       //condition if learning service provider is individual or organization
-  //       if (lspType === LspType.INDIVIDUAL) {
-  //         //insert training details
-  //         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
-  //           dto: {
-  //             ...rest,
-  //             courseContent: JSON.stringify(courseContent),
-  //             postTrainingRequirements: JSON.stringify(postTrainingRequirements),
-  //           },
-  //           onError: ({ error }) => {
-  //             return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
-  //           },
-  //         });
+          const recommended = await Promise.all(
+            employees.map(async (items) => {
+              const name = await this.portalEmployeesService.findEmployeesDetailsById(items.employeeId);
+              return {
+                employeeId: items.employeeId,
+                name: name.fullName,
+              };
+            })
+          );
+          return {
+            id: training.id,
+            courseTitle: training.courseTitle || training.trainingDesign.courseTitle,
+            location: training.location,
+            trainingStart: training.trainingStart,
+            trainingEnd: training.trainingEnd,
+            preparationStatus: training.trainingPreparationStatus,
+            numberOfSlots: distributionItem.numberOfSlots,
+            recommended,
+          };
+        })
+      );
 
-  //         //find learning service provider details
-  //         const lspIndividualDetails = await this.lspIndividualDetailsService
-  //           .crud()
-  //           .transact<LspIndividualDetails>(entityManager)
-  //           .findOneBy({
-  //             findBy: { id: lspDetails },
-  //             onError: ({ error }) => {
-  //               return new HttpException(error, HttpStatus.NOT_FOUND, { cause: error as Error });
-  //             },
-  //           });
-
-  //         //insert training learning service provider individual
-  //         const lsp = await this.trainingLspIndividualService.addTrainingLspIndividual(
-  //           {
-  //             trainingDetails,
-  //             lspIndividualDetails,
-  //           },
-  //           entityManager
-  //         );
-
-  //         //insert multiple tags in a training
-  //         const tag = await Promise.all(
-  //           trainingTags.map(async (tagItem) => {
-  //             return await this.trainingTagsService.addTrainingTag(
-  //               {
-  //                 trainingDetails,
-  //                 ...tagItem,
-  //               },
-  //               entityManager
-  //             );
-  //           })
-  //         );
-
-  //         //insert slot distribution and recommended employee in a training
-  //         const distribution = await Promise.all(
-  //           //map slot distribution
-  //           slotDistribution.map(async (slotDistributionItem) => {
-  //             //deconstruct slot distribution dto
-  //             const { recommendedEmployee, ...rest } = slotDistributionItem;
-
-  //             //insert training distribution
-  //             const trainingDistribution = await this.trainingDistributionsService.addTrainingDistribution(
-  //               {
-  //                 trainingDetails,
-  //                 ...rest,
-  //               },
-  //               entityManager
-  //             );
-
-  //             //insert recommended employee
-  //             const recommended = await Promise.all(
-  //               recommendedEmployee.map(async (recommendedItem) => {
-  //                 return await this.trainingRecommendedEmployeeService.addTrainingRecommendedEmployee(
-  //                   {
-  //                     trainingDistribution,
-  //                     ...recommendedItem,
-  //                   },
-  //                   entityManager
-  //                 );
-  //               })
-  //             );
-
-  //             //return result training distribution
-  //             return { trainingDistribution: trainingDistribution, recommendedEmployee: recommended };
-  //           })
-  //         );
-
-  //         return {
-  //           ...trainingDetails,
-  //         };
-  //       } else if (lspType == LspType.ORGANIZATION) {
-  //         //insert training details
-  //         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
-  //           dto: {
-  //             ...rest,
-  //             courseContent: JSON.stringify(courseContent),
-  //             postTrainingRequirements: JSON.stringify(postTrainingRequirements),
-  //           },
-  //           onError: ({ error }) => {
-  //             return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
-  //           },
-  //         });
-
-  //         //find learning service provider details
-  //         const lspOrganizationDetails = await this.lspOrganizationDetailsService
-  //           .crud()
-  //           .transact<LspOrganizationDetails>(entityManager)
-  //           .findOneBy({
-  //             findBy: { id: lspDetails },
-  //             onError: ({ error }) => {
-  //               return new HttpException(error, HttpStatus.NOT_FOUND, { cause: error as Error });
-  //             },
-  //           });
-
-  //         //insert training learning service provider individual
-  //         const lsp = await this.trainingLspOrganizationService.addTrainingLspOrganization(
-  //           {
-  //             trainingDetails,
-  //             lspOrganizationDetails,
-  //           },
-  //           entityManager
-  //         );
-
-  //         //insert multiple tags in a training
-  //         const tag = await Promise.all(
-  //           trainingTags.map(async (tagItem) => {
-  //             return await this.trainingTagsService.addTrainingTag(
-  //               {
-  //                 trainingDetails,
-  //                 ...tagItem,
-  //               },
-  //               entityManager
-  //             );
-  //           })
-  //         );
-
-  //         //insert slot distribution and recommended employee in a training
-  //         const distribution = await Promise.all(
-  //           //map slot distribution
-  //           slotDistribution.map(async (slotDistributionItem) => {
-  //             //deconstruct slot distribution dto
-  //             const { recommendedEmployee, ...rest } = slotDistributionItem;
-
-  //             //insert training distribution
-  //             const trainingDistribution = await this.trainingDistributionsService.addTrainingDistribution(
-  //               {
-  //                 trainingDetails,
-  //                 ...rest,
-  //               },
-  //               entityManager
-  //             );
-
-  //             //insert recommended employee
-  //             const recommended = await Promise.all(
-  //               recommendedEmployee.map(async (recommendedItem) => {
-  //                 return await this.trainingRecommendedEmployeeService.addTrainingRecommendedEmployee(
-  //                   {
-  //                     trainingDistribution,
-  //                     ...recommendedItem,
-  //                   },
-  //                   entityManager
-  //                 );
-  //               })
-  //             );
-
-  //             //return result training distribution
-  //             return { trainingDistribution: trainingDistribution, recommendedEmployee: recommended };
-  //           })
-  //         );
-
-  //         return {
-  //           ...trainingDetails,
-  //         };
-  //       } else {
-  //         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-  //       }
-  //     });
-
-  //     return result;
-  //   } catch (error) {
-  //     throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-  //   }
-  // }
-
-  // //get training details by id
-  // async getTrainingDetailsById(trainingId: string) {
-  //   try {
-  //     //find training details by training id and deconstruct
-  //     const { courseContent, ...rest } = await this.crudService.findOne({
-  //       find: {
-  //         relations: { trainingSource: true, trainingType: true },
-  //         select: {
-  //           createdAt: true,
-  //           updatedAt: true,
-  //           deletedAt: true,
-  //           id: true,
-  //           location: true,
-  //           courseTitle: true,
-  //           trainingStart: true,
-  //           trainingEnd: true,
-  //           numberOfHours: true,
-  //           deadlineForSubmission: true,
-  //           invitationUrl: true,
-  //           numberOfParticipants: true,
-  //           courseContent: true,
-  //           status: true,
-  //           trainingSource: {
-  //             name: true,
-  //           },
-  //           trainingType: {
-  //             name: true,
-  //           },
-  //         },
-  //         where: { id: trainingId },
-  //       },
-  //     });
-
-  //     //get all training tags by training id
-  //     const tag = await this.trainingTagsService.crud().findAll({
-  //       find: {
-  //         relations: { tag: true },
-  //         select: { id: true, tag: { name: true } },
-  //         where: { trainingDetails: { id: trainingId } },
-  //       },
-  //     });
-
-  //     //return result and parse course content and nominee qualifications
-  //     return {
-  //       ...rest,
-  //       courseContent: JSON.parse(courseContent),
-  //       nomineeQualifications: tag,
-  //     };
-  //   } catch (error) {
-  //     throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-  //   }
-  // }
-
-  // //update training details
-  // async updateTrainingDetails(dto: UpdateTrainingDetailsDto) {
-  //   try {
-  //     //transaction results
-  //     const result = await this.datasource.transaction(async (entityManager) => {
-  //       //deconstruct dto
-  //       const { id, courseContent, postTrainingRequirements, ...rest } = dto;
-
-  //       //update training details by training id
-  //       const training = await this.crudService.transact<TrainingDetails>(entityManager).update({
-  //         dto: {
-  //           ...rest,
-  //           courseContent: JSON.stringify(courseContent),
-  //           postTrainingRequirements: JSON.stringify(postTrainingRequirements),
-  //         },
-  //         updateBy: { id },
-  //         onError: ({ error }) => {
-  //           return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
-  //         },
-  //       });
-
-  //       return training;
-  //     });
-
-  //     //return update training details transaction result
-  //     return result;
-  //   } catch (error) {
-  //     throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-  //   }
-  // }
-
-  // async deleteTrainingDetails(trainingId: string): Promise<DeleteResult> {
-  //   try {
-  //     //transaction result
-  //     const result = await this.datasource.transaction(async (entityManager) => {
-  //       //delete all learning service provider child
-  //       //const lspChilds = await this.deleteAllLspDetailsChild(lspDetailsId, entityManager);
-
-  //       const lspIndividualDetails = await this.trainingLspIndividualService
-  //         .crud()
-  //         .transact<TrainingLspIndividual>(entityManager)
-  //         .delete({
-  //           softDelete: false,
-  //           deleteBy: { trainingDetails: { id: trainingId } },
-  //         });
-
-  //       const lspOrganizationDetails = await this.trainingLspOrganizationService
-  //         .crud()
-  //         .transact<TrainingLspOrganization>(entityManager)
-  //         .delete({
-  //           softDelete: false,
-  //           deleteBy: { trainingDetails: { id: trainingId } },
-  //         });
-
-  //       const trainingTags = await this.trainingTagsService
-  //         .crud()
-  //         .transact<TrainingTag>(entityManager)
-  //         .delete({
-  //           softDelete: false,
-  //           deleteBy: { trainingDetails: { id: trainingId } },
-  //         });
-
-  //       const distributions = (await this.trainingDistributionsService
-  //         .crud()
-  //         .transact<TrainingDistribution>(entityManager)
-  //         .findAll({
-  //           find: { where: { trainingDetails: { id: trainingId } } },
-  //         })) as TrainingDistribution[];
-
-  //       const recommendedEmployee = await Promise.all(
-  //         distributions.map(async (distributionItem) => {
-  //           return await this.trainingRecommendedEmployeeService
-  //             .crud()
-  //             .transact<TrainingRecommendedEmployee>(entityManager)
-  //             .delete({ softDelete: false, deleteBy: { trainingDistribution: distributionItem } });
-  //         })
-  //       );
-
-  //       const trainingDistribution = await this.trainingDistributionsService
-  //         .crud()
-  //         .transact<TrainingDistribution>(entityManager)
-  //         .delete({
-  //           softDelete: false,
-  //           deleteBy: { trainingDetails: { id: trainingId } },
-  //         });
-
-  //       //delete training details
-  //       const trainingDetails = await this.crudService
-  //         .transact<TrainingDetails>(entityManager)
-  //         .delete({ softDelete: false, deleteBy: { id: trainingId } });
-
-  //       return trainingDetails;
-  //       //if (lspChilds.affected > 0 && lspDetails.affected > 0) return lspDetails;
-  //     });
-
-  //     //return result
-  //     return result;
-  //   } catch (error) {
-  //     throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-  //   }
-  // }
+      return trainingDetails;
+    } catch (error) {
+      Logger.log(error);
+      throw new RpcException(error);
+    }
+  }
 }

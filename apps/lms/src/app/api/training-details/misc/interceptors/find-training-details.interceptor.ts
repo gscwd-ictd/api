@@ -18,6 +18,7 @@ export class FindTrainingDetailsInterceptor implements NestInterceptor {
               location: results.location,
               trainingStart: results.trainingStart,
               trainingEnd: results.trainingEnd,
+              bucketFiles: JSON.parse(results.bucketFiles),
               trainingSource: results.trainingSource.name,
               trainingType: results.trainingType,
               preparationStatus: results.trainingPreparationStatus,

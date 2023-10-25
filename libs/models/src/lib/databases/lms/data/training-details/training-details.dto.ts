@@ -4,10 +4,10 @@ import { CourseContentDto } from '../course-contents';
 import { TrainingDesign } from '../training-designs';
 import { TrainingSource } from '../training-sources';
 import { TrainingType } from '@gscwd-api/utils';
-import { LspDetails } from '../lsp-details';
 import { CreateTrainingTagDto } from '../training-tags';
 import { CreateTrainingDistributionDto } from '../training-distributions';
 import { TrainingRequirements } from '../training-requirements';
+import { CreateTrainingLspDetailsDto } from '../training-lsp-details';
 
 export class TrainingDetailsDto {
   @IsUUID('4')
@@ -16,10 +16,6 @@ export class TrainingDetailsDto {
   @IsEnum(TrainingType)
   @IsNotEmpty()
   trainingType: TrainingType;
-
-  @IsUUID('4')
-  lspDetails: LspDetails;
-
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CourseContentDto)
@@ -49,6 +45,12 @@ export class TrainingDetailsDto {
   @Type(() => TrainingRequirements)
   trainingRequirements: TrainingRequirements[];
 
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
+  @IsArray()
+  @Type(() => CreateTrainingLspDetailsDto)
+  trainingLspDetails: Array<CreateTrainingLspDetailsDto>;
+
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CreateTrainingTagDto)
@@ -73,4 +75,14 @@ export class CreateTrainingExternalDto extends TrainingDetailsDto {
 
   @IsArray()
   bucketFiles: Array<string>;
+}
+
+export class UpdateTrainingInternalDto extends CreateTrainingInternalDto {
+  @IsUUID('4')
+  id: string;
+}
+
+export class UpdateTrainingExternalDto extends CreateTrainingExternalDto {
+  @IsUUID('4')
+  id: string;
 }

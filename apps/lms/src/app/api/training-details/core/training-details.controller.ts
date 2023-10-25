@@ -48,6 +48,7 @@ export class TrainingDetailsController {
           location: true,
           trainingStart: true,
           trainingEnd: true,
+          bucketFiles: true,
           trainingSource: { name: true },
           trainingType: true,
           trainingPreparationStatus: true,
@@ -61,6 +62,11 @@ export class TrainingDetailsController {
   @Get(':id')
   async findTrainingById(@Param('id') id: string) {
     return await this.trainingDetailsService.findTrainingById(id);
+  }
+
+  @Get('/supervisor/:id')
+  async findTrainingRecommendedEmployeeBySupervisorId(@Param('id') id: string) {
+    return await this.trainingDetailsService.findTrainingRecommendedEmployeeBySupervisorId(id);
   }
 
   // // HR

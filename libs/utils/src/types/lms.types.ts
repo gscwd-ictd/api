@@ -18,6 +18,7 @@ export enum TrainingType {
 
 export enum TrainingPreparationStatus {
   PENDING = 'pending',
+  ACCOMPLISHED = 'accomplished notice of training',
   ON_GOING_NOMINATION = 'on going nomination',
   PDC_APPROVAL = 'for pdc approval',
   GM_APPROVAL = 'for gm approval',
@@ -32,16 +33,16 @@ export enum TrainingStatus {
 }
 
 export enum TrainingNomineeStatus {
-  CONTINUED = 'continued', //ask eric
+  CONTINUED = 'continued',
   DECLINED = 'declined',
   PENDING = 'pending',
 }
 
-export type EmployeeFullName = {
+export type EmployeeFullNameRaw = {
   fullName: string;
 };
 
-export type PortalEmployeeDetails = {
+export type PortalEmployeeDetailsRaw = {
   employeeId: string;
   contactNumber: string;
   email: string;
@@ -51,26 +52,5 @@ export type PortalEmployeeDetails = {
   fullName: string;
   awards: [name: string];
   certifications: [name: string];
-  educations: [degree: string, institution: string];
-};
-
-export type RawTag = {
-  tag: string;
-};
-
-export type RawTrainingDetails = {
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
-  id: string;
-  location: string;
-  courseTitle: string;
-  trainingStart: Date;
-  trainingEnd: Date;
-  numberOfHours: number;
-  deadlineForSubmission: Date;
-  invitationUrl: string;
-  numberOfParticipants: number;
-  status: TrainingStatus;
-  nomineeQualifications: RawTag[];
+  education: [degree: string, institution: string];
 };
