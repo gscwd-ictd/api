@@ -10,7 +10,7 @@ import {
 } from '@gscwd-api/models';
 import { LspSource, LspType } from '@gscwd-api/utils';
 import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { DataSource, EntityManager } from 'typeorm';
+import { DataSource, EntityManager, QueryFailedError } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';
 import { LspAwardsService } from '../components/lsp-awards';
 import { LspCertificationsService } from '../components/lsp-certifications';
@@ -51,7 +51,9 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
             lspType: LspType.INDIVIDUAL,
             lspSource: LspSource.INTERNAL,
           },
-          onError: () => new BadRequestException(),
+          onError: (error) => {
+            throw error;
+          },
         });
 
         //insert lsp affiliations
@@ -112,7 +114,16 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       return result;
     } catch (error) {
       Logger.log(error);
-      throw new BadRequestException();
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
+        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else {
+        // Handle other errors as needed
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      }
     }
   }
 
@@ -131,7 +142,9 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
             lspType: LspType.INDIVIDUAL,
             lspSource: LspSource.EXTERNAL,
           },
-          onError: () => new BadRequestException(),
+          onError: (error) => {
+            throw error;
+          },
         });
 
         //insert lsp affiliations
@@ -231,7 +244,16 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       return result;
     } catch (error) {
       Logger.log(error);
-      throw new BadRequestException();
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
+        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else {
+        // Handle other errors as needed
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      }
     }
   }
 
@@ -248,7 +270,9 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
             lspType: LspType.ORGANIZATION,
             lspSource: LspSource.EXTERNAL,
           },
-          onError: () => new BadRequestException(),
+          onError: (error) => {
+            throw error;
+          },
         });
 
         //insert lsp affiliations
@@ -322,35 +346,49 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       return result;
     } catch (error) {
       Logger.log(error);
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
+        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else {
+        // Handle other errors as needed
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      }
     }
   }
 
   async findLspDetailsById(id: string) {
     let name: string;
+    let email: string;
     const result = await this.crudService.findOne({
-      find: { select: { id: true, employeeId: true, organizationName: true, lspType: true, lspSource: true }, where: { id: id } },
+      find: { select: { id: true, employeeId: true, organizationName: true, email: true, lspType: true, lspSource: true }, where: { id: id } },
       onError: () => new NotFoundException(),
     });
 
     switch (true) {
       case result.lspType === LspType.INDIVIDUAL && result.lspSource === LspSource.INTERNAL:
         name = (await this.portalEmployeesService.findEmployeesDetailsById(result.employeeId)).fullName;
+        email = (await this.portalEmployeesService.findEmployeesDetailsById(result.employeeId)).email;
         break;
       case result.lspType === LspType.INDIVIDUAL && result.lspSource === LspSource.EXTERNAL:
         name = (await this.datasource.query('select get_lsp_fullname($1) fullname', [result.id]))[0].fullname;
+        email = result.email;
         break;
       case result.lspType === LspType.ORGANIZATION && result.lspSource === LspSource.EXTERNAL:
         name = result.organizationName;
+        email = result.email;
         break;
       default:
-        return () => new BadRequestException();
+        break;
     }
 
     return {
       id: result.id,
       name: name,
       type: result.lspType,
+      email: email,
     };
   }
 
@@ -409,7 +447,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         awards: employeeDetails.awards,
         certifications: employeeDetails.certifications,
         coaching,
-        education: employeeDetails.educations,
+        education: employeeDetails.education,
         projects,
         trainings,
       };

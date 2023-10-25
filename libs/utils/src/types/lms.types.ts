@@ -52,5 +52,5 @@ export type PortalEmployeeDetailsRaw = {
   fullName: string;
   awards: [name: string];
   certifications: [name: string];
-  educations: [degree: string, institution: string];
+  education: [degree: string, institution: string];
 };
