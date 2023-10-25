@@ -447,7 +447,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         awards: employeeDetails.awards,
         certifications: employeeDetails.certifications,
         coaching,
-        education: employeeDetails.educations,
+        education: employeeDetails.education,
         projects,
         trainings,
       };
