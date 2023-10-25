@@ -69,7 +69,7 @@ async function bootstrap() {
         client: redisClient,
       }),
       name: 'ssid_hrms',
-      secret: '1234',
+      secret: process.env.RSP_COOKIE_PASS,
       resave: false,
       saveUninitialized: false,
       cookie: {
