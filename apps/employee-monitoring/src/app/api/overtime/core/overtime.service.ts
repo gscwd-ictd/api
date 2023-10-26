@@ -75,6 +75,61 @@ export class OvertimeService {
     return result;
   }
 
+  async getOvertimeApplicationDetailByManagerIdAndId(managerId: string, id: string) {
+    //1. get manager organization id
+    const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
+    //2. get employeeIds from organization id
+    const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
+
+    const employeeIds = await Promise.all(
+      employeesUnderOrgId.map(async (employee) => {
+        return employee.value;
+      })
+    );
+
+    //3. get overtime employee ids for approval
+    const overtimeApplication = await this.overtimeApplicationService.getOvertimeApplicationByEmployeeIdsAndOvertimeId(employeeIds, id);
+
+    const { employeeId, overtimeApplicationId, ...rest } = overtimeApplication;
+    const immediateSupervisorName = (await this.employeeService.getEmployeeDetails(employeeId)).employeeFullName;
+    const employees = (await this.overtimeEmployeeService
+      .crud()
+      .findAll({ find: { select: { employeeId: true }, where: { overtimeApplicationId: { id: overtimeApplicationId } } } })) as {
+      employeeId: string;
+    }[];
+
+    const employeesWithDetails = await Promise.all(
+      employees.map(async (employee) => {
+        const { employeeId } = employee;
+        const employeeDetail = await this.employeeService.getEmployeeDetails(employeeId);
+        const { assignment, employeeFullName, companyId, photoUrl } = employeeDetail;
+
+        const { isAccomplishmentSubmitted, status } = (
+          await this.employeeScheduleService.rawQuery(
+            `
+            SELECT IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted, oa.status status 
+              FROM overtime_accomplishment oa 
+              INNER JOIN overtime_employee oe ON oe.overtime_employee_id = oa.overtime_employee_id_fk 
+            WHERE oe.employee_id_fk = ? AND oe.overtime_application_id_fk = ?;`,
+            [employeeId, overtimeApplication.overtimeApplicationId]
+          )
+        )[0];
+
+        return {
+          employeeId,
+          companyId,
+          fullName: employeeFullName,
+          positionTitle: assignment.positionTitle,
+          avatarUrl: photoUrl,
+          assignment: assignment.name,
+          isAccomplishmentSubmitted,
+          accomplishmentStatus: status,
+        };
+      })
+    );
+    return { id: overtimeApplicationId, ...rest, immediateSupervisorName, employees: employeesWithDetails };
+  }
+
   async getOvertimeApplicationsForApprovalV2(managerId: string) {
     //
     //1. get manager organization id
@@ -296,6 +351,18 @@ export class OvertimeService {
             const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
             const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
             const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
+
+            const { isAccomplishmentSubmitted, status } = (
+              await this.employeeScheduleService.rawQuery(
+                `
+            SELECT IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted, oa.status status
+              FROM overtime_accomplishment oa 
+              INNER JOIN overtime_employee oe ON oe.overtime_employee_id = oa.overtime_employee_id_fk 
+            WHERE oe.employee_id_fk = ? AND oe.overtime_application_id_fk = ?;`,
+                [employeeId, overtime.id]
+              )
+            )[0];
+
             const { companyId, employeeFullName, positionTitle, assignment, photoUrl } = employeeDetails;
             return {
               employeeId,
@@ -305,6 +372,8 @@ export class OvertimeService {
               scheduleBase,
               avatarUrl: photoUrl,
               assignment: assignment.name,
+              isAccomplishmentSubmitted,
+              accomplishmentStatus: status,
             };
           })
         )) as [];
@@ -361,10 +430,10 @@ export class OvertimeService {
             const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
             const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
             const { companyId, employeeFullName, positionTitle, assignment, photoUrl } = employeeDetails;
-            const { isAccomplishmentSubmitted } = (
+            const { isAccomplishmentSubmitted, status } = (
               await this.employeeScheduleService.rawQuery(
                 `
-            SELECT IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted 
+            SELECT IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted, oa.status status 
               FROM overtime_accomplishment oa 
               INNER JOIN overtime_employee oe ON oe.overtime_employee_id = oa.overtime_employee_id_fk 
             WHERE oe.employee_id_fk = ? AND oe.overtime_application_id_fk = ?;`,
@@ -381,6 +450,7 @@ export class OvertimeService {
               avatarUrl: photoUrl,
               assignment: assignment.name,
               isAccomplishmentSubmitted,
+              accomplishmentStatus: status,
             };
           })
         )) as [];
@@ -414,6 +484,7 @@ export class OvertimeService {
   }
 
   async getOvertimeDetails(employeeId: string, overtimeApplicationId: string) {
+    //console.log('adsadsad asdasd');
     const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
 
     const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
@@ -499,10 +570,12 @@ export class OvertimeService {
         );
       }
       if (computedIvmsHours >= 4) {
-        computedIvmsHours =
+        //computedIvmsHours = dtr.schedule.lunchOut !== null;
+        console.log(computedEncodedHours);
+        computedEncodedHours =
           dtr.schedule.lunchOut !== null
-            ? computedIvmsHours - (Math.trunc(computedIvmsHours / 4) - 1)
-            : computedIvmsHours - (Math.trunc(computedIvmsHours / 4) - 1);
+            ? computedIvmsHours - (computedIvmsHours - parseInt((computedIvmsHours / 4).toString()) * 4)
+            : computedIvmsHours - (computedIvmsHours - parseInt((computedIvmsHours / 4).toString()) * 4);
       }
     }
 
@@ -520,15 +593,19 @@ export class OvertimeService {
         );
       }
       if (computedEncodedHours > 4) {
+        console.log(computedEncodedHours);
         computedEncodedHours =
           dtr.schedule.lunchOut !== null
-            ? computedEncodedHours - (Math.trunc(computedEncodedHours / 4) - 1)
-            : computedEncodedHours - (Math.trunc(computedEncodedHours / 4) - 1);
+            ? computedEncodedHours - (computedEncodedHours - parseInt((computedEncodedHours / 4).toString()) * 4)
+            : computedEncodedHours - (computedEncodedHours - parseInt((computedEncodedHours / 4).toString()) * 4);
       }
     }
 
+    console.log('8======D', plannedDate);
+
     return {
       ...restOfUpdatedOvertime,
+      plannedDate,
       computedIvmsHours: computedIvmsHours > 0 ? computedIvmsHours : 0,
       didFaceScan,
       estimatedHours: estimatedHours === null ? null : estimatedHours,

@@ -65,4 +65,9 @@ export class PassSlipController {
   async testCron() {
     return await this.passSlipService.addPassSlipsToLedger();
   }
+
+  @Post('test-cron2')
+  async testCron2() {
+    return await this.passSlipService.updatePassSlipStatusCron();
+  }
 }
