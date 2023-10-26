@@ -227,7 +227,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         lspDetails.map(async (lspDetailsItem) => {
           const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
           return {
-            lspDetailsId: lspDetailsItem.lspDetails.id,
+            id: lspDetailsItem.lspDetails.id,
             name: lsp.name,
             email: lsp.email,
             type: lsp.type,
@@ -236,12 +236,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       );
 
       const tag = (await this.trainingTagsService.crud().findAll({
-        find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
+        find: { relations: { tag: true }, select: { id: true, tag: { id: true, name: true } }, where: { trainingDetails: { id } } },
       })) as TrainingTag[];
 
       const trainingTags = await Promise.all(
         tag.map(async (tagItem) => {
           return {
+            id: tagItem.tag.id,
             tag: tagItem.tag.name,
           };
         })
@@ -327,7 +328,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         lspDetails.map(async (lspDetailsItem) => {
           const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
           return {
-            lspDetailsId: lspDetailsItem.lspDetails.id,
+            id: lspDetailsItem.lspDetails.id,
             name: lsp.name,
             email: lsp.email,
             type: lsp.type,
@@ -336,12 +337,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       );
 
       const tag = (await this.trainingTagsService.crud().findAll({
-        find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
+        find: { relations: { tag: true }, select: { id: true, tag: { id: true, name: true } }, where: { trainingDetails: { id } } },
       })) as TrainingTag[];
 
       const trainingTags = await Promise.all(
         tag.map(async (tagItem) => {
           return {
+            id: tagItem.tag.id,
             tag: tagItem.tag.name,
           };
         })

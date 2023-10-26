@@ -1,11 +1,11 @@
 import { GetAllManagersPatterns, MicroserviceClient } from '@gscwd-api/microservices';
 import { HttpException, Injectable } from '@nestjs/common';
-import { EmployeesService } from '../../employees';
+import { HrmsEmployeesService } from '../../hrms/employees';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ManagersService {
-  constructor(private readonly microserviceClient: MicroserviceClient, private readonly employeesService: EmployeesService) {}
+  constructor(private readonly microserviceClient: MicroserviceClient, private readonly employeesService: HrmsEmployeesService) {}
 
   // async findAllManagersFromView(id: string) {
   //   return await this.employeesService.findEmployeesNameById(id);

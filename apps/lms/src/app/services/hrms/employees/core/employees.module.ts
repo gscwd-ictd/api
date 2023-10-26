@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { HrmsMicroserviceClientModule } from '@gscwd-api/microservices';
-import { EmployeesService } from './employees.service';
+import { HrmsEmployeesService } from './employees.service';
 import { EmployeesController } from './employees.controller';
 
 @Module({
   imports: [HrmsMicroserviceClientModule],
   controllers: [EmployeesController],
-  providers: [EmployeesService],
-  exports: [EmployeesService],
+  providers: [HrmsEmployeesService],
+  exports: [HrmsEmployeesService],
 })
-export class EmployeesModule {}
+export class HrmsEmployeesModule {}
