@@ -19,7 +19,7 @@ export class PassSlipDto {
   obTransportation: ObTransportation;
 
   @IsOptional()
-  @IsNumber()
+  @IsNumberString()
   estimateHours?: number;
 
   @IsString()

@@ -1,5 +1,6 @@
 import { HolidaysDto, UpdateHolidayDto } from '@gscwd-api/models';
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { AuthenticatedGuard } from '../../users/guards/authenticated.guard';
 import { HolidaysService } from './holidays.service';
 
 @Controller({ version: '1', path: 'holidays' })
@@ -14,6 +15,12 @@ export class HolidaysController {
   @Get()
   async getHolidaysForTheCurrentYear() {
     return await this.holidayService.getHolidaysForTheCurrentYear();
+  }
+
+  @UseGuards(AuthenticatedGuard)
+  @Get('asd')
+  async testGuard() {
+    return 'working guard';
   }
 
   @Put()

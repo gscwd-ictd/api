@@ -1,6 +1,6 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { NatureOfBusiness, ObTransportation } from '@gscwd-api/utils';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('pass_slip')
 export class PassSlip extends DatabaseEntity implements IEntity {
@@ -10,7 +10,7 @@ export class PassSlip extends DatabaseEntity implements IEntity {
   @Column({ name: 'employee_id_fk', type: 'uuid' })
   employeeId: string;
 
-  @Column({ name: 'date_of_application', type: 'datetime', nullable: true })
+  @Column({ name: 'date_of_application', type: 'datetime' })
   dateOfApplication: Date;
 
   @Column({ name: 'nature_of_business', type: 'enum', enum: NatureOfBusiness })

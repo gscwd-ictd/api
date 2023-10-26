@@ -188,6 +188,7 @@ export type PassSlipForLedger = {
   purposeDestination: string;
   disputeRemarks: string;
   isDisputeApproved: boolean;
+  status: PassSlipApprovalStatus;
   isCancelled: boolean;
   createdAt: Date;
   updatedAt: Date;

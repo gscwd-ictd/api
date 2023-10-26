@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspCertificationDto, LspCertification } from '@gscwd-api/models';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
@@ -14,7 +14,9 @@ export class LspCertificationsService extends CrudHelper<LspCertification> {
     //transaction result
     const result = await this.crudService.transact<LspCertification>(entityManager).create({
       dto: data,
-      onError: () => new BadRequestException(),
+      onError: (error) => {
+        throw error;
+      },
     });
 
     // return result
@@ -27,7 +29,9 @@ export class LspCertificationsService extends CrudHelper<LspCertification> {
     const result = await this.crudService.transact<LspCertification>(entityManager).delete({
       deleteBy: { lspDetails: { id: lspDetailsId } },
       softDelete: false,
-      onError: () => new BadRequestException(),
+      onError: (error) => {
+        throw error;
+      },
     });
 
     // return result

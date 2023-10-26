@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspAffiliationDto, LspAffiliation } from '@gscwd-api/models';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
@@ -14,7 +14,9 @@ export class LspAffiliationsService extends CrudHelper<LspAffiliation> {
     //transaction result
     const result = await this.crudService.transact<LspAffiliation>(entityManager).create({
       dto: data,
-      onError: () => new BadRequestException(),
+      onError: (error) => {
+        throw error;
+      },
     });
     // return result
     return result;
@@ -26,7 +28,9 @@ export class LspAffiliationsService extends CrudHelper<LspAffiliation> {
     const result = await this.crudService.transact<LspAffiliation>(entityManager).delete({
       deleteBy: { lspDetails: { id: lspDetailsId } },
       softDelete: false,
-      onError: () => new BadRequestException(),
+      onError: (error) => {
+        throw error;
+      },
     });
     //return result
     return result;

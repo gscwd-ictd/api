@@ -248,12 +248,17 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         action: 'send',
         payload: { companyId: id, date: dateCurrent },
         pattern: 'get_dtr_by_company_id_and_date',
-        onError: (error) => new NotFoundException(error),
+        onError: (error) => {
+          console.log(error);
+          throw new NotFoundException(error);
+        },
       })) as IvmsEntry[];
 
       //1. check if employee is in dtr table in the current date;
       const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
-      const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dateCurrent]))[0];
+      const { remarks } = (
+        await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')])
+      )[0];
 
       //1.2 if not in current mysql daily_time_record save data fetched from ivms
       if (!currEmployeeDtr) {
@@ -314,7 +319,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const dateCurrent = dayjs(data.date).toDate();
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
-      const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dateCurrent]))[0];
+      const { remarks } = (
+        await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')])
+      )[0];
+
       let noAttendance = 1;
       if (remarks !== null || remarks !== '') noAttendance = 0;
       return {

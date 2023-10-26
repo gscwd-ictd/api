@@ -229,6 +229,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           return {
             lspDetailsId: lspDetailsItem.lspDetails.id,
             name: lsp.name,
+            email: lsp.email,
+            type: lsp.type,
           };
         })
       );
@@ -327,6 +329,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           return {
             lspDetailsId: lspDetailsItem.lspDetails.id,
             name: lsp.name,
+            email: lsp.email,
+            type: lsp.type,
           };
         })
       );
