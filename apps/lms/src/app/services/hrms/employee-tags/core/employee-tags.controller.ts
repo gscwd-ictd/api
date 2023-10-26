@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { HrmsEmployeeTagsService } from './employee-tags.service';
 import { CreateEmployeeTagDto, DeleteEmployeeTagDto } from '@gscwd-api/models';
 
-@Controller({ version: '1', path: 'hrms/employees/tags' })
+@Controller({ version: '1', path: 'hrms/employee-tags' })
 export class HrmsEmployeeTagsController {
   constructor(private readonly hrmsEmployeeTagsService: HrmsEmployeeTagsService) {}
 
@@ -13,6 +13,7 @@ export class HrmsEmployeeTagsController {
 
   @Get('employee/:id')
   async findTagsByEmployeeId(@Param('id') id: string) {
+    console.log(id);
     return await this.hrmsEmployeeTagsService.findTagsByEmployeeId(id);
   }
 

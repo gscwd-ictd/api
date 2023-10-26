@@ -2,7 +2,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { HrmsEmployeesService } from './employees.service';
 
 @Controller({ version: '1', path: 'hrms/employees' })
-export class EmployeesController {
+export class HrmsEmployeesController {
   constructor(private readonly hrmsEmployeesService: HrmsEmployeesService) {}
 
   @Get('q')
