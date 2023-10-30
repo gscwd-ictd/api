@@ -3,7 +3,7 @@ import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { TrainingDesign } from '../training-designs';
 import { TrainingSource } from '../training-sources';
-import { TrainingType } from '@gscwd-api/utils';
+import { TrainingPreparationStatus, TrainingType } from '@gscwd-api/utils';
 import { CreateTrainingTagDto } from '../training-tags';
 import { CreateTrainingDistributionDto } from '../training-distributions';
 import { TrainingRequirements } from '../training-requirements';
@@ -16,6 +16,7 @@ export class TrainingDetailsDto {
   @IsEnum(TrainingType)
   @IsNotEmpty()
   trainingType: TrainingType;
+
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CourseContentDto)
@@ -80,9 +81,15 @@ export class CreateTrainingExternalDto extends TrainingDetailsDto {
 export class UpdateTrainingInternalDto extends CreateTrainingInternalDto {
   @IsUUID('4')
   id: string;
+
+  @IsEnum(TrainingPreparationStatus)
+  trainingPreparationStatus: TrainingPreparationStatus;
 }
 
 export class UpdateTrainingExternalDto extends CreateTrainingExternalDto {
   @IsUUID('4')
   id: string;
+
+  @IsEnum(TrainingPreparationStatus)
+  trainingPreparationStatus: TrainingPreparationStatus;
 }
