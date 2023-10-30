@@ -12,13 +12,21 @@ export class TrainingTagsService extends CrudHelper<TrainingTag> {
   //insert training tag
   async create(data: CreateTrainingTagDto, entityManager: EntityManager) {
     //transaction results
-    const results = await this.crudService.transact<TrainingTag>(entityManager).create({
+    return await this.crudService.transact<TrainingTag>(entityManager).create({
       dto: data,
       onError: (error) => {
         throw error;
       },
     });
+  }
 
-    return results;
+  async remove(id: string, entityManager: EntityManager) {
+    return await this.crudService.transact<TrainingTag>(entityManager).delete({
+      deleteBy: { trainingDetails: { id } },
+      softDelete: false,
+      onError: (error) => {
+        throw error;
+      },
+    });
   }
 }

@@ -3,10 +3,11 @@ import { TrainingNominee } from '@gscwd-api/models';
 import { Module } from '@nestjs/common';
 import { TrainingNomineesService } from './training-nominees.service';
 import { TrainingNomineesController } from './training-nominees.controller';
+import { TrainingNomineesMicroserviceController } from './training-nominees-ms.controller';
 
 @Module({
   imports: [CrudModule.register(TrainingNominee)],
-  controllers: [TrainingNomineesController],
+  controllers: [TrainingNomineesController, TrainingNomineesMicroserviceController],
   providers: [TrainingNomineesService],
   exports: [TrainingNomineesService],
 })

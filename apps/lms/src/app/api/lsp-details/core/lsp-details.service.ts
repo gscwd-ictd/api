@@ -869,24 +869,6 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       return result;
     } catch (error) {
       throw new BadRequestException();
-      // const queryFailedError = error as unknown as QueryFailedError;
-      // console.log(queryFailedError.message);
-      // if (
-      //   queryFailedError.message ===
-      //   `QueryFailedError: update or delete on table "lsp_details" violates foreign key constraint "FK_9a5ae482b5c6573ba5f0045400a" on table "training_details"`
-      // ) {
-      //   throw new BadRequestException({ message: 'Unable to remove learning service provider' });
-      // }
-      // throw new BadRequestException();
-      // if (
-      //   error.message.includes(
-      //     `QueryFailedError: update or delete on table "lsp_details" violates foreign key constraint "FK_9a5ae482b5c6573ba5f0045400a" on table "training_details`
-      //   )
-      // ) {
-      //   throw new BadRequestException(error, { cause: new Error() });
-      // } else {
-      //   throw new BadRequestException();
-      // }
     }
   }
 

@@ -1,6 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingNomineeDto, TrainingNominee } from '@gscwd-api/models';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import { DataSource } from 'typeorm';
 
 @Injectable()
@@ -10,7 +11,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   }
 
   //insert training nominees
-  async addTrainingNominees(data: CreateTrainingNomineeDto) {
+  async create(data: CreateTrainingNomineeDto) {
     try {
       //transaction result
       const result = await this.datasource.transaction(async (entityManager) => {
@@ -19,8 +20,8 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           employee.map(async (employeeItem) => {
             return await this.crudService.transact<TrainingNominee>(entityManager).create({
               dto: { ...rest, employeeId: employeeItem },
-              onError: ({ error }) => {
-                return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+              onError: (error) => {
+                throw error;
               },
             });
           })
@@ -30,7 +31,8 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
       //return result
       return result;
     } catch (error) {
-      return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+      Logger.log(error);
+      throw new RpcException(error);
     }
   }
 }
