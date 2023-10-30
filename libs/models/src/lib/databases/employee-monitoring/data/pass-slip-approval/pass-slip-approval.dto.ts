@@ -46,7 +46,6 @@ export class UpdatePassSlipApprovalDto {
   disputeRemarks?: string;
 
   @IsOptional()
-  @IsNotEmpty()
   @IsString({ message: 'Please provide HRMO disapproval remarks.' })
   hrmoDisapprovalRemarks?: string;
 }

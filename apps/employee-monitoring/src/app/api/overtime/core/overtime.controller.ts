@@ -27,8 +27,13 @@ export class OvertimeController {
   }
 
   @Get(':manager_id/approval')
-  async getOvertimeApproval(@Param('manager_id') managerId: string) {
+  async getOvertimeApprovals(@Param('manager_id') managerId: string) {
     return await this.overtimeService.getOvertimeApplicationsForApprovalV2(managerId);
+  }
+
+  @Get(':manager_id/approval/:overtime_application_id')
+  async getOvertimeApproval(@Param('manager_id') managerId: string, @Param('overtime_application_id') id: string) {
+    return await this.overtimeService.getOvertimeApplicationDetailByManagerIdAndId(managerId, id);
   }
 
   @Get(':immediate_supervisor_id')

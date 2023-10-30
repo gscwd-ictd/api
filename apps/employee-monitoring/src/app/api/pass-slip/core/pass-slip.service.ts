@@ -560,7 +560,76 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     if (updateResult.affected > 0) return updatePassSlipTimeRecordDto;
   }
 
-  @Cron('0 0 0 * * 0-6')
+  @Cron('0 57 23 * * 0-6')
+  async updatePassSlipStatusCron() {
+    //1. fetch approved pass slips from yesterday (Personal Business Only)
+    const passSlips = (await this.rawQuery(`
+        SELECT 
+            ps.pass_slip_id id, 
+            employee_id_fk employeeId, 
+            date_of_application dateOfApplication, 
+            nature_of_business natureOfBusiness,
+            time_in timeIn,
+            time_out timeOut,
+            encoded_time_in encodedTimeIn,
+            encoded_time_out encodedTimeOut,
+            ps.ob_transportation obTransportation,
+            ps.estimate_hours estimateHours,
+            ps.purpose_destination purposeDestination,
+            ps.is_cancelled isCancelled,
+            ps.dispute_remarks disputeRemarks,
+            psa.status status,
+            ps.created_at createdAt,
+            ps.updated_at updatedAt,
+            ps.deleted_at deletedAt,
+            ps.is_dispute_approved disputeApproved
+          FROM pass_slip ps 
+          INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
+        WHERE DATE_FORMAT(date_of_application,'%Y-%m-%d') = DATE_FORMAT(now(),'%Y-%m-%d') AND (psa.status = 'approved' OR psa.status = 'for supervisor approval' OR psa.status='for hrmo approval'); 
+    `)) as PassSlipForLedger[];
+
+    //2. check time in and time out
+    console.log(passSlips);
+    const passSlipsToLedger = await Promise.all(
+      passSlips.map(async (passSlip) => {
+        console.log(passSlip);
+        const { id, timeIn, timeOut, natureOfBusiness, employeeId, dateOfApplication, status } = passSlip;
+
+        if (timeIn === null && timeOut === null && status === PassSlipApprovalStatus.APPROVED) {
+          await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.UNUSED }, updateBy: { passSlipId: { id } } });
+        } else if (
+          timeIn === null &&
+          timeOut === null &&
+          (status === PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL || status === PassSlipApprovalStatus.FOR_HRMO_APPROVAL)
+        ) {
+          await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.CANCELLED }, updateBy: { passSlipId: { id } } });
+        }
+        //2.1 if time in is null and time out is null update status to unused;
+
+        //2.2  if time in is not null and time out is null check if not undertime
+        if (timeOut !== null && timeIn === null) {
+          if (natureOfBusiness === 'Undertime' || natureOfBusiness === 'Half Day' || natureOfBusiness === 'Personal Business') {
+            //2.2.1 set time out to scheduled time out;
+            //get employee current schedule schedule from dtr
+            const employeeAssignment = await this.getEmployeeAssignment(employeeId);
+            const { scheduleTimeOut } = (
+              await this.rawQuery(
+                `
+                SELECT s.time_out scheduleTimeOut 
+                FROM daily_time_record dtr INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
+                WHERE dtr_date = ? AND dtr.company_id_fk= ?;`,
+                [dateOfApplication, employeeAssignment.companyId]
+              )
+            )[0];
+            await this.crud().update({ dto: { timeIn: scheduleTimeOut }, updateBy: { id } });
+          }
+        }
+      })
+    );
+    console.log('-------------- PASS SLIP CRON JOB DONE --------------------');
+  }
+
+  @Cron('0 57 23 * * 0-6')
   async addPassSlipsToLedger() {
     //1. fetch approved pass slips from yesterday (Personal Business Only)
     const passSlips = (await this.rawQuery(`
@@ -579,6 +648,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             ps.is_cancelled isCancelled,
             ps.dispute_remarks disputeRemarks,
             ps.created_at createdAt,
+            psa.status status,
             ps.updated_at updatedAt,
             ps.deleted_at deletedAt,
             ps.is_dispute_approved disputeApproved
@@ -614,9 +684,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         )[0];
 
         if (passSlipCount === '0') {
-          if (timeIn === null && timeOut === null) {
+          if (timeIn === null && timeOut === null && status === PassSlipApprovalStatus.APPROVED) {
             await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.UNUSED }, updateBy: { passSlipId: { id } } });
-            return;
+          } else if (timeIn === null && timeOut === null && status === PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL) {
+            await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.CANCELLED }, updateBy: { passSlipId: { id } } });
           }
           //2.1 if time in is null and time out is null update status to unused;
 
