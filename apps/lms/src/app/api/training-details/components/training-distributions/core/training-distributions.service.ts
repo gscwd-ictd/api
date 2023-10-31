@@ -42,4 +42,17 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
 
     return trainingDistribution;
   }
+
+  async remove(trainingId: string, entityManager: EntityManager) {
+    const trainingDistribution = await this.crudService.transact<TrainingDistribution>(entityManager).delete({
+      deleteBy: {
+        trainingDetails: { id: trainingId },
+      },
+      onError: (error) => {
+        throw error;
+      },
+    });
+    const trainingRecommendedEmployee = await this.trainingRecommendedEmployeesService.remove(trainingId, entityManager);
+    return await Promise.all([trainingDistribution, trainingRecommendedEmployee]);
+  }
 }

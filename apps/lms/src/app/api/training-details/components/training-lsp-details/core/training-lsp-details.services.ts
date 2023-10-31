@@ -11,10 +11,10 @@ export class TrainingLspDetailsService extends CrudHelper<TrainingLspDetails> {
 
   //insert training lsp details
   async create(data: CreateTrainingLspDetailsDto, entityManager: EntityManager) {
-    const { lspDetailsId, ...rest } = data;
+    const { id, ...rest } = data;
     //transaction results
     const results = await this.crudService.transact<TrainingLspDetails>(entityManager).create({
-      dto: { lspDetails: lspDetailsId, ...rest },
+      dto: { lspDetails: id, ...rest },
       onError: (error) => {
         throw error;
       },

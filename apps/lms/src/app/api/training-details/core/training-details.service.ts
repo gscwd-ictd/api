@@ -8,8 +8,10 @@ import {
   TrainingLspDetails,
   TrainingRecommendedEmployee,
   TrainingTag,
+  UpdateTrainingExternalDto,
+  UpdateTrainingInternalDto,
 } from '@gscwd-api/models';
-import { DataSource, QueryFailedError } from 'typeorm';
+import { DataSource, EntityManager, QueryFailedError } from 'typeorm';
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
 import { TrainingRecommendedEmployeeService } from '../components/training-recommended-employees';
@@ -17,6 +19,7 @@ import { LspDetailsService } from '../../lsp-details';
 import { PortalEmployeesService } from '../../../services/portal';
 import { TrainingLspDetailsService } from '../components/training-lsp-details';
 import { RpcException } from '@nestjs/microservices';
+import { TrainingPreparationStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -227,7 +230,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         lspDetails.map(async (lspDetailsItem) => {
           const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
           return {
-            lspDetailsId: lspDetailsItem.lspDetails.id,
+            id: lspDetailsItem.lspDetails.id,
             name: lsp.name,
             email: lsp.email,
             type: lsp.type,
@@ -236,12 +239,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       );
 
       const tag = (await this.trainingTagsService.crud().findAll({
-        find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
+        find: { relations: { tag: true }, select: { id: true, tag: { id: true, name: true } }, where: { trainingDetails: { id } } },
       })) as TrainingTag[];
 
       const trainingTags = await Promise.all(
         tag.map(async (tagItem) => {
           return {
+            id: tagItem.tag.id,
             tag: tagItem.tag.name,
           };
         })
@@ -327,7 +331,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         lspDetails.map(async (lspDetailsItem) => {
           const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
           return {
-            lspDetailsId: lspDetailsItem.lspDetails.id,
+            id: lspDetailsItem.lspDetails.id,
             name: lsp.name,
             email: lsp.email,
             type: lsp.type,
@@ -336,12 +340,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       );
 
       const tag = (await this.trainingTagsService.crud().findAll({
-        find: { relations: { tag: true }, select: { id: true, tag: { name: true } }, where: { trainingDetails: { id } } },
+        find: { relations: { tag: true }, select: { id: true, tag: { id: true, name: true } }, where: { trainingDetails: { id } } },
       })) as TrainingTag[];
 
       const trainingTags = await Promise.all(
         tag.map(async (tagItem) => {
           return {
+            id: tagItem.tag.id,
             tag: tagItem.tag.name,
           };
         })
@@ -392,6 +397,193 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
+  // update traing internal by id
+  async updateTrainingInternalById(data: UpdateTrainingInternalDto) {
+    const { id, courseContent, trainingRequirements, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
+    try {
+      const result = await this.datasource.transaction(async (entityManager) => {
+        // remove all training components (training lsp details and training distribution)
+        await this.removeTrainingComponents(id, entityManager);
+
+        // update training details and add training components
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).update({
+          updateBy: { id },
+          dto: {
+            courseContent: JSON.stringify(courseContent),
+            trainingRequirements: JSON.stringify(trainingRequirements),
+            ...rest,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+        //insert training lsp details
+        await Promise.all(
+          trainingLspDetails.map(async (trainingLspDetailsItem) => {
+            return await this.trainingLspDetailsService.create(
+              {
+                trainingDetails,
+                ...trainingLspDetailsItem,
+              },
+              entityManager
+            );
+          })
+        );
+        //insert training tags
+        await Promise.all(
+          trainingTags.map(async (trainingTagsItem) => {
+            return await this.trainingTagsService.create(
+              {
+                trainingDetails,
+                ...trainingTagsItem,
+              },
+              entityManager
+            );
+          })
+        );
+        //insert training slot distributions
+        await Promise.all(
+          slotDistribution.map(async (slotDistributionsItem) => {
+            return await this.trainingDistributionsService.create(
+              {
+                trainingDetails,
+                ...slotDistributionsItem,
+              },
+              entityManager
+            );
+          })
+        );
+        return data;
+      });
+      return result;
+    } catch (error) {
+      Logger.log(error);
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
+        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else {
+        // Handle other errors as needed
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      }
+    }
+  }
+
+  // update training external by id
+  async updateTrainingExternalById(data: UpdateTrainingExternalDto) {
+    const { id, courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
+    try {
+      const result = await this.datasource.transaction(async (entityManager) => {
+        // remove all training components (training lsp details and training distribution)
+        await this.removeTrainingComponents(id, entityManager);
+
+        // update training details and add training components
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).update({
+          updateBy: { id },
+          dto: {
+            courseContent: JSON.stringify(courseContent),
+            trainingRequirements: JSON.stringify(trainingRequirements),
+            bucketFiles: JSON.stringify(bucketFiles),
+            ...rest,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+
+        //insert training lsp details
+        await Promise.all(
+          trainingLspDetails.map(async (trainingLspDetailsItem) => {
+            return await this.trainingLspDetailsService.create(
+              {
+                trainingDetails,
+                ...trainingLspDetailsItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert training tags
+        await Promise.all(
+          trainingTags.map(async (trainingTagsItem) => {
+            return await this.trainingTagsService.create(
+              {
+                trainingDetails,
+                ...trainingTagsItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        //insert training slot distributions
+        await Promise.all(
+          slotDistribution.map(async (slotDistributionsItem) => {
+            return await this.trainingDistributionsService.create(
+              {
+                trainingDetails,
+                ...slotDistributionsItem,
+              },
+              entityManager
+            );
+          })
+        );
+
+        return data;
+      });
+
+      return result;
+    } catch (error) {
+      Logger.log(error);
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
+        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else {
+        // Handle other errors as needed
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      }
+    }
+  }
+
+  // remove training details
+  async removeTrainingById(id: string) {
+    try {
+      const result = await this.datasource.transaction(async (entityManager) => {
+        // delete lsp components by lsp id
+        await this.removeTrainingComponents(id, entityManager);
+
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).delete({
+          softDelete: true,
+          deleteBy: { id },
+        });
+        return trainingDetails;
+      });
+      return result;
+    } catch (error) {
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  // remove all training components (training tags)
+  async removeTrainingComponents(id: string, entityManager: EntityManager) {
+    try {
+      const trainingTags = await this.trainingTagsService.remove(id, entityManager);
+      const trainingDistribution = await this.trainingDistributionsService.remove(id, entityManager);
+
+      return await Promise.all([trainingTags, trainingDistribution]);
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  // microservices
+
   // find recommended employees by supervisor id (microservices)
   async findTrainingRecommendedEmployeeBySupervisorId(supervisorId: string) {
     try {
@@ -412,7 +604,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       const trainingDetails = await Promise.all(
         distribution.map(async (distributionItem) => {
-          const { trainingDetails } = distributionItem;
+          const { id, trainingDetails } = distributionItem;
           const training = await this.crudService.findOne({
             find: {
               relations: { trainingDesign: true },
@@ -425,12 +617,15 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
                 trainingEnd: true,
                 trainingPreparationStatus: true,
               },
-              where: { id: trainingDetails.id },
+              where: { id: trainingDetails.id, trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION },
             },
           });
 
           const employees = (await this.trainingRecommendedEmployeesService.crud().findAll({
-            find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionItem.id } } },
+            find: {
+              select: { employeeId: true },
+              where: { trainingDistribution: { id: distributionItem.id } },
+            },
           })) as Array<TrainingRecommendedEmployee>;
 
           const recommended = await Promise.all(
@@ -443,7 +638,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             })
           );
           return {
-            id: training.id,
+            id: id,
             courseTitle: training.courseTitle || training.trainingDesign.courseTitle,
             location: training.location,
             trainingStart: training.trainingStart,

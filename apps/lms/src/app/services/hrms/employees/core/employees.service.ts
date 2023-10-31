@@ -3,7 +3,7 @@ import { EmployeeFullNameRaw } from '@gscwd-api/utils';
 import { HttpException, Injectable } from '@nestjs/common';
 
 @Injectable()
-export class EmployeesService {
+export class HrmsEmployeesService {
   constructor(private readonly microserviceClient: MicroserviceClient) {}
 
   //find employees by name match

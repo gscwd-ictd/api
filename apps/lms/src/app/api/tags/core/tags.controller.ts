@@ -68,7 +68,7 @@ export class TagsController implements ICrudRoutes {
   async delete(@Param('id') id: string): Promise<DeleteResult> {
     return this.tagsService.crud().delete({
       deleteBy: { id },
-      softDelete: false,
+      softDelete: true,
       onError: () => new BadRequestException(),
     });
   }

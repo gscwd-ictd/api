@@ -9,5 +9,5 @@ export class CreateTrainingLspDetailsDto {
 
   @IsNotEmpty()
   @IsUUID('4')
-  lspDetailsId: LspDetails;
+  id: LspDetails;
 }
