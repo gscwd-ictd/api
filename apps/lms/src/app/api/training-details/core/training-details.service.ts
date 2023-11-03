@@ -611,7 +611,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
               select: {
                 id: true,
                 courseTitle: true,
-                trainingDesign: { courseTitle: true },
+                trainingDesign: { id: true, courseTitle: true },
                 location: true,
                 trainingStart: true,
                 trainingEnd: true,

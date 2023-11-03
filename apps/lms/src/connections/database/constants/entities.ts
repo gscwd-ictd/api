@@ -12,6 +12,7 @@ import {
   TrainingDetails,
   TrainingDistribution,
   TrainingLspDetails,
+  TrainingNominee,
   TrainingRecommendedEmployee,
   TrainingSource,
   TrainingTag,
@@ -41,6 +42,7 @@ export const DB_ENTITIES = [
   TrainingTag,
   TrainingDistribution,
   TrainingRecommendedEmployee,
+  TrainingNominee,
 
   // views
 ];
