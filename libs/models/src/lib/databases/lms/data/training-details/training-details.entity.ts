@@ -1,5 +1,5 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TrainingDesign } from '../training-designs';
 import { TrainingSource } from '../training-sources';
 import { TrainingPreparationStatus, TrainingStatus, TrainingType } from '@gscwd-api/utils';

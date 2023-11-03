@@ -1,10 +1,10 @@
 import { EmployeeTagsPatterns, MicroserviceClient } from '@gscwd-api/microservices';
 import { CreateEmployeeTagDto, DeleteEmployeeTagDto } from '@gscwd-api/models';
 import { HttpException, Injectable } from '@nestjs/common';
-import { TagsService } from '../../../api/tags';
+import { TagsService } from '../../../../api/tags';
 
 @Injectable()
-export class EmployeeTagsService {
+export class HrmsEmployeeTagsService {
   constructor(private readonly microserviceClient: MicroserviceClient, private readonly tagsService: TagsService) {}
 
   //add multiple tags in a multiple employees
