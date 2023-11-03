@@ -80,9 +80,10 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
     if (deleteCustomGroup.affected > 0) return customGroup;
   }
 
-  async getCustomGroupDetails(customGroupId: string) {
+  async getCustomGroupDetails(customGroupId: string, dateFrom: Date, dateTo: Date) {
     const customGroupDetails = await this.crudService.findOneOrNull({ find: { where: { id: customGroupId } } });
     try {
+      console.log(dateFrom, ' ', dateTo);
       const members = (await this.getCustomGroupAssignedMembers(customGroupId)) as {
         employeeId: string;
         companyId: string;

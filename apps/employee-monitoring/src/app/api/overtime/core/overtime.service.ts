@@ -37,40 +37,44 @@ export class OvertimeService {
 
   async createOvertime(createOverTimeDto: CreateOvertimeDto) {
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
-      const { employees, ...overtimeApplication } = createOverTimeDto;
+      try {
+        const { employees, ...overtimeApplication } = createOverTimeDto;
 
-      //1. insert to overtime application
-      const application = await this.overtimeApplicationService.createOvertimeApplication(overtimeApplication, entityManager);
-      //2. insert to overtime approval (default status)
-      const approval = await this.overtimeApprovalService.createOvertimeApproval(
-        {
-          overtimeApplicationId: application,
-        },
-        entityManager
-      );
-      //3. insert to overtime employees
-      const overtimeEmployees = await Promise.all(
-        employees.map(async (employee) => {
-          const overtimeEmployeeId = await this.overtimeEmployeeService.createOvertimeEmployees(
-            {
-              overtimeApplicationId: application,
-              employeeId: employee,
-            },
-            entityManager
-          );
-          //4. insert to overtime accomplishment (default status)
-          const accomplishment = await this.overtimeAccomplishmentService.createOvertimeAccomplishment(
-            {
-              overtimeEmployeeId,
-              status: OvertimeStatus.PENDING,
-            },
-            entityManager
-          );
+        //1. insert to overtime application
+        const application = await this.overtimeApplicationService.createOvertimeApplication(overtimeApplication, entityManager);
+        //2. insert to overtime approval (default status)
+        const approval = await this.overtimeApprovalService.createOvertimeApproval(
+          {
+            overtimeApplicationId: application,
+          },
+          entityManager
+        );
+        //3. insert to overtime employees
+        const overtimeEmployees = await Promise.all(
+          employees.map(async (employee) => {
+            const overtimeEmployeeId = await this.overtimeEmployeeService.createOvertimeEmployees(
+              {
+                overtimeApplicationId: application,
+                employeeId: employee,
+              },
+              entityManager
+            );
+            //4. insert to overtime accomplishment (default status)
+            const accomplishment = await this.overtimeAccomplishmentService.createOvertimeAccomplishment(
+              {
+                overtimeEmployeeId,
+                status: OvertimeStatus.PENDING,
+              },
+              entityManager
+            );
 
-          return { overtimeEmployeeId, accomplishment };
-        })
-      );
-      return { application, approval, employees: overtimeEmployees };
+            return { overtimeEmployeeId, accomplishment };
+          })
+        );
+        return { application, approval, employees: overtimeEmployees };
+      } catch (error) {
+        console.log(error);
+      }
     });
     return result;
   }
@@ -571,7 +575,7 @@ export class OvertimeService {
       }
       if (computedIvmsHours >= 4) {
         //computedIvmsHours = dtr.schedule.lunchOut !== null;
-        console.log(computedEncodedHours);
+        //console.log(computedEncodedHours);
         computedEncodedHours =
           dtr.schedule.lunchOut !== null
             ? computedIvmsHours - (computedIvmsHours - parseInt((computedIvmsHours / 4).toString()) * 4)
@@ -600,8 +604,6 @@ export class OvertimeService {
             : computedEncodedHours - (computedEncodedHours - parseInt((computedEncodedHours / 4).toString()) * 4);
       }
     }
-
-    console.log('8======D', plannedDate);
 
     return {
       ...restOfUpdatedOvertime,
@@ -841,5 +843,9 @@ export class OvertimeService {
     });
     if (deleteResult.affected > 0) return { deletedImmediateSupervisor: id };
     throw new InternalServerErrorException();
+  }
+
+  async getOvertimeAccomplishmentsByOvertimeApplicationId(overtimeApplicationId: string) {
+    console.log(overtimeApplicationId);
   }
 }

@@ -46,6 +46,7 @@ export class LeaveBenefitsService extends CrudHelper<LeaveBenefits> {
           creditDistribution: true,
           isMonetizable: true,
           leaveType: true,
+          maximumCredits: true,
         },
         order: { leaveName: 'ASC' },
       },

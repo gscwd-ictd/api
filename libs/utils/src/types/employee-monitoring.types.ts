@@ -217,6 +217,7 @@ export type LeaveLedger = {
 export enum OvertimeStatus {
   APPROVED = 'approved',
   DISAPPROVED = 'disapproved',
+  CANCELLED = 'cancelled',
   PENDING = 'pending',
 }
 

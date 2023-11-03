@@ -4,9 +4,11 @@ import {
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
+import { UserLogsInterceptor } from '../../user-logs/misc/interceptors/user-logs.interceptor';
 import { OvertimeService } from './overtime.service';
 
+//@UseInterceptors(UserLogsInterceptor)
 @Controller({ version: '1', path: 'overtime' })
 export class OvertimeController {
   constructor(private readonly overtimeService: OvertimeService) {}
@@ -19,6 +21,11 @@ export class OvertimeController {
   @Get()
   async getOvertimeApplications() {
     return await this.overtimeService.getOvertimeApplications();
+  }
+
+  @Get(':overtime_application_id/accomplishments/employees')
+  async getOvertimeAccomplishmentsByOvertimeApplicationId(@Param('overtime_application_id') overtimeApplicationId: string) {
+    console.log(overtimeApplicationId);
   }
 
   @Get('immediate-supervisors')
