@@ -10,6 +10,7 @@ import { LspDetailsModule } from '../../lsp-details';
 import { PortalEmployeesModule } from '../../../services/portal';
 import { TrainingLspDetailsModule } from '../components/training-lsp-details';
 import { TrainingDetailsMicroserviceController } from './training-details-ms.controller';
+import { TrainingNomineesModule } from '../components/training-nominees';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TrainingDetailsMicroserviceController } from './training-details-ms.con
     TrainingTagsModule,
     TrainingDistributionsModule,
     TrainingRecommendedEmployeesModule,
+    TrainingNomineesModule,
     LspDetailsModule,
     PortalEmployeesModule,
   ],

@@ -31,7 +31,7 @@ import { HrmsEmployeeTagsModule, HrmsEmployeesModule } from './services/hrms';
     //tags
     TagsModule,
 
-    //microservice
+    //hrms microservice
     HrmsEmployeesModule,
     HrmsEmployeeTagsModule,
 
