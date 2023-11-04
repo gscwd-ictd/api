@@ -1,7 +1,7 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { TrainingDistribution } from '../training-distributions';
-import { TrainingNomineeStatus } from '@gscwd-api/utils';
+import { NomineeType, TrainingNomineeStatus } from '@gscwd-api/utils';
 
 @Entity({ name: 'training_nominees' })
 @Unique(['trainingDistribution', 'employeeId'])
@@ -15,6 +15,14 @@ export class TrainingNominee extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'employee_id_fk', nullable: false })
   employeeId: string;
+
+  @Column({
+    name: 'nominee_type',
+    type: 'enum',
+    enum: NomineeType,
+    nullable: false,
+  })
+  nomineeType: NomineeType;
 
   @Column({ name: 'remarks', length: 100 })
   remarks: string;
