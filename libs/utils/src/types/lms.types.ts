@@ -18,7 +18,6 @@ export enum TrainingType {
 
 export enum TrainingPreparationStatus {
   PENDING = 'pending',
-  ACCOMPLISHED_NOTICE = 'accomplished notice of training',
   ON_GOING_NOMINATION = 'on going nomination',
   PDC_APPROVAL = 'for pdc approval',
   GM_APPROVAL = 'for gm approval',

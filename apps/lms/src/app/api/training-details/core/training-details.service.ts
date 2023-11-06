@@ -235,7 +235,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             name: lsp.name,
             email: lsp.email,
             type: lsp.type,
-            source: lsp.source,
+            lspSource: lsp.source,
           };
         })
       );
@@ -337,7 +337,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             name: lsp.name,
             email: lsp.email,
             type: lsp.type,
-            source: lsp.source,
+            lspSource: lsp.source,
           };
         })
       );
@@ -568,7 +568,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           dto: {
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
-            trainingPreparationStatus: TrainingPreparationStatus.ACCOMPLISHED_NOTICE,
+            trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION,
             ...rest,
           },
           onError: (error) => {
@@ -677,7 +677,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
               trainingPreparationStatus: true,
             },
           },
-          where: { supervisorId, trainingDetails: { trainingPreparationStatus: TrainingPreparationStatus.ACCOMPLISHED_NOTICE } },
+          where: { supervisorId, trainingDetails: { trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION } },
         },
       })) as Array<TrainingDistribution>;
 
