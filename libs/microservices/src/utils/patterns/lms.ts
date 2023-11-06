@@ -18,4 +18,5 @@ export enum EmployeeTagsPatterns {
 export enum TrainingPatterns {
   FIND_TRAINING_RECOMMENDED_EMPLOYEE_BY_SUPERVISOR_ID = 'find_training_recommended_employee_by_supervisor_id',
   ADD_NOMINEES_BY_TRAINING_DISTRIBUTION_ID = 'add_nominees_by_training_distribution_id',
+  UPDATE_TRAINING_NOMINEES_STATUS_BY_ID = 'update_training_nominees_status_by_id',
 }
