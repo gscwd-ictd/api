@@ -40,6 +40,21 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
     WHERE date_from=? AND date_to=? AND schedule_id_fk=?`,
       [dateFrom, dateTo, scheduleId]
     )) as CustomGroupMembers[];
+
+    const employeeIds = await Promise.all(
+      assignedMembers.map(async (assignedMember) => {
+        return assignedMember.employeeId;
+      })
+    );
+
+    const employees = await this.client.call({
+      action: 'send',
+      payload: employeeIds,
+      pattern: 'get_custom_group_assigned_member',
+      onError: (error) => new NotFoundException(error),
+    });
+
+    return employees;
   }
 
   async getCustomGroupMembers(customGroupId: string, unassigned: boolean) {

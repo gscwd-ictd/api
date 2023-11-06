@@ -221,6 +221,11 @@ export enum OvertimeStatus {
   PENDING = 'pending',
 }
 
+export enum OvertimeSummaryHalf {
+  FIRST_HALF = 'first',
+  SECOND_HALF = 'second',
+}
+
 export type PassSlipForDispute = {
   passSlipId: string;
   supervisorId: string;

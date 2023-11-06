@@ -69,7 +69,7 @@ export class EmployeesService {
       payload: { employeeId, supervisorId },
       pattern: 'get_employee_supervisor_names',
       onError: (error) => new NotFoundException(error),
-    })) as { employeeName: string; supervisorName: string };
+    })) as { employeeName: string; supervisorName: string; employeeSignature: string; supervisorSignature: string };
   }
 
   async getEmployeeSupervisorId(employeeId: string) {

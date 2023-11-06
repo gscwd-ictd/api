@@ -37,8 +37,13 @@ export class CustomGroupsController {
   }
 
   @Get(':custom_group_id')
-  async getCustomGroupDetails(@Param('custom_group_id') customGroupId: string, @Query('date_from') dateFrom: Date, @Query('date_to') dateTo: Date) {
-    return await this.customGroupsService.getCustomGroupDetails(customGroupId, dateFrom, dateTo);
+  async getCustomGroupDetails(
+    @Param('custom_group_id') customGroupId: string,
+    @Query('schedule_id') scheduleId: string,
+    @Query('date_from') dateFrom: Date,
+    @Query('date_to') dateTo: Date
+  ) {
+    return await this.customGroupsService.getCustomGroupDetails(customGroupId, scheduleId, dateFrom, dateTo);
   }
 
   @Get(':custom_group_id/unassigned')
