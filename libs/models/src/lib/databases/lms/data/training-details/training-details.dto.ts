@@ -1,4 +1,16 @@
-import { IsArray, IsDateString, IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsNotEmptyObject,
+  IsString,
+  IsUUID,
+  Length,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { TrainingDesign } from '../training-designs';
@@ -12,13 +24,13 @@ import { PartialType } from '@nestjs/swagger';
 
 export class TrainingDetailsDto {
   @IsUUID('4')
+  @IsNotEmpty()
   trainingSource: TrainingSource;
 
   @IsEnum(TrainingType)
   @IsNotEmpty()
   trainingType: TrainingType;
 
-  @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CourseContentDto)
   courseContent: CourseContentDto[];
@@ -42,34 +54,29 @@ export class TrainingDetailsDto {
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
 
-  @ValidateNested({ each: true })
   @IsArray()
   @Type(() => TrainingRequirements)
   trainingRequirements: TrainingRequirements[];
 
-  @IsNotEmpty()
-  @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CreateTrainingLspDetailsDto)
   trainingLspDetails: Array<CreateTrainingLspDetailsDto>;
 
-  @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CreateTrainingTagDto)
   trainingTags: CreateTrainingTagDto[];
 
-  @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CreateTrainingDistributionDto)
   slotDistribution: CreateTrainingDistributionDto[];
 }
 
-export class CreateTrainingInternalDto extends TrainingDetailsDto {
+export class CreateTrainingInternalDto extends PartialType(TrainingDetailsDto) {
   @IsUUID('4')
   trainingDesign: TrainingDesign;
 }
 
-export class CreateTrainingExternalDto extends TrainingDetailsDto {
+export class CreateTrainingExternalDto extends PartialType(TrainingDetailsDto) {
   @IsNotEmpty()
   @IsString({ message: 'training course title must be a string' })
   @Length(1, 100, { message: 'training course title must be between 1 to 100 characters' })
@@ -80,6 +87,7 @@ export class CreateTrainingExternalDto extends TrainingDetailsDto {
 }
 
 export class UpdateTrainingInternalDto extends PartialType(CreateTrainingInternalDto) {
+  @IsNotEmpty()
   @IsUUID('4')
   id: string;
 }
@@ -102,11 +110,14 @@ export class SendTrainingInternalDto {
   @IsNotEmpty()
   trainingType: TrainingType;
 
-  @IsNotEmptyObject()
-  @ValidateNested({ each: true })
+  @IsNotEmpty()
+  @IsUUID('4')
+  trainingDesign: TrainingDesign;
+
+  @ArrayNotEmpty()
   @IsArray()
   @Type(() => CourseContentDto)
-  courseContent: CourseContentDto[];
+  courseContent: Array<CourseContentDto>;
 
   @IsNotEmpty()
   @IsString({ message: 'training location must be a string' })
@@ -133,43 +144,41 @@ export class SendTrainingInternalDto {
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
 
-  @IsNotEmpty()
+  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => TrainingRequirements)
-  trainingRequirements: TrainingRequirements[];
+  trainingRequirements: Array<TrainingRequirements>;
 
-  @IsNotEmpty()
-  @ValidateNested({ each: true })
+  @ArrayNotEmpty()
   @IsArray()
   @Type(() => CreateTrainingLspDetailsDto)
   trainingLspDetails: Array<CreateTrainingLspDetailsDto>;
 
-  @IsNotEmpty()
-  @ValidateNested({ each: true })
+  @ArrayNotEmpty()
   @IsArray()
   @Type(() => CreateTrainingTagDto)
-  trainingTags: CreateTrainingTagDto[];
+  trainingTags: Array<CreateTrainingTagDto>;
 
-  @IsNotEmpty()
-  @ValidateNested({ each: true })
+  @ArrayNotEmpty()
   @IsArray()
   @Type(() => CreateTrainingDistributionDto)
-  slotDistribution: CreateTrainingDistributionDto[];
+  slotDistribution: Array<CreateTrainingDistributionDto>;
 }
 
 export class SendTrainingExternalDto {
+  @IsNotEmpty()
   @IsUUID('4')
   trainingSource: TrainingSource;
 
-  @IsEnum(TrainingType)
   @IsNotEmpty()
+  @IsEnum(TrainingType)
   trainingType: TrainingType;
 
-  @ValidateNested({ each: true })
+  @ArrayNotEmpty()
   @IsArray()
   @Type(() => CourseContentDto)
-  courseContent: CourseContentDto[];
+  courseContent: Array<CourseContentDto>;
 
   @IsString({ message: 'training location must be a string' })
   @Length(1, 100, { message: 'training location must be between 1 to 100 characters' })
@@ -190,10 +199,10 @@ export class SendTrainingExternalDto {
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
 
-  @ValidateNested({ each: true })
+  @ArrayNotEmpty()
   @IsArray()
   @Type(() => TrainingRequirements)
-  trainingRequirements: TrainingRequirements[];
+  trainingRequirements: Array<TrainingRequirements>;
 
   @IsNotEmpty()
   @IsString({ message: 'training course title must be a string' })
@@ -203,19 +212,18 @@ export class SendTrainingExternalDto {
   @IsArray()
   bucketFiles: Array<string>;
 
-  @IsNotEmpty()
-  @ValidateNested({ each: true })
+  @ArrayNotEmpty()
   @IsArray()
   @Type(() => CreateTrainingLspDetailsDto)
   trainingLspDetails: Array<CreateTrainingLspDetailsDto>;
 
-  @ValidateNested({ each: true })
+  @ArrayNotEmpty()
   @IsArray()
   @Type(() => CreateTrainingTagDto)
-  trainingTags: CreateTrainingTagDto[];
+  trainingTags: Array<CreateTrainingTagDto>;
 
-  @ValidateNested({ each: true })
+  @ArrayNotEmpty()
   @IsArray()
   @Type(() => CreateTrainingDistributionDto)
-  slotDistribution: CreateTrainingDistributionDto[];
+  slotDistribution: Array<CreateTrainingDistributionDto>;
 }

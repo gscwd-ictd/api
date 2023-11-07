@@ -11,6 +11,7 @@ import { PortalEmployeesModule } from '../../../services/portal';
 import { TrainingLspDetailsModule } from '../components/training-lsp-details';
 import { TrainingDetailsMicroserviceController } from './training-details-ms.controller';
 import { TrainingNomineesModule } from '../components/training-nominees';
+import { TrainingNoticesController } from './training-notices.controller';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { TrainingNomineesModule } from '../components/training-nominees';
     LspDetailsModule,
     PortalEmployeesModule,
   ],
-  controllers: [TrainingDetailsController, TrainingDetailsMicroserviceController],
+  controllers: [TrainingDetailsController, TrainingNoticesController, TrainingDetailsMicroserviceController],
   providers: [TrainingDetailsService],
   exports: [TrainingDetailsService],
 })

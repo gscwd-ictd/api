@@ -11,6 +11,7 @@ export class TrainingLspDetailsService extends CrudHelper<TrainingLspDetails> {
 
   //insert training lsp details
   async create(data: CreateTrainingLspDetailsDto, entityManager: EntityManager) {
+    console.log(data);
     const { id, ...rest } = data;
     //transaction results
     const results = await this.crudService.transact<TrainingLspDetails>(entityManager).create({
@@ -20,5 +21,15 @@ export class TrainingLspDetailsService extends CrudHelper<TrainingLspDetails> {
       },
     });
     return results;
+  }
+
+  async remove(trainingId: string, softDelete: boolean, entityManager: EntityManager) {
+    return await this.crudService.transact<TrainingLspDetails>(entityManager).delete({
+      deleteBy: { trainingDetails: { id: trainingId } },
+      softDelete: softDelete,
+      onError: (error) => {
+        throw error;
+      },
+    });
   }
 }
