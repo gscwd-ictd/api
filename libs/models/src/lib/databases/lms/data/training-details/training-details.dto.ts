@@ -176,6 +176,10 @@ export class SendTrainingInternalDto {
 export class SendTrainingExternalDto {
   @IsNotEmpty()
   @IsUUID('4')
+  id: string;
+
+  @IsNotEmpty()
+  @IsUUID('4')
   trainingSource: TrainingSource;
 
   @IsNotEmpty()
