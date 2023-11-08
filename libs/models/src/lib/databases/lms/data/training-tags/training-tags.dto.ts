@@ -9,7 +9,7 @@ export class CreateTrainingTagDto {
   trainingDetails: TrainingDetails;
 
   @IsUUID('4')
-  tag: Tag;
+  id: Tag;
 }
 
 export class UpdateTrainingTagDto extends PartialType(CreateTrainingTagDto) {}

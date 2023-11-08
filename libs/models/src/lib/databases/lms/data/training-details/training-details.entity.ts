@@ -35,10 +35,10 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'training_end', type: 'timestamp', nullable: false })
   trainingEnd: Date;
 
-  @Column({ name: 'number_of_hours', nullable: false })
+  @Column({ name: 'number_of_hours', nullable: true })
   numberOfHours: number;
 
-  @Column({ name: 'deadline_for_submission', type: 'date', nullable: false })
+  @Column({ name: 'deadline_for_submission', type: 'date', nullable: true })
   deadlineForSubmission: Date;
 
   @Column({ name: 'bucket_files', type: 'jsonb', nullable: true })
