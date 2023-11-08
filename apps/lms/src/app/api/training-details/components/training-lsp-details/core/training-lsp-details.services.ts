@@ -11,7 +11,6 @@ export class TrainingLspDetailsService extends CrudHelper<TrainingLspDetails> {
 
   //insert training lsp details
   async create(data: CreateTrainingLspDetailsDto, entityManager: EntityManager) {
-    console.log(data);
     const { id, ...rest } = data;
     //transaction results
     const results = await this.crudService.transact<TrainingLspDetails>(entityManager).create({

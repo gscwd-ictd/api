@@ -5,7 +5,7 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
-  IsNotEmptyObject,
+  IsOptional,
   IsString,
   IsUUID,
   Length,
@@ -35,22 +35,28 @@ export class TrainingDetailsDto {
   @Type(() => CourseContentDto)
   courseContent: CourseContentDto[];
 
+  @IsOptional()
   @IsString({ message: 'training location must be a string' })
   @Length(1, 100, { message: 'training location must be between 1 to 100 characters' })
   location: string;
 
+  @IsOptional()
   @IsDateString()
   trainingStart: Date;
 
+  @IsOptional()
   @IsDateString()
   trainingEnd: Date;
 
+  @IsOptional()
   @IsInt({ message: 'training number of hours must be a number' })
   numberOfHours: number;
 
+  @IsOptional()
   @IsDateString()
   deadlineForSubmission: Date;
 
+  @IsOptional()
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
 
@@ -115,6 +121,7 @@ export class SendTrainingInternalDto {
   trainingDesign: TrainingDesign;
 
   @ArrayNotEmpty()
+  @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CourseContentDto)
   courseContent: Array<CourseContentDto>;
@@ -176,30 +183,38 @@ export class SendTrainingExternalDto {
   trainingType: TrainingType;
 
   @ArrayNotEmpty()
+  @ValidateNested({ each: true })
   @IsArray()
   @Type(() => CourseContentDto)
   courseContent: Array<CourseContentDto>;
 
+  @IsNotEmpty()
   @IsString({ message: 'training location must be a string' })
   @Length(1, 100, { message: 'training location must be between 1 to 100 characters' })
   location: string;
 
+  @IsNotEmpty()
   @IsDateString()
   trainingStart: Date;
 
+  @IsNotEmpty()
   @IsDateString()
   trainingEnd: Date;
 
+  @IsNotEmpty()
   @IsInt({ message: 'training number of hours must be a number' })
   numberOfHours: number;
 
+  @IsNotEmpty()
   @IsDateString()
   deadlineForSubmission: Date;
 
+  @IsNotEmpty()
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
 
   @ArrayNotEmpty()
+  @ValidateNested({ each: true })
   @IsArray()
   @Type(() => TrainingRequirements)
   trainingRequirements: Array<TrainingRequirements>;
