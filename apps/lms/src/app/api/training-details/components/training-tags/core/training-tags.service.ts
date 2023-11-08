@@ -20,10 +20,10 @@ export class TrainingTagsService extends CrudHelper<TrainingTag> {
     });
   }
 
-  async remove(id: string, entityManager: EntityManager) {
+  async remove(id: string, softDelete: boolean, entityManager: EntityManager) {
     return await this.crudService.transact<TrainingTag>(entityManager).delete({
       deleteBy: { trainingDetails: { id } },
-      softDelete: false,
+      softDelete: softDelete,
       onError: (error) => {
         throw error;
       },

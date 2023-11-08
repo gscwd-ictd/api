@@ -406,10 +406,14 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
         // remove all training components (training lsp details and training distribution)
-        await this.removeTrainingComponents(id, entityManager);
+        await this.removeTrainingComponents(id, false, entityManager);
+
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).findOne({
+          find: { where: { id } },
+        });
 
         // update training details and add training components
-        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).update({
+        await this.crudService.transact<TrainingDetails>(entityManager).update({
           updateBy: { id },
           dto: {
             courseContent: JSON.stringify(courseContent),
@@ -420,6 +424,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             throw error;
           },
         });
+
         //insert training lsp details
         await Promise.all(
           trainingLspDetails.map(async (trainingLspDetailsItem) => {
@@ -432,6 +437,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
+
         //insert training tags
         await Promise.all(
           trainingTags.map(async (trainingTagsItem) => {
@@ -444,6 +450,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
+
         //insert training slot distributions
         await Promise.all(
           slotDistribution.map(async (slotDistributionsItem) => {
@@ -456,8 +463,10 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
-        return data;
+
+        return trainingDetails;
       });
+
       return result;
     } catch (error) {
       Logger.log(error);
@@ -480,10 +489,14 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
         // remove all training components (training lsp details and training distribution)
-        await this.removeTrainingComponents(id, entityManager);
+        await this.removeTrainingComponents(id, false, entityManager);
+
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).findOne({
+          find: { where: { id } },
+        });
 
         // update training details and add training components
-        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).update({
+        await this.crudService.transact<TrainingDetails>(entityManager).update({
           updateBy: { id },
           dto: {
             courseContent: JSON.stringify(courseContent),
@@ -560,10 +573,14 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
         // remove all training components (training lsp details and training distribution)
-        await this.removeTrainingComponents(id, entityManager);
+        await this.removeTrainingComponents(id, false, entityManager);
+
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).findOne({
+          find: { where: { id } },
+        });
 
         // update training details and add training components
-        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).update({
+        await this.crudService.transact<TrainingDetails>(entityManager).update({
           updateBy: { id },
           dto: {
             courseContent: JSON.stringify(courseContent),
@@ -575,6 +592,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             throw error;
           },
         });
+
         //insert training lsp details
         await Promise.all(
           trainingLspDetails.map(async (trainingLspDetailsItem) => {
@@ -587,6 +605,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
+
         //insert training tags
         await Promise.all(
           trainingTags.map(async (trainingTagsItem) => {
@@ -599,6 +618,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             );
           })
         );
+
         //insert training slot distributions
         await Promise.all(
           slotDistribution.map(async (slotDistributionsItem) => {
@@ -634,7 +654,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
         // delete lsp components by lsp id
-        await this.removeTrainingComponents(id, entityManager);
+        await this.removeTrainingComponents(id, true, entityManager);
 
         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).delete({
           softDelete: true,
@@ -644,18 +664,20 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       });
       return result;
     } catch (error) {
+      Logger.log(error);
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
   }
 
   // remove all training components (training tags)
-  async removeTrainingComponents(id: string, entityManager: EntityManager) {
+  async removeTrainingComponents(id: string, softDelete: boolean, entityManager: EntityManager) {
     try {
-      const trainingTags = await this.trainingTagsService.remove(id, entityManager);
-      const trainingDistribution = await this.trainingDistributionsService.remove(id, entityManager);
-
-      return await Promise.all([trainingTags, trainingDistribution]);
+      const trainingLspDetails = await this.trainingLspDetailsService.remove(id, softDelete, entityManager);
+      const trainingTags = await this.trainingTagsService.remove(id, softDelete, entityManager);
+      const trainingDistribution = await this.trainingDistributionsService.remove(id, softDelete, entityManager);
+      return await Promise.all([trainingLspDetails, trainingTags, trainingDistribution]);
     } catch (error) {
+      Logger.log(error);
       throw new Error(error);
     }
   }
