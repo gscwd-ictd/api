@@ -2,16 +2,24 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  Delete,
   Get,
   InternalServerErrorException,
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   UseInterceptors,
 } from '@nestjs/common';
 import { TrainingDetailsService } from './training-details.service';
-import { CreateTrainingExternalDto, CreateTrainingInternalDto, TrainingDetails } from '@gscwd-api/models';
+import {
+  CreateTrainingExternalDto,
+  CreateTrainingInternalDto,
+  TrainingDetails,
+  UpdateTrainingExternalDto,
+  UpdateTrainingInternalDto,
+} from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { FindTrainingDetailsInterceptor } from '../misc/interceptors';
 
@@ -19,12 +27,12 @@ import { FindTrainingDetailsInterceptor } from '../misc/interceptors';
 export class TrainingDetailsController {
   constructor(private readonly trainingDetailsService: TrainingDetailsService) {}
 
-  @Post('/internal')
+  @Post('internal')
   async createTrainingInternal(@Body() data: CreateTrainingInternalDto) {
     return await this.trainingDetailsService.addTrainingInternal(data);
   }
 
-  @Post('/external')
+  @Post('external')
   async createTrainingExternal(@Body() data: CreateTrainingExternalDto) {
     return await this.trainingDetailsService.addTrainingExternal(data);
   }
@@ -64,54 +72,24 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.findTrainingById(id);
   }
 
-  @Get('/supervisor/:id')
+  @Put('internal')
+  async updateTrainingInternalById(@Body() data: UpdateTrainingInternalDto) {
+    return await this.trainingDetailsService.updateTrainingInternalById(data);
+  }
+
+  @Put('external')
+  async updateTrainingExternalById(@Body() data: UpdateTrainingExternalDto) {
+    return await this.trainingDetailsService.updateTrainingExternalById(data);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    return await this.trainingDetailsService.removeTrainingById(id);
+  }
+
+  // microservices test
+  @Get('supervisor/:id')
   async findTrainingRecommendedEmployeeBySupervisorId(@Param('id') id: string) {
     return await this.trainingDetailsService.findTrainingRecommendedEmployeeBySupervisorId(id);
   }
-
-  // // HR
-
-  // //post method for creating a training and distribution of slots
-  // @Post()
-  // async create(@Query('lsp-type') lspType: LspType, @Body() data: CreateTrainingDetailsDto) {
-  //   return await this.trainingDetailsService.addTrainingDetails(lspType, data);
-  // }
-
-  // //get training details by training id
-  // @Get(':id')
-  // async findById(@Param('id') id: string): Promise<TrainingDetails> {
-  //   return this.trainingDetailsService.getTrainingDetailsById(id);
-  // }
-
-  // // //get all nominees by training id
-  // // @Get(':id/nominees')
-  // // async findNomineeById(@Param('id') id: string) {
-  // //   return `training nominees by training id ${id}`;
-  // // }
-
-  // //patch method to update training details by training id
-  // @Patch()
-  // async update(@Body() data: UpdateTrainingDetailsDto): Promise<UpdateResult> {
-  //   return this.trainingDetailsService.updateTrainingDetails(data);
-  // }
-
-  // //delete method to remove trainings by training id
-  // @Delete(':id')
-  // async delete(@Param('id') id: string): Promise<DeleteResult> {
-  //   return this.trainingDetailsService.deleteTrainingDetails(id);
-  // }
-
-  //Employee Portal
-
-  // //get all training by supervisor id and status
-  // @Get('/supervisor/:supervisor_id')
-  // async findTrainingBySupervisorId(@Param('supervisor_id') id: string) {
-  //   return `training supervisor id ${id}`;
-  // }
-
-  // //get all training by supervisor id and status
-  // @Get(':id/supervisor/:supervisor_id')
-  // async findTrainingNomineesByTrainingIdAndSupervisorId(@Param('id') id: string, @Param('supervisor_id') supervisor_id: string) {
-  //   return `training id ${id} training supervisor id ${supervisor_id}`;
-  // }
 }

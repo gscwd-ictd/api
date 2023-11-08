@@ -19,9 +19,10 @@ export class TrainingRecommendedEmployeeService extends CrudHelper<TrainingRecom
     });
   }
 
-  async remove(trainingId: string, entityManager: EntityManager) {
+  async remove(trainingId: string, softDelete: boolean, entityManager: EntityManager) {
     return await this.crudService.transact<TrainingRecommendedEmployee>(entityManager).delete({
-      deleteBy: { trainingDistribution: { trainingDetails: { id: trainingId } } },
+      deleteBy: { trainingDistribution: { id: trainingId } },
+      softDelete: softDelete,
       onError: (error) => {
         throw error;
       },

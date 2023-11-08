@@ -81,7 +81,7 @@ async function bootstrap() {
       /**
        * validator will skip validation of all properties that are null in the validating object
        */
-      skipMissingProperties: true,
+      skipMissingProperties: false,
     })
   );
 

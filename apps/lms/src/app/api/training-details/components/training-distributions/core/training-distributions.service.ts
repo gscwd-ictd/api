@@ -43,16 +43,27 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     return trainingDistribution;
   }
 
-  async remove(trainingId: string, entityManager: EntityManager) {
-    const trainingDistribution = await this.crudService.transact<TrainingDistribution>(entityManager).delete({
+  async remove(trainingId: string, softDelete: boolean, entityManager: EntityManager) {
+    // find all training distribution by traininng id
+    const distribution = (await this.crudService.transact<TrainingDistribution>(entityManager).findAll({
+      find: { select: { id: true }, where: { trainingDetails: { id: trainingId } } },
+    })) as TrainingDistribution[];
+
+    // delete all training recommended employee by distribution id
+    await Promise.all(
+      distribution.map(async (distributionItem) => {
+        return await this.trainingRecommendedEmployeesService.remove(distributionItem.id, softDelete, entityManager);
+      })
+    );
+
+    return await this.crudService.transact<TrainingDistribution>(entityManager).delete({
       deleteBy: {
         trainingDetails: { id: trainingId },
       },
+      softDelete: softDelete,
       onError: (error) => {
         throw error;
       },
     });
-    const trainingRecommendedEmployee = await this.trainingRecommendedEmployeesService.remove(trainingId, entityManager);
-    return await Promise.all([trainingDistribution, trainingRecommendedEmployee]);
   }
 }
