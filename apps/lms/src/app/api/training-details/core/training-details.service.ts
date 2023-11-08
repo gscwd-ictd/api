@@ -12,7 +12,7 @@ import {
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
 } from '@gscwd-api/models';
-import { DataSource, EntityManager, QueryFailedError } from 'typeorm';
+import { DataSource, EntityManager, EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
 import { TrainingRecommendedEmployeeService } from '../components/training-recommended-employees';
@@ -410,6 +410,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).findOne({
           find: { where: { id } },
+          onError: (error) => {
+            throw error;
+          },
         });
 
         // update training details and add training components
@@ -464,7 +467,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
-        return trainingDetails;
+        return data;
       });
 
       return result;
@@ -473,9 +476,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       if (error.code === '23505' && error instanceof QueryFailedError) {
         // Duplicate key violation
         throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
-      } else if (error.code === '23503') {
+      } else if (error.code === '23503' && error instanceof QueryFailedError) {
         // Foreign key constraint violation
         throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else if (error instanceof EntityNotFoundError) {
+        // Not found violation
+        throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
       } else {
         // Handle other errors as needed
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
@@ -493,6 +499,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).findOne({
           find: { where: { id } },
+          onError: (error) => {
+            throw error;
+          },
         });
 
         // update training details and add training components
@@ -557,9 +566,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       if (error.code === '23505' && error instanceof QueryFailedError) {
         // Duplicate key violation
         throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
-      } else if (error.code === '23503') {
+      } else if (error.code === '23503' && error instanceof QueryFailedError) {
         // Foreign key constraint violation
         throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else if (error instanceof EntityNotFoundError) {
+        // Not found violation
+        throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
       } else {
         // Handle other errors as needed
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
