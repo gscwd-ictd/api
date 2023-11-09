@@ -665,7 +665,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  // send internal training notice to all distributed supervisor
+  // send external training notice to all distributed supervisor
   async sendTrainingExternal(data: SendTrainingExternalDto) {
     const { id, courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
