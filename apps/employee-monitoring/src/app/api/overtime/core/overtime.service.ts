@@ -935,6 +935,8 @@ export class OvertimeService {
 
     const days =
       half === OvertimeSummaryHalf.FIRST_HALF ? getDayRange1stHalf() : half === OvertimeSummaryHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
+
+    const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
     const employees = (await this.overtimeApplicationService.rawQuery(
       `
       SELECT DISTINCT oe.employee_id_fk employeeId FROM overtime_employee oe 
@@ -949,12 +951,16 @@ export class OvertimeService {
       employees.map(async (employee) => {
         console.log('employeeid: ', employee);
 
-        let totalHoursRendered = 0;
+        let totalRegularOTHoursRendered = 0;
+        let totalOffOTHoursRendered = 0;
         //check if regular employee
         const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(employee.employeeId);
         if (natureOfAppointment !== 'permanent') return null;
         const details = await this.employeeService.getEmployeeDetails(employee.employeeId);
-        const hourlyMonthlyRate = await this.employeeService.getMonthlyHourlyRateByEmployeeId(employee.employeeId);
+        const hourlyMonthlyRate = (await this.employeeService.getMonthlyHourlyRateByEmployeeId(employee.employeeId)) as {
+          monthlyRate: number;
+          hourlyRate: number;
+        };
         console.log(details);
 
         const { employeeFullName, userId, assignment } = details;
@@ -966,14 +972,6 @@ export class OvertimeService {
             console.log(_day);
 
             try {
-              /*
-                 oacc.encoded_time_in encodedTimeIn,
-              oacc.encoded_time_out encodedTimeOut,
-              oacc.ivms_time_in ivmsTimeIn, 
-              oacc.ivms_time_out ivmsTimeOut, 
-              follow_estimated_hrs followEstimatedHrs 
-              
-              */
               const overtime = (await this.overtimeApplicationService.rawQuery(
                 `
               SELECT date_format(planned_date,'%d') \`day\`,
@@ -1022,7 +1020,9 @@ export class OvertimeService {
               } = overtimeDetails[0];
 
               const hoursRendered = await this.getComputedHrs(restOfOvertime);
-              totalHoursRendered += hoursRendered;
+
+              if (this.isRegularOvertimeDay(employee.employeeId, year, month, day)) totalRegularOTHoursRendered += hoursRendered;
+              else totalOffOTHoursRendered += hoursRendered;
 
               return typeof overtime !== 'undefined'
                 ? { day, hoursRendered }
@@ -1038,7 +1038,32 @@ export class OvertimeService {
             }
           })
         );
-        return { employeeFullName, userId, positionId, overtimes, ...hourlyMonthlyRate, totalHoursRendered };
+        const { hourlyRate } = hourlyMonthlyRate;
+        const regularOTAmount = Math.round((hourlyRate * totalRegularOTHoursRendered * 1.25 + Number.EPSILON) * 100) / 100;
+        const offOTAmount = Math.round((hourlyRate * totalOffOTHoursRendered * 1.5 + Number.EPSILON) * 100) / 100;
+        const totalOTHoursRendered = totalRegularOTHoursRendered + totalOffOTHoursRendered;
+        const substituteDutyOTHours = 0;
+        const substituteAmount = 0;
+        const nightDifferentialHrs = 0;
+        const nightDifferentialAmount = 0;
+        const totalOvertimeAmount = regularOTAmount + offOTAmount + substituteAmount + nightDifferentialAmount;
+        return {
+          employeeFullName,
+          userId,
+          positionId,
+          overtimes,
+          ...hourlyMonthlyRate,
+          totalOTHoursRendered,
+          totalRegularOTHoursRendered,
+          totalOffOTHoursRendered,
+          regularOTAmount,
+          offOTAmount,
+          substituteDutyOTHours,
+          substituteAmount,
+          nightDifferentialHrs,
+          nightDifferentialAmount,
+          totalOvertimeAmount,
+        };
       })
     );
     const filteredEmployeeDetails = [];
@@ -1048,7 +1073,48 @@ export class OvertimeService {
         if (employeeDetail !== null) filteredEmployeeDetails.push(employeeDetail);
       })
     );
-    return filteredEmployeeDetails;
+    const notedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(immediateSupervisorEmployeeId);
+    const approvedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(notedByEmployeeId.toString());
+
+    const preparedByAndNotedBy = await this.employeeService.getEmployeeAndSupervisorName(immediateSupervisorEmployeeId, notedByEmployeeId.toString());
+    const approvedBy = await this.employeeService.getEmployeeAndSupervisorName(notedByEmployeeId.toString(), approvedByEmployeeId.toString());
+
+    const { employeeName, employeeSignature, supervisorName, supervisorSignature } = preparedByAndNotedBy;
+
+    return {
+      periodCovered,
+      summary: filteredEmployeeDetails,
+      signatories: {
+        preparedBy: { name: employeeName, signature: employeeSignature },
+        notedBy: { name: supervisorName, signature: supervisorSignature },
+        approvedBy: { name: approvedBy.supervisorName, signature: approvedBy.supervisorSignature },
+      },
+    };
+  }
+
+  async getIndividualOvertimeAccomplishment(overtimeApplicationId: string, employeeId: string) {
+    //
+    const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
+    const assignment = employeeDetails.assignment.name;
+    const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
+    const { employeeName, employeeSignature, supervisorName, supervisorSignature } = await this.employeeService.getEmployeeAndSupervisorName(
+      employeeId,
+      supervisorId.toString()
+    );
+    const overtimeDetails = (
+      await this.overtimeAccomplishmentService.rawQuery(
+        `
+        SELECT DATE_FORMAT(planned_date,'%Y-%m-%d') \`date\`, oacc.accomplishments accomplishments
+          FROM overtime_application oapp
+        INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oapp.overtime_application_id
+        INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id
+        WHERE oe.employee_id_fk = ? AND oapp.overtime_application_id = ?
+      ;`,
+        [employeeId, overtimeApplicationId]
+      )
+    )[0];
+
+    return { ...overtimeDetails, employeeName, assignment, employeeSignature, supervisorName, supervisorSignature };
   }
   //#endregion Reports
 
@@ -1066,6 +1132,16 @@ export class OvertimeService {
     const employeeSchedule = await this.employeeScheduleService.getEmployeeSchedule(employeeId);
     //console.log(' SCHEDULE ---', employeeSchedule);
     const restDays = employeeSchedule.schedule.restDaysNumbers.toString().split(', ');
-    console.log('---', restDays);
+    const isHoliday = (
+      await this.employeeScheduleService.rawQuery(
+        `SELECT IF(COUNT(holiday_date)>0,true,false) isHoliday FROM holidays WHERE holiday_date = concat(?,'-',?,'-',?);`,
+        [year, month, day]
+      )
+    )[0].isHoliday;
+    const dayOfWeek = dayjs(year + '-' + month + '-' + day).day();
+    if (dayOfWeek in restDays || isHoliday) return false;
+    return true;
   }
+
+  //console.log('---', restDays);
 }

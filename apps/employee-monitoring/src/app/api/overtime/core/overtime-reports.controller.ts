@@ -23,4 +23,13 @@ export class OvertimeReportsController {
   ) {
     return await this.overtimeService.getOvertimeSummaryRegular(immediateSupervisorEmployeeId, year, month, half);
   }
+
+  @Get('/accomplishment/individual/:overtime_application_id/:employee_id/')
+  async getIndividualOvertimeAccomplishment(
+    @Param('overtime_application_id') overtimeApplicationId: string,
+    @Param('employee_id') employeeId: string
+  ) {
+    //
+    return await this.overtimeService.getIndividualOvertimeAccomplishment(overtimeApplicationId, employeeId);
+  }
 }
