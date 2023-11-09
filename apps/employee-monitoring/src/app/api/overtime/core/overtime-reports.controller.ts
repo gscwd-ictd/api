@@ -21,7 +21,6 @@ export class OvertimeReportsController {
     @Param('month') month: number,
     @Query('half') half: OvertimeSummaryHalf
   ) {
-    //
-    return await this.overtimeService.getOvertimeSummary(immediateSupervisorEmployeeId, year, month, half);
+    return await this.overtimeService.getOvertimeSummaryRegular(immediateSupervisorEmployeeId, year, month, half);
   }
 }

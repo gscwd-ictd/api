@@ -8,7 +8,7 @@ import {
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
-import { OvertimeStatus, OvertimeSummaryHalf, ScheduleBase } from '@gscwd-api/utils';
+import { OvertimeHrsRendered, OvertimeStatus, OvertimeSummaryHalf, ScheduleBase } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { DataSource, EntityManager, EntityMetadata, TreeLevelColumn } from 'typeorm';
@@ -558,7 +558,6 @@ export class OvertimeService {
     let computedIvmsHours = null;
     let computedEncodedHours = null;
     const plannedDate = updatedOvertimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate;
-    //check if not restday
 
     if (didFaceScan) {
       if (dayjs(plannedDate).day() in restDays) {
@@ -569,43 +568,64 @@ export class OvertimeService {
         ) {
           _timeIn = updatedOvertimeDetails.ivmsTimeIn;
         }
-        computedIvmsHours = dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeOut).diff(dayjs(plannedDate + ' ' + _timeIn), 'hour');
+        computedIvmsHours =
+          (Math.round(
+            dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeOut).diff(dayjs(plannedDate + ' ' + _timeIn), 'minutes') / 60 + Number.EPSILON
+          ) *
+            100) /
+          100;
       } else {
         //get overtime after schedule
-        computedIvmsHours = dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeOut).diff(
-          dayjs(plannedDate + ' ' + dtr.schedule.timeOut),
-          'hour'
-        );
+        computedIvmsHours =
+          (Math.round(
+            (dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeOut).diff(dayjs(plannedDate + ' ' + dtr.schedule.timeOut), 'minutes') / 60 +
+              Number.EPSILON) *
+              100
+          ) +
+            Number.EPSILON) /
+          100;
       }
       if (computedIvmsHours >= 4) {
-        //computedIvmsHours = dtr.schedule.lunchOut !== null;
-        //console.log(computedEncodedHours);
         computedEncodedHours =
           dtr.schedule.lunchOut !== null
-            ? computedIvmsHours - (computedIvmsHours - parseInt((computedIvmsHours / 4).toString()) * 4)
-            : computedIvmsHours - (computedIvmsHours - parseInt((computedIvmsHours / 4).toString()) * 4);
+            ? Math.round(computedIvmsHours - (computedIvmsHours - parseFloat((computedIvmsHours / 4).toString()) * 4) * 100) / 100
+            : Math.round(computedIvmsHours - (computedIvmsHours - parseFloat((computedIvmsHours / 4).toString()) * 4) * 100) / 100;
       }
     }
 
     if (updatedOvertimeDetails.encodedTimeIn !== null && updatedOvertimeDetails.encodedTimeOut !== null) {
       if (dayjs(plannedDate).day() in restDays) {
-        computedEncodedHours = dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeOut).diff(
-          dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn),
-          'hour'
-        );
+        computedEncodedHours =
+          (Math.round(
+            dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeOut).diff(
+              dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn),
+              'minutes'
+            ) /
+              60 +
+              Number.EPSILON
+          ) *
+            100) /
+          100;
       } else {
         //get overtime after schedule
-        computedEncodedHours = dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeOut).diff(
-          dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn),
-          'hour'
-        );
+        computedEncodedHours =
+          (Math.round(
+            dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeOut).diff(
+              dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn),
+              'minutes'
+            ) /
+              60 +
+              Number.EPSILON
+          ) *
+            100) /
+          100;
       }
       if (computedEncodedHours > 4) {
         console.log(computedEncodedHours);
         computedEncodedHours =
           dtr.schedule.lunchOut !== null
-            ? computedEncodedHours - (computedEncodedHours - parseInt((computedEncodedHours / 4).toString()) * 4)
-            : computedEncodedHours - (computedEncodedHours - parseInt((computedEncodedHours / 4).toString()) * 4);
+            ? Math.round(computedEncodedHours - (computedEncodedHours - parseFloat((computedEncodedHours / 4).toString()) * 4) * 100) / 100
+            : Math.round(computedEncodedHours - (computedEncodedHours - parseFloat((computedEncodedHours / 4).toString()) * 4) * 100) / 100;
       }
     }
 
@@ -907,10 +927,12 @@ export class OvertimeService {
     return { ...overtimeApplication, employees, signatories: { ...supervisorAndManagerNames } };
   }
 
-  async getOvertimeSummary(immediateSupervisorEmployeeId: string, year: number, month: number, half: OvertimeSummaryHalf) {
+  async getOvertimeSummaryRegular(immediateSupervisorEmployeeId: string, year: number, month: number, half: OvertimeSummaryHalf) {
     //
     const numOfDays = dayjs(year + '-' + month + '-1').daysInMonth();
-    console.log(numOfDays);
+
+    //console.log(numOfDays);
+
     const days =
       half === OvertimeSummaryHalf.FIRST_HALF ? getDayRange1stHalf() : half === OvertimeSummaryHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
     const employees = (await this.overtimeApplicationService.rawQuery(
@@ -922,20 +944,128 @@ export class OvertimeService {
     ;`,
       [year, month, days, immediateSupervisorEmployeeId]
     )) as { employeeId: string }[];
-
+    console.log(days);
     const employeeDetails = await Promise.all(
       employees.map(async (employee) => {
+        console.log('employeeid: ', employee);
+
+        let totalHoursRendered = 0;
+        //check if regular employee
+        const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(employee.employeeId);
+        if (natureOfAppointment !== 'permanent') return null;
         const details = await this.employeeService.getEmployeeDetails(employee.employeeId);
+        const hourlyMonthlyRate = await this.employeeService.getMonthlyHourlyRateByEmployeeId(employee.employeeId);
+        console.log(details);
+
+        const { employeeFullName, userId, assignment } = details;
+        const { positionId } = assignment;
         const overtimes = await Promise.all(
-          days.map(async (day) => {
+          days.map(async (_day) => {
+            const empSched = await this.isRegularOvertimeDay(employee.employeeId, year, month, _day);
             //!TODO get every overtime of the employee on specific year and month on specified days in the half chosen
-            //const overtime = await this.overtimeApplicationService.rawQuery(`SELECT * FROM overtime_application oa INNER JOIN `,);
+            console.log(_day);
+
+            try {
+              /*
+                 oacc.encoded_time_in encodedTimeIn,
+              oacc.encoded_time_out encodedTimeOut,
+              oacc.ivms_time_in ivmsTimeIn, 
+              oacc.ivms_time_out ivmsTimeOut, 
+              follow_estimated_hrs followEstimatedHrs 
+              
+              */
+              const overtime = (await this.overtimeApplicationService.rawQuery(
+                `
+              SELECT date_format(planned_date,'%d') \`day\`,
+              oa.overtime_application_id overtimeApplicationId
+                FROM overtime_application oa 
+              INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
+              INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id 
+              WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND  date_format(planned_date,'%d') = ? 
+              AND oe.employee_id_fk = ? AND oacc.status = 'approved' ORDER BY \`day\` ASC;
+              `,
+                [year, month, _day, employee.employeeId]
+              )) as {
+                day: number;
+                overtimeApplicationId: string;
+              }[];
+
+              const overtimeDetails = await Promise.all(
+                overtime.map(async (overtimeDetail) => {
+                  const { overtimeApplicationId } = overtimeDetail;
+                  return { day: _day, ...(await this.getOvertimeDetails(employee.employeeId, overtimeApplicationId)) };
+                })
+              );
+
+              console.log(overtimeDetails);
+
+              const {
+                day,
+                accomplishments,
+                createdAt,
+                deletedAt,
+                didFaceScan,
+                employeeName,
+                employeeSignature,
+                plannedDate,
+                remarks,
+                status,
+                supervisorSignature,
+                supervisorName,
+                updatedAt,
+                id,
+                encodedTimeIn,
+                encodedTimeOut,
+                ivmsTimeIn,
+                ivmsTimeOut,
+                ...restOfOvertime
+              } = overtimeDetails[0];
+
+              const hoursRendered = await this.getComputedHrs(restOfOvertime);
+              totalHoursRendered += hoursRendered;
+
+              return typeof overtime !== 'undefined'
+                ? { day, hoursRendered }
+                : {
+                    day: Number.parseInt(_day.toString()),
+                    hoursRendered: null,
+                  };
+            } catch {
+              return {
+                day: Number.parseInt(_day.toString()),
+                hoursRendered: null,
+              };
+            }
           })
         );
-        return details.employeeFullName;
+        return { employeeFullName, userId, positionId, overtimes, ...hourlyMonthlyRate, totalHoursRendered };
       })
     );
-    console.log(employeeDetails);
+    const filteredEmployeeDetails = [];
+
+    await Promise.all(
+      employeeDetails.map(async (employeeDetail) => {
+        if (employeeDetail !== null) filteredEmployeeDetails.push(employeeDetail);
+      })
+    );
+    return filteredEmployeeDetails;
   }
   //#endregion Reports
+
+  private async getComputedHrs(hrsRendered: OvertimeHrsRendered) {
+    //
+    const { followEstimatedHrs, computedEncodedHours, computedIvmsHours, estimatedHours } = hrsRendered;
+    if (followEstimatedHrs) return estimatedHours;
+    else {
+      if (computedIvmsHours !== null) return computedIvmsHours;
+      else return computedEncodedHours;
+    }
+  }
+
+  private async isRegularOvertimeDay(employeeId: string, year: number, month: number, day: number) {
+    const employeeSchedule = await this.employeeScheduleService.getEmployeeSchedule(employeeId);
+    //console.log(' SCHEDULE ---', employeeSchedule);
+    const restDays = employeeSchedule.schedule.restDaysNumbers.toString().split(', ');
+    console.log('---', restDays);
+  }
 }

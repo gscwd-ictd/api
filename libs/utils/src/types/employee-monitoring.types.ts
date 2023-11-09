@@ -234,3 +234,10 @@ export type PassSlipForDispute = {
   timeIn: number;
   timeOut: number;
 };
+
+export type OvertimeHrsRendered = {
+  followEstimatedHrs: boolean;
+  estimatedHours: number;
+  computedEncodedHours: number;
+  computedIvmsHours: number;
+};
