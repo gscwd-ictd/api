@@ -78,6 +78,10 @@ export class CreateLspIndividualExternalDto {
   @Length(1, 10, { message: 'lsp extension name must be between 1 to 10 characters' })
   extensionName: string;
 
+  @IsString({ message: 'lsp sex must be a string' })
+  @Length(1, 10, { message: 'lsp sex must be between 1 to 10 characters' })
+  sex: string;
+
   @IsString({ message: 'lsp contact number must be a string' })
   @Length(1, 11, { message: 'lsp contact number must be between 1 to 11 characters' })
   contactNumber: string;

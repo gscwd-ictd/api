@@ -31,6 +31,9 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'organization_name', type: 'varchar', length: '100', nullable: true })
   organizationName: string;
 
+  @Column({ name: 'sex', type: 'varchar', length: '10', nullable: true })
+  sex: string;
+
   @Column({ name: 'contact_number', type: 'varchar', nullable: true })
   contactNumber: string;
 

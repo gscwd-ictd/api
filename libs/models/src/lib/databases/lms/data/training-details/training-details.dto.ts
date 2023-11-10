@@ -53,10 +53,6 @@ export class TrainingDetailsDto {
   numberOfHours: number;
 
   @IsOptional()
-  @IsDateString()
-  deadlineForSubmission: Date;
-
-  @IsOptional()
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
 
@@ -88,8 +84,13 @@ export class CreateTrainingExternalDto extends PartialType(TrainingDetailsDto) {
   @Length(1, 100, { message: 'training course title must be between 1 to 100 characters' })
   courseTitle: string;
 
+  @IsOptional()
   @IsArray()
   bucketFiles: Array<string>;
+
+  @IsOptional()
+  @IsDateString()
+  deadlineForSubmission: Date;
 }
 
 export class UpdateTrainingInternalDto extends PartialType(CreateTrainingInternalDto) {

@@ -264,6 +264,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             .crud()
             .findAll({ find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionItem.id } } } });
 
+          // const employeeDetails = await this.portalEmployeesService.findEmployeesDetailsById(distributionItem.supervisorId);
+          // console.log(employeeDetails);
+
           return {
             supervisor: {
               supervisorId: distributionItem.supervisorId,

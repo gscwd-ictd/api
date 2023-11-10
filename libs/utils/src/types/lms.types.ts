@@ -48,6 +48,7 @@ export type EmployeeFullNameRaw = {
 
 export type PortalEmployeeDetailsRaw = {
   employeeId: string;
+  sex: string;
   contactNumber: string;
   email: string;
   postalAddress: string;

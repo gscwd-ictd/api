@@ -39,6 +39,16 @@ export class HrmsEmployeeTagsService {
     });
   }
 
+  // find employees names by multiple tag id
+  async findEmployeesByMultipleTagId(tags: Array<string>) {
+    return await this.microserviceClient.call({
+      action: 'send',
+      pattern: EmployeeTagsPatterns.GET_EMPLOYEES_BY_TAGS_IDS,
+      payload: tags,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    });
+  }
+
   //delete employee tags by employee id and tag id
   async deleteEmployeeTags(dto: DeleteEmployeeTagDto) {
     return await this.microserviceClient.call({
