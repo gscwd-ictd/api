@@ -38,7 +38,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     super(crudService);
   }
 
-  // training internal
+  // create training internal
   async addTrainingInternal(data: CreateTrainingInternalDto) {
     const { courseContent, trainingRequirements, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
@@ -107,7 +107,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  // training external
+  // create training external
   async addTrainingExternal(data: CreateTrainingExternalDto) {
     const { courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
@@ -263,6 +263,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           const employees = await this.trainingRecommendedEmployeesService
             .crud()
             .findAll({ find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionItem.id } } } });
+
+          // const employeeDetails = await this.portalEmployeesService.findEmployeesDetailsById(distributionItem.supervisorId);
+          // console.log(employeeDetails);
 
           return {
             supervisor: {
@@ -665,7 +668,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  // send internal training notice to all distributed supervisor
+  // send external training notice to all distributed supervisor
   async sendTrainingExternal(data: SendTrainingExternalDto) {
     const { id, courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
