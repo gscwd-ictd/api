@@ -1,25 +1,25 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsEmail, IsInt, IsNotEmpty, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
-import { SubjectMatterExperts } from '../subject-matter-experts';
-import { CreateLspAffiliationDto } from '../lsp-affiliations';
-import { CreateLspAwardDto } from '../lsp-awards';
-import { CreateLspCertificationDto } from '../lsp-certifications';
-import { CreateLspCoachingDto } from '../lsp-coachings';
-import { CreateLspEducationDto } from '../lsp-educations';
-import { CreateLspProjectDto } from '../lsp-projects';
-import { CreateLspTrainingDto } from '../lsp-trainings';
+import { IsArray, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { PartialType } from '@nestjs/swagger';
+import { SubjectMatterExperts } from '../subject-matter-experts';
+import { Affiliations, CreateLspAffiliationDto } from '../lsp-affiliations';
+import { Awards } from '../lsp-awards';
+import { Certifications } from '../lsp-certifications';
+import { Coaching } from '../lsp-coachings';
+import { Education } from '../lsp-educations';
+import { Projects } from '../lsp-projects';
+import { Trainings } from '../lsp-trainings';
 
 // create lsp (type = individual , source = internal)
 export class CreateLspIndividualInternalDto {
-  @IsUUID('all')
   @IsNotEmpty()
+  @IsUUID('all')
   employeeId: string;
 
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => SubjectMatterExperts)
-  expertise: SubjectMatterExperts[];
+  expertise: Array<SubjectMatterExperts>;
 
   @IsInt({ message: 'lsp experience number of years' })
   experience: number;
@@ -30,53 +30,60 @@ export class CreateLspIndividualInternalDto {
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp affiliations must be an array' })
-  @Type(() => CreateLspAffiliationDto)
-  affiliations: CreateLspAffiliationDto[];
+  @Type(() => Affiliations)
+  affiliations: Array<CreateLspAffiliationDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp coaching must be an array' })
-  @Type(() => CreateLspCoachingDto)
-  coaching: CreateLspCoachingDto[];
+  @Type(() => Coaching)
+  coaching: Array<Coaching>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp projects must be an array' })
-  @Type(() => CreateLspProjectDto)
-  projects: CreateLspProjectDto[];
+  @Type(() => Projects)
+  projects: Array<Projects>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp trainings must be an array' })
-  @Type(() => CreateLspTrainingDto)
-  trainings: CreateLspTrainingDto[];
+  @Type(() => Trainings)
+  trainings: Array<Trainings>;
 }
 
 // create lsp (type = individual , source = external)
 export class CreateLspIndividualExternalDto {
+  @IsNotEmpty()
   @IsString({ message: 'lsp first name must be a string' })
   @Length(1, 50, { message: 'lsp first name must be between 1 to 50 characters' })
-  @IsNotEmpty()
   firstName: string;
 
+  @IsNotEmpty()
   @IsString({ message: 'lsp middle name must be a string' })
   @Length(1, 50, { message: 'lsp middle name must be between 1 to 50 characters' })
-  @IsNotEmpty()
   middleName: string;
 
+  @IsNotEmpty()
   @IsString({ message: 'lsp last name must be a string' })
   @Length(1, 50, { message: 'lsp last name must be between 1 to 50 characters' })
-  @IsNotEmpty()
   lastName: string;
 
+  @IsOptional()
   @IsString({ message: 'lsp prefix name must be a string' })
   @Length(1, 20, { message: 'lsp prefix name must be between 1 to 20 characters' })
   prefixName: string;
 
+  @IsOptional()
   @IsString({ message: 'lsp suffix name must be a string' })
   @Length(1, 20, { message: 'lsp suffix name must be between 1 to 20 characters' })
   suffixName: string;
 
+  @IsOptional()
   @IsString({ message: 'lsp extension name must be a string' })
   @Length(1, 10, { message: 'lsp extension name must be between 1 to 10 characters' })
   extensionName: string;
+
+  @IsString({ message: 'lsp sex must be a string' })
+  @Length(1, 10, { message: 'lsp sex must be between 1 to 10 characters' })
+  sex: string;
 
   @IsString({ message: 'lsp contact number must be a string' })
   @Length(1, 11, { message: 'lsp contact number must be between 1 to 11 characters' })
@@ -89,65 +96,66 @@ export class CreateLspIndividualExternalDto {
   @Length(1, 100, { message: 'lsp postal address must be between 1 to 100 characters' })
   postalAddress: string;
 
-  @ValidateNested({ each: true })
-  @IsArray()
-  @Type(() => SubjectMatterExperts)
-  expertise: SubjectMatterExperts[];
-
-  @IsString({ message: 'lsp photo url must be a string' })
-  photoUrl: string;
-
   @IsInt({ message: 'lsp experience number of years must be a number' })
   experience: number;
 
-  @IsString({ message: 'lsp photo url must be a string' })
+  @IsString({ message: 'lsp tin must be a string' })
   tin: string;
 
   @IsString({ message: 'lsp introduction must be a string' })
   @Length(1, 250, { message: 'lsp introduction must be between 1 to 250 characters' })
   introduction: string;
 
+  @IsOptional()
+  @IsString({ message: 'lsp photo url must be a string' })
+  photoUrl: string;
+
+  @ValidateNested({ each: true })
+  @IsArray()
+  @Type(() => SubjectMatterExperts)
+  expertise: Array<SubjectMatterExperts>;
+
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp affiliations must be an array' })
-  @Type(() => CreateLspAffiliationDto)
-  affiliations: CreateLspAffiliationDto[];
+  @Type(() => Affiliations)
+  affiliations: Array<Affiliations>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp awards must be an array' })
-  @Type(() => CreateLspAwardDto)
-  awards: CreateLspAwardDto[];
+  @Type(() => Awards)
+  awards: Array<Awards>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp certifications must be an array' })
-  @Type(() => CreateLspCertificationDto)
-  certifications: CreateLspCertificationDto[];
+  @Type(() => Certifications)
+  certifications: Array<Certifications>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp coaching must be an array' })
-  @Type(() => CreateLspCoachingDto)
-  coaching: CreateLspCoachingDto[];
+  @Type(() => Coaching)
+  coaching: Array<Coaching>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp education must be an array' })
-  @Type(() => CreateLspEducationDto)
-  education: CreateLspEducationDto[];
+  @Type(() => Education)
+  education: Array<Education>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp projects must be an array' })
-  @Type(() => CreateLspProjectDto)
-  projects: CreateLspProjectDto[];
+  @Type(() => Projects)
+  projects: Array<Projects>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp trainings must be an array' })
-  @Type(() => CreateLspTrainingDto)
-  trainings: CreateLspTrainingDto[];
+  @Type(() => Trainings)
+  trainings: Array<Trainings>;
 }
 
 // create lsp (type = organization, source = external)
 export class CreateLspOrganizationExternalDto {
+  @IsNotEmpty()
   @IsString({ message: 'lsp organization name must be a string' })
   @Length(1, 100, { message: 'lsp organization name must be between 1 to 100 characters' })
-  @IsNotEmpty()
   organizationName: string;
 
   @IsString({ message: 'lsp contact number must be a string' })
@@ -161,14 +169,6 @@ export class CreateLspOrganizationExternalDto {
   @Length(1, 100, { message: 'lsp postal address must be between 1 to 100 characters' })
   postalAddress: string;
 
-  @ValidateNested({ each: true })
-  @IsArray()
-  @Type(() => SubjectMatterExperts)
-  expertise: SubjectMatterExperts[];
-
-  @IsString({ message: 'lsp photo url must be a string' })
-  photoUrl: string;
-
   @IsInt({ message: 'lsp experience number of years must be a number' })
   experience: number;
 
@@ -179,30 +179,39 @@ export class CreateLspOrganizationExternalDto {
   @Length(1, 250, { message: 'lsp introduction must be between 1 to 250 characters' })
   introduction: string;
 
+  @IsOptional()
+  @IsString({ message: 'lsp photo url must be a string' })
+  photoUrl: string;
+
+  @ValidateNested({ each: true })
+  @IsArray()
+  @Type(() => SubjectMatterExperts)
+  expertise: Array<SubjectMatterExperts>;
+
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp affiliations must be an array' })
-  @Type(() => CreateLspAffiliationDto)
-  affiliations: CreateLspAffiliationDto[];
+  @Type(() => Affiliations)
+  affiliations: Array<Affiliations>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp awards must be an array' })
-  @Type(() => CreateLspAwardDto)
-  awards: CreateLspAwardDto[];
+  @Type(() => Awards)
+  awards: Array<Awards>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp certifications must be an array' })
-  @Type(() => CreateLspCertificationDto)
-  certifications: CreateLspCertificationDto[];
+  @Type(() => Certifications)
+  certifications: Array<Certifications>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp coaching must be an array' })
-  @Type(() => CreateLspCoachingDto)
-  coaching: CreateLspCoachingDto[];
+  @Type(() => Coaching)
+  coaching: Array<Coaching>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp trainings must be an array' })
-  @Type(() => CreateLspTrainingDto)
-  trainings: CreateLspTrainingDto[];
+  @Type(() => Trainings)
+  trainings: Array<Trainings>;
 }
 
 // update lsp (type = individual , source = internal)

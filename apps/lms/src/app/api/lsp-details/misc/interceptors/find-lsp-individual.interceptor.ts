@@ -16,13 +16,16 @@ export class FindLspIndividualInterceptor implements NestInterceptor {
             let name: string;
             let email: string;
             let postalAddress: string;
+            let sex: string;
 
             if (lspItems.employeeId === null) {
               name = (await this.datasource.query('select get_lsp_fullname($1) fullname', [lspItems.id]))[0].fullname;
               email = lspItems.email;
               postalAddress = lspItems.postalAddress;
+              sex = lspItems.sex;
             } else {
               name = (await this.portalEmployeesService.findEmployeesDetailsById(lspItems.employeeId)).fullName;
+              sex = (await this.portalEmployeesService.findEmployeesDetailsById(lspItems.employeeId)).sex;
               email = (await this.portalEmployeesService.findEmployeesDetailsById(lspItems.employeeId)).email;
               postalAddress = (await this.portalEmployeesService.findEmployeesDetailsById(lspItems.employeeId)).postalAddress;
             }
@@ -33,6 +36,7 @@ export class FindLspIndividualInterceptor implements NestInterceptor {
               deletedAt: lspItems.deletedAt,
               id: lspItems.id,
               name: name,
+              sex: sex,
               email: email,
               lspSource: lspItems.lspSource,
               postalAddress: postalAddress,

@@ -22,6 +22,11 @@ export class HrmsEmployeeTagsController {
     return await this.hrmsEmployeeTagsService.findEmployeesByTagId(id);
   }
 
+  @Get('tag')
+  async findEmployeesByMultipleTagId(@Body() tags: Array<string>) {
+    return await this.hrmsEmployeeTagsService.findEmployeesByMultipleTagId(tags);
+  }
+
   @Delete()
   async DeleteEmployeeTagDto(@Body() dto: DeleteEmployeeTagDto) {
     return await this.hrmsEmployeeTagsService.deleteEmployeeTags(dto);

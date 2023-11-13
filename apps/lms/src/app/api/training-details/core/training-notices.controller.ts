@@ -1,6 +1,6 @@
 import { Body, Controller, Patch } from '@nestjs/common';
 import { TrainingDetailsService } from './training-details.service';
-import { SendTrainingInternalDto, UpdateTrainingExternalDto } from '@gscwd-api/models';
+import { SendTrainingExternalDto, SendTrainingInternalDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'training-notices' })
 export class TrainingNoticesController {
@@ -12,7 +12,7 @@ export class TrainingNoticesController {
   }
 
   @Patch('external')
-  async updateTrainingExternalById(@Body() data: UpdateTrainingExternalDto) {
-    return await this.trainingDetailsService.updateTrainingExternalById(data);
+  async updateTrainingExternalById(@Body() data: SendTrainingExternalDto) {
+    return await this.trainingDetailsService.sendTrainingExternal(data);
   }
 }

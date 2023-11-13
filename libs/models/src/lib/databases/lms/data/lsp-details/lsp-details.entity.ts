@@ -1,8 +1,9 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { LspSource, LspType } from '@gscwd-api/utils';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity({ name: 'lsp_details' })
+@Unique(['firstName', 'middleName', 'lastName'])
 export class LspDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'lsp_details_id' })
   id: string;
@@ -28,8 +29,11 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'extension_name', type: 'varchar', length: '10', nullable: true })
   extensionName: string;
 
-  @Column({ name: 'organization_name', type: 'varchar', length: '100', nullable: true })
+  @Column({ name: 'organization_name', unique: true, type: 'varchar', length: '100', nullable: true })
   organizationName: string;
+
+  @Column({ name: 'sex', type: 'varchar', length: '10', nullable: true })
+  sex: string;
 
   @Column({ name: 'contact_number', type: 'varchar', nullable: true })
   contactNumber: string;
@@ -60,4 +64,34 @@ export class LspDetails extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'lsp_source', type: 'enum', enum: LspSource, nullable: false })
   lspSource: LspSource;
+
+  get fullName(): string {
+    const fullName: string[] = [];
+
+    if (this.prefixName) {
+      fullName.push(this.prefixName);
+    }
+
+    if (this.firstName) {
+      fullName.push(this.firstName);
+    }
+
+    if (this.middleName) {
+      fullName.push(this.middleName);
+    }
+
+    if (this.lastName) {
+      fullName.push(this.lastName);
+    }
+
+    if (this.suffixName) {
+      fullName.push(this.suffixName);
+    }
+
+    if (this.extensionName) {
+      fullName.push(this.extensionName);
+    }
+
+    return fullName.join(' ').trim();
+  }
 }

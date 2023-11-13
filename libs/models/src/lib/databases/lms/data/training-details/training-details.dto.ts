@@ -12,7 +12,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CourseContentDto } from '../course-contents';
+import { CourseContent } from '../course-contents';
 import { TrainingDesign } from '../training-designs';
 import { TrainingSource } from '../training-sources';
 import { TrainingType } from '@gscwd-api/utils';
@@ -32,8 +32,8 @@ export class TrainingDetailsDto {
   trainingType: TrainingType;
 
   @IsArray()
-  @Type(() => CourseContentDto)
-  courseContent: CourseContentDto[];
+  @Type(() => CourseContent)
+  courseContent: CourseContent;
 
   @IsOptional()
   @IsString({ message: 'training location must be a string' })
@@ -51,10 +51,6 @@ export class TrainingDetailsDto {
   @IsOptional()
   @IsInt({ message: 'training number of hours must be a number' })
   numberOfHours: number;
-
-  @IsOptional()
-  @IsDateString()
-  deadlineForSubmission: Date;
 
   @IsOptional()
   @IsInt({ message: 'training number of participants must be a number' })
@@ -88,8 +84,13 @@ export class CreateTrainingExternalDto extends PartialType(TrainingDetailsDto) {
   @Length(1, 100, { message: 'training course title must be between 1 to 100 characters' })
   courseTitle: string;
 
+  @IsOptional()
   @IsArray()
   bucketFiles: Array<string>;
+
+  @IsOptional()
+  @IsDateString()
+  deadlineForSubmission: Date;
 }
 
 export class UpdateTrainingInternalDto extends PartialType(CreateTrainingInternalDto) {
@@ -123,8 +124,8 @@ export class SendTrainingInternalDto {
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @IsArray()
-  @Type(() => CourseContentDto)
-  courseContent: Array<CourseContentDto>;
+  @Type(() => CourseContent)
+  courseContent: Array<CourseContent>;
 
   @IsNotEmpty()
   @IsString({ message: 'training location must be a string' })
@@ -189,8 +190,8 @@ export class SendTrainingExternalDto {
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @IsArray()
-  @Type(() => CourseContentDto)
-  courseContent: Array<CourseContentDto>;
+  @Type(() => CourseContent)
+  courseContent: Array<CourseContent>;
 
   @IsNotEmpty()
   @IsString({ message: 'training location must be a string' })
