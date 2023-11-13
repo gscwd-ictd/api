@@ -1,45 +1,88 @@
-export enum LspType {
-  INDIVIDUAL = 'individual',
-  ORGANIZATION = 'organization',
+export class SubjectMatterExperts {
+  subjectMatter: string;
 }
 
-export enum LspSource {
-  INTERNAL = 'internal',
-  EXTERNAL = 'external',
+export class Affiliations {
+  position: string;
+  institution: string;
 }
 
-export enum TrainingType {
-  FOUNDATIONAL = 'foundational',
-  TECHNICAL = 'technical',
-  PROFESSIONAL = 'professional',
-  SUPERVISOR = 'supervisor',
-  LEADERSHIP_MANAGERIAL = 'leadership/managerial',
+export class Awards {
+  name: string;
 }
 
-export enum TrainingPreparationStatus {
-  PENDING = 'pending',
-  ON_GOING_NOMINATION = 'on going nomination',
-  PDC_APPROVAL = 'for pdc approval',
-  GM_APPROVAL = 'for gm approval',
-  NOMINATION_DONE = 'nomination done',
-  DONE = 'done',
+export class Certifications {
+  name: string;
 }
 
-export enum TrainingStatus {
-  UPCOMING = 'upcoming',
-  ONGOING = 'on going',
-  COMPLETED = 'completed',
+export class Coaching {
+  name: string;
 }
 
-export enum TrainingNomineeStatus {
-  STAND_IN = 'stand-in',
-  DECLINED = 'declined',
-  PENDING = 'pending',
+export class Education {
+  degree: string;
+  institution: string;
 }
 
-export enum NomineeType {
-  NOMINEE = 'nominee',
-  STAND_IN = 'stand-in',
+export class Projects {
+  name: string;
+}
+
+export class Trainings {
+  name: string;
+}
+
+export class IndivididualInternal {
+  employeeId: string;
+  experience: string;
+  introduction: string;
+  expertise: Array<SubjectMatterExperts>;
+  affiliations: Array<Affiliations>;
+  coaching: Array<Coaching>;
+  projects: Array<Projects>;
+  trainings: Array<Trainings>;
+}
+
+export class IndivididualExternal {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  prefixName: string;
+  suffixName: string;
+  extensionName: string;
+  sex: string;
+  contactNumber: string;
+  email: string;
+  postalAddress: string;
+  experience: string;
+  tin: string;
+  introduction: string;
+  expertise: Array<SubjectMatterExperts>;
+  photoUrl: string;
+  affiliations: Array<Affiliations>;
+  awards: Array<Awards>;
+  certifications: Array<Certifications>;
+  coaching: Array<Coaching>;
+  education: Array<Education>;
+  projects: Array<Projects>;
+  trainings: Array<Trainings>;
+}
+
+export class OrganizationExternal {
+  organizationName: string;
+  contactNumber: string;
+  email: string;
+  postalAddress: string;
+  experience: string;
+  tin: string;
+  introduction: string;
+  expertise: Array<SubjectMatterExperts>;
+  photoUrl: string;
+  affiliations: Array<Affiliations>;
+  awards: Array<Awards>;
+  certifications: Array<Certifications>;
+  coaching: Array<Coaching>;
+  trainings: Array<Trainings>;
 }
 
 export type EmployeeFullNameRaw = {

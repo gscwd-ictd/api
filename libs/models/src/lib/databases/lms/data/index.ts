@@ -1,4 +1,3 @@
-export * from './subject-matter-experts';
 export * from './course-contents';
 export * from './nominee-qualifications';
 

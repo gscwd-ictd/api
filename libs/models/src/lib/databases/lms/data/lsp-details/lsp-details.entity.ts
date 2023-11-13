@@ -63,4 +63,34 @@ export class LspDetails extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'lsp_source', type: 'enum', enum: LspSource, nullable: false })
   lspSource: LspSource;
+
+  get fullName(): string {
+    const fullName: string[] = [];
+
+    if (this.prefixName) {
+      fullName.push(this.prefixName);
+    }
+
+    if (this.firstName) {
+      fullName.push(this.firstName);
+    }
+
+    if (this.middleName) {
+      fullName.push(this.middleName);
+    }
+
+    if (this.lastName) {
+      fullName.push(this.lastName);
+    }
+
+    if (this.suffixName) {
+      fullName.push(this.suffixName);
+    }
+
+    if (this.extensionName) {
+      fullName.push(this.extensionName);
+    }
+
+    return fullName.join(' ').trim();
+  }
 }
