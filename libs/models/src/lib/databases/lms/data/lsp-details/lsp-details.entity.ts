@@ -1,8 +1,9 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { LspSource, LspType } from '@gscwd-api/utils';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity({ name: 'lsp_details' })
+@Unique(['firstName', 'middleName', 'lastName'])
 export class LspDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'lsp_details_id' })
   id: string;
@@ -28,7 +29,7 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'extension_name', type: 'varchar', length: '10', nullable: true })
   extensionName: string;
 
-  @Column({ name: 'organization_name', type: 'varchar', length: '100', nullable: true })
+  @Column({ name: 'organization_name', unique: true, type: 'varchar', length: '100', nullable: true })
   organizationName: string;
 
   @Column({ name: 'sex', type: 'varchar', length: '10', nullable: true })

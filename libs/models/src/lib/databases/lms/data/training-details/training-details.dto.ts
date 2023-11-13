@@ -12,7 +12,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CourseContentDto } from '../course-contents';
+import { CourseContent } from '../course-contents';
 import { TrainingDesign } from '../training-designs';
 import { TrainingSource } from '../training-sources';
 import { TrainingType } from '@gscwd-api/utils';
@@ -32,8 +32,8 @@ export class TrainingDetailsDto {
   trainingType: TrainingType;
 
   @IsArray()
-  @Type(() => CourseContentDto)
-  courseContent: CourseContentDto[];
+  @Type(() => CourseContent)
+  courseContent: CourseContent;
 
   @IsOptional()
   @IsString({ message: 'training location must be a string' })
@@ -124,8 +124,8 @@ export class SendTrainingInternalDto {
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @IsArray()
-  @Type(() => CourseContentDto)
-  courseContent: Array<CourseContentDto>;
+  @Type(() => CourseContent)
+  courseContent: Array<CourseContent>;
 
   @IsNotEmpty()
   @IsString({ message: 'training location must be a string' })
@@ -190,8 +190,8 @@ export class SendTrainingExternalDto {
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @IsArray()
-  @Type(() => CourseContentDto)
-  courseContent: Array<CourseContentDto>;
+  @Type(() => CourseContent)
+  courseContent: Array<CourseContent>;
 
   @IsNotEmpty()
   @IsString({ message: 'training location must be a string' })

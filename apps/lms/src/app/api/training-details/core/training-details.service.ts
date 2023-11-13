@@ -38,7 +38,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     super(crudService);
   }
 
-  // training internal
+  // create training internal
   async addTrainingInternal(data: CreateTrainingInternalDto) {
     const { courseContent, trainingRequirements, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
@@ -107,7 +107,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  // training external
+  // create training external
   async addTrainingExternal(data: CreateTrainingExternalDto) {
     const { courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {

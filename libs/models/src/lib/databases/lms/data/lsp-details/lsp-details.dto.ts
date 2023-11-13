@@ -1,7 +1,14 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsEmail, IsInt, IsNotEmpty, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
+import { IsArray, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { PartialType } from '@nestjs/swagger';
-import { Affiliations, Awards, Certifications, Coaching, Education, Projects, SubjectMatterExperts, Trainings } from '@gscwd-api/utils';
+import { SubjectMatterExperts } from '../subject-matter-experts';
+import { Affiliations, CreateLspAffiliationDto } from '../lsp-affiliations';
+import { Awards } from '../lsp-awards';
+import { Certifications } from '../lsp-certifications';
+import { Coaching } from '../lsp-coachings';
+import { Education } from '../lsp-educations';
+import { Projects } from '../lsp-projects';
+import { Trainings } from '../lsp-trainings';
 
 // create lsp (type = individual , source = internal)
 export class CreateLspIndividualInternalDto {
@@ -24,7 +31,7 @@ export class CreateLspIndividualInternalDto {
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp affiliations must be an array' })
   @Type(() => Affiliations)
-  affiliations: Array<Affiliations>;
+  affiliations: Array<CreateLspAffiliationDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp coaching must be an array' })
@@ -59,14 +66,17 @@ export class CreateLspIndividualExternalDto {
   @Length(1, 50, { message: 'lsp last name must be between 1 to 50 characters' })
   lastName: string;
 
+  @IsOptional()
   @IsString({ message: 'lsp prefix name must be a string' })
   @Length(1, 20, { message: 'lsp prefix name must be between 1 to 20 characters' })
   prefixName: string;
 
+  @IsOptional()
   @IsString({ message: 'lsp suffix name must be a string' })
   @Length(1, 20, { message: 'lsp suffix name must be between 1 to 20 characters' })
   suffixName: string;
 
+  @IsOptional()
   @IsString({ message: 'lsp extension name must be a string' })
   @Length(1, 10, { message: 'lsp extension name must be between 1 to 10 characters' })
   extensionName: string;
@@ -89,13 +99,14 @@ export class CreateLspIndividualExternalDto {
   @IsInt({ message: 'lsp experience number of years must be a number' })
   experience: number;
 
-  @IsString({ message: 'lsp photo url must be a string' })
+  @IsString({ message: 'lsp tin must be a string' })
   tin: string;
 
   @IsString({ message: 'lsp introduction must be a string' })
   @Length(1, 250, { message: 'lsp introduction must be between 1 to 250 characters' })
   introduction: string;
 
+  @IsOptional()
   @IsString({ message: 'lsp photo url must be a string' })
   photoUrl: string;
 
@@ -168,6 +179,7 @@ export class CreateLspOrganizationExternalDto {
   @Length(1, 250, { message: 'lsp introduction must be between 1 to 250 characters' })
   introduction: string;
 
+  @IsOptional()
   @IsString({ message: 'lsp photo url must be a string' })
   photoUrl: string;
 

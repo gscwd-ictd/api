@@ -8,7 +8,7 @@ import {
   UpdateLspIndividualInternalDto,
   UpdateLspOrganizationExternalDto,
 } from '@gscwd-api/models';
-import { IndivididualInternal, LspSource, LspType } from '@gscwd-api/utils';
+import { LspSource, LspType } from '@gscwd-api/utils';
 import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DataSource, EntityManager, QueryFailedError } from 'typeorm';
 import { LspAffiliationsService } from '../components/lsp-affiliations';

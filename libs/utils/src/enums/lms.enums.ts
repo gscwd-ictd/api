@@ -12,7 +12,7 @@ export enum TrainingType {
   FOUNDATIONAL = 'foundational',
   TECHNICAL = 'technical',
   PROFESSIONAL = 'professional',
-  SUPERVISOR = 'supervisor',
+  SUPERVISORY = 'supervisory',
   LEADERSHIP_MANAGERIAL = 'leadership/managerial',
 }
 
