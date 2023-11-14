@@ -3,7 +3,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, UseInterceptors } from
 import { UserLogsInterceptor } from '../../user-logs/misc/interceptors/user-logs.interceptor';
 import { TravelOrderService } from './travel-order.service';
 
-@UseInterceptors(UserLogsInterceptor<TravelOrder>)
+//@UseInterceptors(UserLogsInterceptor<TravelOrder>)
 @Controller({ version: '1', path: 'travel-order' })
 export class TravelOrderController {
   constructor(private readonly travelOrderService: TravelOrderService) {}

@@ -29,7 +29,6 @@ export class OvertimeReportsController {
     @Param('overtime_application_id') overtimeApplicationId: string,
     @Param('employee_id') employeeId: string
   ) {
-    //
     return await this.overtimeService.getIndividualOvertimeAccomplishment(overtimeApplicationId, employeeId);
   }
 }

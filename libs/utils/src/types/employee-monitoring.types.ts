@@ -179,6 +179,7 @@ export type PassSlipForLedger = {
   employeeId: string;
   dateOfApplication: Date;
   natureOfBusiness: NatureOfBusiness;
+  isMedical: boolean;
   timeIn: number;
   timeOut: number;
   obTransportation: ObTransportation;

@@ -1,10 +1,9 @@
 import { Holidays, HolidaysDto, UpdateHolidayDto } from '@gscwd-api/models';
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
-import { UserLogsInterceptor } from '../../user-logs/misc/interceptors/user-logs.interceptor';
 import { AuthenticatedGuard } from '../../users/guards/authenticated.guard';
 import { HolidaysService } from './holidays.service';
 
-@UseInterceptors(UserLogsInterceptor<Holidays>)
+//@UseInterceptors(UserLogsInterceptor<Holidays>)
 @Controller({ version: '1', path: 'holidays' })
 export class HolidaysController {
   constructor(private readonly holidayService: HolidaysService) {}

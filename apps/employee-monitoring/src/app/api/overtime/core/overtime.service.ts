@@ -570,7 +570,7 @@ export class OvertimeService {
         }
         computedIvmsHours =
           (Math.round(
-            dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeOut).diff(dayjs(plannedDate + ' ' + _timeIn), 'minutes') / 60 + Number.EPSILON
+            dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeOut).diff(dayjs(plannedDate + ' ' + _timeIn), 'minute') / 60 + Number.EPSILON
           ) *
             100) /
           100;
@@ -578,7 +578,7 @@ export class OvertimeService {
         //get overtime after schedule
         computedIvmsHours =
           (Math.round(
-            (dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeOut).diff(dayjs(plannedDate + ' ' + dtr.schedule.timeOut), 'minutes') / 60 +
+            (dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeOut).diff(dayjs(plannedDate + ' ' + dtr.schedule.timeOut), 'minute') / 60 +
               Number.EPSILON) *
               100
           ) +
@@ -588,8 +588,8 @@ export class OvertimeService {
       if (computedIvmsHours >= 4) {
         computedEncodedHours =
           dtr.schedule.lunchOut !== null
-            ? Math.round(computedIvmsHours - (computedIvmsHours - parseFloat((computedIvmsHours / 4).toString()) * 4) * 100) / 100
-            : Math.round(computedIvmsHours - (computedIvmsHours - parseFloat((computedIvmsHours / 4).toString()) * 4) * 100) / 100;
+            ? Math.round(computedIvmsHours - (computedIvmsHours - parseInt((computedIvmsHours / 4).toString()) * 4) * 100) / 100
+            : Math.round(computedIvmsHours - (computedIvmsHours - parseInt((computedIvmsHours / 4).toString()) * 4) * 100) / 100;
       }
     }
 
@@ -599,7 +599,7 @@ export class OvertimeService {
           (Math.round(
             dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeOut).diff(
               dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn),
-              'minutes'
+              'minute'
             ) /
               60 +
               Number.EPSILON
@@ -612,7 +612,7 @@ export class OvertimeService {
           (Math.round(
             dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeOut).diff(
               dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn),
-              'minutes'
+              'minute'
             ) /
               60 +
               Number.EPSILON
@@ -624,8 +624,8 @@ export class OvertimeService {
         console.log(computedEncodedHours);
         computedEncodedHours =
           dtr.schedule.lunchOut !== null
-            ? Math.round(computedEncodedHours - (computedEncodedHours - parseFloat((computedEncodedHours / 4).toString()) * 4) * 100) / 100
-            : Math.round(computedEncodedHours - (computedEncodedHours - parseFloat((computedEncodedHours / 4).toString()) * 4) * 100) / 100;
+            ? (Math.round(computedEncodedHours - (computedEncodedHours - parseInt((computedEncodedHours / 4).toString()) * 4)) * 100) / 100
+            : (Math.round(computedEncodedHours - (computedEncodedHours - parseInt((computedEncodedHours / 4).toString()) * 4)) * 100) / 100;
       }
     }
 
@@ -877,6 +877,7 @@ export class OvertimeService {
   //#region Reports
   async getOvertimeAuthorization(overtimeApplicationId: string, immediateSupervisorEmployeeId: string) {
     //
+
     const overtimeApplication = (
       await this.overtimeApplicationService.rawQuery(
         `
@@ -924,13 +925,20 @@ export class OvertimeService {
 
     console.log('🍆 🍆 🍆 🍆 🍆', overtimeApplication, employees, supervisorAndManagerNames);
 
-    return { ...overtimeApplication, employees, signatories: { ...supervisorAndManagerNames } };
+    const supervisorPosition = await (await this.employeeService.getEmployeeDetails(managerId)).assignment.positionTitle;
+
+    return { ...overtimeApplication, employees, signatories: { ...supervisorAndManagerNames, supervisorPosition } };
   }
 
   async getOvertimeSummaryRegular(immediateSupervisorEmployeeId: string, year: number, month: number, half: OvertimeSummaryHalf) {
     //
     const numOfDays = dayjs(year + '-' + month + '-1').daysInMonth();
 
+    let overallTotalRegularOTAmount = 0;
+    let overallTotalOffOTAmount = 0;
+    let overallNightDifferentialAmount = 0;
+    let overallTotalOTAmount = 0;
+    let overallSubstituteDutyOTAmount = 0;
     //console.log(numOfDays);
 
     const days =
@@ -1021,7 +1029,7 @@ export class OvertimeService {
 
               const hoursRendered = await this.getComputedHrs(restOfOvertime);
 
-              if (this.isRegularOvertimeDay(employee.employeeId, year, month, day)) totalRegularOTHoursRendered += hoursRendered;
+              if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) totalRegularOTHoursRendered += hoursRendered;
               else totalOffOTHoursRendered += hoursRendered;
 
               return typeof overtime !== 'undefined'
@@ -1047,6 +1055,13 @@ export class OvertimeService {
         const nightDifferentialHrs = 0;
         const nightDifferentialAmount = 0;
         const totalOvertimeAmount = regularOTAmount + offOTAmount + substituteAmount + nightDifferentialAmount;
+
+        overallTotalRegularOTAmount += regularOTAmount;
+        overallTotalOffOTAmount += offOTAmount;
+        overallSubstituteDutyOTAmount += substituteAmount;
+        overallNightDifferentialAmount += nightDifferentialAmount;
+        overallTotalOTAmount += totalOvertimeAmount;
+
         return {
           employeeFullName,
           userId,
@@ -1073,11 +1088,17 @@ export class OvertimeService {
         if (employeeDetail !== null) filteredEmployeeDetails.push(employeeDetail);
       })
     );
+
+    const preparedByPosition = (await this.employeeService.getEmployeeDetails(immediateSupervisorEmployeeId)).assignment.positionTitle;
+
     const notedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(immediateSupervisorEmployeeId);
     const approvedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(notedByEmployeeId.toString());
 
     const preparedByAndNotedBy = await this.employeeService.getEmployeeAndSupervisorName(immediateSupervisorEmployeeId, notedByEmployeeId.toString());
     const approvedBy = await this.employeeService.getEmployeeAndSupervisorName(notedByEmployeeId.toString(), approvedByEmployeeId.toString());
+
+    const notedByPosition = (await this.employeeService.getEmployeeDetails(notedByEmployeeId.toString())).assignment.positionTitle;
+    const approvedByPosition = (await this.employeeService.getEmployeeDetails(approvedByEmployeeId.toString())).assignment.positionTitle;
 
     const { employeeName, employeeSignature, supervisorName, supervisorSignature } = preparedByAndNotedBy;
 
@@ -1085,10 +1106,15 @@ export class OvertimeService {
       periodCovered,
       summary: filteredEmployeeDetails,
       signatories: {
-        preparedBy: { name: employeeName, signature: employeeSignature },
-        notedBy: { name: supervisorName, signature: supervisorSignature },
-        approvedBy: { name: approvedBy.supervisorName, signature: approvedBy.supervisorSignature },
+        preparedBy: { name: employeeName, signature: employeeSignature, position: preparedByPosition },
+        notedBy: { name: supervisorName, signature: supervisorSignature, position: notedByPosition },
+        approvedBy: { name: approvedBy.supervisorName, signature: approvedBy.supervisorSignature, position: approvedByPosition },
       },
+      overallTotalRegularOTAmount,
+      overallTotalOffOTAmount,
+      overallSubstituteDutyOTAmount,
+      overallNightDifferentialAmount,
+      overallTotalOTAmount,
     };
   }
 
@@ -1097,6 +1123,7 @@ export class OvertimeService {
     const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
     const assignment = employeeDetails.assignment.name;
     const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
+    const supervisorPosition = (await this.employeeService.getEmployeeDetails(supervisorId.toString())).assignment.positionTitle;
     const { employeeName, employeeSignature, supervisorName, supervisorSignature } = await this.employeeService.getEmployeeAndSupervisorName(
       employeeId,
       supervisorId.toString()
@@ -1114,7 +1141,7 @@ export class OvertimeService {
       )
     )[0];
 
-    return { ...overtimeDetails, employeeName, assignment, employeeSignature, supervisorName, supervisorSignature };
+    return { ...overtimeDetails, employeeName, assignment, employeeSignature, supervisorName, supervisorSignature, supervisorPosition };
   }
   //#endregion Reports
 
@@ -1130,7 +1157,7 @@ export class OvertimeService {
 
   private async isRegularOvertimeDay(employeeId: string, year: number, month: number, day: number) {
     const employeeSchedule = await this.employeeScheduleService.getEmployeeSchedule(employeeId);
-    //console.log(' SCHEDULE ---', employeeSchedule);
+
     const restDays = employeeSchedule.schedule.restDaysNumbers.toString().split(', ');
     const isHoliday = (
       await this.employeeScheduleService.rawQuery(
@@ -1139,9 +1166,11 @@ export class OvertimeService {
       )
     )[0].isHoliday;
     const dayOfWeek = dayjs(year + '-' + month + '-' + day).day();
-    if (dayOfWeek in restDays || isHoliday) return false;
+    if (dayOfWeek in restDays || isHoliday === '1') return false;
     return true;
   }
 
-  //console.log('---', restDays);
+  async getNotifsOvertimesByEmployeeId(employeeId: string) {
+    return '';
+  }
 }

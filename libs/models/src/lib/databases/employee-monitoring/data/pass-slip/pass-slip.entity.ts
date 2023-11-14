@@ -25,6 +25,9 @@ export class PassSlip extends DatabaseEntity implements IEntity {
   @Column({ name: 'purpose_destination', type: 'text' })
   purposeDestination: string;
 
+  @Column({ name: 'is_medical', type: 'boolean', default: null })
+  isMedical: boolean;
+
   @Column({ name: 'is_cancelled', type: 'boolean' })
   isCancelled: boolean;
 
