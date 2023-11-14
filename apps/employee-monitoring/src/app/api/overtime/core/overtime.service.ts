@@ -1171,6 +1171,17 @@ export class OvertimeService {
   }
 
   async getNotifsOvertimesByEmployeeId(employeeId: string) {
-    return '';
+    1;
+
+    return await this.overtimeAccomplishmentService.rawQuery(
+      `
+        SELECT DATE_FORMAT(oa.planned_date,'%Y-%m-%d') plannedDate,purpose, status 
+        FROM overtime_application oa 
+          INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id
+        WHERE oe.employee_id_fk = ? 
+        AND oa.planned_date BETWEEN DATE_SUB(NOW(),INTERVAL 14 DAY) AND DATE_ADD(NOW(), INTERVAL 14 DAY) 
+        ORDER BY oa.planned_date ASC;`,
+      [employeeId]
+    );
   }
 }
