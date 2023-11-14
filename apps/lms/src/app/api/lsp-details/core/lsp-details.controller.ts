@@ -23,18 +23,21 @@ import {
   UpdateLspOrganizationExternalDto,
 } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { FindLspIndividualInterceptor, FindLspOrganizationInterceptor } from '../misc/interceptors';
 import { LspSource, LspType } from '@gscwd-api/utils';
+import { LspInterceptor } from '../misc/interceptors';
 
 @Controller({ version: '1', path: 'lsp-details' })
 export class LspDetailsController {
   constructor(private readonly lspDetailsService: LspDetailsService) {}
 
-  @UseInterceptors(FindLspIndividualInterceptor)
-  @Get('/individual')
+  // find lsp
+  @UseInterceptors(LspInterceptor)
+  @Get()
   async findLspIndividual(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('type') lspType: LspType,
+    @Query('source') lspSource: LspSource
   ): Promise<Pagination<LspDetails> | LspDetails[]> {
     return await this.lspDetailsService.crud().findAll({
       find: {
@@ -50,141 +53,33 @@ export class LspDetailsController {
           prefixName: true,
           suffixName: true,
           extensionName: true,
+          organizationName: true,
           sex: true,
           email: true,
+          lspType: true,
           lspSource: true,
           postalAddress: true,
         },
-        where: { lspType: LspType.INDIVIDUAL },
+        where: { lspType, lspSource },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
     });
   }
 
-  @UseInterceptors(FindLspOrganizationInterceptor)
-  @Get('/organization')
-  async findLspOrganization(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<LspDetails> | LspDetails[]> {
-    return await this.lspDetailsService.crud().findAll({
-      find: {
-        select: {
-          createdAt: true,
-          updatedAt: true,
-          deletedAt: true,
-          id: true,
-          organizationName: true,
-          email: true,
-          lspSource: true,
-          postalAddress: true,
-        },
-        where: { lspType: LspType.ORGANIZATION },
-      },
-      pagination: { page, limit },
-      onError: () => new InternalServerErrorException(),
-    });
-  }
-
-  @UseInterceptors(FindLspIndividualInterceptor)
-  @Get('/individual/internal')
-  async findLspIndividualInternal(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<LspDetails> | LspDetails[]> {
-    return await this.lspDetailsService.crud().findAll({
-      find: {
-        select: {
-          createdAt: true,
-          updatedAt: true,
-          deletedAt: true,
-          id: true,
-          employeeId: true,
-          firstName: true,
-          middleName: true,
-          lastName: true,
-          prefixName: true,
-          suffixName: true,
-          extensionName: true,
-          email: true,
-          lspSource: true,
-          postalAddress: true,
-        },
-        where: { lspType: LspType.INDIVIDUAL, lspSource: LspSource.INTERNAL },
-      },
-      pagination: { page, limit },
-      onError: () => new InternalServerErrorException(),
-    });
-  }
-
-  @UseInterceptors(FindLspIndividualInterceptor)
-  @Get('/individual/external')
-  async findLspIndividualExternal(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<LspDetails> | LspDetails[]> {
-    return await this.lspDetailsService.crud().findAll({
-      find: {
-        select: {
-          createdAt: true,
-          updatedAt: true,
-          deletedAt: true,
-          id: true,
-          employeeId: true,
-          firstName: true,
-          middleName: true,
-          lastName: true,
-          prefixName: true,
-          suffixName: true,
-          extensionName: true,
-          sex: true,
-          email: true,
-          lspSource: true,
-          postalAddress: true,
-        },
-        where: { lspType: LspType.INDIVIDUAL, lspSource: LspSource.EXTERNAL },
-      },
-      pagination: { page, limit },
-      onError: () => new InternalServerErrorException(),
-    });
-  }
-
-  @UseInterceptors(FindLspOrganizationInterceptor)
-  @Get('/organization/external')
-  async findLspOrganizationExternal(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
-  ): Promise<Pagination<LspDetails> | LspDetails[]> {
-    return await this.lspDetailsService.crud().findAll({
-      find: {
-        select: {
-          createdAt: true,
-          updatedAt: true,
-          deletedAt: true,
-          id: true,
-          organizationName: true,
-          email: true,
-          lspSource: true,
-          postalAddress: true,
-        },
-        where: { lspType: LspType.ORGANIZATION, lspSource: LspSource.EXTERNAL },
-      },
-      pagination: { page, limit },
-      onError: () => new InternalServerErrorException(),
-    });
-  }
-
+  // insert lsp (type = individual, source = internal)
   @Post('/individual/internal')
   async createLspIndividualInternal(@Body() data: CreateLspIndividualInternalDto) {
     return await this.lspDetailsService.addLspIndividualInternal(data);
   }
 
+  // insert lsp (type = individual, source = external)
   @Post('/individual/external')
   async createLspIndividualExternal(@Body() data: CreateLspIndividualExternalDto) {
     return await this.lspDetailsService.addLspIndividualExternal(data);
   }
 
+  // insert lsp (type = organization, source = external)
   @Post('/organization/external')
   async createLspOrganizationExternal(@Body() data: CreateLspOrganizationExternalDto) {
     return await this.lspDetailsService.addLspOrganizationExternal(data);

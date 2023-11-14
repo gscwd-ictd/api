@@ -41,6 +41,9 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'email', type: 'varchar', length: '50', nullable: true })
   email: string;
 
+  @Column({ name: 'tax_identification_number', nullable: true })
+  tin: string;
+
   @Column({ name: 'postal_address', type: 'varchar', length: 100, nullable: true })
   postalAddress: string;
 
@@ -52,9 +55,6 @@ export class LspDetails extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'experience_number_of_years', nullable: true })
   experience: number;
-
-  @Column({ name: 'tax_identification_number', nullable: true })
-  tin: string;
 
   @Column({ name: 'introduction', length: 250, nullable: true })
   introduction: string;
@@ -77,7 +77,7 @@ export class LspDetails extends DatabaseEntity implements IEntity {
     }
 
     if (this.middleName) {
-      fullName.push(this.middleName);
+      fullName.push(this.middleName.substring(0, 1) + '.');
     }
 
     if (this.lastName) {
