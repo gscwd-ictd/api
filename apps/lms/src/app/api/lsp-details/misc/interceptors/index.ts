@@ -1,2 +1,1 @@
-export * from './find-lsp-individual.interceptor';
-export * from './find-lsp-organization.interceptor';
+export * from './lsp.interceptor';

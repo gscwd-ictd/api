@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DB_ENTITIES } from '../constants/entities';
 import { Environment } from '../constants/environments';
-import { DatabaseService } from './database.service';
 
 @Module({
   imports: [
@@ -35,6 +34,6 @@ import { DatabaseService } from './database.service';
       }),
     }),
   ],
-  providers: [DatabaseService],
+  //providers: [DatabaseService],
 })
 export class DatabaseModule {}
