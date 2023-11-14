@@ -4,6 +4,6 @@ export class LeaveAdjustmentDto {
   category: string;
   leaveBenefitsId: LeaveBenefits;
   value: number;
-  remarks: string;
+  remarks?: string;
   employeeId: string;
 }

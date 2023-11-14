@@ -10,6 +10,7 @@ import { PassSlipApprovalModule } from '../app/api/pass-slip/components/approval
 import { PassSlipModule } from '../app/api/pass-slip/core/pass-slip.module';
 import { StatsModule } from '../app/api/stats/core/stats.module';
 import { TravelOrderModule } from '../app/api/travel-order/core/travel-order.module';
+import { UserLogsModule } from '../app/api/user-logs/core/user-logs.module';
 import { UserRolesModule } from '../app/api/user-roles/core/user-roles.module';
 
 export const appModules = [
@@ -26,4 +27,5 @@ export const appModules = [
   ModulesModule,
   UserRolesModule,
   StatsModule,
+  UserLogsModule,
 ];

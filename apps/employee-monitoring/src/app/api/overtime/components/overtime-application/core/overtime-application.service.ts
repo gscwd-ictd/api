@@ -12,7 +12,10 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
   async createOvertimeApplication(createOvertimeApplicationDto: CreateOvertimeApplicationDto, entityManager: EntityManager) {
     return await this.crudService.transact<OvertimeApplication>(entityManager).create({
       dto: createOvertimeApplicationDto,
-      onError: () => new InternalServerErrorException(),
+      onError: (error) => {
+        console.log(error);
+        throw new InternalServerErrorException();
+      },
     });
   }
 

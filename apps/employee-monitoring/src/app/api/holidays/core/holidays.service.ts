@@ -66,6 +66,7 @@ export class HolidaysService extends CrudHelper<Holidays> {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
+    console.log('asdasdsa', holidaysDto);
 
     const { holidayDate, name, type } = holiday;
 
@@ -118,6 +119,7 @@ export class HolidaysService extends CrudHelper<Holidays> {
         );
       })
     );
+    return holiday;
   }
 
   async getHoliday(id: string) {

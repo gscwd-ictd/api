@@ -17,6 +17,6 @@ export class LeaveCreditDeductions extends DatabaseEntity implements IEntity {
   @Column({ name: 'debit_value', type: 'decimal', precision: 6, scale: 3 })
   debitValue: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   remarks: string;
 }

@@ -69,7 +69,7 @@ export class EmployeesService {
       payload: { employeeId, supervisorId },
       pattern: 'get_employee_supervisor_names',
       onError: (error) => new NotFoundException(error),
-    })) as { employeeName: string; supervisorName: string };
+    })) as { employeeName: string; supervisorName: string; employeeSignature: string; supervisorSignature: string };
   }
 
   async getEmployeeSupervisorId(employeeId: string) {
@@ -77,6 +77,25 @@ export class EmployeesService {
       action: 'send',
       payload: employeeId,
       pattern: 'get_employee_supervisor_id',
+      onError: (error) => new NotFoundException(error),
+    });
+  }
+
+  //get_monthly_hourly_rate_by_employee_id
+  async getMonthlyHourlyRateByEmployeeId(employeeId: string) {
+    return await this.client.call<string, string, { monthlyRate: number; hourlyRate: number }>({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_monthly_hourly_rate_by_employee_id',
+      onError: (error) => new NotFoundException(error),
+    });
+  }
+
+  async getEmployeeNatureOfAppointment(employeeId: string) {
+    return await this.client.call<string, string, string>({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_employee_nature_of_appointment',
       onError: (error) => new NotFoundException(error),
     });
   }
