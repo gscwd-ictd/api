@@ -33,10 +33,16 @@ const whitelist = [
   'http://172.20.110.45:3001',
   'http://172.20.110.45:3002',
 ];
-
-const redisClient = redis.createClient({
-  url: `redis://${process.env.MS_HOST_LOCAL}:6479`,
+//${process.env.EMPLOYEE_MONITORING_REDIS_HOST}
+const redisClientHrms = redis.createClient({
+  url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:6479`,
 });
+redisClientHrms.connect().catch(console.error);
+
+const redisClientPortal = redis.createClient({
+  url: `redis://localhost:6379`,
+});
+redisClientPortal.connect().catch(console.error);
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -45,6 +51,45 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
   });
+
+  app.use(
+    '/',
+    session({
+      store: new RedisStore({
+        client: redisClientHrms,
+      }),
+      name: 'ssid_hrms',
+      secret: process.env.RSP_COOKIE_PASS,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        signed: true,
+        secure: false,
+        maxAge: 86000000,
+        path: '/',
+      },
+    })
+  );
+
+  // app.use(
+  //   '/',
+  //   session({
+  //     store: new RedisStore({
+  //       client: redisClientPortal,
+  //     }),
+  //     name: 'ssid_portal',
+  //     secret: process.env.PORTAL_COOKIE_PASS,
+  //     resave: false,
+  //     saveUninitialized: false,
+  //     cookie: {
+  //       httpOnly: true,
+  //       signed: true,
+  //       secure: false,
+  //       maxAge: 86000000,
+  //     },
+  //   })
+  // );
 
   app.connectMicroservice({
     transport: Transport.REDIS,
@@ -61,27 +106,6 @@ async function bootstrap() {
   //     port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT)
   //   }
   // })
-
-  app.use(
-    '/',
-    session({
-      store: new RedisStore({
-        client: redisClient,
-      }),
-      name: 'ssid_hrms',
-      secret: process.env.RSP_COOKIE_PASS,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        signed: true,
-        secure: false,
-        maxAge: 86000000,
-        path: '/',
-        //expires: new Date(new Date(Date.now()).setSeconds(new Date(Date.now()).getSeconds() + 86400)),
-      },
-    })
-  );
 
   app.startAllMicroservices();
   //app.useGlobalPipes(new ValidationPipe({ enableDebugMessages: true }));

@@ -1,5 +1,5 @@
 import { CreateCustomGroupMembersDto, CreateCustomGroupsDto, UpdateCustomGroupsDto } from '@gscwd-api/models';
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { CustomGroupsService } from './custom-groups.service';
 
 @Controller({ version: '1', path: 'custom-groups' })
@@ -37,8 +37,13 @@ export class CustomGroupsController {
   }
 
   @Get(':custom_group_id')
-  async getCustomGroupDetails(@Param('custom_group_id') customGroupId: string) {
-    return await this.customGroupsService.getCustomGroupDetails(customGroupId);
+  async getCustomGroupDetails(
+    @Param('custom_group_id') customGroupId: string,
+    @Query('schedule_id') scheduleId: string,
+    @Query('date_from') dateFrom: Date,
+    @Query('date_to') dateTo: Date
+  ) {
+    return await this.customGroupsService.getCustomGroupDetails(customGroupId, scheduleId, dateFrom, dateTo);
   }
 
   @Get(':custom_group_id/unassigned')

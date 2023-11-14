@@ -10,6 +10,7 @@ import { EmployeesModule } from '../../employees/core/employees.module';
 import { EmployeeScheduleModule } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.module';
 import { OvertimeMSController } from './overtime-ms.controller';
 import { DailyTimeRecordModule } from '../../daily-time-record/core/daily-time-record.module';
+import { OvertimeReportsController } from './overtime-reports.controller';
 
 @Module({
   imports: [
@@ -23,6 +24,6 @@ import { DailyTimeRecordModule } from '../../daily-time-record/core/daily-time-r
     DailyTimeRecordModule,
   ],
   providers: [OvertimeService],
-  controllers: [OvertimeController, OvertimeMSController],
+  controllers: [OvertimeController, OvertimeMSController, OvertimeReportsController],
 })
 export class OvertimeModule {}

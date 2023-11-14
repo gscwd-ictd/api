@@ -179,6 +179,7 @@ export type PassSlipForLedger = {
   employeeId: string;
   dateOfApplication: Date;
   natureOfBusiness: NatureOfBusiness;
+  isMedical: boolean;
   timeIn: number;
   timeOut: number;
   obTransportation: ObTransportation;
@@ -217,7 +218,13 @@ export type LeaveLedger = {
 export enum OvertimeStatus {
   APPROVED = 'approved',
   DISAPPROVED = 'disapproved',
+  CANCELLED = 'cancelled',
   PENDING = 'pending',
+}
+
+export enum OvertimeSummaryHalf {
+  FIRST_HALF = 'first',
+  SECOND_HALF = 'second',
 }
 
 export type PassSlipForDispute = {
@@ -227,4 +234,11 @@ export type PassSlipForDispute = {
   employeeId: string;
   timeIn: number;
   timeOut: number;
+};
+
+export type OvertimeHrsRendered = {
+  followEstimatedHrs: boolean;
+  estimatedHours: number;
+  computedEncodedHours: number;
+  computedIvmsHours: number;
 };

@@ -11,4 +11,9 @@ export class EmployeeScheduleMsController {
   async addEmployeeSchedule(@Payload() employeeScheduleDto: CreateEmployeeScheduleDto) {
     return await this.employeeScheduleService.addEmployeeSchedule(employeeScheduleDto);
   }
+
+  @MessagePattern('get_employee_schedule')
+  async getEmployeeSchedule(@Payload() employeeId: string) {
+    return await this.employeeScheduleService.getEmployeeSchedule(employeeId);
+  }
 }

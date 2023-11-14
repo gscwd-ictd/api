@@ -52,8 +52,7 @@ export class TravelOrderService extends CrudHelper<TravelOrder> {
         travel_order_no travelOrderNo,
         DATE_FORMAT(date_requested,'%Y-%m-%d') dateRequested,
         DATE_FORMAT(get_travel_order_date_range(travel_order_id,'from'),'%Y-%m-%d') dateFrom,
-        DATE_FORMAT(get_travel_order_date_range(travel_order_id,'to'),'%Y-%m-%d') dateTo,
-        is_ptr_required isPtrRequired 
+        DATE_FORMAT(get_travel_order_date_range(travel_order_id,'to'),'%Y-%m-%d') dateTo
     FROM travel_order 
     WHERE (YEAR(get_travel_order_date_range(travel_order_id,'from')) = YEAR(NOW()) OR YEAR(get_travel_order_date_range(travel_order_id,'from'))=(YEAR(NOW())-1))`);
 

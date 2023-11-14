@@ -3,6 +3,7 @@ import { Schedule, CreateScheduleDto, UpdateScheduleDto } from '@gscwd-api/model
 import { ScheduleBase } from '@gscwd-api/utils';
 import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { GroupScheduleType } from '../../schedule-sheet/misc/schedule-sheet.types';
 
 @Injectable()
 export class ScheduleService extends CrudHelper<Schedule> {
@@ -104,5 +105,33 @@ export class ScheduleService extends CrudHelper<Schedule> {
 
     const updateSchedule = await this.crud().update({ dto: rest, updateBy: { id }, onError: () => new InternalServerErrorException() });
     if (updateSchedule.affected > 0) return updateScheduleDto;
+  }
+
+  async deleteGroupSchedule(groupSchedule: GroupScheduleType) {
+    /*
+    1. delete schedule 
+    */
+    const { customGroupId, dateFrom, dateTo, scheduleId } = groupSchedule;
+    //2. delete employees from custom group where scheduleId,dateFrom,dateTo
+    const employeeIds = (await this.rawQuery(
+      `SELECT es.employee_id_fk employeeId 
+         FROM employee_schedule es 
+       INNER JOIN custom_group_members cgm ON es.employee_id_fk = cgm.employee_id_fk 
+       WHERE date_from=? AND date_to=? AND schedule_id_fk=?`,
+      [dateFrom, dateTo, scheduleId]
+    )) as { employeeId: string }[];
+
+    const employeeIdsArray = (await Promise.all(
+      employeeIds.map(async (employeeId) => {
+        return employeeId.employeeId;
+      })
+    )) as string[];
+    console.log(employeeIdsArray);
+    const deleteEmployeeCustomGroupResult = await this.rawQuery(
+      `DELETE FROM custom_group_members WHERE custom_group_id_fk = ? AND employee_id_fk IN (?);`,
+      [customGroupId, employeeIdsArray]
+    );
+    console.log(deleteEmployeeCustomGroupResult);
+    console.log(groupSchedule);
   }
 }

@@ -30,6 +30,33 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
     return customGroupMembersDto;
   }
 
+  async getCustomGroupMembersDetails(scheduleId: string, dateFrom: Date, dateTo: Date) {
+    //
+    const assignedMembers = (await this.rawQuery(
+      `
+    SELECT es.employee_id_fk employeeId 
+      FROM employee_schedule es 
+    INNER JOIN custom_group_members cgm ON es.employee_id_fk = cgm.employee_id_fk 
+    WHERE date_from=? AND date_to=? AND schedule_id_fk=?`,
+      [dateFrom, dateTo, scheduleId]
+    )) as CustomGroupMembers[];
+
+    const employeeIds = await Promise.all(
+      assignedMembers.map(async (assignedMember) => {
+        return assignedMember.employeeId;
+      })
+    );
+
+    const employees = await this.client.call({
+      action: 'send',
+      payload: employeeIds,
+      pattern: 'get_custom_group_assigned_member',
+      onError: (error) => new NotFoundException(error),
+    });
+
+    return employees;
+  }
+
   async getCustomGroupMembers(customGroupId: string, unassigned: boolean) {
     let assignedMembers;
 
@@ -63,6 +90,4 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
 
     return employees;
   }
-
-  async getAllScheduleSheet() {}
 }

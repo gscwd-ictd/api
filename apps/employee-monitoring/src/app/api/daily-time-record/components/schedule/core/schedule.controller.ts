@@ -1,6 +1,7 @@
 import { CreateScheduleDto, UpdateScheduleDto } from '@gscwd-api/models';
 import { ScheduleBase } from '@gscwd-api/utils';
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { GroupScheduleType } from '../../schedule-sheet/misc/schedule-sheet.types';
 import { ScheduleService } from './schedule.service';
 
 @Controller({ version: '1', path: 'schedules' })
@@ -35,5 +36,10 @@ export class ScheduleController {
   @Delete(':schedule_id')
   async deleteSchedule(@Param('schedule_id') scheduleId: string) {
     return await this.scheduleService.deleteSchedule(scheduleId);
+  }
+
+  @Delete('')
+  async deleteGroupSchedule(@Body() groupSchedule: GroupScheduleType) {
+    return await this.scheduleService.deleteGroupSchedule(groupSchedule);
   }
 }
