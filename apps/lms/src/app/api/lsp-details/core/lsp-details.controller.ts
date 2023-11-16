@@ -32,7 +32,7 @@ export class LspDetailsController {
 
   // find lsp
   @UseInterceptors(LspInterceptor)
-  @Get()
+  @Get('q')
   async findLspIndividual(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -85,6 +85,11 @@ export class LspDetailsController {
     return await this.lspDetailsService.addLspOrganizationExternal(data);
   }
 
+  @Get(':id')
+  async findLspById(@Param('id') id: string) {
+    return await this.lspDetailsService.findLspById(id);
+  }
+
   @Put('/individual/internal')
   async updateLspIndividualInternal(@Body() data: UpdateLspIndividualInternalDto) {
     return await this.lspDetailsService.updateLspIndividualInternal(data);
@@ -100,13 +105,8 @@ export class LspDetailsController {
     return await this.lspDetailsService.updateLspOrganizationExternal(data);
   }
 
-  @Get(':id')
-  async findLspById(@Param('id') id: string) {
-    return await this.lspDetailsService.getLspById(id);
-  }
-
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    return this.lspDetailsService.deleteLspById(id);
+    return this.lspDetailsService.removeLspById(id);
   }
 }

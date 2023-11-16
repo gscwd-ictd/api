@@ -11,30 +11,22 @@ export class LspProjectsService extends CrudHelper<LspProject> {
 
   // insert learning service provider project
   async create(data: CreateLspProjectDto, entityManager: EntityManager) {
-    // transaction result
-    const result = await this.crudService.transact<LspProject>(entityManager).create({
+    return await this.crudService.transact<LspProject>(entityManager).create({
       dto: data,
       onError: (error) => {
         throw error;
       },
     });
-
-    // return result
-    return result;
   }
 
-  // delete learning service provider project by lsp details id
-  async delete(lspDetailsId: string, entityManager: EntityManager) {
-    // transaction result
-    const result = await this.crudService.transact<LspProject>(entityManager).delete({
+  // remove learning service provider project by lsp details id
+  async remove(lspDetailsId: string, softDelete: boolean, entityManager: EntityManager) {
+    return await this.crudService.transact<LspProject>(entityManager).delete({
       deleteBy: { lspDetails: { id: lspDetailsId } },
-      softDelete: false,
+      softDelete: softDelete,
       onError: (error) => {
         throw error;
       },
     });
-
-    // return result
-    return result;
   }
 }

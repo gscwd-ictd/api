@@ -21,7 +21,7 @@ import { LspDetailsService } from '../../lsp-details';
 import { PortalEmployeesService } from '../../../services/portal';
 import { TrainingLspDetailsService } from '../components/training-lsp-details';
 import { RpcException } from '@nestjs/microservices';
-import { TrainingPreparationStatus } from '@gscwd-api/utils';
+import { LspDetailsRaw, TrainingPreparationStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -230,14 +230,14 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       const trainingLspDetails = await Promise.all(
         lspDetails.map(async (lspDetailsItem) => {
-          const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
-          return {
-            id: lspDetailsItem.lspDetails.id,
-            name: lsp.name,
-            email: lsp.email,
-            type: lsp.type,
-            lspSource: lsp.source,
-          };
+          // const lsp = (await this.lspDetailsService.findLspById(lspDetailsItem.lspDetails.id)) as LspDetailsRaw;
+          // return {
+          //   id: lspDetailsItem.lspDetails.id,
+          //   name: lsp.name,
+          //   email: lsp.email,
+          //   type: lsp.type,
+          //   source: lsp.source,
+          // };
         })
       );
 
@@ -335,14 +335,14 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       const trainingLspDetails = await Promise.all(
         lspDetails.map(async (lspDetailsItem) => {
-          const lsp = await this.lspDetailsService.findLspDetailsById(lspDetailsItem.lspDetails.id);
-          return {
-            id: lspDetailsItem.lspDetails.id,
-            name: lsp.name,
-            email: lsp.email,
-            type: lsp.type,
-            lspSource: lsp.source,
-          };
+          // const lsp = (await this.lspDetailsService.findLspById(lspDetailsItem.lspDetails.id)) as LspDetailsRaw;
+          // return {
+          //   id: lspDetailsItem.lspDetails.id,
+          //   name: lsp.name,
+          //   email: lsp.email,
+          //   type: lsp.type,
+          //   lspSource: lsp.source,
+          // };
         })
       );
 
