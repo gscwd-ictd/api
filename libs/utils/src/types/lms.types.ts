@@ -1,3 +1,15 @@
+export type LspDetailsRaw = {
+  id: string;
+  name: string;
+  sex: string;
+  contactNumber: string;
+  email: string;
+  tin: string;
+  postalAddress: string;
+  type: string;
+  source: string;
+};
+
 export type EmployeeFullNameRaw = {
   fullName: string;
 };
