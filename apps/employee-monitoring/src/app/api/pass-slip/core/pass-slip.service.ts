@@ -585,7 +585,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             ps.is_dispute_approved disputeApproved
           FROM pass_slip ps 
           INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
-        WHERE DATE_FORMAT(date_of_application,'%Y-%m-%d') = DATE_FORMAT(now(),'%Y-%m-%d') AND (psa.status = 'approved' OR psa.status = 'for supervisor approval' OR psa.status='for hrmo approval'); 
+        WHERE DATE_FORMAT(date_of_application,'%Y-%m-%d') = DATE_FORMAT(now(),'%Y-%m-%d') 
+        AND (psa.status = 'approved' OR psa.status = 'for supervisor approval' OR psa.status='for hrmo approval'); 
     `)) as PassSlipForLedger[];
 
     //2. check time in and time out
@@ -640,6 +641,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             nature_of_business natureOfBusiness,
             time_in timeIn,
             time_out timeOut,
+            ps.is_medical isMedical,
             encoded_time_in encodedTimeIn,
             encoded_time_out encodedTimeOut,
             ps.ob_transportation obTransportation,
@@ -658,6 +660,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
     `)) as PassSlipForLedger[];
     //2. check time in and time out
+    console.log('pass slip here', passSlips);
     const passSlipsToLedger = await Promise.all(
       passSlips.map(async (passSlip) => {
         const {
@@ -741,7 +744,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     );
     console.log('-------------- PASS SLIP CRON JOB DONE --------------------');
   }
-
   //notes: CREATE MODULE FOR employee sungkit from microservice,
   //create functions under utils;
 }

@@ -53,7 +53,11 @@ export class LeaveService {
   }
 
   async getLeaveLedger(employeeId: string, companyId: string) {
-    return (await this.leaveApplicationService.crud().getRepository().query(`CALL sp_generate_leave_ledger_view(?,?);`, [employeeId, companyId]))[0];
+    const ledger = (
+      await this.leaveApplicationService.crud().getRepository().query(`CALL sp_generate_leave_ledger_view(?,?);`, [employeeId, companyId])
+    )[0];
+    console.log(ledger);
+    return ledger;
   }
 
   async updateLeaveStatus(

@@ -18,11 +18,6 @@ export class OvertimeController {
     return await this.overtimeService.createOvertime(createOverTimeDto);
   }
 
-  @Get()
-  async getOvertimeApplications() {
-    return await this.overtimeService.getOvertimeApplications();
-  }
-
   @Get(':overtime_application_id/accomplishments/employees')
   async getOvertimeAccomplishmentsByOvertimeApplicationId(@Param('overtime_application_id') overtimeApplicationId: string) {
     console.log(overtimeApplicationId);
@@ -93,8 +88,18 @@ export class OvertimeController {
     return await this.overtimeService.updateAccomplishments(updateOvertimeAccomplishmentByEmployeeDto);
   }
 
+  @Patch('/immediate-supervisor/:overtime_application_id/cancel')
+  async immediateSupervisorCancelOvertimeApplication(@Param('overtime_application_id') overtimeApplicationId: string) {
+    return await this.overtimeService.immediateSupervisorCancelOvertimeApplication(overtimeApplicationId);
+  }
+
   @Delete('/immediate-supervisors/:overtime_immediate_supervisor_id')
   async deleteAccomplishments(@Param('overtime_immediate_supervisor_id') overtimeImmediateSupervisorId: string) {
     return await this.overtimeService.deleteImmediateSupervisor(overtimeImmediateSupervisorId);
+  }
+
+  @Get()
+  async getOvertimeApplications() {
+    return await this.overtimeService.getOvertimeApplications();
   }
 }
