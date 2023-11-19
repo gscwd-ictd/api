@@ -6,13 +6,13 @@ import { SendTrainingExternalDto, SendTrainingInternalDto } from '@gscwd-api/mod
 export class TrainingNoticesController {
   constructor(private readonly trainingDetailsService: TrainingDetailsService) {}
 
-  @Patch('internal')
-  async updateTrainingInternalById(@Body() data: SendTrainingInternalDto) {
-    return await this.trainingDetailsService.sendTrainingInternal(data);
-  }
+  // @Patch('internal')
+  // async updateTrainingInternalById(@Body() data: SendTrainingInternalDto) {
+  //   return await this.trainingDetailsService.sendTrainingInternal(data);
+  // }
 
-  @Patch('external')
-  async updateTrainingExternalById(@Body() data: SendTrainingExternalDto) {
-    return await this.trainingDetailsService.sendTrainingExternal(data);
-  }
+  // @Patch('external')
+  // async updateTrainingExternalById(@Body() data: SendTrainingExternalDto) {
+  //   return await this.trainingDetailsService.sendTrainingExternal(data);
+  // }
 }
