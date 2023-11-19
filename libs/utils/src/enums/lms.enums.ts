@@ -35,6 +35,7 @@ export enum TrainingNomineeStatus {
   STAND_IN = 'stand-in',
   DECLINED = 'declined',
   PENDING = 'pending',
+  ACCEPTED = 'accepted',
 }
 
 export enum NomineeType {

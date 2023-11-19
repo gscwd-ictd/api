@@ -2,13 +2,13 @@ import { Type } from 'class-transformer';
 import { IsArray, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { PartialType } from '@nestjs/swagger';
 import { SubjectMatterExperts } from '../subject-matter-experts';
-import { Affiliations, CreateLspAffiliationDto } from '../lsp-affiliations';
-import { Awards } from '../lsp-awards';
-import { Certifications } from '../lsp-certifications';
-import { Coaching } from '../lsp-coachings';
-import { Education } from '../lsp-educations';
-import { Projects } from '../lsp-projects';
-import { Trainings } from '../lsp-trainings';
+import { AffiliationDto } from '../lsp-affiliations';
+import { AwardDto } from '../lsp-awards';
+import { CertificationDto } from '../lsp-certifications';
+import { CoachingDto } from '../lsp-coachings';
+import { EducationDto } from '../lsp-educations';
+import { ProjectDto } from '../lsp-projects';
+import { TrainingDto } from '../lsp-trainings';
 
 // create lsp (type = individual , source = internal)
 export class CreateLspIndividualInternalDto {
@@ -30,23 +30,23 @@ export class CreateLspIndividualInternalDto {
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp affiliations must be an array' })
-  @Type(() => Affiliations)
-  affiliations: Array<CreateLspAffiliationDto>;
+  @Type(() => AffiliationDto)
+  affiliations: Array<AffiliationDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp coaching must be an array' })
-  @Type(() => Coaching)
-  coaching: Array<Coaching>;
+  @Type(() => CoachingDto)
+  coaching: Array<CoachingDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp projects must be an array' })
-  @Type(() => Projects)
-  projects: Array<Projects>;
+  @Type(() => ProjectDto)
+  projects: Array<ProjectDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp trainings must be an array' })
-  @Type(() => Trainings)
-  trainings: Array<Trainings>;
+  @Type(() => TrainingDto)
+  trainings: Array<TrainingDto>;
 }
 
 // create lsp (type = individual , source = external)
@@ -117,38 +117,38 @@ export class CreateLspIndividualExternalDto {
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp affiliations must be an array' })
-  @Type(() => Affiliations)
-  affiliations: Array<Affiliations>;
+  @Type(() => AffiliationDto)
+  affiliations: Array<AffiliationDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp awards must be an array' })
-  @Type(() => Awards)
-  awards: Array<Awards>;
+  @Type(() => AwardDto)
+  awards: Array<AwardDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp certifications must be an array' })
-  @Type(() => Certifications)
-  certifications: Array<Certifications>;
+  @Type(() => CertificationDto)
+  certifications: Array<CertificationDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp coaching must be an array' })
-  @Type(() => Coaching)
-  coaching: Array<Coaching>;
+  @Type(() => CoachingDto)
+  coaching: Array<CoachingDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp education must be an array' })
-  @Type(() => Education)
-  education: Array<Education>;
+  @Type(() => EducationDto)
+  education: Array<EducationDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp projects must be an array' })
-  @Type(() => Projects)
-  projects: Array<Projects>;
+  @Type(() => ProjectDto)
+  projects: Array<ProjectDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp trainings must be an array' })
-  @Type(() => Trainings)
-  trainings: Array<Trainings>;
+  @Type(() => TrainingDto)
+  trainings: Array<TrainingDto>;
 }
 
 // create lsp (type = organization, source = external)
@@ -190,28 +190,28 @@ export class CreateLspOrganizationExternalDto {
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp affiliations must be an array' })
-  @Type(() => Affiliations)
-  affiliations: Array<Affiliations>;
+  @Type(() => AffiliationDto)
+  affiliations: Array<AffiliationDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp awards must be an array' })
-  @Type(() => Awards)
-  awards: Array<Awards>;
+  @Type(() => AwardDto)
+  awards: Array<AwardDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp certifications must be an array' })
-  @Type(() => Certifications)
-  certifications: Array<Certifications>;
+  @Type(() => CertificationDto)
+  certifications: Array<CertificationDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp coaching must be an array' })
-  @Type(() => Coaching)
-  coaching: Array<Coaching>;
+  @Type(() => CoachingDto)
+  coaching: Array<CoachingDto>;
 
   @ValidateNested({ each: true })
   @IsArray({ message: 'lsp trainings must be an array' })
-  @Type(() => Trainings)
-  trainings: Array<Trainings>;
+  @Type(() => TrainingDto)
+  trainings: Array<TrainingDto>;
 }
 
 // update lsp (type = individual , source = internal)

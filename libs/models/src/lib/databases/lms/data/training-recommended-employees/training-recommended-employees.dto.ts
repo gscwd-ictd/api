@@ -1,10 +1,13 @@
-import { IsUUID } from 'class-validator';
+import { IsNotEmpty, IsUUID } from 'class-validator';
 import { TrainingDistribution } from '../training-distributions';
 
-export class CreateTrainingRecommendedEmployeeDto {
-  @IsUUID('4')
-  trainingDistribution: TrainingDistribution;
-
+export class TrainingRecommendedEmployeeDto {
+  @IsNotEmpty()
   @IsUUID('all')
   employeeId: string;
+}
+
+export class CreateTrainingRecommendedEmployeeDto extends TrainingRecommendedEmployeeDto {
+  @IsUUID('4')
+  trainingDistribution: TrainingDistribution;
 }
