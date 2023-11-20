@@ -1,14 +1,16 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingDistributionDto, TrainingDistribution } from '@gscwd-api/models';
-import { Injectable } from '@nestjs/common';
+import { CreateTrainingDistributionDto, TrainingDistribution, TrainingRecommendedEmployee } from '@gscwd-api/models';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../training-recommended-employees';
+import { PortalEmployeesService } from '../../../../../services/portal';
 
 @Injectable()
 export class TrainingDistributionsService extends CrudHelper<TrainingDistribution> {
   constructor(
     private readonly crudService: CrudService<TrainingDistribution>,
-    private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService
+    private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
+    private readonly portalEmployeesService: PortalEmployeesService
   ) {
     super(crudService);
   }
@@ -41,6 +43,34 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     );
 
     return trainingDistribution;
+  }
+
+  async findAllByTrainingId(trainingId: string) {
+    try {
+      const distribution = (await this.crudService.findAll({
+        find: { select: { id: true, supervisorId: true, numberOfSlots: true }, where: { trainingDetails: { id: trainingId } } },
+      })) as Array<TrainingDistribution>;
+
+      return await Promise.all(
+        distribution.map(async (distributionItem) => {
+          const supervisorName = await this.portalEmployeesService.findEmployeesDetailsById(distributionItem.supervisorId);
+
+          const recommend = await this.trainingRecommendedEmployeesService.findAllByDistributionId(distributionItem.id);
+
+          return {
+            supervisor: {
+              supervisorId: distributionItem.supervisorId,
+              supervisorName: supervisorName.fullName,
+            },
+            numberOfSlots: distributionItem.numberOfSlots,
+            employees: recommend,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.log(error);
+      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    }
   }
 
   async remove(trainingId: string, softDelete: boolean, entityManager: EntityManager) {

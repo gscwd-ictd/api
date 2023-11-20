@@ -38,12 +38,11 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     super(crudService);
   }
 
-  // create training internal
+  // create training (source = internal)
   async createTrainingInternal(data: CreateTrainingInternalDto) {
     const { courseContent, trainingRequirements, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
-        console.log(data);
         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
           dto: {
             courseContent: JSON.stringify(courseContent),
@@ -111,302 +110,219 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  // // create training external
-  // async addTrainingExternal(data: CreateTrainingExternalDto) {
-  //   const { courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
-  //   try {
-  //     const result = await this.datasource.transaction(async (entityManager) => {
-  //       const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
-  //         dto: {
-  //           courseContent: JSON.stringify(courseContent),
-  //           trainingRequirements: JSON.stringify(trainingRequirements),
-  //           bucketFiles: JSON.stringify(bucketFiles),
-  //           ...rest,
-  //         },
-  //         onError: (error) => {
-  //           throw error;
-  //         },
-  //       });
+  // create training (source = external)
+  async createTrainingExternal(data: CreateTrainingExternalDto) {
+    const { courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
+    try {
+      const result = await this.datasource.transaction(async (entityManager) => {
+        const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
+          dto: {
+            courseContent: JSON.stringify(courseContent),
+            trainingRequirements: JSON.stringify(trainingRequirements),
+            bucketFiles: JSON.stringify(bucketFiles),
+            ...rest,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
 
-  //       //insert training lsp details
-  //       await Promise.all(
-  //         trainingLspDetails.map(async (trainingLspDetailsItem) => {
-  //           return await this.trainingLspDetailsService.create(
-  //             {
-  //               trainingDetails,
-  //               ...trainingLspDetailsItem,
-  //             },
-  //             entityManager
-  //           );
-  //         })
-  //       );
+        //insert training lsp details
+        await Promise.all(
+          trainingLspDetails.map(async (trainingLspDetailsItem) => {
+            return await this.trainingLspDetailsService.create(
+              {
+                trainingDetails,
+                ...trainingLspDetailsItem,
+              },
+              entityManager
+            );
+          })
+        );
 
-  //       //insert training tags
-  //       await Promise.all(
-  //         trainingTags.map(async (trainingTagsItem) => {
-  //           return await this.trainingTagsService.create(
-  //             {
-  //               trainingDetails,
-  //               ...trainingTagsItem,
-  //             },
-  //             entityManager
-  //           );
-  //         })
-  //       );
+        //insert training tags
+        await Promise.all(
+          trainingTags.map(async (trainingTagsItem) => {
+            return await this.trainingTagsService.create(
+              {
+                trainingDetails,
+                ...trainingTagsItem,
+              },
+              entityManager
+            );
+          })
+        );
 
-  //       //insert training slot distributions
-  //       await Promise.all(
-  //         slotDistribution.map(async (slotDistributionsItem) => {
-  //           return await this.trainingDistributionsService.create(
-  //             {
-  //               trainingDetails,
-  //               ...slotDistributionsItem,
-  //             },
-  //             entityManager
-  //           );
-  //         })
-  //       );
+        //insert training slot distributions
+        await Promise.all(
+          slotDistribution.map(async (slotDistributionsItem) => {
+            return await this.trainingDistributionsService.create(
+              {
+                trainingDetails,
+                ...slotDistributionsItem,
+              },
+              entityManager
+            );
+          })
+        );
 
-  //       return data;
-  //     });
+        return data;
+      });
 
-  //     return result;
-  //   } catch (error) {
-  //     Logger.log(error);
-  //     if (error.code === '23505' && error instanceof QueryFailedError) {
-  //       // Duplicate key violation
-  //       throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
-  //     } else if (error.code === '23503') {
-  //       // Foreign key constraint violation
-  //       throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
-  //     } else {
-  //       // Handle other errors as needed
-  //       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-  //     }
-  //   }
-  // }
+      return result;
+    } catch (error) {
+      Logger.log(error);
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        // Duplicate key violation
+        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+      } else if (error.code === '23503') {
+        // Foreign key constraint violation
+        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else {
+        // Handle other errors as needed
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      }
+    }
+  }
 
-  // async findTrainingById(id: string) {
-  //   const trainingDetails = await this.crudService.findOne({
-  //     find: { relations: { trainingDesign: true }, select: { trainingDesign: { id: true } }, where: { id: id } },
-  //     onError: () => new NotFoundException(),
-  //   });
+  async findTrainingById(id: string) {
+    try {
+      const trainingDetails = await this.crudService.findOneBy({
+        findBy: { id },
+        onError: () => new NotFoundException(),
+      });
 
-  //   switch (true) {
-  //     case trainingDetails.trainingDesign !== null:
-  //       return await this.findTrainingInternalById(id);
-  //     case trainingDetails.trainingDesign === null:
-  //       return await this.findTrainingExternalById(id);
-  //     default:
-  //       return () => new NotFoundException();
-  //   }
-  // }
+      switch (true) {
+        case trainingDetails.courseTitle === null:
+          return await this.findTrainingInternalById(id);
+        case trainingDetails.courseTitle !== null:
+          return await this.findTrainingExternalById(id);
+        default:
+          return () => new NotFoundException();
+      }
+    } catch (error) {
+      Logger.log(error);
+      throw new NotFoundException();
+    }
+  }
 
-  // // get training details internal by id
-  // async findTrainingInternalById(id: string) {
-  //   try {
-  //     const trainingDetails = await this.crudService.findOne({
-  //       find: {
-  //         relations: { trainingDesign: true, trainingSource: true },
-  //         select: {
-  //           id: true,
-  //           trainingDesign: { id: true, courseTitle: true },
-  //           courseContent: true,
-  //           location: true,
-  //           trainingStart: true,
-  //           trainingEnd: true,
-  //           numberOfHours: true,
-  //           deadlineForSubmission: true,
-  //           numberOfParticipants: true,
-  //           trainingRequirements: true,
-  //           trainingSource: { id: true, name: true },
-  //           trainingType: true,
-  //           trainingPreparationStatus: true,
-  //         },
-  //         where: { id: id },
-  //       },
-  //       onError: () => new NotFoundException(),
-  //     });
+  // find training details by id (source = internal)
+  async findTrainingInternalById(id: string) {
+    try {
+      const trainingDetails = await this.crudService.findOne({
+        find: {
+          relations: { trainingDesign: true, trainingSource: true },
+          select: {
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+            id: true,
+            trainingDesign: { id: true, courseTitle: true },
+            courseContent: true,
+            location: true,
+            trainingStart: true,
+            trainingEnd: true,
+            numberOfHours: true,
+            deadlineForSubmission: true,
+            numberOfParticipants: true,
+            trainingRequirements: true,
+            bucketFiles: true,
+            trainingSource: { id: true, name: true },
+            trainingType: true,
+            trainingPreparationStatus: true,
+          },
+          where: { id },
+        },
+        onError: () => new NotFoundException(),
+      });
 
-  //     const lspDetails = (await this.trainingLspDetailsService.crud().findAll({
-  //       find: { relations: { lspDetails: true }, select: { lspDetails: { id: true } }, where: { trainingDetails: { id } } },
-  //     })) as Array<TrainingLspDetails>;
+      const trainingLspDetails = await this.trainingLspDetailsService.findAllByTrainingId(id);
+      const trainingTags = await this.trainingTagsService.findAllByTrainingId(id);
+      const slotDistribution = await this.trainingDistributionsService.findAllByTrainingId(id);
 
-  //     const trainingLspDetails = await Promise.all(
-  //       lspDetails.map(async (lspDetailsItem) => {
-  //         // const lsp = (await this.lspDetailsService.findLspById(lspDetailsItem.lspDetails.id)) as LspDetailsRaw;
-  //         // return {
-  //         //   id: lspDetailsItem.lspDetails.id,
-  //         //   name: lsp.name,
-  //         //   email: lsp.email,
-  //         //   type: lsp.type,
-  //         //   source: lsp.source,
-  //         // };
-  //       })
-  //     );
+      return {
+        createdAt: trainingDetails.createdAt,
+        updatedAt: trainingDetails.updatedAt,
+        deletedAt: trainingDetails.deletedAt,
+        id: trainingDetails.id,
+        trainingDesign: trainingDetails.trainingDesign,
+        courseTitle: trainingDetails.trainingDesign.courseTitle,
+        courseContent: JSON.parse(trainingDetails.courseContent),
+        location: trainingDetails.location,
+        trainingStart: trainingDetails.trainingStart,
+        trainingEnd: trainingDetails.trainingEnd,
+        numberOfHours: trainingDetails.numberOfHours,
+        deadlineForSubmission: trainingDetails.deadlineForSubmission,
+        numberOfParticipants: trainingDetails.numberOfParticipants,
+        trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
+        source: trainingDetails.trainingSource,
+        type: trainingDetails.trainingType,
+        preparationStatus: trainingDetails.trainingPreparationStatus,
+        trainingLspDetails: trainingLspDetails,
+        trainingTags: trainingTags,
+        slotDistribution: slotDistribution,
+      };
+    } catch (error) {
+      Logger.log(error);
+      throw new NotFoundException();
+    }
+  }
 
-  //     const tag = (await this.trainingTagsService.crud().findAll({
-  //       find: { relations: { tag: true }, select: { id: true, tag: { id: true, name: true } }, where: { trainingDetails: { id } } },
-  //     })) as TrainingTag[];
+  // find training details by id (source = external)
+  async findTrainingExternalById(id: string) {
+    try {
+      const trainingDetails = await this.crudService.findOne({
+        find: {
+          relations: { trainingSource: true },
+          select: {
+            id: true,
+            courseTitle: true,
+            courseContent: true,
+            location: true,
+            trainingStart: true,
+            trainingEnd: true,
+            numberOfHours: true,
+            deadlineForSubmission: true,
+            numberOfParticipants: true,
+            trainingRequirements: true,
+            bucketFiles: true,
+            trainingSource: { id: true, name: true },
+            trainingType: true,
+            trainingPreparationStatus: true,
+          },
+          where: { id: id },
+        },
+        onError: () => new NotFoundException(),
+      });
 
-  //     const trainingTags = await Promise.all(
-  //       tag.map(async (tagItem) => {
-  //         return {
-  //           id: tagItem.tag.id,
-  //           name: tagItem.tag.name,
-  //         };
-  //       })
-  //     );
+      const trainingLspDetails = await this.trainingLspDetailsService.findAllByTrainingId(id);
+      const trainingTags = await this.trainingTagsService.findAllByTrainingId(id);
+      const slotDistribution = await this.trainingDistributionsService.findAllByTrainingId(id);
 
-  //     const distribution = (await this.trainingDistributionsService.crud().findAll({
-  //       find: { select: { id: true, supervisorId: true, numberOfSlots: true }, where: { trainingDetails: { id } } },
-  //     })) as TrainingDistribution[];
-
-  //     const slotDistribution = await Promise.all(
-  //       distribution.map(async (distributionItem) => {
-  //         const employees = await this.trainingRecommendedEmployeesService
-  //           .crud()
-  //           .findAll({ find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionItem.id } } } });
-
-  //         // const employeeDetails = await this.portalEmployeesService.findEmployeesDetailsById(distributionItem.supervisorId);
-  //         // console.log(employeeDetails);
-
-  //         return {
-  //           supervisor: {
-  //             supervisorId: distributionItem.supervisorId,
-  //           },
-  //           numberOfSlots: distributionItem.numberOfSlots,
-  //           employees,
-  //         };
-  //       })
-  //     );
-
-  //     return {
-  //       id: trainingDetails.id,
-  //       trainingDesign: trainingDetails.trainingDesign.id,
-  //       courseTitle: trainingDetails.trainingDesign.courseTitle,
-  //       courseContent: JSON.parse(trainingDetails.courseContent),
-  //       location: trainingDetails.location,
-  //       trainingStart: trainingDetails.trainingStart,
-  //       trainingEnd: trainingDetails.trainingEnd,
-  //       numberOfHours: trainingDetails.numberOfHours,
-  //       deadlineForSubmission: trainingDetails.deadlineForSubmission,
-  //       numberOfParticipants: trainingDetails.numberOfParticipants,
-  //       trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
-  //       trainingSource: trainingDetails.trainingSource.name,
-  //       trainingType: trainingDetails.trainingType,
-  //       preparationStatus: trainingDetails.trainingPreparationStatus,
-  //       trainingLspDetails,
-  //       trainingTags,
-  //       slotDistribution,
-  //     };
-  //   } catch (error) {
-  //     Logger.log(error);
-  //     throw new NotFoundException();
-  //   }
-  // }
-
-  // // get training details external by id
-  // async findTrainingExternalById(id: string) {
-  //   try {
-  //     const trainingDetails = await this.crudService.findOne({
-  //       find: {
-  //         relations: { trainingSource: true },
-  //         select: {
-  //           id: true,
-  //           courseTitle: true,
-  //           courseContent: true,
-  //           location: true,
-  //           trainingStart: true,
-  //           trainingEnd: true,
-  //           numberOfHours: true,
-  //           deadlineForSubmission: true,
-  //           numberOfParticipants: true,
-  //           trainingRequirements: true,
-  //           bucketFiles: true,
-  //           trainingSource: { id: true, name: true },
-  //           trainingType: true,
-  //           trainingPreparationStatus: true,
-  //         },
-  //         where: { id: id },
-  //       },
-  //       onError: () => new NotFoundException(),
-  //     });
-
-  //     const lspDetails = (await this.trainingLspDetailsService.crud().findAll({
-  //       find: { relations: { lspDetails: true }, select: { lspDetails: { id: true } }, where: { trainingDetails: { id } } },
-  //     })) as Array<TrainingLspDetails>;
-
-  //     const trainingLspDetails = await Promise.all(
-  //       lspDetails.map(async (lspDetailsItem) => {
-  //         // const lsp = (await this.lspDetailsService.findLspById(lspDetailsItem.lspDetails.id)) as LspDetailsRaw;
-  //         // return {
-  //         //   id: lspDetailsItem.lspDetails.id,
-  //         //   name: lsp.name,
-  //         //   email: lsp.email,
-  //         //   type: lsp.type,
-  //         //   lspSource: lsp.source,
-  //         // };
-  //       })
-  //     );
-
-  //     const tag = (await this.trainingTagsService.crud().findAll({
-  //       find: { relations: { tag: true }, select: { id: true, tag: { id: true, name: true } }, where: { trainingDetails: { id } } },
-  //     })) as TrainingTag[];
-
-  //     const trainingTags = await Promise.all(
-  //       tag.map(async (tagItem) => {
-  //         return {
-  //           id: tagItem.tag.id,
-  //           name: tagItem.tag.name,
-  //         };
-  //       })
-  //     );
-
-  //     const distribution = (await this.trainingDistributionsService.crud().findAll({
-  //       find: { select: { id: true, supervisorId: true, numberOfSlots: true }, where: { trainingDetails: { id } } },
-  //     })) as TrainingDistribution[];
-
-  //     const slotDistribution = await Promise.all(
-  //       distribution.map(async (distributionItem) => {
-  //         const employees = await this.trainingRecommendedEmployeesService
-  //           .crud()
-  //           .findAll({ find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionItem.id } } } });
-
-  //         return {
-  //           supervisor: {
-  //             supervisorId: distributionItem.supervisorId,
-  //           },
-  //           numberOfSlots: distributionItem.numberOfSlots,
-  //           employees,
-  //         };
-  //       })
-  //     );
-
-  //     return {
-  //       id: trainingDetails.id,
-  //       courseTitle: trainingDetails.courseTitle,
-  //       courseContent: JSON.parse(trainingDetails.courseContent),
-  //       location: trainingDetails.location,
-  //       trainingStart: trainingDetails.trainingStart,
-  //       trainingEnd: trainingDetails.trainingEnd,
-  //       numberOfHours: trainingDetails.numberOfHours,
-  //       deadlineForSubmission: trainingDetails.deadlineForSubmission,
-  //       numberOfParticipants: trainingDetails.numberOfParticipants,
-  //       trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
-  //       bucketFiles: JSON.parse(trainingDetails.bucketFiles),
-  //       trainingSource: trainingDetails.trainingSource.name,
-  //       trainingType: trainingDetails.trainingType,
-  //       preparationStatus: trainingDetails.trainingPreparationStatus,
-  //       trainingLspDetails,
-  //       trainingTags,
-  //       slotDistribution,
-  //     };
-  //   } catch (error) {
-  //     Logger.log(error);
-  //     throw new NotFoundException();
-  //   }
-  // }
+      return {
+        id: trainingDetails.id,
+        courseTitle: trainingDetails.courseTitle,
+        courseContent: JSON.parse(trainingDetails.courseContent),
+        location: trainingDetails.location,
+        trainingStart: trainingDetails.trainingStart,
+        trainingEnd: trainingDetails.trainingEnd,
+        numberOfHours: trainingDetails.numberOfHours,
+        deadlineForSubmission: trainingDetails.deadlineForSubmission,
+        numberOfParticipants: trainingDetails.numberOfParticipants,
+        trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
+        bucketFiles: JSON.parse(trainingDetails.bucketFiles),
+        trainingSource: trainingDetails.trainingSource.name,
+        trainingType: trainingDetails.trainingType,
+        preparationStatus: trainingDetails.trainingPreparationStatus,
+        trainingLspDetails: trainingLspDetails,
+        trainingTags: trainingTags,
+        slotDistribution: slotDistribution,
+      };
+    } catch (error) {
+      Logger.log(error);
+      throw new NotFoundException();
+    }
+  }
 
   // // update traing internal by id
   // async updateTrainingInternalById(data: UpdateTrainingInternalDto) {

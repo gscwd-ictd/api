@@ -1,0 +1,36 @@
+import { TrainingDetails } from '@gscwd-api/models';
+import { CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { Observable, map } from 'rxjs';
+
+export class TrainingInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
+    return next.handle().pipe(
+      map(async (result: Pagination<TrainingDetails>) => {
+        const items = await Promise.all(
+          result.items.map(async (trainingItems) => {
+            return {
+              createdAt: trainingItems.createdAt,
+              updatedAt: trainingItems.updatedAt,
+              deletedAt: trainingItems.deletedAt,
+              id: trainingItems.id,
+              courseTitle: trainingItems.courseTitle || trainingItems.trainingDesign.courseTitle,
+              location: trainingItems.location,
+              trainingStart: trainingItems.trainingStart,
+              trainingEnd: trainingItems.trainingEnd,
+              bucketFiles: JSON.parse(trainingItems.bucketFiles),
+              source: trainingItems.trainingSource.name,
+              type: trainingItems.trainingType,
+              preparationStatus: trainingItems.trainingPreparationStatus,
+              status: trainingItems.status,
+            };
+          })
+        );
+        return {
+          ...result,
+          items,
+        };
+      })
+    );
+  }
+}
