@@ -48,8 +48,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           dto: {
             ...rest,
             expertise: JSON.stringify(expertise),
-            lspType: LspType.INDIVIDUAL,
-            lspSource: LspSource.INTERNAL,
+            type: LspType.INDIVIDUAL,
+            source: LspSource.INTERNAL,
           },
           onError: (error) => {
             throw error;
@@ -139,8 +139,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           dto: {
             ...rest,
             expertise: JSON.stringify(expertise),
-            lspType: LspType.INDIVIDUAL,
-            lspSource: LspSource.EXTERNAL,
+            type: LspType.INDIVIDUAL,
+            source: LspSource.EXTERNAL,
           },
           onError: (error) => {
             throw error;
@@ -267,8 +267,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
           dto: {
             ...rest,
             expertise: JSON.stringify(expertise),
-            lspType: LspType.ORGANIZATION,
-            lspSource: LspSource.EXTERNAL,
+            type: LspType.ORGANIZATION,
+            source: LspSource.EXTERNAL,
           },
           onError: (error) => {
             throw error;
@@ -368,11 +368,11 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       });
 
       switch (true) {
-        case lspDetails.lspType === LspType.INDIVIDUAL && lspDetails.lspSource === LspSource.INTERNAL:
+        case lspDetails.type === LspType.INDIVIDUAL && lspDetails.source === LspSource.INTERNAL:
           return await this.findLspIndividualInternal(id);
-        case lspDetails.lspType === LspType.INDIVIDUAL && lspDetails.lspSource === LspSource.EXTERNAL:
+        case lspDetails.type === LspType.INDIVIDUAL && lspDetails.source === LspSource.EXTERNAL:
           return await this.findLspIndividualExternal(id);
-        case lspDetails.lspType === LspType.ORGANIZATION && lspDetails.lspSource === LspSource.EXTERNAL:
+        case lspDetails.type === LspType.ORGANIZATION && lspDetails.source === LspSource.EXTERNAL:
           return await this.findLspOrganizationExternal(id);
         default:
           return () => new NotFoundException();
@@ -423,8 +423,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         experience: lspDetails.experience,
         introduction: lspDetails.introduction,
         photoUrl: employeeDetails.photoUrl,
-        type: lspDetails.lspType,
-        source: lspDetails.lspSource,
+        type: lspDetails.type,
+        source: lspDetails.source,
         expertise: JSON.parse(lspDetails.expertise),
         affiliations: affiliations,
         awards: employeeDetails.awards,
@@ -493,8 +493,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         experience: lspDetails.experience,
         introduction: lspDetails.introduction,
         photoUrl: lspDetails.photoUrl,
-        type: lspDetails.lspType,
-        source: lspDetails.lspSource,
+        type: lspDetails.type,
+        source: lspDetails.source,
         expertise: JSON.parse(lspDetails.expertise),
         affiliations: affiliations,
         awards: awards,
@@ -548,8 +548,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         experience: lspDetails.experience,
         introduction: lspDetails.introduction,
         photoUrl: lspDetails.photoUrl,
-        type: lspDetails.lspType,
-        source: lspDetails.lspSource,
+        type: lspDetails.type,
+        source: lspDetails.source,
         expertise: JSON.parse(lspDetails.expertise),
         affiliations: affiliations,
         awards: awards,

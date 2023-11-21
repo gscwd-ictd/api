@@ -13,7 +13,6 @@ export class HrmsEmployeeTagsController {
 
   @Get('employee/:id')
   async findTagsByEmployeeId(@Param('id') id: string) {
-    console.log(id);
     return await this.hrmsEmployeeTagsService.findTagsByEmployeeId(id);
   }
 
@@ -22,7 +21,7 @@ export class HrmsEmployeeTagsController {
     return await this.hrmsEmployeeTagsService.findEmployeesByTagId(id);
   }
 
-  @Get('tag')
+  @Post('tag')
   async findEmployeesByMultipleTagId(@Body() tags: Array<string>) {
     return await this.hrmsEmployeeTagsService.findEmployeesByMultipleTagId(tags);
   }
