@@ -1,5 +1,11 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsObject, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsObject, IsString, IsUUID, Length } from 'class-validator';
+
+export class TrainingDesignDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  id: string;
+}
 
 export class CreateTrainingDesignDto {
   @IsString({ message: 'training design course title must be a string' })
