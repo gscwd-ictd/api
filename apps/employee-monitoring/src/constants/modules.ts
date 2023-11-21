@@ -8,6 +8,7 @@ import { ModulesModule } from '../app/api/modules/core/modules.module';
 import { OvertimeModule } from '../app/api/overtime/core/overtime.module';
 import { PassSlipApprovalModule } from '../app/api/pass-slip/components/approval/core/pass-slip-approval.module';
 import { PassSlipModule } from '../app/api/pass-slip/core/pass-slip.module';
+import { ReportsModule } from '../app/api/reports/core/reports.module';
 import { StatsModule } from '../app/api/stats/core/stats.module';
 import { TravelOrderModule } from '../app/api/travel-order/core/travel-order.module';
 import { UserLogsModule } from '../app/api/user-logs/core/user-logs.module';
@@ -28,4 +29,5 @@ export const appModules = [
   UserRolesModule,
   StatsModule,
   UserLogsModule,
+  ReportsModule,
 ];
