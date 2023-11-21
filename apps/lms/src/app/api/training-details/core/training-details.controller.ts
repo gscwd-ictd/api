@@ -21,7 +21,7 @@ import {
   UpdateTrainingInternalDto,
 } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { FindTrainingDetailsInterceptor } from '../misc/interceptors';
+import { TrainingInterceptor } from '../misc/interceptors';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -29,15 +29,15 @@ export class TrainingDetailsController {
 
   @Post('internal')
   async createTrainingInternal(@Body() data: CreateTrainingInternalDto) {
-    return await this.trainingDetailsService.addTrainingInternal(data);
+    return await this.trainingDetailsService.createTrainingInternal(data);
   }
 
   @Post('external')
   async createTrainingExternal(@Body() data: CreateTrainingExternalDto) {
-    return await this.trainingDetailsService.addTrainingExternal(data);
+    return await this.trainingDetailsService.createTrainingExternal(data);
   }
 
-  @UseInterceptors(FindTrainingDetailsInterceptor)
+  @UseInterceptors(TrainingInterceptor)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
@@ -60,6 +60,7 @@ export class TrainingDetailsController {
           trainingSource: { name: true },
           trainingType: true,
           trainingPreparationStatus: true,
+          status: true,
         },
       },
       pagination: { page, limit },
@@ -72,24 +73,24 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.findTrainingById(id);
   }
 
-  @Put('internal')
-  async updateTrainingInternalById(@Body() data: UpdateTrainingInternalDto) {
-    return await this.trainingDetailsService.updateTrainingInternalById(data);
-  }
+  // @Put('internal')
+  // async updateTrainingInternalById(@Body() data: UpdateTrainingInternalDto) {
+  //   return await this.trainingDetailsService.updateTrainingInternalById(data);
+  // }
 
-  @Put('external')
-  async updateTrainingExternalById(@Body() data: UpdateTrainingExternalDto) {
-    return await this.trainingDetailsService.updateTrainingExternalById(data);
-  }
+  // @Put('external')
+  // async updateTrainingExternalById(@Body() data: UpdateTrainingExternalDto) {
+  //   return await this.trainingDetailsService.updateTrainingExternalById(data);
+  // }
 
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return await this.trainingDetailsService.removeTrainingById(id);
-  }
+  // @Delete(':id')
+  // async remove(@Param('id') id: string) {
+  //   return await this.trainingDetailsService.removeTrainingById(id);
+  // }
 
-  // microservices test
-  @Get('supervisor/:id')
-  async findTrainingRecommendedEmployeeBySupervisorId(@Param('id') id: string) {
-    return await this.trainingDetailsService.findTrainingRecommendedEmployeeBySupervisorId(id);
-  }
+  // // microservices test
+  // @Get('supervisor/:id')
+  // async findTrainingRecommendedEmployeeBySupervisorId(@Param('id') id: string) {
+  //   return await this.trainingDetailsService.findTrainingRecommendedEmployeeBySupervisorId(id);
+  // }
 }

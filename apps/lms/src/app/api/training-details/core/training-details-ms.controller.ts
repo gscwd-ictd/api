@@ -7,8 +7,8 @@ import { TrainingPatterns } from '@gscwd-api/microservices';
 export class TrainingDetailsMicroserviceController {
   constructor(private readonly trainingDetailsService: TrainingDetailsService) {}
 
-  @MessagePattern(TrainingPatterns.FIND_TRAINING_RECOMMENDED_EMPLOYEE_BY_SUPERVISOR_ID)
-  async findTrainingRecommendedEmployeeBySupervisorId(@Payload() supervisorId: string) {
-    return await this.trainingDetailsService.findTrainingRecommendedEmployeeBySupervisorId(supervisorId);
-  }
+  // @MessagePattern(TrainingPatterns.FIND_TRAINING_RECOMMENDED_EMPLOYEE_BY_SUPERVISOR_ID)
+  // async findTrainingRecommendedEmployeeBySupervisorId(@Payload() supervisorId: string) {
+  //   return await this.trainingDetailsService.findTrainingRecommendedEmployeeBySupervisorId(supervisorId);
+  // }
 }

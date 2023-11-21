@@ -9,6 +9,7 @@ import { TrainingDesignsModule } from './api/training-designs';
 import { TrainingDetailsModule } from './api/training-details';
 import { PortalEmployeesModule } from './services/portal';
 import { HrmsEmployeeTagsModule, HrmsEmployeesModule } from './services/hrms';
+import { TrainingNoticesModule } from './api/training-notices';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { HrmsEmployeeTagsModule, HrmsEmployeesModule } from './services/hrms';
     TrainingSourcesModule,
     TrainingDesignsModule,
     TrainingDetailsModule,
-
+    TrainingNoticesModule,
     //tags
     TagsModule,
 
