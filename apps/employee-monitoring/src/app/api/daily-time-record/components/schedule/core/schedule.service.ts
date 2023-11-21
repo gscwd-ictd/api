@@ -1,7 +1,8 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { Schedule, CreateScheduleDto, UpdateScheduleDto } from '@gscwd-api/models';
 import { ScheduleBase } from '@gscwd-api/utils';
-import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { NotFoundError } from 'rxjs';
 import { DataSource } from 'typeorm';
 import { GroupScheduleType } from '../../schedule-sheet/misc/schedule-sheet.types';
 
@@ -121,17 +122,21 @@ export class ScheduleService extends CrudHelper<Schedule> {
       [dateFrom, dateTo, scheduleId]
     )) as { employeeId: string }[];
 
+    if (employeeIds.length === 0) throw new HttpException('There are no employees in this schedule.', 404);
+
     const employeeIdsArray = (await Promise.all(
       employeeIds.map(async (employeeId) => {
         return employeeId.employeeId;
       })
     )) as string[];
     console.log(employeeIdsArray);
-    const deleteEmployeeCustomGroupResult = await this.rawQuery(
+    const deleteEmployeeCustomGroupResult = (await this.rawQuery(
       `DELETE FROM custom_group_members WHERE custom_group_id_fk = ? AND employee_id_fk IN (?);`,
       [customGroupId, employeeIdsArray]
-    );
+    )) as { affectedRows: number };
     console.log(deleteEmployeeCustomGroupResult);
-    console.log(groupSchedule);
+    console.log(deleteEmployeeCustomGroupResult.affectedRows);
+    if (deleteEmployeeCustomGroupResult.affectedRows > 0) return groupSchedule;
+    else throw new InternalServerErrorException();
   }
 }

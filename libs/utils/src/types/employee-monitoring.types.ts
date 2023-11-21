@@ -220,6 +220,7 @@ export enum OvertimeStatus {
   DISAPPROVED = 'disapproved',
   CANCELLED = 'cancelled',
   PENDING = 'pending',
+  FOR_APPROVAL = 'for approval',
 }
 
 export enum OvertimeSummaryHalf {
