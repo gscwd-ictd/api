@@ -1,5 +1,5 @@
 import { Body, Controller, Patch } from '@nestjs/common';
-import { TrainingDetailsService } from './training-details.service';
+import { TrainingDetailsService } from '../../training-details/core/training-details.service';
 import { SendTrainingExternalDto, SendTrainingInternalDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'training-notices' })
