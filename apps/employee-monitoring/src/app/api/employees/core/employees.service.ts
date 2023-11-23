@@ -127,4 +127,13 @@ export class EmployeesService {
       pattern: 'get_employees_by_org_id_alone',
     })) as { value: string; label: string }[];
   }
+
+  async getAllPermanentCasualEmployees() {
+    //get_all_permanent_casual_employees
+    return (await this.client.call<string, object, { value: string; label: string }[]>({
+      action: 'send',
+      payload: {},
+      pattern: 'get_all_permanent_casual_employees',
+    })) as { value: string; label: string }[];
+  }
 }

@@ -14,4 +14,7 @@ export class OvertimeEmployee extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'employee_id_fk', type: 'uuid' })
   employeeId: string;
+
+  @Column({ name: 'is_read', type: 'boolean', default: null })
+  isRead: boolean;
 }

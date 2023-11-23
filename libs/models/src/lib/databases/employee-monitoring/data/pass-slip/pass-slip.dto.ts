@@ -22,6 +22,10 @@ export class PassSlipDto {
   @IsNumberString()
   estimateHours?: number;
 
+  @IsOptional()
+  @IsBoolean()
+  isMedical?: boolean;
+
   @IsString()
   purposeDestination: string;
 
