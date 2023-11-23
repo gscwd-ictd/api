@@ -29,11 +29,11 @@ export class TrainingDetailsDto {
   @IsObject()
   @ValidateNested({ each: true })
   @Type(() => TrainingSourceDto)
-  trainingSource: TrainingSourceDto;
+  source: TrainingSourceDto;
 
   @IsNotEmpty()
   @IsEnum(TrainingType)
-  trainingType: TrainingType;
+  type: TrainingType;
 
   @IsOptional()
   @IsArray()

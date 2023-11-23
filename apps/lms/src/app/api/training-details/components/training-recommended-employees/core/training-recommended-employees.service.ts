@@ -1,15 +1,12 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingRecommendedEmployeeDto, TrainingRecommendedEmployee } from '@gscwd-api/models';
 import { Injectable } from '@nestjs/common';
-import { PortalEmployeesService } from '../../../../../services/portal/portal-employees';
+import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class TrainingRecommendedEmployeeService extends CrudHelper<TrainingRecommendedEmployee> {
-  constructor(
-    private readonly crudService: CrudService<TrainingRecommendedEmployee>,
-    private readonly portalEmployeesService: PortalEmployeesService
-  ) {
+  constructor(private readonly crudService: CrudService<TrainingRecommendedEmployee>, private readonly hrmsEmployeesService: HrmsEmployeesService) {
     super(crudService);
   }
 
@@ -30,10 +27,10 @@ export class TrainingRecommendedEmployeeService extends CrudHelper<TrainingRecom
 
     return await Promise.all(
       recommended.map(async (recommendedItem) => {
-        const employeeName = await this.portalEmployeesService.findEmployeesDetailsById(recommendedItem.employeeId);
+        const employeeName = await this.hrmsEmployeesService.findEmployeesById(recommendedItem.employeeId);
 
         return {
-          id: recommendedItem.employeeId,
+          employeeId: recommendedItem.employeeId,
           name: employeeName.fullName,
         };
       })

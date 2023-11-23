@@ -14,14 +14,14 @@ export class LspInterceptor implements NestInterceptor {
       map(async (result: Pagination<LspDetails>) => {
         const items = await Promise.all(
           result.items.map(async (lspItems) => {
-            if (lspItems.lspType === LspType.INDIVIDUAL) {
+            if (lspItems.type === LspType.INDIVIDUAL) {
               let name: string;
               let email: string;
               let postalAddress: string;
               let sex: string;
               let tin: string;
 
-              if (lspItems.lspSource === LspSource.EXTERNAL) {
+              if (lspItems.source === LspSource.EXTERNAL) {
                 name = lspItems.fullName;
                 sex = lspItems.sex;
                 email = lspItems.email;
@@ -46,10 +46,10 @@ export class LspInterceptor implements NestInterceptor {
                 email: email,
                 tin: tin,
                 postalAddress: postalAddress,
-                type: lspItems.lspType,
-                source: lspItems.lspSource,
+                type: lspItems.type,
+                source: lspItems.source,
               };
-            } else if (lspItems.lspType === LspType.ORGANIZATION) {
+            } else if (lspItems.type === LspType.ORGANIZATION) {
               return {
                 createdAt: lspItems.createdAt,
                 updatedAt: lspItems.updatedAt,
@@ -59,8 +59,8 @@ export class LspInterceptor implements NestInterceptor {
                 email: lspItems.email,
                 tin: lspItems.tin,
                 postalAddress: lspItems.postalAddress,
-                type: lspItems.lspType,
-                source: lspItems.lspSource,
+                type: lspItems.source,
+                source: lspItems.type,
               };
             }
           })

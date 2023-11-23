@@ -1,16 +1,16 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingDistributionDto, TrainingDistribution, TrainingRecommendedEmployee } from '@gscwd-api/models';
+import { CreateTrainingDistributionDto, TrainingDistribution } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../training-recommended-employees';
-import { PortalEmployeesService } from '../../../../../services/portal';
+import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
 
 @Injectable()
 export class TrainingDistributionsService extends CrudHelper<TrainingDistribution> {
   constructor(
     private readonly crudService: CrudService<TrainingDistribution>,
     private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
-    private readonly portalEmployeesService: PortalEmployeesService
+    private readonly hrmsEmployeesService: HrmsEmployeesService
   ) {
     super(crudService);
   }
@@ -53,14 +53,14 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
 
       return await Promise.all(
         distribution.map(async (distributionItem) => {
-          const supervisorName = await this.portalEmployeesService.findEmployeesDetailsById(distributionItem.supervisorId);
+          const supervisorName = await this.hrmsEmployeesService.findEmployeesById(distributionItem.supervisorId);
 
           const recommend = await this.trainingRecommendedEmployeesService.findAllByDistributionId(distributionItem.id);
 
           return {
             supervisor: {
               supervisorId: distributionItem.supervisorId,
-              supervisorName: supervisorName.fullName,
+              name: supervisorName.fullName,
             },
             numberOfSlots: distributionItem.numberOfSlots,
             employees: recommend,

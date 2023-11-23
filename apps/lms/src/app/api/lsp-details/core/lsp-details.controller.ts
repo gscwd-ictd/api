@@ -36,8 +36,8 @@ export class LspDetailsController {
   async findLspIndividual(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('type') lspType: LspType,
-    @Query('source') lspSource: LspSource
+    @Query('type') type: LspType,
+    @Query('source') source: LspSource
   ): Promise<Pagination<LspDetails> | LspDetails[]> {
     return await this.lspDetailsService.crud().findAll({
       find: {
@@ -56,11 +56,11 @@ export class LspDetailsController {
           organizationName: true,
           sex: true,
           email: true,
-          lspType: true,
-          lspSource: true,
+          type: true,
+          source: true,
           postalAddress: true,
         },
-        where: { lspType, lspSource },
+        where: { type, source },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
