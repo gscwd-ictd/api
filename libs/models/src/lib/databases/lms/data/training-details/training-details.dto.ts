@@ -15,7 +15,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
-import { TrainingDesign, TrainingDesignDto } from '../training-designs';
+import { TrainingDesignDto } from '../training-designs';
 import { TrainingSource, TrainingSourceDto } from '../training-sources';
 import { TrainingType } from '@gscwd-api/utils';
 import { CreateTrainingTagDto, TrainingTagDto } from '../training-tags';
@@ -126,21 +126,25 @@ export class SendTrainingInternalDto {
   @IsUUID('4')
   id: string;
 
-  @IsNotEmpty()
-  @IsUUID('4')
-  trainingSource: TrainingSource;
+  @IsNotEmptyObject()
+  @IsObject()
+  @ValidateNested({ each: true })
+  @Type(() => TrainingSourceDto)
+  source: TrainingSourceDto;
 
+  @IsNotEmpty()
   @IsEnum(TrainingType)
-  @IsNotEmpty()
-  trainingType: TrainingType;
+  type: TrainingType;
 
-  @IsNotEmpty()
-  @IsUUID('4')
-  trainingDesign: TrainingDesign;
+  @IsNotEmptyObject()
+  @IsObject()
+  @ValidateNested({ each: true })
+  @Type(() => TrainingDesignDto)
+  trainingDesign: TrainingDesignDto;
 
   @ArrayNotEmpty()
-  @ValidateNested({ each: true })
   @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => CourseContentDto)
   courseContent: Array<CourseContentDto>;
 
@@ -162,33 +166,32 @@ export class SendTrainingInternalDto {
   numberOfHours: number;
 
   @IsNotEmpty()
-  @IsDateString()
-  deadlineForSubmission: Date;
-
-  @IsNotEmpty()
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
 
   @ArrayNotEmpty()
-  @ValidateNested({ each: true })
   @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => TrainingRequirementsDto)
   trainingRequirements: Array<TrainingRequirementsDto>;
 
   @ArrayNotEmpty()
   @IsArray()
-  @Type(() => CreateTrainingLspDetailsDto)
-  trainingLspDetails: Array<CreateTrainingLspDetailsDto>;
+  @ValidateNested({ each: true })
+  @Type(() => TrainingLspDetailsDto)
+  trainingLspDetails: Array<TrainingLspDetailsDto>;
 
   @ArrayNotEmpty()
   @IsArray()
-  @Type(() => CreateTrainingTagDto)
-  trainingTags: Array<CreateTrainingTagDto>;
+  @ValidateNested({ each: true })
+  @Type(() => TrainingTagDto)
+  trainingTags: Array<TrainingTagDto>;
 
   @ArrayNotEmpty()
   @IsArray()
-  @Type(() => CreateTrainingDistributionDto)
-  slotDistribution: Array<CreateTrainingDistributionDto>;
+  @ValidateNested({ each: true })
+  @Type(() => TrainingDistributionDto)
+  slotDistribution: Array<TrainingDistributionDto>;
 }
 
 export class SendTrainingExternalDto {
@@ -196,17 +199,19 @@ export class SendTrainingExternalDto {
   @IsUUID('4')
   id: string;
 
-  @IsNotEmpty()
-  @IsUUID('4')
-  trainingSource: TrainingSource;
+  @IsNotEmptyObject()
+  @IsObject()
+  @ValidateNested({ each: true })
+  @Type(() => TrainingSourceDto)
+  source: TrainingSourceDto;
 
   @IsNotEmpty()
   @IsEnum(TrainingType)
-  trainingType: TrainingType;
+  type: TrainingType;
 
   @ArrayNotEmpty()
-  @ValidateNested({ each: true })
   @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => CourseContentDto)
   courseContent: Array<CourseContentDto>;
 
@@ -236,8 +241,8 @@ export class SendTrainingExternalDto {
   numberOfParticipants: number;
 
   @ArrayNotEmpty()
-  @ValidateNested({ each: true })
   @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => TrainingRequirementsDto)
   trainingRequirements: Array<TrainingRequirementsDto>;
 
@@ -246,21 +251,25 @@ export class SendTrainingExternalDto {
   @Length(1, 100, { message: 'training course title must be between 1 to 100 characters' })
   courseTitle: string;
 
+  @ArrayNotEmpty()
   @IsArray()
   bucketFiles: Array<string>;
 
   @ArrayNotEmpty()
   @IsArray()
-  @Type(() => CreateTrainingLspDetailsDto)
-  trainingLspDetails: Array<CreateTrainingLspDetailsDto>;
+  @ValidateNested({ each: true })
+  @Type(() => TrainingLspDetailsDto)
+  trainingLspDetails: Array<TrainingLspDetailsDto>;
 
   @ArrayNotEmpty()
   @IsArray()
-  @Type(() => CreateTrainingTagDto)
-  trainingTags: Array<CreateTrainingTagDto>;
+  @ValidateNested({ each: true })
+  @Type(() => TrainingTagDto)
+  trainingTags: Array<TrainingTagDto>;
 
   @ArrayNotEmpty()
   @IsArray()
-  @Type(() => CreateTrainingDistributionDto)
-  slotDistribution: Array<CreateTrainingDistributionDto>;
+  @ValidateNested({ each: true })
+  @Type(() => TrainingDistributionDto)
+  slotDistribution: Array<TrainingDistributionDto>;
 }
