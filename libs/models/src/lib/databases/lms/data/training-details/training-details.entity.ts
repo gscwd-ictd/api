@@ -9,12 +9,12 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_details_id' })
   id: string;
 
-  @ManyToOne(() => TrainingSource, (trainingSource) => trainingSource.id, { nullable: false })
+  @ManyToOne(() => TrainingSource, (source) => source.id, { nullable: false })
   @JoinColumn({ name: 'training_source_id_fk' })
-  trainingSource: TrainingSource;
+  source: TrainingSource;
 
   @Column({ name: 'training_type', type: 'enum', enum: TrainingType, nullable: false })
-  trainingType: TrainingType;
+  type: TrainingType;
 
   @ManyToOne(() => TrainingDesign, (trainingDesign) => trainingDesign.id, { nullable: true })
   @JoinColumn({ name: 'training_design_id_fk' })

@@ -60,10 +60,10 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   introduction: string;
 
   @Column({ name: 'lsp_type', type: 'enum', enum: LspType, nullable: false })
-  lspType: LspType;
+  type: LspType;
 
   @Column({ name: 'lsp_source', type: 'enum', enum: LspSource, nullable: false })
-  lspSource: LspSource;
+  source: LspSource;
 
   get fullName(): string {
     const fullName: string[] = [];

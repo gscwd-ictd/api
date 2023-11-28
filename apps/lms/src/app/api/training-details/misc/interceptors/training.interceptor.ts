@@ -19,8 +19,8 @@ export class TrainingInterceptor implements NestInterceptor {
               trainingStart: trainingItems.trainingStart,
               trainingEnd: trainingItems.trainingEnd,
               bucketFiles: JSON.parse(trainingItems.bucketFiles),
-              source: trainingItems.trainingSource.name,
-              type: trainingItems.trainingType,
+              source: trainingItems.source.name,
+              type: trainingItems.type,
               preparationStatus: trainingItems.trainingPreparationStatus,
               status: trainingItems.status,
             };

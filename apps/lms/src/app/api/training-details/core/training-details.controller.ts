@@ -45,7 +45,7 @@ export class TrainingDetailsController {
   ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
     return await this.trainingDetailsService.crud().findAll({
       find: {
-        relations: { trainingSource: true, trainingDesign: true },
+        relations: { source: true, trainingDesign: true },
         select: {
           createdAt: true,
           updatedAt: true,
@@ -57,8 +57,8 @@ export class TrainingDetailsController {
           trainingStart: true,
           trainingEnd: true,
           bucketFiles: true,
-          trainingSource: { name: true },
-          trainingType: true,
+          source: { name: true },
+          type: true,
           trainingPreparationStatus: true,
           status: true,
         },
@@ -73,10 +73,10 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.findTrainingById(id);
   }
 
-  // @Put('internal')
-  // async updateTrainingInternalById(@Body() data: UpdateTrainingInternalDto) {
-  //   return await this.trainingDetailsService.updateTrainingInternalById(data);
-  // }
+  @Put('internal')
+  async updateTrainingInternalById(@Body() data: UpdateTrainingInternalDto) {
+    return await this.trainingDetailsService.updateTrainingInternalById(data);
+  }
 
   // @Put('external')
   // async updateTrainingExternalById(@Body() data: UpdateTrainingExternalDto) {
