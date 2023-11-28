@@ -51,8 +51,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/employee-monitoring/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "apps/employee-monitoring/jest.config.ts"
       }
     }
   },

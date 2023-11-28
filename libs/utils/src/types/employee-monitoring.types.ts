@@ -92,6 +92,10 @@ export enum ScheduleBase {
   PUMPING_STATION = 'Pumping Station',
 }
 
+export enum Report {
+  REPORT_ON_ATTENDANCE = 'report on attendance',
+}
+
 export type VacationLeaveDetails = {
   inPhilippinesOrAbroad: string;
   location: string;
