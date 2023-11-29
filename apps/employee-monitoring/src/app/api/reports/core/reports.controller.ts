@@ -8,7 +8,6 @@ export class ReportsController {
 
   @Get('')
   async generateReport(@Query('report') report: Report, @Query('date_from') dateFrom: Date, @Query('date_to') dateTo: Date, @LoginUser() user: User) {
-    console.log(user);
     return await this.reportsService.generateReport(report, dateFrom, dateTo, user);
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, Next } from '@nestjs/common';
+import { ForbiddenException, Injectable, Next } from '@nestjs/common';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { Report, User } from '@gscwd-api/utils';
@@ -8,7 +8,7 @@ export class ReportsService {
   constructor(private readonly employeesService: EmployeesService, private readonly dtrService: DailyTimeRecordService) {}
 
   async generateReportOnAttendance(dateFrom: Date, dateTo: Date) {
-    const employees = await this.employeesService.getAllPermanentCasualEmployees();
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
 
     const employeeAttendance = await Promise.all(
       employees.map(async (employee) => {
@@ -23,7 +23,7 @@ export class ReportsService {
   }
 
   async generateReportOnPersonalPassSlip(dateFrom: Date, dateTo: Date) {
-    const employees = await this.employeesService.getAllPermanentCasualEmployees();
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
 
     const _employeePassSlips = [];
 
@@ -43,7 +43,7 @@ export class ReportsService {
   }
 
   async generateReportOnOfficialBusinessPassSlip(dateFrom: Date, dateTo: Date) {
-    const employees = await this.employeesService.getAllPermanentCasualEmployees();
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
 
     const _employeePassSlips = [];
 
@@ -63,6 +63,7 @@ export class ReportsService {
   }
 
   async generateReport(report: Report, dateFrom: Date, dateTo: Date, user: User) {
+    if (user === null) throw new ForbiddenException();
     let reportDetails: object;
     switch (report) {
       case decodeURI(Report.REPORT_ON_ATTENDANCE):
@@ -78,12 +79,19 @@ export class ReportsService {
         break;
     }
 
+    const employeeDetails = await this.employeesService.getEmployeeDetails(user.employeeId);
+
+    const supervisorId = await this.employeesService.getEmployeeSupervisorId(user.employeeId);
+    const supervisorDetails = await this.employeesService.getEmployeeDetails(supervisorId.toString());
+    const managerId = await this.employeesService.getEmployeeSupervisorId(supervisorId.toString());
+    const managerDetails = await this.employeesService.getEmployeeDetails(managerId.toString());
+
     return {
       report: reportDetails,
       signatory: {
-        preparedBy: { id: '', name: '', positionTitle: '' },
-        reviewedBy: { id: '', name: '', positionTitle: '' },
-        approvedBy: { id: '', name: '', positionTitle: '' },
+        preparedBy: { name: employeeDetails.employeeFullName, positionTitle: employeeDetails.assignment.positionTitle },
+        reviewedBy: { name: supervisorDetails.employeeFullName, positionTitle: supervisorDetails.assignment.positionTitle },
+        approvedBy: { name: managerDetails.employeeFullName, positionTitle: managerDetails.assignment.positionTitle },
       },
     };
   }
