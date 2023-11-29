@@ -3,13 +3,8 @@ import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from
 import {
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
-  SendTrainingExternalDto,
-  SendTrainingInternalDto,
   TrainingDetails,
   TrainingDistribution,
-  TrainingLspDetails,
-  TrainingRecommendedEmployee,
-  TrainingTag,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
 } from '@gscwd-api/models';
@@ -17,11 +12,9 @@ import { DataSource, EntityManager, EntityNotFoundError, QueryFailedError } from
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
 import { TrainingRecommendedEmployeeService } from '../components/training-recommended-employees';
-import { LspDetailsService } from '../../lsp-details';
-import { PortalEmployeesService } from '../../../services/portal';
 import { TrainingLspDetailsService } from '../components/training-lsp-details';
 import { RpcException } from '@nestjs/microservices';
-import { LspDetailsRaw, TrainingPreparationStatus } from '@gscwd-api/utils';
+import { TrainingPreparationStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -31,8 +24,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly trainingTagsService: TrainingTagsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
-    private readonly lspDetailsService: LspDetailsService,
-    private readonly portalEmployeesService: PortalEmployeesService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -536,79 +527,4 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       throw new Error(error);
     }
   }
-
-  // // microservices
-
-  // // find recommended employees by supervisor id (microservices)
-  // async findTrainingRecommendedEmployeeBySupervisorId(supervisorId: string) {
-  //   try {
-  //     const distribution = (await this.trainingDistributionsService.crud().findAll({
-  //       find: {
-  //         relations: { trainingDetails: true },
-  //         select: {
-  //           id: true,
-  //           supervisorId: true,
-  //           numberOfSlots: true,
-  //           trainingDetails: {
-  //             id: true,
-  //             trainingPreparationStatus: true,
-  //           },
-  //         },
-  //         where: { supervisorId, trainingDetails: { trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION } },
-  //       },
-  //     })) as Array<TrainingDistribution>;
-
-  //     const trainingDetails = await Promise.all(
-  //       distribution.map(async (distributionItem) => {
-  //         const { id, trainingDetails } = distributionItem;
-  //         const training = await this.crudService.findOne({
-  //           find: {
-  //             relations: { trainingDesign: true },
-  //             select: {
-  //               id: true,
-  //               courseTitle: true,
-  //               trainingDesign: { id: true, courseTitle: true },
-  //               location: true,
-  //               trainingStart: true,
-  //               trainingEnd: true,
-  //               trainingPreparationStatus: true,
-  //             },
-  //             where: { id: trainingDetails.id },
-  //           },
-  //         });
-
-  //         const employees = (await this.trainingRecommendedEmployeesService.crud().findAll({
-  //           find: {
-  //             select: { employeeId: true },
-  //             where: { trainingDistribution: { id: distributionItem.id } },
-  //           },
-  //         })) as Array<TrainingRecommendedEmployee>;
-
-  //         const recommended = await Promise.all(
-  //           employees.map(async (items) => {
-  //             const name = await this.portalEmployeesService.findEmployeesDetailsById(items.employeeId);
-  //             return {
-  //               employeeId: items.employeeId,
-  //               name: name.fullName,
-  //             };
-  //           })
-  //         );
-  //         return {
-  //           id: id,
-  //           courseTitle: training.courseTitle || training.trainingDesign.courseTitle,
-  //           location: training.location,
-  //           trainingStart: training.trainingStart,
-  //           trainingEnd: training.trainingEnd,
-  //           preparationStatus: training.trainingPreparationStatus,
-  //           numberOfSlots: distributionItem.numberOfSlots,
-  //           recommended,
-  //         };
-  //       })
-  //     );
-  //     return trainingDetails;
-  //   } catch (error) {
-  //     Logger.log(error);
-  //     throw new RpcException(error);
-  //   }
-  // }
 }

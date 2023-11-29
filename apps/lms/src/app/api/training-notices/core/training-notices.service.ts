@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { DataSource, EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { TrainingDetailsService } from '../../training-details';
-import { SendTrainingExternalDto, SendTrainingInternalDto, TrainingDetails } from '@gscwd-api/models';
+import { TrainingDetails, TrainingNoticeExternalDto, TrainingNoticeInternalDto } from '@gscwd-api/models';
 import { TrainingPreparationStatus } from '@gscwd-api/utils';
 import { TrainingLspDetailsService } from '../../training-details/components/training-lsp-details';
 import { TrainingTagsService } from '../../training-details/components/training-tags';
@@ -18,7 +18,7 @@ export class TrainingNoticesService {
   ) {}
 
   // send internal training notice to all distributed supervisor
-  async sendTrainingInternal(data: SendTrainingInternalDto) {
+  async sendTrainingInternal(data: TrainingNoticeInternalDto) {
     const { id, courseContent, trainingRequirements, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
@@ -112,7 +112,7 @@ export class TrainingNoticesService {
   }
 
   // send external training notice to all distributed supervisor
-  async sendTrainingExternal(data: SendTrainingExternalDto) {
+  async sendTrainingExternal(data: TrainingNoticeExternalDto) {
     const { id, courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
