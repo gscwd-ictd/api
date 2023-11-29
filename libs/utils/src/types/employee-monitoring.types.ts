@@ -249,3 +249,8 @@ export type OvertimeHrsRendered = {
   computedEncodedHours: number;
   computedIvmsHours: number;
 };
+
+export type User = {
+  employeeId: string;
+  name: string;
+};
