@@ -136,4 +136,25 @@ export class EmployeesService {
       pattern: 'get_all_permanent_casual_employees',
     })) as { value: string; label: string }[];
   }
+
+  async getAllPermanentCasualEmployees2() {
+    //get_all_permanent_casual_employees
+    return (await this.client.call<string, object, { value: string; label: string }[]>({
+      action: 'send',
+      payload: {},
+      pattern: 'get_all_permanent_casual_employees2',
+    })) as { value: string; label: string }[];
+  }
+
+  async getCompanyId(employeeId: string) {
+    //get_company_id_by_employee_id
+    return (
+      (await this.client.call<string, string, { companyId: string }>({
+        action: 'send',
+        payload: employeeId,
+        pattern: 'get_company_id_by_employee_id',
+        onError: (error) => new NotFoundException(error),
+      })) as { companyId: string }
+    ).companyId;
+  }
 }

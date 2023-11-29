@@ -92,6 +92,12 @@ export enum ScheduleBase {
   PUMPING_STATION = 'Pumping Station',
 }
 
+export enum Report {
+  REPORT_ON_ATTENDANCE = 'report on attendance',
+  REPORT_ON_PERSONAL_BUSINESS = 'report on personal business pass slip',
+  REPORT_ON_OFFICIAL_BUSINESS = 'report on official business pass slip',
+}
+
 export type VacationLeaveDetails = {
   inPhilippinesOrAbroad: string;
   location: string;
@@ -242,4 +248,9 @@ export type OvertimeHrsRendered = {
   estimatedHours: number;
   computedEncodedHours: number;
   computedIvmsHours: number;
+};
+
+export type User = {
+  employeeId: string;
+  name: string;
 };
