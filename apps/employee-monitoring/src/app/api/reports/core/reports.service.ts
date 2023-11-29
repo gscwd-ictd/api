@@ -1,7 +1,7 @@
 import { Injectable, Next } from '@nestjs/common';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
-import { Report } from '@gscwd-api/utils';
+import { Report, User } from '@gscwd-api/utils';
 
 @Injectable()
 export class ReportsService {
@@ -62,14 +62,29 @@ export class ReportsService {
     return _employeePassSlips;
   }
 
-  async generateReport(report: Report, dateFrom: Date, dateTo: Date, employeeId: string) {
+  async generateReport(report: Report, dateFrom: Date, dateTo: Date, user: User) {
+    let reportDetails: object;
     switch (report) {
       case decodeURI(Report.REPORT_ON_ATTENDANCE):
-        return await this.generateReportOnAttendance(dateFrom, dateTo);
+        reportDetails = await this.generateReportOnAttendance(dateFrom, dateTo);
+        break;
       case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS):
-        return await this.generateReportOnPersonalPassSlip(dateFrom, dateTo);
+        reportDetails = await this.generateReportOnPersonalPassSlip(dateFrom, dateTo);
+        break;
       case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS):
-        return await this.generateReportOnOfficialBusinessPassSlip(dateFrom, dateTo);
+        reportDetails = await this.generateReportOnOfficialBusinessPassSlip(dateFrom, dateTo);
+        break;
+      default:
+        break;
     }
+
+    return {
+      report: reportDetails,
+      signatory: {
+        preparedBy: { id: '', name: '', positionTitle: '' },
+        reviewedBy: { id: '', name: '', positionTitle: '' },
+        approvedBy: { id: '', name: '', positionTitle: '' },
+      },
+    };
   }
 }
