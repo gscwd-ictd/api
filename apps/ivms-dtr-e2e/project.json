@@ -7,8 +7,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
       "options": {
-        "jestConfig": "apps/ivms-dtr-e2e/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "apps/ivms-dtr-e2e/jest.config.ts"
       }
     },
     "lint": {
