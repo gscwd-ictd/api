@@ -1,7 +1,6 @@
 import { Body, Controller, Get, InternalServerErrorException, Param, Post } from '@nestjs/common';
 import { TrainingNomineesService } from './training-nominees.service';
-import { CreateTrainingNomineeDto, TrainingNominee } from '@gscwd-api/models';
-import { Pagination } from 'nestjs-typeorm-paginate';
+import { CreateTrainingNomineeDto } from '@gscwd-api/models';
 import { NomineeType, TrainingPreparationStatus } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'training-nominees' })
@@ -14,7 +13,7 @@ export class TrainingNomineesController {
   }
 
   @Get(':id')
-  async findAll(@Param('id') trainingId: string): Promise<Pagination<TrainingNominee> | TrainingNominee[]> {
+  async findAll(@Param('id') trainingId: string) {
     return await this.trainingNomineesService.crud().findAll({
       find: {
         select: {

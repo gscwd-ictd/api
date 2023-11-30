@@ -3,6 +3,12 @@ import { TrainingDistribution } from '../training-distributions';
 import { PartialType } from '@nestjs/swagger';
 import { NomineeType, TrainingNomineeStatus } from '@gscwd-api/utils';
 
+export class TrainingNomineeDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  id: string;
+}
+
 export class CreateTrainingNomineeDto {
   @IsUUID('4')
   trainingDistribution: TrainingDistribution;

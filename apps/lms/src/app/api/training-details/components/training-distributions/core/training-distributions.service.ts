@@ -5,7 +5,6 @@ import { EntityManager } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../training-recommended-employees';
 import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
 import { TrainingPreparationStatus } from '@gscwd-api/utils';
-import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class TrainingDistributionsService extends CrudHelper<TrainingDistribution> {
@@ -103,7 +102,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
   //microservices
 
   // find training by supervisor id (microservices)
-  async findTrainingSupervisorId(supervisorId: string) {
+  async findTrainingDistributionSupervisorId(supervisorId: string) {
     try {
       const trainingDetails = (await this.crudService.findAll({
         find: {
@@ -135,7 +134,6 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
 
       return await Promise.all(
         trainingDetails.map(async (distributionItem) => {
-          const slotDistribution = await this.trainingRecommendedEmployeesService.findAllByDistributionId(distributionItem.id);
           return {
             distributionId: distributionItem.id,
             numberOfSlots: distributionItem.numberOfSlots,
@@ -148,13 +146,12 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
             type: distributionItem.trainingDetails.type,
             trainingPreparationStatus: distributionItem.trainingDetails.trainingPreparationStatus,
             status: distributionItem.trainingDetails.status,
-            recommendedEmployee: slotDistribution,
           };
         })
       );
     } catch (error) {
       Logger.log(error);
-      throw new RpcException(error);
+      throw error;
     }
   }
 }

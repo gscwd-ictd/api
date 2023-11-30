@@ -1,5 +1,4 @@
 import {
-  ArrayNotEmpty,
   IsArray,
   IsDateString,
   IsEnum,
@@ -16,15 +15,21 @@ import {
 import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { TrainingDesignDto } from '../training-designs';
-import { TrainingSource, TrainingSourceDto } from '../training-sources';
+import { TrainingSourceDto } from '../training-sources';
 import { TrainingType } from '@gscwd-api/utils';
-import { CreateTrainingTagDto, TrainingTagDto } from '../training-tags';
-import { CreateTrainingDistributionDto, TrainingDistributionDto } from '../training-distributions';
+import { TrainingTagDto } from '../training-tags';
+import { TrainingDistributionDto } from '../training-distributions';
 import { TrainingRequirementsDto } from '../training-requirements';
-import { CreateTrainingLspDetailsDto, TrainingLspDetailsDto } from '../training-lsp-details';
+import { TrainingLspDetailsDto } from '../training-lsp-details';
 import { PartialType } from '@nestjs/swagger';
 
 export class TrainingDetailsDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  id: string;
+}
+
+export class CreateTrainingDetailsDto {
   @IsNotEmptyObject()
   @IsObject()
   @ValidateNested({ each: true })
@@ -87,7 +92,7 @@ export class TrainingDetailsDto {
   slotDistribution: Array<TrainingDistributionDto>;
 }
 
-export class CreateTrainingInternalDto extends TrainingDetailsDto {
+export class CreateTrainingInternalDto extends CreateTrainingDetailsDto {
   @IsNotEmptyObject()
   @IsObject()
   @ValidateNested({ each: true })
@@ -95,7 +100,7 @@ export class CreateTrainingInternalDto extends TrainingDetailsDto {
   trainingDesign: TrainingDesignDto;
 }
 
-export class CreateTrainingExternalDto extends TrainingDetailsDto {
+export class CreateTrainingExternalDto extends CreateTrainingDetailsDto {
   @IsNotEmpty()
   @IsString({ message: 'training course title must be a string' })
   @Length(1, 100, { message: 'training course title must be between 1 to 100 characters' })

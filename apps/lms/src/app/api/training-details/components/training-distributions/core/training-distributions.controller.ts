@@ -7,7 +7,7 @@ export class TrainingDistributionsController {
 
   // microservices test
   @Get('supervisor/:id')
-  async findTrainingSupervisorId(@Param('id') id: string) {
-    return await this.trainingDistributionsService.findTrainingSupervisorId(id);
+  async findTrainingDistributionSupervisorId(@Param('id') id: string) {
+    return await this.trainingDistributionsService.findTrainingDistributionSupervisorId(id);
   }
 }
