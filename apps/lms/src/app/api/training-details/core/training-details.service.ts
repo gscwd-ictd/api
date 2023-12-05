@@ -4,16 +4,13 @@ import {
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
   TrainingDetails,
-  TrainingDistribution,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
 } from '@gscwd-api/models';
 import { DataSource, EntityManager, EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
-import { TrainingRecommendedEmployeeService } from '../components/training-recommended-employees';
 import { TrainingLspDetailsService } from '../components/training-lsp-details';
-import { RpcException } from '@nestjs/microservices';
 import { TrainingPreparationStatus } from '@gscwd-api/utils';
 
 @Injectable()
@@ -23,7 +20,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly trainingLspDetailsService: TrainingLspDetailsService,
     private readonly trainingTagsService: TrainingTagsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
-    private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
     private readonly datasource: DataSource
   ) {
     super(crudService);

@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingDistributionDto, TrainingDistribution } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { EntityManager, MoreThan } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../training-recommended-employees';
 import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
 import { TrainingPreparationStatus } from '@gscwd-api/utils';
@@ -50,7 +50,10 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
   async findAllByTrainingId(trainingId: string) {
     try {
       const distribution = (await this.crudService.findAll({
-        find: { select: { id: true, supervisorId: true, numberOfSlots: true }, where: { trainingDetails: { id: trainingId } } },
+        find: {
+          select: { id: true, supervisorId: true, numberOfSlots: true },
+          where: { trainingDetails: { id: trainingId }, numberOfSlots: MoreThan(0) },
+        },
       })) as Array<TrainingDistribution>;
 
       return await Promise.all(

@@ -1,7 +1,6 @@
-import { Body, Controller, Get, InternalServerErrorException, Param, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Logger, Param, Patch, Post } from '@nestjs/common';
 import { TrainingNomineesService } from './training-nominees.service';
-import { CreateTrainingNomineeDto } from '@gscwd-api/models';
-import { NomineeType, TrainingPreparationStatus } from '@gscwd-api/utils';
+import { CreateTrainingNomineeDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'training-nominees' })
 export class TrainingNomineesController {
@@ -14,27 +13,24 @@ export class TrainingNomineesController {
 
   @Get(':id')
   async findAll(@Param('id') trainingId: string) {
-    return await this.trainingNomineesService.crud().findAll({
-      find: {
-        select: {
-          id: true,
-          trainingDistribution: {
-            id: true,
-            supervisorId: true,
-          },
-          employeeId: true,
-          status: true,
-          nomineeType: true,
-          remarks: true,
-        },
-        where: [
-          {
-            nomineeType: NomineeType.NOMINEE,
-            trainingDistribution: { trainingDetails: { id: trainingId, trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION } },
-          },
-        ],
+    return await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId);
+  }
+
+  @Get('employee/:id')
+  async findAllTrainingByEmployeeId(@Param('id') employeeId: string) {
+    return await this.trainingNomineesService.findAllTrainingByEmployeeId(employeeId);
+  }
+
+  @Patch()
+  async updateTrainingNomineeStatus(@Body() data: UpdateTrainingNomineeStatusDto) {
+    const { id, ...rest } = data;
+    return await this.trainingNomineesService.crud().update({
+      updateBy: { id },
+      dto: rest,
+      onError: (error) => {
+        Logger.log(error);
+        throw new BadRequestException();
       },
-      onError: () => new InternalServerErrorException(),
     });
   }
 }

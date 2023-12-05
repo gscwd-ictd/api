@@ -11,10 +11,23 @@ export class TrainingNomineesMicroserviceController {
   // add training nominee by training distribution id
   @MessagePattern(TrainingPatterns.ADD_NOMINEES_BY_TRAINING_DISTRIBUTION_ID)
   async create(@Payload() data: CreateTrainingNomineeDto) {
-    return await this.trainingNomineesService.create(data);
+    try {
+      return await this.trainingNomineesService.create(data);
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 
-  // nominated employees update nominee status
+  @MessagePattern(TrainingPatterns.FIND_ALL_TRAINING_BY_EMPLOYEE_ID)
+  async findAllTrainingByEmployeeId(@Payload() employeeId: string) {
+    try {
+      return await this.trainingNomineesService.findAllTrainingByEmployeeId(employeeId);
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  // nominated employee update nominee status by nominee id
   @MessagePattern(TrainingPatterns.UPDATE_TRAINING_NOMINEES_STATUS_BY_ID)
   async updateTrainingNomineeStatus(data: UpdateTrainingNomineeStatusDto) {
     const { id, ...rest } = data;

@@ -20,7 +20,7 @@ import { CourseContentDto } from '../course-contents';
 import { TrainingRequirementsDto } from '../training-requirements';
 import { TrainingLspDetailsDto } from '../training-lsp-details';
 import { TrainingTagDto } from '../training-tags';
-import { TrainingDistributionDto } from '../training-distributions';
+import { SlotDistributionDto } from '../training-distributions';
 
 export class TrainingNoticeInternalDto {
   @IsNotEmpty()
@@ -91,8 +91,8 @@ export class TrainingNoticeInternalDto {
   @ArrayNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => TrainingDistributionDto)
-  slotDistribution: Array<TrainingDistributionDto>;
+  @Type(() => SlotDistributionDto)
+  slotDistribution: Array<SlotDistributionDto>;
 }
 
 export class TrainingNoticeExternalDto {
@@ -171,6 +171,6 @@ export class TrainingNoticeExternalDto {
   @ArrayNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => TrainingDistributionDto)
-  slotDistribution: Array<TrainingDistributionDto>;
+  @Type(() => SlotDistributionDto)
+  slotDistribution: Array<SlotDistributionDto>;
 }

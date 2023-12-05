@@ -18,7 +18,7 @@ import { TrainingDesignDto } from '../training-designs';
 import { TrainingSourceDto } from '../training-sources';
 import { TrainingType } from '@gscwd-api/utils';
 import { TrainingTagDto } from '../training-tags';
-import { TrainingDistributionDto } from '../training-distributions';
+import { SlotDistributionDto } from '../training-distributions';
 import { TrainingRequirementsDto } from '../training-requirements';
 import { TrainingLspDetailsDto } from '../training-lsp-details';
 import { PartialType } from '@nestjs/swagger';
@@ -88,8 +88,8 @@ export class CreateTrainingDetailsDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => TrainingDistributionDto)
-  slotDistribution: Array<TrainingDistributionDto>;
+  @Type(() => SlotDistributionDto)
+  slotDistribution: Array<SlotDistributionDto>;
 }
 
 export class CreateTrainingInternalDto extends CreateTrainingDetailsDto {
