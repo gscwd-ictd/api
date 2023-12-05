@@ -88,7 +88,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     );
   }
 
-  // find all training nominee by training id
+  // find all training nominee by training id (nominee type = nominee)
   async findAllNomineeByTrainingId(trainingId: string) {
     const distribution = (await this.crudService.findAll({
       find: {
@@ -125,6 +125,42 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             supervisorId: distributionItems.trainingDistribution.supervisorId,
             name: supervisorName.fullName,
           },
+        };
+      })
+    );
+  }
+
+  // find all training nominee by distribution id (nominee type = nominee or stand-in)
+  async findAllNomineesByDistributionId(distributionId: string, type: NomineeType) {
+    const distribution = (await this.crudService.findAll({
+      find: {
+        relations: { trainingDistribution: true },
+        select: {
+          id: true,
+          trainingDistribution: {
+            id: true,
+            supervisorId: true,
+          },
+          employeeId: true,
+          status: true,
+          nomineeType: true,
+          remarks: true,
+        },
+        where: {
+          nomineeType: type,
+          trainingDistribution: { id: distributionId, trainingDetails: { trainingPreparationStatus: Not(TrainingPreparationStatus.PENDING) } },
+        },
+      },
+      onError: () => new NotFoundException(),
+    })) as Array<TrainingNominee>;
+
+    return await Promise.all(
+      distribution.map(async (distributionItems) => {
+        const employeeName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.employeeId);
+
+        return {
+          employeeId: distributionItems.employeeId,
+          name: employeeName.fullName,
         };
       })
     );

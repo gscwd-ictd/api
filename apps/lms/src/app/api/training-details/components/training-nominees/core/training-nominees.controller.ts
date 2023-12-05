@@ -6,21 +6,24 @@ import { CreateTrainingNomineeDto, UpdateTrainingNomineeStatusDto } from '@gscwd
 export class TrainingNomineesController {
   constructor(private readonly trainingNomineesService: TrainingNomineesService) {}
 
+  // test microservice in insert training nominee by distribution id
   @Post()
   async create(@Body() data: CreateTrainingNomineeDto) {
     return await this.trainingNomineesService.create(data);
   }
 
   @Get(':id')
-  async findAll(@Param('id') trainingId: string) {
+  async findAllNomineeByTrainingId(@Param('id') trainingId: string) {
     return await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId);
   }
 
+  // test microservice in find all training by employee id
   @Get('employee/:id')
   async findAllTrainingByEmployeeId(@Param('id') employeeId: string) {
     return await this.trainingNomineesService.findAllTrainingByEmployeeId(employeeId);
   }
 
+  // test microservice in update status for nominated employee by nominee id
   @Patch()
   async updateTrainingNomineeStatus(@Body() data: UpdateTrainingNomineeStatusDto) {
     const { id, ...rest } = data;

@@ -3,6 +3,7 @@ import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { TrainingPatterns } from '@gscwd-api/microservices';
 import { TrainingNomineesService } from './training-nominees.service';
 import { CreateTrainingNomineeDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
+import { TrainingNomineeRaw } from '@gscwd-api/utils';
 
 @Controller()
 export class TrainingNomineesMicroserviceController {
@@ -18,6 +19,19 @@ export class TrainingNomineesMicroserviceController {
     }
   }
 
+  // find all nominees (type = nominee or stand-in) by distribution id
+  @MessagePattern(TrainingPatterns.FIND_TRAINING_NOMINEES_BY_DISTRIBUTION_ID)
+  async findAllNomineesByDistributionId(@Payload() data: TrainingNomineeRaw) {
+    try {
+      const { distributionId, nomineeType } = data;
+      return await this.trainingNomineesService.findAllNomineesByDistributionId(distributionId, nomineeType);
+    } catch (error) {
+      Logger.log(error);
+      throw new RpcException(error);
+    }
+  }
+
+  // find all training by employee id
   @MessagePattern(TrainingPatterns.FIND_ALL_TRAINING_BY_EMPLOYEE_ID)
   async findAllTrainingByEmployeeId(@Payload() employeeId: string) {
     try {
@@ -29,7 +43,7 @@ export class TrainingNomineesMicroserviceController {
 
   // nominated employee update nominee status by nominee id
   @MessagePattern(TrainingPatterns.UPDATE_TRAINING_NOMINEES_STATUS_BY_ID)
-  async updateTrainingNomineeStatus(data: UpdateTrainingNomineeStatusDto) {
+  async updateTrainingNomineeStatus(@Payload() data: UpdateTrainingNomineeStatusDto) {
     const { id, ...rest } = data;
     return await this.trainingNomineesService.crud().update({
       updateBy: { id },
