@@ -62,6 +62,64 @@ export class ReportsService {
     return _employeePassSlips;
   }
 
+  async generateReportOnPersonalPassSlipDetailed(dateFrom: Date, dateTo: Date) {
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+
+    const _employeePassSlips = [];
+
+    const employeePassSlips = await Promise.all(
+      employees.map(async (employee) => {
+        const employeeId = employee.value;
+        const name = employee.label;
+
+        const report = (
+          await this.dtrService.rawQuery(`CALL sp_generate_report_on_personal_business_pass_slip_detailed(?,?,?,?);`, [
+            employeeId,
+            name,
+            dateFrom,
+            dateTo,
+          ])
+        )[0];
+
+        await Promise.all(
+          report.map(async (reportItem) => {
+            _employeePassSlips.push(reportItem);
+          })
+        );
+      })
+    );
+    return _employeePassSlips;
+  }
+
+  async generateReportOnOfficialBusinessPassSlipDetailed(dateFrom: Date, dateTo: Date) {
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+
+    const _employeePassSlips = [];
+
+    const employeePassSlips = await Promise.all(
+      employees.map(async (employee) => {
+        const employeeId = employee.value;
+        const name = employee.label;
+
+        const report = (
+          await this.dtrService.rawQuery(`CALL sp_generate_report_on_official_business_pass_slip_detailed(?,?,?,?);`, [
+            employeeId,
+            name,
+            dateFrom,
+            dateTo,
+          ])
+        )[0];
+
+        await Promise.all(
+          report.map(async (reportItem) => {
+            _employeePassSlips.push(reportItem);
+          })
+        );
+      })
+    );
+    return _employeePassSlips;
+  }
+
   async generateReport(report: Report, dateFrom: Date, dateTo: Date, user: User) {
     if (user === null) throw new ForbiddenException();
     let reportDetails: object;
@@ -75,12 +133,17 @@ export class ReportsService {
       case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS):
         reportDetails = await this.generateReportOnOfficialBusinessPassSlip(dateFrom, dateTo);
         break;
+      case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS_DETAILED):
+        reportDetails = await this.generateReportOnPersonalPassSlipDetailed(dateFrom, dateTo);
+        break;
+      case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
+        reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo);
+        break;
       default:
         break;
     }
 
     const employeeDetails = await this.employeesService.getEmployeeDetails(user.employeeId);
-
     const supervisorId = await this.employeesService.getEmployeeSupervisorId(user.employeeId);
     const supervisorDetails = await this.employeesService.getEmployeeDetails(supervisorId.toString());
     const managerId = await this.employeesService.getEmployeeSupervisorId(supervisorId.toString());
