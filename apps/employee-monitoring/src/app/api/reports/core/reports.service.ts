@@ -120,6 +120,14 @@ export class ReportsService {
     return _employeePassSlips;
   }
 
+  async generateReportOnEmployeeForcedLeaveCredits(dateFrom: Date, dateTo: Date) {
+    return {};
+  }
+
+  async generateReportOnEmployeeLeaveCreditBalance(dateFrom: Date, dateTo: Date) {
+    return {};
+  }
+
   async generateReport(report: Report, dateFrom: Date, dateTo: Date, user: User) {
     if (user === null) throw new ForbiddenException();
     let reportDetails: object;
@@ -138,6 +146,12 @@ export class ReportsService {
         break;
       case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
         reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo);
+        break;
+      case decodeURI(Report.REPORT_ON_EMPLOYEE_FORCED_LEAVE_CREDITS):
+        reportDetails = await this.generateReportOnEmployeeForcedLeaveCredits(dateFrom, dateTo);
+        break;
+      case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE):
+        reportDetails = await this.generateReportOnEmployeeLeaveCreditBalance(dateFrom, dateTo);
         break;
       default:
         break;
