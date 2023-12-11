@@ -1117,11 +1117,13 @@ export class OvertimeService {
 
     const notedByPosition = (await this.employeeService.getEmployeeDetails(notedByEmployeeId.toString())).assignment.positionTitle;
     const approvedByPosition = (await this.employeeService.getEmployeeDetails(approvedByEmployeeId.toString())).assignment.positionTitle;
+    const assignedTo = (await this.employeeService.getEmployeeDetails(immediateSupervisorEmployeeId)).assignment.name;
 
     const { employeeName, employeeSignature, supervisorName, supervisorSignature } = preparedByAndNotedBy;
 
     return {
       periodCovered,
+      assignedTo,
       summary: filteredEmployeeDetails,
       signatories: {
         preparedBy: { name: employeeName, signature: employeeSignature, position: preparedByPosition },
