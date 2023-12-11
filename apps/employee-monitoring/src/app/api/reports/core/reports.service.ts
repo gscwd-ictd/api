@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, Next } from '@nestjs/common';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { Report, User } from '@gscwd-api/utils';
+import dayjs = require('dayjs');
 
 @Injectable()
 export class ReportsService {
@@ -128,9 +129,11 @@ export class ReportsService {
         const { value, label } = employee;
         const employeeDetails = await this.employeesService.getEmployeeDetails(value);
         const { companyId } = employeeDetails;
-        const leaveDetails = (await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view(?,?);`, [value, companyId]))[0];
+        const leaveDetails = (
+          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
+        )[0];
         const { forcedLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
-        return { companyId, name: label, forcedLeaveBalance, vacationLeaveBalance };
+        return { companyId, name: label, forcedLeaveBalance: parseFloat(forcedLeaveBalance), vacationLeaveBalance: parseFloat(vacationLeaveBalance) };
       })
     );
 
@@ -145,7 +148,9 @@ export class ReportsService {
         const { value, label } = employee;
         const employeeDetails = await this.employeesService.getEmployeeDetails(value);
         const { companyId } = employeeDetails;
-        const leaveDetails = (await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view(?,?);`, [value, companyId]))[0];
+        const leaveDetails = (
+          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
+        )[0];
         const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
 
         const totalVacationLeave = parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance);
@@ -153,13 +158,48 @@ export class ReportsService {
         return {
           companyId,
           name: label,
-          sickLeaveBalance,
+          sickLeaveBalance: parseFloat(sickLeaveBalance),
           vacationLeaveBalance: totalVacationLeave,
+          totalLeaveBalance: totalVacationLeave + parseFloat(sickLeaveBalance),
         };
       })
     );
     return leaveCreditBalance;
   }
+
+  async generateReportOnEmployeeLeaveCreditBalanceWithMoney(monthYear: string) {
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+
+    const leaveCreditBalance = await Promise.all(
+      employees.map(async (employee) => {
+        const { value, label } = employee;
+        const employeeDetails = await this.employeesService.getEmployeeDetails(value);
+        const { companyId } = employeeDetails;
+        const leaveDetails = (
+          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
+        )[0];
+        const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
+        const monthlyRate = ((await this.employeesService.getMonthlyHourlyRateByEmployeeId(value)) as { monthlyRate: number }).monthlyRate;
+        const totalVacationLeave = parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance);
+
+        return {
+          companyId,
+          name: label,
+          sickLeaveBalance: parseFloat(sickLeaveBalance),
+          vacationLeaveBalance: totalVacationLeave,
+          totalLeaveBalance: totalVacationLeave + parseFloat(sickLeaveBalance),
+          monthlyRate: monthlyRate.toLocaleString(),
+          conversion: (monthlyRate * (totalVacationLeave + parseFloat(sickLeaveBalance)) * 0.0481927).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+        };
+      })
+    );
+    return leaveCreditBalance;
+  }
+
+  //async generateReportOnE
 
   async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string) {
     if (user === null) throw new ForbiddenException();
@@ -185,6 +225,9 @@ export class ReportsService {
         break;
       case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE):
         if (monthYear) reportDetails = await this.generateReportOnEmployeeLeaveCreditBalance(monthYear);
+        break;
+      case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE_WITH_MONEY):
+        if (monthYear) reportDetails = await this.generateReportOnEmployeeLeaveCreditBalanceWithMoney(monthYear);
         break;
       default:
         break;
