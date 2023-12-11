@@ -98,6 +98,8 @@ export enum Report {
   REPORT_ON_OFFICIAL_BUSINESS = 'report on official business pass slip',
   REPORT_ON_PERSONAL_BUSINESS_DETAILED = 'detailed report on personal business pass slip',
   REPORT_ON_OFFICIAL_BUSINESS_DETAILED = 'detailed report on official business pass slip',
+  REPORT_ON_EMPLOYEE_FORCED_LEAVE_CREDITS = 'report on employee forced leave credits',
+  REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE = 'report on employee leave credit balance',
 }
 
 export type VacationLeaveDetails = {

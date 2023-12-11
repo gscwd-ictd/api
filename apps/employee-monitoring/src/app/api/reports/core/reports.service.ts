@@ -120,7 +120,48 @@ export class ReportsService {
     return _employeePassSlips;
   }
 
-  async generateReport(report: Report, dateFrom: Date, dateTo: Date, user: User) {
+  async generateReportOnEmployeeForcedLeaveCredits(monthYear: string) {
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+
+    const vlFlBalance = await Promise.all(
+      employees.map(async (employee) => {
+        const { value, label } = employee;
+        const employeeDetails = await this.employeesService.getEmployeeDetails(value);
+        const { companyId } = employeeDetails;
+        const leaveDetails = (await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view(?,?);`, [value, companyId]))[0];
+        const { forcedLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
+        return { companyId, name: label, forcedLeaveBalance, vacationLeaveBalance };
+      })
+    );
+
+    return vlFlBalance;
+  }
+
+  async generateReportOnEmployeeLeaveCreditBalance(monthYear: string) {
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+
+    const leaveCreditBalance = await Promise.all(
+      employees.map(async (employee) => {
+        const { value, label } = employee;
+        const employeeDetails = await this.employeesService.getEmployeeDetails(value);
+        const { companyId } = employeeDetails;
+        const leaveDetails = (await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view(?,?);`, [value, companyId]))[0];
+        const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
+
+        const totalVacationLeave = parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance);
+
+        return {
+          companyId,
+          name: label,
+          sickLeaveBalance,
+          vacationLeaveBalance: totalVacationLeave,
+        };
+      })
+    );
+    return leaveCreditBalance;
+  }
+
+  async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string) {
     if (user === null) throw new ForbiddenException();
     let reportDetails: object;
     switch (report) {
@@ -138,6 +179,12 @@ export class ReportsService {
         break;
       case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
         reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo);
+        break;
+      case decodeURI(Report.REPORT_ON_EMPLOYEE_FORCED_LEAVE_CREDITS):
+        if (monthYear) reportDetails = await this.generateReportOnEmployeeForcedLeaveCredits(monthYear);
+        break;
+      case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE):
+        if (monthYear) reportDetails = await this.generateReportOnEmployeeLeaveCreditBalance(monthYear);
         break;
       default:
         break;
