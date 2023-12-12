@@ -199,7 +199,7 @@ export class ReportsService {
     return leaveCreditBalance;
   }
 
-  //async generateReportOnE
+  //async generateReportOne
 
   async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string) {
     if (user === null) throw new ForbiddenException();
