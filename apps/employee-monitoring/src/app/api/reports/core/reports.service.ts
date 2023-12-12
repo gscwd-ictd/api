@@ -199,7 +199,45 @@ export class ReportsService {
     return leaveCreditBalance;
   }
 
-  //async generateReportOne
+  async generateReportOnSummaryOfLeaveWithoutPay(monthYear: string) {
+    console.log(monthYear);
+
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+
+    const _employeesLWOP = [];
+
+    await Promise.all(
+      employees.map(async (employee) => {
+        const employeeDetails = await this.employeesService.getEmployeeDetails(employee.value);
+        const { companyId } = employeeDetails;
+        const employeeLWOP = (
+          await this.dtrService.rawQuery(`CALL sp_generate_report_on_lwop_summary(?,?,?,?)`, [employee.value, employee.label, companyId, monthYear])
+        )[0];
+        if (employeeLWOP) {
+          await Promise.all(
+            employeeLWOP.map(
+              async (employeeLwopItem: {
+                employeeId: string;
+                employeeName: string;
+                companyId: string;
+                leaveDescription: string;
+                dates: string;
+                noOfDays: number;
+              }) => {
+                const { dates, ...rest } = employeeLwopItem;
+                const datesFromTo = dates.split(', ');
+                const dateFrom = datesFromTo[0];
+                const dateTo = datesFromTo[datesFromTo.length - 1];
+                _employeesLWOP.push({ ...rest, dateFrom, dateTo });
+              }
+            )
+          );
+        }
+      })
+    );
+
+    return _employeesLWOP;
+  }
 
   async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string) {
     if (user === null) throw new ForbiddenException();
@@ -208,6 +246,7 @@ export class ReportsService {
       case decodeURI(Report.REPORT_ON_ATTENDANCE):
         reportDetails = await this.generateReportOnAttendance(dateFrom, dateTo);
         break;
+      //#region Report About Pass Slips
       case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS):
         reportDetails = await this.generateReportOnPersonalPassSlip(dateFrom, dateTo);
         break;
@@ -220,6 +259,8 @@ export class ReportsService {
       case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
         reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo);
         break;
+      //#endregion Report About Pass Slips
+      //#region Report About Leaves
       case decodeURI(Report.REPORT_ON_EMPLOYEE_FORCED_LEAVE_CREDITS):
         if (monthYear) reportDetails = await this.generateReportOnEmployeeForcedLeaveCredits(monthYear);
         break;
@@ -229,6 +270,10 @@ export class ReportsService {
       case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE_WITH_MONEY):
         if (monthYear) reportDetails = await this.generateReportOnEmployeeLeaveCreditBalanceWithMoney(monthYear);
         break;
+      case decodeURI(Report.REPORT_ON_SUMMARY_OF_LEAVE_WITHOUT_PAY):
+        if (monthYear) reportDetails = await this.generateReportOnSummaryOfLeaveWithoutPay(monthYear);
+        break;
+      //#endregion Report About Leaves
       default:
         break;
     }
