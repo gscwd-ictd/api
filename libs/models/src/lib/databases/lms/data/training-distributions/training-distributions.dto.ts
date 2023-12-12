@@ -1,5 +1,5 @@
 import { IsArray, IsInt, IsNotEmpty, IsObject, IsUUID, ValidateNested } from 'class-validator';
-import { TrainingDetails } from '../training-details';
+import { TrainingDetailsDto } from '../training-details';
 import { Type } from 'class-transformer';
 import { TrainingRecommendedEmployeeDto } from '../training-recommended-employees';
 
@@ -10,6 +10,12 @@ export class Supervisor {
 }
 
 export class TrainingDistributionDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  id: string;
+}
+
+export class SlotDistributionDto {
   @IsNotEmpty()
   @IsObject()
   @ValidateNested({ each: true })
@@ -28,8 +34,9 @@ export class TrainingDistributionDto {
 }
 
 export class CreateTrainingDistributionDto {
+  @IsNotEmpty()
   @IsUUID('4')
-  trainingDetails: TrainingDetails;
+  trainingDetails: TrainingDetailsDto;
 
   @IsNotEmpty()
   @IsObject()
