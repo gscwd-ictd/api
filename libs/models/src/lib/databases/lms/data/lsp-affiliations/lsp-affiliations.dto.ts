@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsString, IsUUID, Length } from 'class-validator';
-import { LspDetails } from '../lsp-details';
+import { LspDetailsDto } from '../lsp-details';
 
 export class AffiliationDto {
   @IsString({ message: 'lsp affiliation position must be a string' })
@@ -14,7 +14,7 @@ export class AffiliationDto {
 
 export class CreateLspAffiliationDto extends AffiliationDto {
   @IsUUID('4')
-  lspDetails: LspDetails;
+  lspDetails: LspDetailsDto;
 }
 
 export class UpdateLspAffiliationDto extends PartialType(CreateLspAffiliationDto) {}

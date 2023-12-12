@@ -3,12 +3,11 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nes
 import { PortalEmployeesService } from '../../../../services/portal';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Observable, map } from 'rxjs';
-import { DataSource } from 'typeorm';
 import { LspSource, LspType } from '@gscwd-api/utils';
 
 @Injectable()
 export class LspInterceptor implements NestInterceptor {
-  constructor(private readonly datasource: DataSource, private readonly portalEmployeesService: PortalEmployeesService) {}
+  constructor(private readonly portalEmployeesService: PortalEmployeesService) {}
   intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
     return next.handle().pipe(
       map(async (result: Pagination<LspDetails>) => {
