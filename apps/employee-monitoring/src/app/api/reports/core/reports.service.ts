@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, Next } from '@nestjs/common';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { Report, User } from '@gscwd-api/utils';
+import dayjs = require('dayjs');
 
 @Injectable()
 export class ReportsService {
@@ -128,9 +129,11 @@ export class ReportsService {
         const { value, label } = employee;
         const employeeDetails = await this.employeesService.getEmployeeDetails(value);
         const { companyId } = employeeDetails;
-        const leaveDetails = (await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view(?,?);`, [value, companyId]))[0];
+        const leaveDetails = (
+          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
+        )[0];
         const { forcedLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
-        return { companyId, name: label, forcedLeaveBalance, vacationLeaveBalance };
+        return { companyId, name: label, forcedLeaveBalance: parseFloat(forcedLeaveBalance), vacationLeaveBalance: parseFloat(vacationLeaveBalance) };
       })
     );
 
@@ -145,7 +148,9 @@ export class ReportsService {
         const { value, label } = employee;
         const employeeDetails = await this.employeesService.getEmployeeDetails(value);
         const { companyId } = employeeDetails;
-        const leaveDetails = (await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view(?,?);`, [value, companyId]))[0];
+        const leaveDetails = (
+          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
+        )[0];
         const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
 
         const totalVacationLeave = parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance);
@@ -153,12 +158,85 @@ export class ReportsService {
         return {
           companyId,
           name: label,
-          sickLeaveBalance,
+          sickLeaveBalance: parseFloat(sickLeaveBalance),
           vacationLeaveBalance: totalVacationLeave,
+          totalLeaveBalance: totalVacationLeave + parseFloat(sickLeaveBalance),
         };
       })
     );
     return leaveCreditBalance;
+  }
+
+  async generateReportOnEmployeeLeaveCreditBalanceWithMoney(monthYear: string) {
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+
+    const leaveCreditBalance = await Promise.all(
+      employees.map(async (employee) => {
+        const { value, label } = employee;
+        const employeeDetails = await this.employeesService.getEmployeeDetails(value);
+        const { companyId } = employeeDetails;
+        const leaveDetails = (
+          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
+        )[0];
+        const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
+        const monthlyRate = ((await this.employeesService.getMonthlyHourlyRateByEmployeeId(value)) as { monthlyRate: number }).monthlyRate;
+        const totalVacationLeave = parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance);
+
+        return {
+          companyId,
+          name: label,
+          sickLeaveBalance: parseFloat(sickLeaveBalance),
+          vacationLeaveBalance: totalVacationLeave,
+          totalLeaveBalance: totalVacationLeave + parseFloat(sickLeaveBalance),
+          monthlyRate: monthlyRate.toLocaleString(),
+          conversion: (monthlyRate * (totalVacationLeave + parseFloat(sickLeaveBalance)) * 0.0481927).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+        };
+      })
+    );
+    return leaveCreditBalance;
+  }
+
+  async generateReportOnSummaryOfLeaveWithoutPay(monthYear: string) {
+    console.log(monthYear);
+
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+
+    const _employeesLWOP = [];
+
+    await Promise.all(
+      employees.map(async (employee) => {
+        const employeeDetails = await this.employeesService.getEmployeeDetails(employee.value);
+        const { companyId } = employeeDetails;
+        const employeeLWOP = (
+          await this.dtrService.rawQuery(`CALL sp_generate_report_on_lwop_summary(?,?,?,?)`, [employee.value, employee.label, companyId, monthYear])
+        )[0];
+        if (employeeLWOP) {
+          await Promise.all(
+            employeeLWOP.map(
+              async (employeeLwopItem: {
+                employeeId: string;
+                employeeName: string;
+                companyId: string;
+                leaveDescription: string;
+                dates: string;
+                noOfDays: number;
+              }) => {
+                const { dates, ...rest } = employeeLwopItem;
+                const datesFromTo = dates.split(', ');
+                const dateFrom = datesFromTo[0];
+                const dateTo = datesFromTo[datesFromTo.length - 1];
+                _employeesLWOP.push({ ...rest, dateFrom, dateTo });
+              }
+            )
+          );
+        }
+      })
+    );
+
+    return _employeesLWOP;
   }
 
   async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string) {
@@ -168,6 +246,7 @@ export class ReportsService {
       case decodeURI(Report.REPORT_ON_ATTENDANCE):
         reportDetails = await this.generateReportOnAttendance(dateFrom, dateTo);
         break;
+      //#region Report About Pass Slips
       case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS):
         reportDetails = await this.generateReportOnPersonalPassSlip(dateFrom, dateTo);
         break;
@@ -180,12 +259,21 @@ export class ReportsService {
       case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
         reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo);
         break;
+      //#endregion Report About Pass Slips
+      //#region Report About Leaves
       case decodeURI(Report.REPORT_ON_EMPLOYEE_FORCED_LEAVE_CREDITS):
         if (monthYear) reportDetails = await this.generateReportOnEmployeeForcedLeaveCredits(monthYear);
         break;
       case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE):
         if (monthYear) reportDetails = await this.generateReportOnEmployeeLeaveCreditBalance(monthYear);
         break;
+      case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE_WITH_MONEY):
+        if (monthYear) reportDetails = await this.generateReportOnEmployeeLeaveCreditBalanceWithMoney(monthYear);
+        break;
+      case decodeURI(Report.REPORT_ON_SUMMARY_OF_LEAVE_WITHOUT_PAY):
+        if (monthYear) reportDetails = await this.generateReportOnSummaryOfLeaveWithoutPay(monthYear);
+        break;
+      //#endregion Report About Leaves
       default:
         break;
     }
