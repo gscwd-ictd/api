@@ -24,7 +24,7 @@ export class TrainingNominee extends DatabaseEntity implements IEntity {
   })
   nomineeType: NomineeType;
 
-  @Column({ name: 'remarks', length: 100 })
+  @Column({ name: 'remarks', length: 100, nullable: true })
   remarks: string;
 
   @Column({ name: 'status', type: 'enum', enum: TrainingNomineeStatus, default: TrainingNomineeStatus.PENDING })

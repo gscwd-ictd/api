@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsUUID } from 'class-validator';
-import { TrainingDistribution } from '../training-distributions';
+import { TrainingDistributionDto } from '../training-distributions';
 
 export class TrainingRecommendedEmployeeDto {
   @IsNotEmpty()
@@ -9,5 +9,5 @@ export class TrainingRecommendedEmployeeDto {
 
 export class CreateTrainingRecommendedEmployeeDto extends TrainingRecommendedEmployeeDto {
   @IsUUID('4')
-  trainingDistribution: TrainingDistribution;
+  trainingDistribution: TrainingDistributionDto;
 }

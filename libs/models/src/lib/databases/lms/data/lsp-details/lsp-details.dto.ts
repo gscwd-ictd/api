@@ -10,6 +10,12 @@ import { EducationDto } from '../lsp-educations';
 import { ProjectDto } from '../lsp-projects';
 import { TrainingDto } from '../lsp-trainings';
 
+export class LspDetailsDto {
+  @IsNotEmpty()
+  @IsUUID()
+  id: string;
+}
+
 // create lsp (type = individual , source = internal)
 export class CreateLspIndividualInternalDto {
   @IsNotEmpty()
