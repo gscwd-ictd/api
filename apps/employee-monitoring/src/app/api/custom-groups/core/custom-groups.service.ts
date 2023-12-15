@@ -80,28 +80,38 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
     if (deleteCustomGroup.affected > 0) return customGroup;
   }
 
-  async getCustomGroupDetails(customGroupId: string, scheduleId: string, dateFrom: Date, dateTo: Date) {
+  async getCustomGroupDetails(customGroupId: string, scheduleId?: string, dateFrom?: Date, dateTo?: Date) {
     const customGroupDetails = await this.crudService.findOneOrNull({ find: { where: { id: customGroupId } } });
     try {
-      const members = (await this.customGroupMembersService.getCustomGroupMembersDetails(scheduleId, dateFrom, dateTo)) as {
-        employeeId: string;
-        companyId: string;
-        fullName: string;
-        positionTitle: string;
-        assignment: string;
-      }[];
+      let members = [];
+      if (scheduleId && dateFrom && dateTo) {
+        members = (await this.customGroupMembersService.getCustomGroupMembersDetails(scheduleId, dateFrom, dateTo)) as {
+          employeeId: string;
+          companyId: string;
+          fullName: string;
+          positionTitle: string;
+          assignment: string;
+        }[];
+      } else
+        members = (await this.getCustomGroupAssignedMembers(customGroupId)) as {
+          employeeId: string;
+          companyId: string;
+          fullName: string;
+          positionTitle: string;
+          assignment: string;
+        }[];
 
       const membersWithRestdays = await Promise.all(
         members.map(async (member) => {
           const restDays = (await this.rawQuery(
             `
-          SELECT rest_day restDay, date_from dateFrom
-          FROM employee_rest_days emrs 
-          INNER JOIN employee_rest_day emr ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk
-          WHERE emr.employee_id_fk = ? 
-          AND date_from = (SELECT date_from FROM employee_rest_day WHERE employee_id_fk=? 
-          ORDER BY date_from ASC LIMIT 1) GROUP BY dateFrom, restDay ORDER BY date_from ASC,rest_day ASC;
-          `,
+            SELECT rest_day restDay, date_from dateFrom
+            FROM employee_rest_days emrs 
+            INNER JOIN employee_rest_day emr ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk
+            WHERE emr.employee_id_fk = ? 
+            AND date_from = (SELECT date_from FROM employee_rest_day WHERE employee_id_fk=? 
+            ORDER BY date_from ASC LIMIT 1) GROUP BY dateFrom, restDay ORDER BY date_from ASC,rest_day ASC;
+            `,
             [member.employeeId, member.employeeId]
           )) as {
             restDay: string;

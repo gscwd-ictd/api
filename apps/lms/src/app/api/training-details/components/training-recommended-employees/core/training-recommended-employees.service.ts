@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingRecommendedEmployeeDto, TrainingRecommendedEmployee } from '@gscwd-api/models';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
 import { EntityManager } from 'typeorm';
 
@@ -21,20 +21,25 @@ export class TrainingRecommendedEmployeeService extends CrudHelper<TrainingRecom
   }
 
   async findAllByDistributionId(distributionId: string) {
-    const recommended = (await this.crudService.findAll({
-      find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionId } } },
-    })) as Array<TrainingRecommendedEmployee>;
+    try {
+      const recommended = (await this.crudService.findAll({
+        find: { select: { employeeId: true }, where: { trainingDistribution: { id: distributionId } } },
+      })) as Array<TrainingRecommendedEmployee>;
 
-    return await Promise.all(
-      recommended.map(async (recommendedItem) => {
-        const employeeName = await this.hrmsEmployeesService.findEmployeesById(recommendedItem.employeeId);
+      return await Promise.all(
+        recommended.map(async (recommendedItem) => {
+          const employeeName = await this.hrmsEmployeesService.findEmployeesById(recommendedItem.employeeId);
 
-        return {
-          employeeId: recommendedItem.employeeId,
-          name: employeeName.fullName,
-        };
-      })
-    );
+          return {
+            employeeId: recommendedItem.employeeId,
+            name: employeeName.fullName,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.log(error);
+      throw error;
+    }
   }
 
   async remove(trainingId: string, softDelete: boolean, entityManager: EntityManager) {

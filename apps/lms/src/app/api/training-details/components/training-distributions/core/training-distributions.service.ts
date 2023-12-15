@@ -1,9 +1,10 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingDistributionDto, TrainingDistribution } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { EntityManager, MoreThan } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../training-recommended-employees';
 import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
+import { TrainingPreparationStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class TrainingDistributionsService extends CrudHelper<TrainingDistribution> {
@@ -45,10 +46,14 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     return trainingDistribution;
   }
 
+  // find all distribution by training id
   async findAllByTrainingId(trainingId: string) {
     try {
       const distribution = (await this.crudService.findAll({
-        find: { select: { id: true, supervisorId: true, numberOfSlots: true }, where: { trainingDetails: { id: trainingId } } },
+        find: {
+          select: { id: true, supervisorId: true, numberOfSlots: true },
+          where: { trainingDetails: { id: trainingId }, numberOfSlots: MoreThan(0) },
+        },
       })) as Array<TrainingDistribution>;
 
       return await Promise.all(
@@ -77,7 +82,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     // find all training distribution by traininng id
     const distribution = (await this.crudService.transact<TrainingDistribution>(entityManager).findAll({
       find: { select: { id: true }, where: { trainingDetails: { id: trainingId } } },
-    })) as TrainingDistribution[];
+    })) as Array<TrainingDistribution>;
 
     // delete all training recommended employee by distribution id
     await Promise.all(
@@ -95,5 +100,61 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
         throw error;
       },
     });
+  }
+
+  //microservices
+
+  // find training by supervisor id (microservices)
+  async findTrainingDistributionSupervisorId(supervisorId: string) {
+    try {
+      const trainingDetails = (await this.crudService.findAll({
+        find: {
+          relations: { trainingDetails: { trainingDesign: true, source: true } },
+          select: {
+            id: true,
+            numberOfSlots: true,
+            trainingDetails: {
+              id: true,
+              courseTitle: true,
+              trainingDesign: {
+                courseTitle: true,
+              },
+              location: true,
+              trainingStart: true,
+              trainingEnd: true,
+              trainingPreparationStatus: true,
+              type: true,
+              source: { name: true },
+              status: true,
+            },
+          },
+          where: { supervisorId, trainingDetails: { trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION } },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      })) as Array<TrainingDistribution>;
+
+      return await Promise.all(
+        trainingDetails.map(async (distributionItem) => {
+          return {
+            distributionId: distributionItem.id,
+            numberOfSlots: distributionItem.numberOfSlots,
+            trainingId: distributionItem.trainingDetails.id,
+            courseTitle: distributionItem.trainingDetails.courseTitle || distributionItem.trainingDetails.trainingDesign.courseTitle,
+            location: distributionItem.trainingDetails.location,
+            trainingStart: distributionItem.trainingDetails.trainingStart,
+            trainingEnd: distributionItem.trainingDetails.trainingEnd,
+            source: distributionItem.trainingDetails.source.name,
+            type: distributionItem.trainingDetails.type,
+            trainingPreparationStatus: distributionItem.trainingDetails.trainingPreparationStatus,
+            status: distributionItem.trainingDetails.status,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.log(error);
+      throw error;
+    }
   }
 }

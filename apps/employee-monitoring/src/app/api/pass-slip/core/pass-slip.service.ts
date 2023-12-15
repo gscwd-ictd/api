@@ -422,16 +422,22 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       },
     });
 
+    console.log(passSlips);
+
     const passSlipDetails = await Promise.all(
       passSlips.map(async (passSlip) => {
+        //console.log('passSlip: ', passSlip);
         const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
-
+        console.log('names: ', names);
         const assignment = await this.getEmployeeAssignment(passSlip.passSlipId.employeeId);
+        //console.log('assignment: ', assignment);
         const avatarUrl = (await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId)).photoUrl;
         const { passSlipId, ...restOfPassSlip } = passSlip;
         return { ...restOfPassSlip, ...passSlipId, ...names, avatarUrl, assignmentName: assignment.assignment.name };
       })
     );
+
+    console.log(passSlipDetails);
     return passSlipDetails;
   }
 

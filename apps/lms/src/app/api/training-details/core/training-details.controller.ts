@@ -78,19 +78,13 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.updateTrainingInternalById(data);
   }
 
-  // @Put('external')
-  // async updateTrainingExternalById(@Body() data: UpdateTrainingExternalDto) {
-  //   return await this.trainingDetailsService.updateTrainingExternalById(data);
-  // }
+  @Put('external')
+  async updateTrainingExternalById(@Body() data: UpdateTrainingExternalDto) {
+    return await this.trainingDetailsService.updateTrainingExternalById(data);
+  }
 
-  // @Delete(':id')
-  // async remove(@Param('id') id: string) {
-  //   return await this.trainingDetailsService.removeTrainingById(id);
-  // }
-
-  // // microservices test
-  // @Get('supervisor/:id')
-  // async findTrainingRecommendedEmployeeBySupervisorId(@Param('id') id: string) {
-  //   return await this.trainingDetailsService.findTrainingRecommendedEmployeeBySupervisorId(id);
-  // }
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    return await this.trainingDetailsService.removeTrainingById(id);
+  }
 }

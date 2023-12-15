@@ -1,3 +1,5 @@
+import { NomineeType } from '../enums';
+
 export type LspDetailsRaw = {
   id: string;
   name: string;
@@ -26,4 +28,9 @@ export type PortalEmployeeDetailsRaw = {
   awards: [name: string];
   certifications: [name: string];
   education: [degree: string, institution: string];
+};
+
+export type TrainingNomineeRaw = {
+  distributionId: string;
+  nomineeType: NomineeType;
 };
