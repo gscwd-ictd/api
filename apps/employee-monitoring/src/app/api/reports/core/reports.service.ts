@@ -292,6 +292,7 @@ export class ReportsService {
     const supervisorDetails = await this.employeesService.getEmployeeDetails(supervisorId.toString());
     const managerId = await this.employeesService.getEmployeeSupervisorId(supervisorId.toString());
     const managerDetails = await this.employeesService.getEmployeeDetails(managerId.toString());
+
     console.log('the user', user);
     return {
       report: reportDetails,
