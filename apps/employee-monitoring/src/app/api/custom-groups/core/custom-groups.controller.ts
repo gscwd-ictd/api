@@ -1,6 +1,7 @@
 import { CreateCustomGroupMembersDto, CreateCustomGroupsDto, UpdateCustomGroupsDto } from '@gscwd-api/models';
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { CustomGroupsService } from './custom-groups.service';
+import { ScheduleBase } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'custom-groups' })
 export class CustomGroupsController {
@@ -27,8 +28,8 @@ export class CustomGroupsController {
   }
 
   @Get('/schedule-sheets/')
-  async getAllScheduleSheet() {
-    return await this.customGroupsService.getAllScheduleSheet();
+  async getAllScheduleSheet(@Query('schedule_base') scheduleBase: ScheduleBase) {
+    return await this.customGroupsService.getAllScheduleSheet(scheduleBase);
   }
 
   @Get()
