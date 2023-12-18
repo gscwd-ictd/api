@@ -4,6 +4,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeeRestDaysService } from '../../daily-time-record/components/employee-schedule/components/employee-rest-day/components/employee-rest-days/core/employee-rest-days.service';
 import { ScheduleSheetService } from '../../daily-time-record/components/schedule-sheet/core/schedule-sheet.service';
 import { CustomGroupMembersService } from '../components/custom-group-members/core/custom-group-members.service';
+import { ScheduleBase } from '@gscwd-api/utils';
 
 @Injectable()
 export class CustomGroupsService extends CrudHelper<CustomGroups> {
@@ -131,7 +132,7 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
     }
   }
 
-  async getAllScheduleSheet() {
-    return await this.scheduleSheetService.getAllScheduleSheet();
+  async getAllScheduleSheet(scheduleBase: ScheduleBase) {
+    return await this.scheduleSheetService.getAllScheduleSheet(scheduleBase);
   }
 }
