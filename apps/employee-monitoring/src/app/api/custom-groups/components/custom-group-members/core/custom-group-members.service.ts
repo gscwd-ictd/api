@@ -30,15 +30,16 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
     return customGroupMembersDto;
   }
 
-  async getCustomGroupMembersDetails(scheduleId: string, dateFrom: Date, dateTo: Date) {
+  async getCustomGroupMembersDetails(scheduleId: string, dateFrom: Date, dateTo: Date, customGroupId: string) {
     //
+    console.log(customGroupId);
     const assignedMembers = (await this.rawQuery(
       `
-    SELECT es.employee_id_fk employeeId 
+     SELECT es.employee_id_fk employeeId 
       FROM employee_schedule es 
     INNER JOIN custom_group_members cgm ON es.employee_id_fk = cgm.employee_id_fk 
-    WHERE date_from=? AND date_to=? AND schedule_id_fk=?`,
-      [dateFrom, dateTo, scheduleId]
+    WHERE date_from=? AND date_to=? AND schedule_id_fk=? AND cgm.custom_group_id_fk = ?`,
+      [dateFrom, dateTo, scheduleId, customGroupId]
     )) as CustomGroupMembers[];
 
     const employeeIds = await Promise.all(

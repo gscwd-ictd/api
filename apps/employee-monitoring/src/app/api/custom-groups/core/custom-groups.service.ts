@@ -86,7 +86,7 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
     try {
       let members = [];
       if (scheduleId && dateFrom && dateTo) {
-        members = (await this.customGroupMembersService.getCustomGroupMembersDetails(scheduleId, dateFrom, dateTo)) as {
+        members = (await this.customGroupMembersService.getCustomGroupMembersDetails(scheduleId, dateFrom, dateTo, customGroupId)) as {
           employeeId: string;
           companyId: string;
           fullName: string;

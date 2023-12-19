@@ -6,7 +6,6 @@ import { EmployeeSchedule } from '@gscwd-api/models';
 import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { EmployeeRestDayModule } from '../components/employee-rest-day/core/employee-rest-day.module';
-import { CustomGroupsModule } from '../../../../custom-groups/core/custom-groups.module';
 import { CustomGroupMembersModule } from '../../../../custom-groups/components/custom-group-members/core/custom-group-members.module';
 import { EmployeeScheduleMsController } from './employee-schedule-ms.controller';
 import { EmployeeRestDaysModule } from '../components/employee-rest-day/components/employee-rest-days/core/employee-rest-days.module';

@@ -17,7 +17,10 @@ export class EmployeeRestDayService extends CrudHelper<EmployeeRestDay> {
 
     const employeeRestDayResult = await this.crudService.transact<EmployeeRestDay>(entityManager).create({
       dto: employeeRestDay,
-      onError: () => new InternalServerErrorException(),
+      onError: (error) => {
+        console.log(error);
+        throw new InternalServerErrorException();
+      },
     });
 
     const employeeRestDaysResult = await this.employeeRestDaysService.addEmployeeRestDaysTransaction(
