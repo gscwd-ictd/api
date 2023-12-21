@@ -17,11 +17,17 @@ export class CreateEmployeeScheduleDto {
   @IsDateString()
   dateFrom?: Date;
 
+  @IsOptional()
+  customGroupId?: CustomGroups;
+
   @IsArray()
   restDays: RestDays[];
 }
 
 export class CreateEmployeeScheduleByGroupDto extends PickType(CreateEmployeeScheduleDto, ['dateFrom', 'dateTo', 'scheduleId']) {
+  @IsOptional()
+  customGroupId?: CustomGroups;
+
   @IsArray({ each: true })
   employees: { employeeId: string; restDays: RestDays[] }[];
 }

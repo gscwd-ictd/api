@@ -14,12 +14,15 @@ export class CreateLeaveBenefitsDto {
   accumulatedCredits: number;
 
   @IsEnum(CreditDistribution, { message: 'Invalid Credit Distribution' })
+  @IsOptional()
   creditDistribution: CreditDistribution;
 
   @IsBoolean({ message: 'isMonetizable value must only be true of false' })
+  @IsOptional()
   isMonetizable: boolean;
 
   @IsBoolean({ message: 'canBeCarriedOver value must only be true of false' })
+  @IsOptional()
   canBeCarriedOver: boolean;
 
   @IsOptional()

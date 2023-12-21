@@ -40,6 +40,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
         },
         entityManager
       );
+      console.log({ ...employeeSchedule, employeeRestDay });
       return { ...employeeSchedule, employeeRestDay };
     });
     //return employeeRestDay;
@@ -48,10 +49,18 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
   }
 
   async addEmployeeScheduleByGroup(employeeScheduleByGroupDto: CreateEmployeeScheduleByGroupDto) {
-    const { dateFrom, dateTo, scheduleId, employees } = employeeScheduleByGroupDto;
+    const { dateFrom, dateTo, scheduleId, customGroupId, employees } = employeeScheduleByGroupDto;
+
     const employeeSchedules = await Promise.all(
       employees.map(async (employee) => {
-        return await this.addEmployeeSchedule({ dateFrom, dateTo, scheduleId, employeeId: employee.employeeId, restDays: employee.restDays });
+        return await this.addEmployeeSchedule({
+          dateFrom,
+          dateTo,
+          scheduleId,
+          customGroupId,
+          employeeId: employee.employeeId,
+          restDays: employee.restDays,
+        });
       })
     );
     return employeeSchedules;

@@ -115,30 +115,32 @@ export class LeaveService {
 
     if (updateResult.affected > 0) {
       if (status === LeaveApplicationStatus.APPROVED) {
-        const debitValue = await this.leaveCardLedgerDebitService.getDebitValue(id);
+        if (leaveApplicationId.leaveBenefitsId.leaveName !== 'Leave Without Pay') {
+          const debitValue = await this.leaveCardLedgerDebitService.getDebitValue(id);
 
-        const countLeaveLedgerDebit = await this.leaveCardLedgerDebitService
-          .crud()
-          .findOneOrNull({ find: { where: { leaveApplicationId: { id: leaveApplicationId.id } } } });
+          const countLeaveLedgerDebit = await this.leaveCardLedgerDebitService
+            .crud()
+            .findOneOrNull({ find: { where: { leaveApplicationId: { id: leaveApplicationId.id } } } });
 
-        if (countLeaveLedgerDebit === null) {
-          const leaveCardLedgerDebit = await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
-            leaveApplicationId,
-            debitValue,
-          });
-
-          if (leaveApplicationId.leaveBenefitsId.leaveType === 'special leave benefit') {
-            const leaveCreditEarning = await this.leaveCreditEarningsService.addLeaveCreditEarnings({
-              creditDate: dayjs().toDate(),
-              creditValue: debitValue,
-              dailyTimeRecordId: null,
-              employeeId: leaveApplicationId.employeeId,
-              leaveBenefitsId: leaveApplicationId.leaveBenefitsId,
-              remarks: leaveApplicationId.leaveBenefitsId.leaveType,
+          if (countLeaveLedgerDebit === null) {
+            const leaveCardLedgerDebit = await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+              leaveApplicationId,
+              debitValue,
             });
-            const leaveCardLedgerCredit = await this.leaveCardLedgerCreditService.crud().create({
-              dto: { leaveCreditEarningId: leaveCreditEarning },
-            });
+
+            if (leaveApplicationId.leaveBenefitsId.leaveType === 'special leave benefit') {
+              const leaveCreditEarning = await this.leaveCreditEarningsService.addLeaveCreditEarnings({
+                creditDate: dayjs().toDate(),
+                creditValue: debitValue,
+                dailyTimeRecordId: null,
+                employeeId: leaveApplicationId.employeeId,
+                leaveBenefitsId: leaveApplicationId.leaveBenefitsId,
+                remarks: leaveApplicationId.leaveBenefitsId.leaveType,
+              });
+              const leaveCardLedgerCredit = await this.leaveCardLedgerCreditService.crud().create({
+                dto: { leaveCreditEarningId: leaveCreditEarning },
+              });
+            }
           }
         }
       }
