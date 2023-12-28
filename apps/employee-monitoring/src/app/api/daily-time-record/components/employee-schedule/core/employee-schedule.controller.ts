@@ -23,6 +23,7 @@ export class EmployeeScheduleController {
 
   @Post('group')
   async addEmployeeScheduleByGroup(@Body() employeeScheduleByGroupDto: CreateEmployeeScheduleByGroupDto) {
+    console.log('Route For Posting Schedule Group');
     return await this.employeeScheduleService.addEmployeeScheduleByGroup(employeeScheduleByGroupDto);
   }
 

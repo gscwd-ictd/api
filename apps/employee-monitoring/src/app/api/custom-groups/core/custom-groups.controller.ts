@@ -44,6 +44,7 @@ export class CustomGroupsController {
     @Query('date_from') dateFrom: Date,
     @Query('date_to') dateTo: Date
   ) {
+    console.log('accessed cgd route');
     return await this.customGroupsService.getCustomGroupDetails(customGroupId, scheduleId, dateFrom, dateTo);
   }
 

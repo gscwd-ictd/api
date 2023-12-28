@@ -1,8 +1,8 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateEmployeeRestDayDto } from '@gscwd-api/models';
+import { CreateEmployeeRestDayDto, EmployeeRestDay } from '@gscwd-api/models';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import dayjs = require('dayjs');
-import { EmployeeRestDay } from 'libs/models/src/lib/databases/employee-monitoring/data/employee-rest-day/employee-rest-day.entity';
+//import { EmployeeRestDay } from 'libs/models/src/lib/databases/employee-monitoring/data/employee-rest-day/employee-rest-day.entity';
 import { EntityManager } from 'typeorm';
 import { EmployeeRestDaysService } from '../components/employee-rest-days/core/employee-rest-days.service';
 
