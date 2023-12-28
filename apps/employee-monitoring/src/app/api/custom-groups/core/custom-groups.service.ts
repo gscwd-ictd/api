@@ -36,8 +36,8 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
     return await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true);
   }
 
-  async getCustomGroupUnassignedMembersDropDown(customGroupId: string) {
-    const unassignedMembers = (await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true)) as {
+  async getCustomGroupUnassignedMembersDropDown(customGroupId: string, isRankFile: boolean) {
+    const unassignedMembers = (await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true, isRankFile)) as {
       employeeId: string;
       fullName: string;
       positionTitle: string;
@@ -85,7 +85,10 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
     const customGroupDetails = await this.crudService.findOneOrNull({ find: { where: { id: customGroupId } } });
     try {
       let members = [];
-      if (scheduleId && dateFrom && dateTo) {
+
+      if (typeof scheduleId !== 'undefined' && typeof dateFrom !== 'undefined' && typeof dateTo !== 'undefined') {
+        console.log('here here hreasda');
+        console.log(scheduleId, dateFrom, dateTo, customGroupId, 'asd');
         members = (await this.customGroupMembersService.getCustomGroupMembersDetails(scheduleId, dateFrom, dateTo, customGroupId)) as {
           employeeId: string;
           companyId: string;
@@ -93,7 +96,8 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
           positionTitle: string;
           assignment: string;
         }[];
-      } else
+      } else {
+        //   console.log('else');
         members = (await this.getCustomGroupAssignedMembers(customGroupId)) as {
           employeeId: string;
           companyId: string;
@@ -101,7 +105,7 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
           positionTitle: string;
           assignment: string;
         }[];
-
+      }
       const membersWithRestdays = await Promise.all(
         members.map(async (member) => {
           const restDays = (await this.rawQuery(
@@ -125,7 +129,7 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
           return { ...member, restDays: modifiedRestdays };
         })
       );
-
+      console.log({ customGroupDetails, members: membersWithRestdays });
       return { customGroupDetails, members: membersWithRestdays };
     } catch {
       return { customGroupDetails, members: [] };
