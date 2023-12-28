@@ -24,7 +24,9 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
 
   async addEmployeeSchedule(employeeScheduleDto: CreateEmployeeScheduleDto) {
     //transaction
+
     const { restDays, ...restOfEmployeeSchedules } = employeeScheduleDto;
+    console.log('Employee:', employeeScheduleDto);
     const result = await this.dataSource.transaction(async (entityManager) => {
       const employeeSchedule = await this.crud().transact<EmployeeSchedule>(entityManager).create({
         dto: restOfEmployeeSchedules,
@@ -40,6 +42,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
         },
         entityManager
       );
+      console.log({ ...employeeSchedule, employeeRestDay });
       return { ...employeeSchedule, employeeRestDay };
     });
     //return employeeRestDay;
@@ -48,10 +51,19 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
   }
 
   async addEmployeeScheduleByGroup(employeeScheduleByGroupDto: CreateEmployeeScheduleByGroupDto) {
-    const { dateFrom, dateTo, scheduleId, employees } = employeeScheduleByGroupDto;
+    const { dateFrom, dateTo, scheduleId, customGroupId, employees } = employeeScheduleByGroupDto;
+
+    // console.log(employees.length);
     const employeeSchedules = await Promise.all(
       employees.map(async (employee) => {
-        return await this.addEmployeeSchedule({ dateFrom, dateTo, scheduleId, employeeId: employee.employeeId, restDays: employee.restDays });
+        return await this.addEmployeeSchedule({
+          dateFrom,
+          dateTo,
+          scheduleId,
+          customGroupId,
+          employeeId: employee.employeeId,
+          restDays: employee.restDays,
+        });
       })
     );
     return employeeSchedules;
@@ -255,8 +267,11 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     const { employeeId, dateFrom, dateTo } = employeeScheduleDto;
 
     const restDay = await this.employeeRestDayService.crud().findOne({ find: { select: { id: true }, where: { employeeId, dateFrom, dateTo } } });
+
+    console.log('rest day: ', restDay);
     const restDaysDelete = await this.employeeRestDaysService.crud().delete({ deleteBy: { employeeRestDayId: restDay }, softDelete: false });
-    const restDayDelete = await this.employeeRestDayService.crud().delete({ deleteBy: { dateFrom, dateTo, employeeId }, softDelete: false });
+    console.log('rest days: ', restDaysDelete);
+    const restDayDelete = await this.employeeRestDayService.crud().delete({ deleteBy: { id: restDay.id }, softDelete: false });
     const deleteSchedule = await this.crud().delete({
       deleteBy: { dateFrom, dateTo, employeeId },
       softDelete: false,

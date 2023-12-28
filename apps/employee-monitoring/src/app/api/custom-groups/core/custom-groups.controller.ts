@@ -1,6 +1,7 @@
 import { CreateCustomGroupMembersDto, CreateCustomGroupsDto, UpdateCustomGroupsDto } from '@gscwd-api/models';
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { CustomGroupsService } from './custom-groups.service';
+import { ScheduleBase } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'custom-groups' })
 export class CustomGroupsController {
@@ -27,8 +28,8 @@ export class CustomGroupsController {
   }
 
   @Get('/schedule-sheets/')
-  async getAllScheduleSheet() {
-    return await this.customGroupsService.getAllScheduleSheet();
+  async getAllScheduleSheet(@Query('schedule_base') scheduleBase: ScheduleBase) {
+    return await this.customGroupsService.getAllScheduleSheet(scheduleBase);
   }
 
   @Get()
@@ -43,6 +44,7 @@ export class CustomGroupsController {
     @Query('date_from') dateFrom: Date,
     @Query('date_to') dateTo: Date
   ) {
+    console.log('accessed cgd route');
     return await this.customGroupsService.getCustomGroupDetails(customGroupId, scheduleId, dateFrom, dateTo);
   }
 
@@ -51,9 +53,14 @@ export class CustomGroupsController {
     return await this.customGroupsService.getCustomGroupUnassignedMembers(customGroupId);
   }
 
-  @Get(':custom_group_id/unassigned/dropdown')
-  async getCustomGroupUnassignedMembersDropDown(@Param('custom_group_id') customGroupId: string) {
-    return await this.customGroupsService.getCustomGroupUnassignedMembersDropDown(customGroupId);
+  @Get(':custom_group_id/unassigned/dropdown/rank-file')
+  async getCustomGroupUnassignedMembersRankFileDropDown(@Param('custom_group_id') customGroupId: string) {
+    return await this.customGroupsService.getCustomGroupUnassignedMembersDropDown(customGroupId, true);
+  }
+
+  @Get(':custom_group_id/unassigned/dropdown/job-order-cos')
+  async getCustomGroupUnassignedMembersJobOrderCOSDropDown(@Param('custom_group_id') customGroupId: string) {
+    return await this.customGroupsService.getCustomGroupUnassignedMembersDropDown(customGroupId, false);
   }
 
   @Get(':custom_group_id/assigned')

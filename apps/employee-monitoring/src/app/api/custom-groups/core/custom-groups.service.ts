@@ -4,6 +4,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeeRestDaysService } from '../../daily-time-record/components/employee-schedule/components/employee-rest-day/components/employee-rest-days/core/employee-rest-days.service';
 import { ScheduleSheetService } from '../../daily-time-record/components/schedule-sheet/core/schedule-sheet.service';
 import { CustomGroupMembersService } from '../components/custom-group-members/core/custom-group-members.service';
+import { ScheduleBase } from '@gscwd-api/utils';
 
 @Injectable()
 export class CustomGroupsService extends CrudHelper<CustomGroups> {
@@ -35,8 +36,8 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
     return await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true);
   }
 
-  async getCustomGroupUnassignedMembersDropDown(customGroupId: string) {
-    const unassignedMembers = (await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true)) as {
+  async getCustomGroupUnassignedMembersDropDown(customGroupId: string, isRankFile: boolean) {
+    const unassignedMembers = (await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true, isRankFile)) as {
       employeeId: string;
       fullName: string;
       positionTitle: string;
@@ -84,15 +85,19 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
     const customGroupDetails = await this.crudService.findOneOrNull({ find: { where: { id: customGroupId } } });
     try {
       let members = [];
-      if (scheduleId && dateFrom && dateTo) {
-        members = (await this.customGroupMembersService.getCustomGroupMembersDetails(scheduleId, dateFrom, dateTo)) as {
+
+      if (typeof scheduleId !== 'undefined' && typeof dateFrom !== 'undefined' && typeof dateTo !== 'undefined') {
+        console.log('here here hreasda');
+        console.log(scheduleId, dateFrom, dateTo, customGroupId, 'asd');
+        members = (await this.customGroupMembersService.getCustomGroupMembersDetails(scheduleId, dateFrom, dateTo, customGroupId)) as {
           employeeId: string;
           companyId: string;
           fullName: string;
           positionTitle: string;
           assignment: string;
         }[];
-      } else
+      } else {
+        //   console.log('else');
         members = (await this.getCustomGroupAssignedMembers(customGroupId)) as {
           employeeId: string;
           companyId: string;
@@ -100,7 +105,7 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
           positionTitle: string;
           assignment: string;
         }[];
-
+      }
       const membersWithRestdays = await Promise.all(
         members.map(async (member) => {
           const restDays = (await this.rawQuery(
@@ -124,14 +129,14 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
           return { ...member, restDays: modifiedRestdays };
         })
       );
-
+      console.log({ customGroupDetails, members: membersWithRestdays });
       return { customGroupDetails, members: membersWithRestdays };
     } catch {
       return { customGroupDetails, members: [] };
     }
   }
 
-  async getAllScheduleSheet() {
-    return await this.scheduleSheetService.getAllScheduleSheet();
+  async getAllScheduleSheet(scheduleBase: ScheduleBase) {
+    return await this.scheduleSheetService.getAllScheduleSheet(scheduleBase);
   }
 }
