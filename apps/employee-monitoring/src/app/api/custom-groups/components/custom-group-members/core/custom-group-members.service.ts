@@ -79,16 +79,18 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
     return employees;
   }
 
-  async getCustomGroupMembers(customGroupId: string, unassigned: boolean) {
+  async getCustomGroupMembers(customGroupId: string, unassigned: boolean, isRankFile?: boolean) {
     let assignedMembers;
 
     let pattern = '';
     if (unassigned) {
+      if (isRankFile) pattern = 'get_custom_group_unassigned_rank_file_member';
+      else pattern = 'get_custom_group_unassigned_job_order_cos_member';
       assignedMembers = (await this.crudService.findAll({
         find: { select: { employeeId: true } },
         onError: () => new NotFoundException(),
       })) as CustomGroupMembers[];
-      pattern = 'get_custom_group_unassigned_member';
+      //pattern = 'get_custom_group_unassigned_rank_file_member';
     } else {
       assignedMembers = (await this.crudService.findAll({
         find: { select: { employeeId: true }, where: { customGroupId: { id: customGroupId } } },

@@ -36,8 +36,8 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
     return await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true);
   }
 
-  async getCustomGroupUnassignedMembersDropDown(customGroupId: string) {
-    const unassignedMembers = (await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true)) as {
+  async getCustomGroupUnassignedMembersDropDown(customGroupId: string, isRankFile: boolean) {
+    const unassignedMembers = (await this.customGroupMembersService.getCustomGroupMembers(customGroupId, true, isRankFile)) as {
       employeeId: string;
       fullName: string;
       positionTitle: string;

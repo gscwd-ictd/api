@@ -53,9 +53,14 @@ export class CustomGroupsController {
     return await this.customGroupsService.getCustomGroupUnassignedMembers(customGroupId);
   }
 
-  @Get(':custom_group_id/unassigned/dropdown')
-  async getCustomGroupUnassignedMembersDropDown(@Param('custom_group_id') customGroupId: string) {
-    return await this.customGroupsService.getCustomGroupUnassignedMembersDropDown(customGroupId);
+  @Get(':custom_group_id/unassigned/dropdown/rank-file')
+  async getCustomGroupUnassignedMembersRankFileDropDown(@Param('custom_group_id') customGroupId: string) {
+    return await this.customGroupsService.getCustomGroupUnassignedMembersDropDown(customGroupId, true);
+  }
+
+  @Get(':custom_group_id/unassigned/dropdown/job-order-cos')
+  async getCustomGroupUnassignedMembersJobOrderCOSDropDown(@Param('custom_group_id') customGroupId: string) {
+    return await this.customGroupsService.getCustomGroupUnassignedMembersDropDown(customGroupId, false);
   }
 
   @Get(':custom_group_id/assigned')
