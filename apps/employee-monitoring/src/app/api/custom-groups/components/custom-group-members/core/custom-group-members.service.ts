@@ -54,7 +54,6 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
       pattern: 'get_custom_group_assigned_member',
       onError: (error) => new NotFoundException(error),
     });
-
     return employees;
   }
 
