@@ -109,10 +109,6 @@ export class CreateTrainingExternalDto extends CreateTrainingDetailsDto {
   @IsOptional()
   @IsArray()
   bucketFiles: Array<string>;
-
-  @IsOptional()
-  @IsDateString()
-  deadlineForSubmission: Date;
 }
 
 export class UpdateTrainingInternalDto extends PartialType(CreateTrainingInternalDto) {

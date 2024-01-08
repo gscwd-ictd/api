@@ -6,8 +6,8 @@ import { SubmissionToSecretariateDto } from '@gscwd-api/models';
 export class TrainingApprovalsController {
   constructor(private readonly trainingApprovalsService: TrainingApprovalsService) {}
 
-  //
-  @Post()
+  //submission to secretariate
+  @Post('secretariate')
   async submissionToSecretariate(@Body() data: SubmissionToSecretariateDto) {
     return await this.trainingApprovalsService.submissionToSecretariate(data);
   }
