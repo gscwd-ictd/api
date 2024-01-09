@@ -21,7 +21,6 @@ import { OvertimeApprovalService } from '../components/overtime-approval/core/ov
 import { OvertimeEmployeeService } from '../components/overtime-employee/core/overtime-employee.service';
 import { OvertimeImmediateSupervisorService } from '../components/overtime-immediate-supervisor/core/overtime-immediate-supervisor.service';
 import { getDayRange1stHalf, getDayRange2ndHalf } from '@gscwd-api/utils';
-import { runInThisContext } from 'vm';
 
 @Injectable()
 export class OvertimeService {
@@ -338,6 +337,7 @@ export class OvertimeService {
   }
 
   async getOvertimeEmployeeDetails(overtimeApplications: OvertimeApplication[]) {
+    console.log('details');
     return await Promise.all(
       overtimeApplications.map(async (overtime) => {
         const { overtimeImmediateSupervisorId, ...rest } = overtime;
@@ -353,7 +353,7 @@ export class OvertimeService {
         const employeesDetails = (await Promise.all(
           employees.map(async (employee) => {
             const { employeeId } = employee;
-
+            console.log(employeeId);
             const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
             const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
             const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
@@ -390,7 +390,10 @@ export class OvertimeService {
   }
 
   async getOvertimeApplicationsByImmediateSupervisorId(id: string) {
+    console.log('approved');
     const approvedOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.APPROVED);
+
+    console.log('for approval');
     const forApprovalOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.PENDING);
 
     const approvedOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(approvedOvertimes);
@@ -418,7 +421,6 @@ export class OvertimeService {
         },
       })) as OvertimeApplication[];
 
-      //console.log(overtimes);
       const result = await Promise.all(
         overtimes.map(async (overtime) => {
           const { overtimeImmediateSupervisorId, ...rest } = overtime;
@@ -431,8 +433,6 @@ export class OvertimeService {
 
           console.log(overtimeImmediateSupervisorId.employeeId);
           const immediateSupervisorName = await this.employeeService.getEmployeeName(overtimeImmediateSupervisorId.employeeId);
-
-          //console.log(employees.length);
 
           const _employeesDetails = (await Promise.all(
             employees.map(async (employee) => {
@@ -457,8 +457,6 @@ export class OvertimeService {
                   [employeeId, overtime.id]
                 )
               )[0];
-
-              //console.log(isAccomplishmentSubmitted, status);
 
               return {
                 employeeId,
@@ -507,6 +505,7 @@ export class OvertimeService {
   }
 
   async getOvertimeDetails(employeeId: string, overtimeApplicationId: string) {
+    console.log(employeeId);
     const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
 
     const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
@@ -604,10 +603,10 @@ export class OvertimeService {
           100;
       }
       if (computedIvmsHours >= 4) {
-        computedEncodedHours =
+        computedIvmsHours =
           dtr.schedule.lunchOut !== null
-            ? Math.round(computedIvmsHours - (computedIvmsHours - parseInt((computedIvmsHours / 4).toString()) * 4) * 100) / 100
-            : Math.round(computedIvmsHours - (computedIvmsHours - parseInt((computedIvmsHours / 4).toString()) * 4) * 100) / 100;
+            ? (this.getComputedHours(computedIvmsHours) * 100) / 100
+            : (this.getComputedHours(computedIvmsHours) * 100) / 100;
       }
     }
 
@@ -639,11 +638,10 @@ export class OvertimeService {
           100;
       }
       if (computedEncodedHours > 4) {
-        console.log(computedEncodedHours);
         computedEncodedHours =
           dtr.schedule.lunchOut !== null
-            ? (Math.round(computedEncodedHours - (computedEncodedHours - parseInt((computedEncodedHours / 4).toString()) * 4)) * 100) / 100
-            : (Math.round(computedEncodedHours - (computedEncodedHours - parseInt((computedEncodedHours / 4).toString()) * 4)) * 100) / 100;
+            ? (this.getComputedHours(computedEncodedHours) * 100) / 100
+            : (this.getComputedHours(computedEncodedHours) * 100) / 100;
       }
     }
 
@@ -937,11 +935,8 @@ export class OvertimeService {
       })
     );
 
-    //const overtimeApproval = await this.overtimeApprovalService.rawQuery(``, []);
     const managerId = (await this.employeeService.getEmployeeSupervisorId(immediateSupervisorEmployeeId)).toString();
     const supervisorAndManagerNames = await this.employeeService.getEmployeeAndSupervisorName(immediateSupervisorEmployeeId, managerId);
-
-    console.log('🍆 🍆 🍆 🍆 🍆', overtimeApplication, employees, supervisorAndManagerNames);
 
     const supervisorPosition = await (await this.employeeService.getEmployeeDetails(managerId)).assignment.positionTitle;
 
@@ -1248,5 +1243,13 @@ export class OvertimeService {
       if (updateOvertimeApprovalResult.affected > 0) return { cancelledOvertimeApplication: id };
     }
     return;
+  }
+
+  private getComputedHours(hours: number) {
+    let deduction = 0;
+    for (let i = 4; i <= hours; i++) {
+      if (i % 5 === 0) deduction += 1;
+    }
+    return hours - deduction;
   }
 }

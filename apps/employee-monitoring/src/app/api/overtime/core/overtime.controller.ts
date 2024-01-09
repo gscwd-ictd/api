@@ -5,7 +5,6 @@ import {
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
-import { UserLogsInterceptor } from '../../user-logs/misc/interceptors/user-logs.interceptor';
 import { OvertimeService } from './overtime.service';
 
 //@UseInterceptors(UserLogsInterceptor)

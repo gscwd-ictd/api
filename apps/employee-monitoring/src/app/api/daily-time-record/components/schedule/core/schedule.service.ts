@@ -152,7 +152,6 @@ export class ScheduleService extends CrudHelper<Schedule> {
     );
 
     await this.rawQuery(`DELETE FROM employee_rest_day WHERE employee_id_fk IN (?);`, [employeeIdsArray]);
-    //const restDay = await this.employeeRestDayService.crud().findOneBy({findBy:{ dateFrom: dayjs(dateFrom).toDate(),dateTo: dayjs(dateTo).toDate(),employeeId}})
 
     console.log(deleteEmployeeCustomGroupResult);
     //
