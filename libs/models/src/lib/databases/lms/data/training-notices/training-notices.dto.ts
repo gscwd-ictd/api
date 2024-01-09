@@ -134,10 +134,6 @@ export class TrainingNoticeExternalDto {
   numberOfHours: number;
 
   @IsNotEmpty()
-  @IsDateString()
-  deadlineForSubmission: Date;
-
-  @IsNotEmpty()
   @IsInt({ message: 'training number of participants must be a number' })
   numberOfParticipants: number;
 

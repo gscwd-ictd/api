@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, Get, Logger, Param, Patch, Post } from '@nestjs/common';
 import { TrainingNomineesService } from './training-nominees.service';
-import { CreateTrainingNomineeDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
+import { CreateTrainingBatchDto, CreateTrainingNomineeDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'training-nominees' })
 export class TrainingNomineesController {
@@ -12,9 +12,28 @@ export class TrainingNomineesController {
     return await this.trainingNomineesService.create(data);
   }
 
+  // find all training nominee by training id (nominee type = nominee & preparation status = on going nomination)
   @Get(':id')
   async findAllNomineeByTrainingId(@Param('id') trainingId: string) {
     return await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId);
+  }
+
+  // find all accepted training nominee by training id (nominee type = nominee & preparation status = on going nomination)
+  @Get(':id/accepted')
+  async findAllAcceptedNomineeByTrainingId(@Param('id') trainingId: string) {
+    return await this.trainingNomineesService.findAllAcceptedNomineeByTrainingId(trainingId);
+  }
+
+  // update all accepted training nominees by batch
+  @Post('batch')
+  async createTrainingNomineeBatch(@Body() data: Array<CreateTrainingBatchDto>) {
+    return await this.trainingNomineesService.createTrainingNomineeBatch(data);
+  }
+
+  // find all accepted training nominee by training id (nominee type = nominee & preparation status = on going nomination)
+  @Get(':id/batch')
+  async findAllBatchByTrainingId(@Param('id') trainingId: string) {
+    return await this.trainingNomineesService.findAllBatchByTrainingId(trainingId);
   }
 
   // test microservice in find all training by employee id

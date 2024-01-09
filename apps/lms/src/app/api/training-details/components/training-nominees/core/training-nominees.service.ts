@@ -1,9 +1,9 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingNomineeDto, TrainingNominee } from '@gscwd-api/models';
+import { CreateTrainingBatchDto, CreateTrainingNomineeDto, TrainingNominee } from '@gscwd-api/models';
 import { NomineeType, TrainingNomineeStatus, TrainingPreparationStatus } from '@gscwd-api/utils';
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
-import { DataSource, Not } from 'typeorm';
+import { DataSource, IsNull, Not } from 'typeorm';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
@@ -88,7 +88,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     );
   }
 
-  // find all training nominee by training id (nominee type = nominee)
+  // find all training nominee by training id (nominee type = nominee & preparation status = ojohnn going nomination)
   async findAllNomineeByTrainingId(trainingId: string) {
     const distribution = (await this.crudService.findAll({
       find: {
@@ -106,7 +106,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         },
         where: {
           nomineeType: NomineeType.NOMINEE,
-          trainingDistribution: { trainingDetails: { id: trainingId, trainingPreparationStatus: Not(TrainingPreparationStatus.PENDING) } },
+          trainingDistribution: {
+            trainingDetails: { id: trainingId, trainingPreparationStatus: Not(TrainingPreparationStatus.PENDING) },
+          },
         },
       },
       onError: () => new NotFoundException(),
@@ -121,6 +123,54 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           employeeId: distributionItems.employeeId,
           name: employeeName.fullName,
           status: distributionItems.status,
+          remarks: distributionItems.remarks,
+          supervisor: {
+            supervisorId: distributionItems.trainingDistribution.supervisorId,
+            name: supervisorName.fullName,
+          },
+        };
+      })
+    );
+  }
+
+  // find all accepted training nominee by training id (nominee type = nominee & preparation status = on going nomination)
+  async findAllAcceptedNomineeByTrainingId(trainingId: string) {
+    const distribution = (await this.crudService.findAll({
+      find: {
+        relations: { trainingDistribution: true },
+        select: {
+          id: true,
+          trainingDistribution: {
+            id: true,
+            supervisorId: true,
+          },
+          employeeId: true,
+          status: true,
+          nomineeType: true,
+          remarks: true,
+        },
+        where: {
+          nomineeType: NomineeType.NOMINEE,
+          status: TrainingNomineeStatus.ACCEPTED,
+          trainingDistribution: {
+            trainingDetails: { id: trainingId, trainingPreparationStatus: Not(TrainingPreparationStatus.PENDING) },
+          },
+        },
+      },
+      onError: () => new NotFoundException(),
+    })) as Array<TrainingNominee>;
+
+    return await Promise.all(
+      distribution.map(async (distributionItems) => {
+        const supervisorName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.trainingDistribution.supervisorId);
+        const employeeName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.employeeId);
+
+        return {
+          nomineeId: distributionItems.id,
+          employeeId: distributionItems.employeeId,
+          name: employeeName.fullName,
+          status: distributionItems.status,
+          remarks: distributionItems.remarks,
           supervisor: {
             supervisorId: distributionItems.trainingDistribution.supervisorId,
             name: supervisorName.fullName,
@@ -164,5 +214,65 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         };
       })
     );
+  }
+
+  // update all accepted training nominees by batch
+  async createTrainingNomineeBatch(data: Array<CreateTrainingBatchDto>) {
+    try {
+      // transaction result
+      return await this.datasource.transaction(async (entityManager) => {
+        //map data
+        await Promise.all(
+          data.map(async (batchItems) => {
+            //deconstruct batch items
+            const { employees, batchNumber, trainingDate } = batchItems;
+
+            return await Promise.all(
+              employees.map(async (employeeItems) => {
+                //deconstruct employee items
+                const { nomineeId } = employeeItems;
+
+                //transaction update
+                return await this.crudService.transact<TrainingNominee>(entityManager).update({
+                  updateBy: { id: nomineeId },
+                  dto: { batchNumber: batchNumber, trainingStart: trainingDate.from, trainingEnd: trainingDate.to },
+                  onError: (error) => {
+                    throw error;
+                  },
+                });
+              })
+            );
+          })
+        );
+
+        return data;
+      });
+    } catch (error) {
+      Logger.log(error);
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async findAllBatchByTrainingId(trainingId: string) {
+    try {
+      const batch = (await this.crudService.findAll({
+        find: {
+          select: {
+            batchNumber: true,
+            trainingStart: true,
+            trainingEnd: true,
+          },
+          where: {
+            batchNumber: Not(IsNull()),
+            trainingDistribution: { trainingDetails: { id: trainingId } },
+          },
+        },
+      })) as Array<TrainingNominee>;
+
+      return batch;
+    } catch (error) {
+      Logger.log(error);
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
   }
 }

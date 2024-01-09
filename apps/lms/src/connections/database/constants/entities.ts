@@ -8,6 +8,7 @@ import {
   LspProject,
   LspTraining,
   Tag,
+  TrainingApproval,
   TrainingDesign,
   TrainingDetails,
   TrainingDistribution,
@@ -43,6 +44,7 @@ export const DB_ENTITIES = [
   TrainingDistribution,
   TrainingRecommendedEmployee,
   TrainingNominee,
+  TrainingApproval,
 
   // views
 ];
