@@ -48,7 +48,7 @@ export class CreateTrainingDetailsDto {
 
   @IsOptional()
   @IsString({ message: 'training location must be a string' })
-  @Length(1, 100, { message: 'training location must be between 1 to 100 characters' })
+  @Length(1, 500, { message: 'training location must be between 1 to 500 characters' })
   location: string;
 
   @IsOptional()

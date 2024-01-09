@@ -30,6 +30,12 @@ export class TrainingNomineesController {
     return await this.trainingNomineesService.createTrainingNomineeBatch(data);
   }
 
+  // find all accepted training nominee by training id (nominee type = nominee & preparation status = on going nomination)
+  @Get(':id/batch')
+  async findAllBatchByTrainingId(@Param('id') trainingId: string) {
+    return await this.trainingNomineesService.findAllBatchByTrainingId(trainingId);
+  }
+
   // test microservice in find all training by employee id
   @Get('employee/:id')
   async findAllTrainingByEmployeeId(@Param('id') employeeId: string) {

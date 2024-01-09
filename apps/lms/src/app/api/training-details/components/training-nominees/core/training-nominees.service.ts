@@ -3,7 +3,7 @@ import { CreateTrainingBatchDto, CreateTrainingNomineeDto, TrainingNominee } fro
 import { NomineeType, TrainingNomineeStatus, TrainingPreparationStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
-import { DataSource, Not } from 'typeorm';
+import { DataSource, IsNull, Not } from 'typeorm';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
@@ -247,6 +247,29 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
 
         return data;
       });
+    } catch (error) {
+      Logger.log(error);
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async findAllBatchByTrainingId(trainingId: string) {
+    try {
+      const batch = (await this.crudService.findAll({
+        find: {
+          select: {
+            batchNumber: true,
+            trainingStart: true,
+            trainingEnd: true,
+          },
+          where: {
+            batchNumber: Not(IsNull()),
+            trainingDistribution: { trainingDetails: { id: trainingId } },
+          },
+        },
+      })) as Array<TrainingNominee>;
+
+      return batch;
     } catch (error) {
       Logger.log(error);
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
