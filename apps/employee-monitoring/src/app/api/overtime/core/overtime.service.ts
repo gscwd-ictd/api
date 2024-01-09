@@ -935,11 +935,8 @@ export class OvertimeService {
       })
     );
 
-    //const overtimeApproval = await this.overtimeApprovalService.rawQuery(``, []);
     const managerId = (await this.employeeService.getEmployeeSupervisorId(immediateSupervisorEmployeeId)).toString();
     const supervisorAndManagerNames = await this.employeeService.getEmployeeAndSupervisorName(immediateSupervisorEmployeeId, managerId);
-
-    console.log('🍆 🍆 🍆 🍆 🍆', overtimeApplication, employees, supervisorAndManagerNames);
 
     const supervisorPosition = await (await this.employeeService.getEmployeeDetails(managerId)).assignment.positionTitle;
 
