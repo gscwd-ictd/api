@@ -30,6 +30,7 @@ export enum TrainingPreparationStatus {
 export enum TrainingStatus {
   UPCOMING = 'upcoming',
   ONGOING = 'on going',
+  REQUIREMENTS_SUBMISSION = 'requirements submission',
   COMPLETED = 'completed',
 }
 
