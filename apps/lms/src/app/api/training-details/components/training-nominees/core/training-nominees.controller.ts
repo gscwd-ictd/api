@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, Get, Logger, Param, Patch, Post } from '@nestjs/common';
 import { TrainingNomineesService } from './training-nominees.service';
-import { CreateTrainingBatchDto, CreateTrainingNomineeDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
+import { CreateTrainingBatchDto, CreateTrainingNomineeDto, UpdateTrainingBatchDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'training-nominees' })
 export class TrainingNomineesController {
@@ -24,13 +24,19 @@ export class TrainingNomineesController {
     return await this.trainingNomineesService.findAllAcceptedNomineeByTrainingId(trainingId);
   }
 
-  // update all accepted training nominees by batch
+  // create training nominee batching
   @Post('batch')
   async createTrainingNomineeBatch(@Body() data: Array<CreateTrainingBatchDto>) {
     return await this.trainingNomineesService.createTrainingNomineeBatch(data);
   }
 
-  // find all accepted training nominee by training id (nominee type = nominee & preparation status = on going nomination)
+  // update training nominee batching
+  @Patch('batch')
+  async updateTrainingNomineeBatch(@Body() data: Array<UpdateTrainingBatchDto>) {
+    return await this.trainingNomineesService.updateTrainingNomineeBatch(data);
+  }
+
+  // find all accepted training batch nominee by training id (nominee type = nominee & preparation status = on going nomination)
   @Get(':id/batch')
   async findAllBatchByTrainingId(@Param('id') trainingId: string) {
     return await this.trainingNomineesService.findAllBatchByTrainingId(trainingId);

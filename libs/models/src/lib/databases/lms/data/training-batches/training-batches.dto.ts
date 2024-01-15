@@ -1,3 +1,4 @@
+import { PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsDateString, IsInt, IsNotEmpty, IsObject, IsUUID, ValidateNested } from 'class-validator';
 
@@ -34,3 +35,5 @@ export class CreateTrainingBatchDto {
   @Type(() => BatchEmployeeDto)
   employees: Array<BatchEmployeeDto>;
 }
+
+export class UpdateTrainingBatchDto extends PartialType(CreateTrainingBatchDto) {}
