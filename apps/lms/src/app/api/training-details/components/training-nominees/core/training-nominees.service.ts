@@ -304,7 +304,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
 
           return {
             batchNumber: batchItems.batchNumber,
-            date: {
+            trainingDate: {
               from: batchItems.trainingStart,
               to: batchItems.trainingEnd,
             },
