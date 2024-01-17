@@ -284,16 +284,34 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
 
       return await Promise.all(
         distinctBatch.map(async (batchItems) => {
-          const supervisorName = await this.hrmsEmployeesService.findEmployeesById(batchItems.trainingDistribution.supervisorId);
-          const employeeName = await this.hrmsEmployeesService.findEmployeesById(batchItems.employeeId);
+          const batchEmployees = (await this.crudService.findAll({
+            find: {
+              relations: { trainingDistribution: true },
+              select: {
+                id: true,
+                employeeId: true,
+                trainingDistribution: {
+                  id: true,
+                  supervisorId: true,
+                },
+              },
+              where: {
+                batchNumber: batchItems.batchNumber,
+                trainingDistribution: { trainingDetails: { id: trainingId } },
+              },
+            },
+          })) as Array<TrainingNominee>;
 
           const employees = await Promise.all(
-            distinctBatch.map(async (employeeItems) => {
+            batchEmployees.map(async (employeeItems) => {
+              const supervisorName = await this.hrmsEmployeesService.findEmployeesById(employeeItems.trainingDistribution.supervisorId);
+              const employeeName = await this.hrmsEmployeesService.findEmployeesById(employeeItems.employeeId);
+
               return {
                 nomineeId: employeeItems.id,
                 employeeId: employeeItems.employeeId,
                 name: employeeName.fullName,
-                distributionId: batchItems.trainingDistribution.id,
+                distributionId: employeeItems.trainingDistribution.id,
                 supervisor: {
                   supervisorId: employeeItems.trainingDistribution.supervisorId,
                   name: supervisorName.fullName,
@@ -308,7 +326,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
               from: batchItems.trainingStart,
               to: batchItems.trainingEnd,
             },
-            employees: employees,
+            employees,
           };
         })
       );
