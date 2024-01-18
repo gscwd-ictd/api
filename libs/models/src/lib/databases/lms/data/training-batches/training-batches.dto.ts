@@ -18,7 +18,7 @@ export class BatchEmployeeDto {
   nomineeId: string;
 }
 
-export class CreateTrainingBatchDto {
+export class TrainingBatchDto {
   @IsNotEmpty()
   @IsInt()
   batchNumber: number;
@@ -34,6 +34,18 @@ export class CreateTrainingBatchDto {
   @ValidateNested({ each: true })
   @Type(() => BatchEmployeeDto)
   employees: Array<BatchEmployeeDto>;
+}
+
+export class CreateTrainingBatchDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  trainingId: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TrainingBatchDto)
+  batches: Array<TrainingBatchDto>;
 }
 
 export class UpdateTrainingBatchDto extends PartialType(CreateTrainingBatchDto) {}
