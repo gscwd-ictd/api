@@ -1,14 +1,16 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingBatchDto, CreateTrainingNomineeDto, TrainingNominee, UpdateTrainingBatchDto } from '@gscwd-api/models';
+import { CreateTrainingBatchDto, CreateTrainingNomineeDto, TrainingDetails, TrainingNominee, UpdateTrainingBatchDto } from '@gscwd-api/models';
 import { NomineeType, TrainingNomineeStatus, TrainingPreparationStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { DataSource, IsNull, Not } from 'typeorm';
+import { TrainingDetailsService } from '../../../core/training-details.service';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   constructor(
     private readonly crudService: CrudService<TrainingNominee>,
+    private readonly trainingDetailsService: TrainingDetailsService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
     private readonly datasource: DataSource
   ) {
@@ -218,13 +220,29 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   }
 
   // create training nominee batching
-  async createTrainingNomineeBatch(data: Array<CreateTrainingBatchDto>) {
+  async createTrainingNomineeBatch(data: CreateTrainingBatchDto) {
     try {
+      const { trainingId, batches } = data;
       // transaction result
+
       return await this.datasource.transaction(async (entityManager) => {
+        //update training details preparation status
+        await this.trainingDetailsService
+          .crud()
+          .transact<TrainingDetails>(entityManager)
+          .update({
+            updateBy: { id: trainingId },
+            dto: {
+              trainingPreparationStatus: TrainingPreparationStatus.DONE_BATCHING,
+            },
+            onError: (error) => {
+              throw error;
+            },
+          });
+
         //map data
         await Promise.all(
-          data.map(async (batchItems) => {
+          batches.map(async (batchItems) => {
             //deconstruct batch items
             const { employees, batchNumber, trainingDate } = batchItems;
 
@@ -236,7 +254,11 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
                 //transaction update
                 return await this.crudService.transact<TrainingNominee>(entityManager).update({
                   updateBy: { id: nomineeId },
-                  dto: { batchNumber: batchNumber, trainingStart: trainingDate.from, trainingEnd: trainingDate.to },
+                  dto: {
+                    batchNumber: batchNumber,
+                    trainingStart: trainingDate.from,
+                    trainingEnd: trainingDate.to,
+                  },
                   onError: (error) => {
                     throw error;
                   },
@@ -270,6 +292,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
               id: true,
               supervisorId: true,
             },
+          },
+          order: {
+            batchNumber: 'ASC',
           },
           where: {
             batchNumber: Not(IsNull()),
@@ -337,13 +362,13 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   }
 
   // update training nominee batch
-  async updateTrainingNomineeBatch(data: Array<UpdateTrainingBatchDto>) {
+  async updateTrainingNomineeBatch(data: UpdateTrainingBatchDto) {
     try {
       // transaction result
       return await this.datasource.transaction(async (entityManager) => {
         //map data
         await Promise.all(
-          data.map(async (batchItems) => {
+          data.batches.map(async (batchItems) => {
             //deconstruct batch items
             const { employees, batchNumber, trainingDate } = batchItems;
 

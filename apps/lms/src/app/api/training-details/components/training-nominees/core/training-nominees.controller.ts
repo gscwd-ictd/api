@@ -26,13 +26,13 @@ export class TrainingNomineesController {
 
   // create training nominee batching
   @Post('batch')
-  async createTrainingNomineeBatch(@Body() data: Array<CreateTrainingBatchDto>) {
+  async createTrainingNomineeBatch(@Body() data: CreateTrainingBatchDto) {
     return await this.trainingNomineesService.createTrainingNomineeBatch(data);
   }
 
   // update training nominee batching
   @Patch('batch')
-  async updateTrainingNomineeBatch(@Body() data: Array<UpdateTrainingBatchDto>) {
+  async updateTrainingNomineeBatch(@Body() data: UpdateTrainingBatchDto) {
     return await this.trainingNomineesService.updateTrainingNomineeBatch(data);
   }
 
