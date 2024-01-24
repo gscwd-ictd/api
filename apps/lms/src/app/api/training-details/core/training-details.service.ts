@@ -12,7 +12,6 @@ import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
 import { TrainingLspDetailsService } from '../components/training-lsp-details';
 import { TrainingPreparationStatus } from '@gscwd-api/utils';
-import { TrainingApprovalsService } from '../components/training-approvals';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -21,7 +20,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly trainingLspDetailsService: TrainingLspDetailsService,
     private readonly trainingTagsService: TrainingTagsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
-    private readonly trainingApprovalsService: TrainingApprovalsService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -80,14 +78,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
               entityManager
             );
           })
-        );
-
-        //insert training approval
-        await this.trainingApprovalsService.create(
-          {
-            trainingDetails,
-          },
-          entityManager
         );
 
         return data;
@@ -162,14 +152,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
               entityManager
             );
           })
-        );
-
-        //insert training approval
-        await this.trainingApprovalsService.create(
-          {
-            trainingDetails,
-          },
-          entityManager
         );
 
         return data;

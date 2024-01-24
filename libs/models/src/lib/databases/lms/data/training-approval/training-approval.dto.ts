@@ -1,15 +1,14 @@
 import { IsNotEmpty, IsNotEmptyObject, IsObject, IsUUID, ValidateNested } from 'class-validator';
-import { TrainingDetails } from '../training-details/training-details.entity';
 import { TrainingDetailsDto } from '../training-details';
 import { Type } from 'class-transformer';
 
 export class CreateTrainingApprovalDto {
   @IsNotEmpty()
   @IsUUID('4')
-  trainingDetails: TrainingDetails;
+  trainingDetails: TrainingDetailsDto;
 }
 
-export class SubmissionToSecretariateDto {
+export class PdcSecretaryDto {
   @IsNotEmpty()
   @IsUUID('all')
   pdcSecretary: string;
@@ -21,7 +20,7 @@ export class SubmissionToSecretariateDto {
   trainingDetails: TrainingDetailsDto;
 }
 
-export class SubmissionToChairmanDto {
+export class PdcChairmanDto {
   @IsNotEmpty()
   @IsUUID('all')
   pdcChairman: string;

@@ -11,6 +11,7 @@ import { PortalEmployeesModule } from './services/portal';
 import { HrmsEmployeeTagsModule, HrmsEmployeesModule } from './services/hrms';
 import { TrainingNoticesModule } from './api/training-notices';
 import { TrainingNomineesModule } from './api/training-details/components/training-nominees';
+import { TrainingApprovalsModule } from './api/training-details/components/training-approvals';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { TrainingNomineesModule } from './api/training-details/components/traini
     TrainingDetailsModule,
     TrainingNoticesModule,
     TrainingNomineesModule,
+    TrainingApprovalsModule,
     //tags
     TagsModule,
 
