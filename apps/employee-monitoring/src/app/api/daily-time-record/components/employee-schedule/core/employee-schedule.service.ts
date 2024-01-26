@@ -26,11 +26,12 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     //transaction
 
     const { restDays, ...restOfEmployeeSchedules } = employeeScheduleDto;
-    console.log('Employee:', employeeScheduleDto);
+    console.log('Employee DTO: ', employeeScheduleDto);
     const result = await this.dataSource.transaction(async (entityManager) => {
       const employeeSchedule = await this.crud().transact<EmployeeSchedule>(entityManager).create({
         dto: restOfEmployeeSchedules,
       });
+
       const { dateFrom, dateTo, employeeId } = restOfEmployeeSchedules;
       //1. Create Employee Schedule
       const employeeRestDay = await this.employeeRestDayService.addEmployeeRestDayTransaction(
@@ -103,7 +104,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     FROM employee_schedule es 
     INNER JOIN schedule s ON s.schedule_id = es.schedule_id_fk 
     LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
-    RIGHT JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
+    INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
     WHERE emr.employee_id_fk = ? AND emr.date_from = es.date_from AND emr.date_to = es.date_to 
     GROUP BY s.schedule_id,es.created_at,emr.employee_rest_day_id,scheduleRange 
     ORDER BY DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC;`,
@@ -206,7 +207,8 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
     INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
     WHERE s.schedule_id = ? AND ( ? BETWEEN emr.date_from AND emr.date_to ) AND ( ? BETWEEN es.date_from AND es.date_to ) 
-    GROUP BY s.schedule_id,es.created_at,dateFrom,dateTo,scheduleRange,es.date_from,es.date_to ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, DATE_FORMAT(es.date_to,'%Y-%m-%d') ASC LIMIT 1`,
+    GROUP BY s.schedule_id,es.created_at,dateFrom,dateTo,scheduleRange,es.date_from,es.date_to ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, 
+    DATE_FORMAT(es.date_to,'%Y-%m-%d') ASC LIMIT 1`,
         [scheduleId, currDateString, currDateString]
       )
     )[0];
