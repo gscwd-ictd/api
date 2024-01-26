@@ -133,7 +133,15 @@ export class ReportsService {
           await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
         )[0];
         const { forcedLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
-        return { companyId, name: label, forcedLeaveBalance: parseFloat(forcedLeaveBalance), vacationLeaveBalance: parseFloat(vacationLeaveBalance) };
+        return {
+          companyId,
+          name: label,
+          forcedLeaveBalance: parseFloat(forcedLeaveBalance).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+          vacationLeaveBalance: parseFloat(vacationLeaveBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        };
       })
     );
     return vlFlBalance;
@@ -154,17 +162,20 @@ export class ReportsService {
 
         const totalVacationLeave = parseFloat(
           (parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance)).toLocaleString(undefined, {
-            minimumFractionDigits: 3,
-            maximumFractionDigits: 3,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
           })
         );
 
         return {
           companyId,
           name: label,
-          sickLeaveBalance: parseFloat(sickLeaveBalance),
-          vacationLeaveBalance: totalVacationLeave,
-          totalLeaveBalance: totalVacationLeave + parseFloat(sickLeaveBalance),
+          sickLeaveBalance: parseFloat(sickLeaveBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          vacationLeaveBalance: totalVacationLeave.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          totalLeaveBalance: (totalVacationLeave + parseFloat(sickLeaveBalance)).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
         };
       })
     );
@@ -186,22 +197,30 @@ export class ReportsService {
         const monthlyRate = ((await this.employeesService.getMonthlyHourlyRateByEmployeeId(value)) as { monthlyRate: number }).monthlyRate;
         const totalVacationLeave = parseFloat(
           (parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance)).toLocaleString(undefined, {
-            minimumFractionDigits: 3,
-            maximumFractionDigits: 3,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
           })
         );
 
         return {
           companyId,
           name: label,
-          sickLeaveBalance: totalVacationLeave,
-          totalLeaveBalance: totalVacationLeave + parseFloat(sickLeaveBalance),
+          vacationLeaveBalance: totalVacationLeave.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          sickLeaveBalance: sickLeaveBalance.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+          totalLeaveBalance: (totalVacationLeave + parseFloat(sickLeaveBalance)).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
           monthlyRate: monthlyRate.toLocaleString(),
-          conversion: parseFloat(
-            (monthlyRate * (totalVacationLeave + parseFloat(sickLeaveBalance)) * 0.0481927).toLocaleString(undefined, {
+          conversion: (parseFloat((monthlyRate * (totalVacationLeave + parseFloat(sickLeaveBalance))).toString()) * 0.0481927).toLocaleString(
+            undefined,
+            {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            })
+            }
           ),
         };
       })

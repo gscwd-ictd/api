@@ -780,7 +780,7 @@ export class OvertimeService {
           overtimeEmployeeId: {
             id: true,
             employeeId: true,
-            overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true },
+            overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true, estimatedHours: true },
           },
           remarks: true,
           status: true,
@@ -807,12 +807,18 @@ export class OvertimeService {
         const { overtimeApplicationId, employeeId } = overtimeEmployeeId;
         const { estimatedHours, plannedDate, purpose } = overtimeApplicationId;
 
+        const dateOfOTApproval = dayjs(
+          (await this.overtimeApprovalService.crud().findAll({ find: { select: { dateApproved: true }, where: { overtimeApplicationId } } }))[0]
+            .dateApproved
+        ).format('YYYY-MM-DD');
+
         const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
 
         return {
           ...overtimeAccomplishmentDetails,
           overtimeApplicationId: overtimeApplicationId.id,
           estimatedHours,
+          dateOfOTApproval,
           plannedDate,
           employeeId,
           purpose,
@@ -828,7 +834,7 @@ export class OvertimeService {
           overtimeEmployeeId: {
             id: true,
             employeeId: true,
-            overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true },
+            overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true, estimatedHours: true },
           },
           remarks: true,
           status: true,
@@ -857,11 +863,17 @@ export class OvertimeService {
 
         const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
 
+        const dateOfOTApproval = dayjs(
+          (await this.overtimeApprovalService.crud().findAll({ find: { select: { dateApproved: true }, where: { overtimeApplicationId } } }))[0]
+            .dateApproved
+        ).format('YYYY-MM-DD');
+
         return {
           ...overtimeAccomplishmentDetails,
           overtimeApplicationId: overtimeApplicationId.id,
           estimatedHours,
           plannedDate,
+          dateOfOTApproval,
           employeeId,
           purpose,
           remarks,
@@ -952,7 +964,6 @@ export class OvertimeService {
     let overallNightDifferentialAmount = 0;
     let overallTotalOTAmount = 0;
     let overallSubstituteDutyOTAmount = 0;
-    //console.log(numOfDays);
 
     const days =
       half === OvertimeSummaryHalf.FIRST_HALF ? getDayRange1stHalf() : half === OvertimeSummaryHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
@@ -967,7 +978,7 @@ export class OvertimeService {
     ;`,
       [year, month, days, immediateSupervisorEmployeeId]
     )) as { employeeId: string }[];
-    console.log(days);
+    console.log(employees);
     const employeeDetails = await Promise.all(
       employees.map(async (employee) => {
         console.log('employeeid: ', employee);
@@ -1134,7 +1145,6 @@ export class OvertimeService {
   }
 
   async getIndividualOvertimeAccomplishment(overtimeApplicationId: string, employeeId: string) {
-    //
     const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
     const assignment = employeeDetails.assignment.name;
     const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);

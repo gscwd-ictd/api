@@ -2,6 +2,7 @@ import { CustomGroupsModule } from '../app/api/custom-groups/core/custom-groups.
 import { EmployeeScheduleModule } from '../app/api/daily-time-record/components/employee-schedule/core/employee-schedule.module';
 import { ScheduleModule } from '../app/api/daily-time-record/components/schedule/core/schedule.module';
 import { DailyTimeRecordModule } from '../app/api/daily-time-record/core/daily-time-record.module';
+import { EmsSettingsModule } from '../app/api/ems-settings/core/ems-settings.module';
 import { HolidaysModule } from '../app/api/holidays/core/holidays.module';
 import { LeaveModule } from '../app/api/leave/core/leave.module';
 import { ModulesModule } from '../app/api/modules/core/modules.module';
@@ -30,4 +31,5 @@ export const appModules = [
   StatsModule,
   UserLogsModule,
   ReportsModule,
+  EmsSettingsModule,
 ];
