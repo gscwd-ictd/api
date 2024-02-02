@@ -114,10 +114,9 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
             FROM employee_rest_days emrs 
             INNER JOIN employee_rest_day emr ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk
             WHERE emr.employee_id_fk = ? 
-            AND date_from = (SELECT date_from FROM employee_rest_day WHERE employee_id_fk=? 
-            ORDER BY date_from ASC LIMIT 1) GROUP BY dateFrom, restDay ORDER BY date_from ASC,rest_day ASC;
+            AND date_from = ? AND date_to = ? GROUP BY dateFrom, restDay ORDER BY date_from ASC,rest_day ASC;
             `,
-            [member.employeeId, member.employeeId]
+            [member.employeeId, dateFrom, dateTo]
           )) as {
             restDay: string;
           }[];

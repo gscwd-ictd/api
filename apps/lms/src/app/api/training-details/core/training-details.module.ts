@@ -9,7 +9,7 @@ import { TrainingRecommendedEmployeesModule } from '../components/training-recom
 import { LspDetailsModule } from '../../lsp-details';
 import { PortalEmployeesModule } from '../../../services/portal';
 import { TrainingLspDetailsModule } from '../components/training-lsp-details';
-import { TrainingNomineesModule } from '../components/training-nominees';
+import { TrainingApprovalsModule } from '../components/training-approvals';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { TrainingNomineesModule } from '../components/training-nominees';
     TrainingTagsModule,
     TrainingDistributionsModule,
     TrainingRecommendedEmployeesModule,
-    TrainingNomineesModule,
+    TrainingApprovalsModule,
     LspDetailsModule,
     PortalEmployeesModule,
   ],

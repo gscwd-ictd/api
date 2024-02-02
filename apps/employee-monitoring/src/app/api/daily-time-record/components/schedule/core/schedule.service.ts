@@ -116,17 +116,24 @@ export class ScheduleService extends CrudHelper<Schedule> {
        INNER JOIN custom_group_members cgm ON es.employee_id_fk = cgm.employee_id_fk 
        WHERE date_from=? AND date_to=? AND schedule_id_fk=?
     */
+    console.log(groupSchedule);
     const { customGroupId, dateFrom, dateTo, scheduleId } = groupSchedule;
     //2. delete employees from custom group where scheduleId,dateFrom,dateTo
     const employeeIds = (await this.rawQuery(
-      `SELECT es.employee_id_fk employeeId 
+      `(SELECT DISTINCT es.employee_id_fk employeeId 
+        FROM employee_schedule es 
+      INNER JOIN custom_group_members cgm ON es.employee_id_fk = cgm.employee_id_fk 
+      WHERE date_from=? AND date_to=? AND schedule_id_fk=?) UNION (SELECT DISTINCT es.employee_id_fk employeeId 
          FROM employee_schedule es 
        INNER JOIN custom_groups cg ON es.custom_group_id_fk = cg.custom_group_id 
-       WHERE date_from=? AND date_to=? AND schedule_id_fk=?`,
-      [dateFrom, dateTo, scheduleId]
+       WHERE date_from=? AND date_to=? AND schedule_id_fk=?)`,
+      [dateFrom, dateTo, scheduleId, dateFrom, dateTo, scheduleId]
     )) as { employeeId: string }[];
 
-    if (employeeIds.length === 0) throw new HttpException('There are no employees in this schedule.', 404);
+    if (employeeIds.length === 0 || typeof employeeIds === 'undefined') {
+      console.log('asd as');
+      throw new HttpException('There are no employees in this schedule.', 404);
+    }
 
     const employeeIdsArray = (await Promise.all(
       employeeIds.map(async (employeeId) => {
@@ -134,28 +141,47 @@ export class ScheduleService extends CrudHelper<Schedule> {
       })
     )) as string[];
 
+    console.log('employees:', employeeIdsArray);
+
     //console.log(employeeIdsArray);
     // const deleteEmployeeCustomGroupResult = (await this.rawQuery(
     //   `DELETE FROM custom_group_members WHERE custom_group_id_fk = ? AND employee_id_fk IN (?);`,
     //   [customGroupId, employeeIdsArray]
-    //))
+    //));
 
     const deleteEmployeeCustomGroupResult = (await this.rawQuery(
-      `DELETE FROM employee_schedule WHERE employee_id_fk IN (?) AND date_from = ? and date_to = ? AND schedule_id_fk = ? AND custom_group_id_fk=?;`,
-      [employeeIdsArray, dateFrom, dateTo, scheduleId, customGroupId]
+      `DELETE FROM employee_schedule WHERE employee_id_fk IN (?) AND date_format(date_from, '%Y-%m-%d') = ? and date_format(date_to, '%Y-%m-%d') = ? AND schedule_id_fk = ?;`,
+      [employeeIdsArray, dateFrom, dateTo, scheduleId]
     )) as { affectedRows: number };
 
-    //delete rest day/rest days
-    await this.rawQuery(
-      `DELETE FROM employee_rest_days WHERE employee_rest_day_id_fk IN (SELECT employee_rest_day_id FROM employee_rest_day WHERE employee_id_fk IN (?));`,
-      [employeeIdsArray]
-    );
+    console.log('affected: ', deleteEmployeeCustomGroupResult.affectedRows);
 
-    await this.rawQuery(`DELETE FROM employee_rest_day WHERE employee_id_fk IN (?);`, [employeeIdsArray]);
-    //const restDay = await this.employeeRestDayService.crud().findOneBy({findBy:{ dateFrom: dayjs(dateFrom).toDate(),dateTo: dayjs(dateTo).toDate(),employeeId}})
+    const { countRestDays } = (
+      await this.rawQuery(
+        `SELECT COUNT(*) countRestDays FROM employee_rest_day WHERE employee_id_fk IN (?) AND date_format(date_from, '%Y-%m-%d')=? AND date_format(date_to, '%Y-%m-%d') = ?;`,
+        [employeeIdsArray, dateFrom, dateTo]
+      )
+    )[0];
+
+    console.log(countRestDays);
+    //delete rest day/rest days
+    if (parseInt(countRestDays) > 0) {
+      await this.rawQuery(
+        `DELETE FROM employee_rest_days WHERE employee_rest_day_id_fk IN (SELECT employee_rest_day_id FROM employee_rest_day WHERE employee_id_fk IN (?) 
+       AND date_from=? AND date_to = ?
+      );`,
+        [employeeIdsArray, dateFrom, dateTo]
+      );
+
+      await this.rawQuery(`DELETE FROM employee_rest_day WHERE employee_id_fk IN (?) AND date_from=? AND date_to = ?;`, [
+        employeeIdsArray,
+        dateFrom,
+        dateTo,
+      ]);
+    }
 
     console.log(deleteEmployeeCustomGroupResult);
-    //
+
     console.log(deleteEmployeeCustomGroupResult.affectedRows);
     if (deleteEmployeeCustomGroupResult.affectedRows > 0) return groupSchedule;
     else throw new InternalServerErrorException();

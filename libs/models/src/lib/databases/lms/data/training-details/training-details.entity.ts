@@ -26,7 +26,7 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'course_content', type: 'jsonb', nullable: true })
   courseContent: string;
 
-  @Column({ name: 'location', type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'location', type: 'varchar', length: 500, nullable: true })
   location: string;
 
   @Column({ name: 'training_start', type: 'timestamp', nullable: false })

@@ -24,7 +24,16 @@ export class TrainingNominee extends DatabaseEntity implements IEntity {
   })
   nomineeType: NomineeType;
 
-  @Column({ name: 'remarks', length: 100, nullable: true })
+  @Column({ name: 'batch_number', type: 'int', nullable: true })
+  batchNumber: number;
+
+  @Column({ name: 'training_start', type: 'timestamp', nullable: true })
+  trainingStart: Date;
+
+  @Column({ name: 'training_end', type: 'timestamp', nullable: true })
+  trainingEnd: Date;
+
+  @Column({ name: 'remarks', length: 200, nullable: true })
   remarks: string;
 
   @Column({ name: 'status', type: 'enum', enum: TrainingNomineeStatus, default: TrainingNomineeStatus.PENDING })

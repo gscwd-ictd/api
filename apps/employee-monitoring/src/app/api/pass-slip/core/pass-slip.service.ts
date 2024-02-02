@@ -272,7 +272,9 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           onError: (error) => new NotFoundException(error),
         });
 
-        return { ...passSlipId, ...names, ...restOfPassSlip };
+        const { dateOfApplication, ...restOfPassSlipId } = passSlipId;
+
+        return { dateOfApplication: dayjs(dateOfApplication).format('YYYY-MM-DD'), ...restOfPassSlipId, ...names, ...restOfPassSlip };
       })
     );
 
