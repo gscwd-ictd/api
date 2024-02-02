@@ -32,7 +32,7 @@ export class HolidaysService extends CrudHelper<Holidays> {
     );
   }
 
-  @Cron('* * * 1 1 *')
+  @Cron('0 0 0 1 1 *')
   async addRegularHolidaysForCurrentYear() {
     const holidays = (await this.rawQuery(`
       SELECT 
