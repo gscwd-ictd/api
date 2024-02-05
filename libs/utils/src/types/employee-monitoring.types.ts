@@ -23,6 +23,12 @@ export enum LeaveApplicationStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum LeaveDayStatus {
+  APPROVED = 'approved',
+  FOR_CANCELLATION = 'for cancellation',
+  CANCELLED = 'cancelled',
+}
+
 export type LeaveApplicationType = {
   id: string;
   leaveName: string;

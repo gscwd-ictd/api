@@ -1,5 +1,4 @@
 import { UpdateDailyTimeRecordDto } from '@gscwd-api/models';
-import { DtrPayload, EmployeeMonthlyDailyTimeRecord } from '@gscwd-api/utils';
 import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { DailyTimeRecordService } from './daily-time-record.service';
 

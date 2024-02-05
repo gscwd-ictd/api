@@ -11,7 +11,7 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
       entities: typeOrmEntities,
-      logging: false,
+      logging: true,
       synchronize: true,
       //charset: 'utf8mb4_0900_ai_ci',
     };

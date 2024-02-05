@@ -19,7 +19,7 @@ export class DailyTimeRecordService extends CrudHelper<IvmsDailyTimeRecord> {
     const dateNow = dayjs(date).toDate();
 
     const dtr = await this.crudService.findAll({
-      find: { where: { id: companyId, date: dateNow } },
+      find: { where: { id: companyId, date: dateNow }, order: { time: 'ASC' } },
       onError: ({ error }) => {
         return new NotFoundException(error, { cause: error as Error });
       },

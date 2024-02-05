@@ -29,9 +29,9 @@ export class StatsService {
           `
           SELECT count(ps.pass_slip_id) passSlipCount
             FROM pass_slip ps INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id
-          WHERE supervisor_id_fk = ? AND status = ?
+          WHERE supervisor_id_fk = ? AND (status = ? OR status = ?) 
     `,
-          [employeeId, PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL]
+          [employeeId, PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL, PassSlipApprovalStatus.FOR_DISPUTE]
         )
       )[0].passSlipCount;
 
