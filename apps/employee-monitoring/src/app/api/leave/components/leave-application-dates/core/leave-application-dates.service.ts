@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateLeaveApplicationDatesDto, LeaveApplicationDates } from '@gscwd-api/models';
+import { CreateLeaveApplicationDatesDto, LeaveApplicationDates, LeaveDateCancellationDto } from '@gscwd-api/models';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
@@ -18,8 +18,18 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
     });
   }
 
-  async createApplicationDatesTransactionRawQuery(
-    transactionEntityManager,
-    createLeaveApplicationDatesDto: { employeeId: string; leaveApplicationId: string; from: Date; to: Date }
-  ) {}
+  async cancelLeaveDateTransaction(transactionEntityManager: EntityManager, leaveDateCancellationDto: LeaveDateCancellationDto) {
+    const { leaveApplicationId, leaveDates, status } = leaveDateCancellationDto;
+
+    //cancellation
+    const cancelledLeaveDates = await Promise.all(
+      leaveDates.map(async (leaveDate) => {
+        return await this.crudService
+          .transact<LeaveApplicationDates>(transactionEntityManager)
+          .update({ dto: { status }, updateBy: { leaveApplicationId, leaveDate } });
+      })
+    );
+
+    return cancelledLeaveDates;
+  }
 }
