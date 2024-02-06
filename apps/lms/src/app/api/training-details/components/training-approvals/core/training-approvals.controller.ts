@@ -10,10 +10,4 @@ export class TrainingApprovalsController {
   async create(@Body() data: CreateTrainingApprovalDto) {
     return await this.trainingApprovalsService.create(data);
   }
-
-  // //submission to secretariate
-  // @Post('secretariate')
-  // async submissionToSecretariate(@Body() data: SubmissionToSecretariateDto) {
-  //   return await this.trainingApprovalsService.submissionToSecretariate(data);
-  // }
 }

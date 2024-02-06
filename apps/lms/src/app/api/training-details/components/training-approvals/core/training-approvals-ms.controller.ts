@@ -8,8 +8,17 @@ import { PdcChairmanDto, PdcSecretaryDto } from '@gscwd-api/models';
 export class TrainingApprovalsMicroserviceController {
   constructor(private readonly trainingApprovalsServices: TrainingApprovalsService) {}
 
+  @MessagePattern(TrainingPatterns.FIND_ALL_PDC_SECRETARY_APPROVAL)
+  async findAllpdcSecretaryApproval() {
+    try {
+      return await this.trainingApprovalsServices.findAllpdcSecretaryApproval();
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
   //pdc secretariate approval
-  @MessagePattern(TrainingPatterns.PDC_SECRETARIATE_APPROVAL)
+  @MessagePattern(TrainingPatterns.PDC_SECRETARY_APPROVAL)
   async pdcSecretaryApproval(@Payload() data: PdcSecretaryDto) {
     try {
       return await this.trainingApprovalsServices.pdcSecretaryApproval(data);
@@ -18,6 +27,16 @@ export class TrainingApprovalsMicroserviceController {
     }
   }
 
+  @MessagePattern(TrainingPatterns.FIND_ALL_PDC_CHAIRMAL_APPROVAL)
+  async findAllpdcChairmanApproval() {
+    try {
+      return await this.trainingApprovalsServices.findAllpdcChairmanApproval();
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  //pdc chairman approval
   @MessagePattern(TrainingPatterns.PDC_CHAIRMAN_APPROVAL)
   async pdcChairmanApproval(@Payload() data: PdcChairmanDto) {
     try {
