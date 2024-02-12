@@ -1,4 +1,5 @@
 import {
+  LeaveDateCancellationDto,
   UpdateLeaveApplicationEmployeeStatus,
   UpdateLeaveApplicationHrdmStatusDto,
   UpdateLeaveApplicationHrmoStatusDto,
@@ -60,6 +61,12 @@ export class LeaveController {
   @Patch('employee')
   async cancelLeave(@Body() updateLeaveApplicationEmployeeStatus: UpdateLeaveApplicationEmployeeStatus) {
     return await this.leaveService.cancelLeave(updateLeaveApplicationEmployeeStatus);
+  }
+
+  //TODO: guard check if logged in is employee status is set for cancellation, if logged in is manager status is set to cancelled
+  @Patch('employee/leave-date-cancellation/')
+  async cancelLeaveDate(@Body() LeaveDateCancellationDto: LeaveDateCancellationDto) {
+    return await this.leaveService.cancelLeaveDate(LeaveDateCancellationDto);
   }
 
   @Post('adjustment')

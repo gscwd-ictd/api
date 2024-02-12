@@ -25,7 +25,6 @@ export class UserRolesService {
   }
 
   async updateUserRoles(userRolesAddUpdateDTO: UserRolesAddUpdateDTO) {
-    //
     return await this.client.call({
       action: 'send',
       payload: userRolesAddUpdateDTO,

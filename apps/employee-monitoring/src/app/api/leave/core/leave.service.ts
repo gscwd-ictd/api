@@ -1,5 +1,6 @@
 import {
   LeaveApplicationDates,
+  LeaveDateCancellationDto,
   UpdateLeaveApplicationEmployeeStatus,
   UpdateLeaveApplicationHrdmStatusDto,
   UpdateLeaveApplicationHrmoStatusDto,
@@ -18,6 +19,7 @@ import { LeaveCardLedgerDebitService } from '../components/leave-card-ledger-deb
 import { LeaveCreditDeductionsService } from '../components/leave-credit-deductions/core/leave-credit-deductions.service';
 import { LeaveCreditEarningsService } from '../components/leave-credit-earnings/core/leave-credit-earnings.service';
 import { LeaveAdjustmentDto } from '../data/leave-adjustment.dto';
+import { LeaveApplicationDatesService } from '../components/leave-application-dates/core/leave-application-dates.service';
 
 @Injectable()
 export class LeaveService {
@@ -29,6 +31,7 @@ export class LeaveService {
     private readonly leaveCreditDeductionsService: LeaveCreditDeductionsService,
     private readonly employeesService: EmployeesService,
     private readonly leaveAddBackService: LeaveAddBackService,
+    private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
     private readonly dataSource: DataSource
   ) {}
 
@@ -58,6 +61,13 @@ export class LeaveService {
     )[0];
     console.log(ledger);
     return ledger;
+  }
+
+  async cancelLeaveDate(leaveDateCancellationDto: LeaveDateCancellationDto) {
+    const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
+      return await this.leaveApplicationDatesService.cancelLeaveDateTransaction(entityManager, leaveDateCancellationDto);
+    });
+    return result;
   }
 
   async updateLeaveStatus(
