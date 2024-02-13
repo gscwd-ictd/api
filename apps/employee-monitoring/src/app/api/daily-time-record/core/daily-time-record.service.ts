@@ -142,6 +142,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let noOfTimesUndertime = 0;
     let totalMinutesUndertime = 0;
     let noAttendance = 0;
+    let noOfHalfdays = 0;
     const lateDates: number[] = [];
     const undertimeDates: number[] = [];
     const summaryResult = await Promise.all(
@@ -159,6 +160,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           noAttendance += 1;
         }
 
+        if (summary.isHalfDay) {
+          noOfHalfdays += 1;
+        }
+
         noOfTimesUndertime += summary.noOfTimesUndertime;
         totalMinutesUndertime += summary.totalMinutesUndertime;
 
@@ -168,7 +173,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-    return { noOfTimesLate, totalMinutesLate, lateDates, noOfTimesUndertime, totalMinutesUndertime, undertimeDates, noAttendance };
+    return { noOfTimesLate, totalMinutesLate, lateDates, noOfHalfdays, noOfTimesUndertime, totalMinutesUndertime, undertimeDates, noAttendance };
   }
 
   //#region lates,undertimes,halfday functionalities
@@ -178,6 +183,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let noOfLates = 0;
     let noOfUndertimes = 0;
     let minutesUndertime = 0;
+    let isHalfDay = false;
 
     if (schedule.shift === 'day') {
       const lateMorning = dayjs(dayjs('2023-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
@@ -195,15 +201,34 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         noOfLates += 1;
       }
 
-      if (lateAfternoon > 0) {
+      if (dtr.timeIn !== null && dtr.lunchOut !== null && dtr.lunchIn !== null && lateAfternoon > 0) {
         minutesLate += lateAfternoon;
+        noOfLates += 1;
+      }
+
+      /*
+          if no attendance morning and late in the afternoon in, therefore count minutes late and at the same time no of lates
+          
+
+          if no attendance in the morning and not late in the afternoon count as halfday and add in noOfLates 
+          
+          
+      */
+
+      if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
+        minutesLate += lateAfternoon + 240;
+        noOfLates += 1;
+      }
+
+      if (dtr.timeIn === null && dtr.lunchOut === null && lateAfternoon <= 0) {
+        isHalfDay = true;
         noOfLates += 1;
       }
     }
 
     let noAttendance = 0;
 
-    if (dtr.lunchIn === null && dtr.lunchOut === null && dtr.timeIn === null && dtr.timeOut === null && schedule.scheduleName === null) {
+    if (dtr.lunchIn === null && dtr.lunchOut === null && dtr.timeIn === null && dtr.timeOut === null && schedule.scheduleName !== null) {
       noAttendance = 1;
     }
 
@@ -233,6 +258,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       noOfUndertimes,
       minutesUndertime,
       noAttendance,
+      isHalfDay,
     };
   }
   //#endregion
@@ -304,7 +330,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const totalMinutesUndertime = latesUndertimesNoAttendance.minutesUndertime;
 
       //1.3 halfday
-      const isHalfDay = false;
+      const isHalfDay = latesUndertimesNoAttendance.isHalfDay;
       //1.4 no attendance
       const noAttendance = latesUndertimesNoAttendance.noAttendance;
       const summary = {

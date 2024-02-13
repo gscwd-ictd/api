@@ -319,7 +319,7 @@ export class OvertimeService {
   }
 
   async getOvertimeApplicationsBySupervisorIdAndStatus(id: string, status: OvertimeStatus) {
-    return (await this.overtimeApplicationService.crud().findAll({
+    const overtimeApplication = (await this.overtimeApplicationService.crud().findAll({
       find: {
         select: {
           id: true,
@@ -334,6 +334,22 @@ export class OvertimeService {
         order: { createdAt: 'ASC' },
       },
     })) as OvertimeApplication[];
+
+    const overtimeApplicationsWithApprovals = await Promise.all(
+      overtimeApplication.map(async (otApplication) => {
+        const { id } = otApplication;
+
+        const { dateApproved } = (
+          await this.overtimeApprovalService.rawQuery(
+            `SELECT date_approved dateApproved FROM overtime_approval WHERE overtime_application_id_fk = ?`,
+            [id]
+          )
+        )[0];
+        return { ...otApplication, dateApproved };
+      })
+    );
+
+    return overtimeApplicationsWithApprovals;
   }
 
   async getOvertimeEmployeeDetails(overtimeApplications: OvertimeApplication[]) {
