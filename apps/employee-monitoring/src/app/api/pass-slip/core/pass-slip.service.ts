@@ -9,6 +9,7 @@ import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeesService } from '../../employees/core/employees.service';
+import { error } from 'console';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -179,6 +180,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         where: { supervisorId },
         order: { passSlipId: { dateOfApplication: 'DESC' } },
       },
+      onError: () => new NotFoundException(),
     });
 
     const passSlipsWithDetails = await Promise.all(
