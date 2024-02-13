@@ -35,6 +35,11 @@ export enum TrainingStatus {
   COMPLETED = 'completed',
 }
 
+export enum TrainingDistributionStatus {
+  FOR_NOMINATION = 'for nomination',
+  NOMINATION_COMPLETE = 'nomination complete',
+}
+
 export enum TrainingNomineeStatus {
   PENDING = 'pending',
   ACCEPTED = 'accepted',

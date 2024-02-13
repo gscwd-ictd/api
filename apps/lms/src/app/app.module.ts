@@ -8,7 +8,7 @@ import { TrainingSourcesModule } from './api/training-sources';
 import { TrainingDesignsModule } from './api/training-designs';
 import { TrainingDetailsModule } from './api/training-details';
 import { PortalEmployeesModule } from './services/portal';
-import { HrmsEmployeeTagsModule, HrmsEmployeesModule } from './services/hrms';
+import { HrmsEmployeeTagsModule, HrmsEmployeesModule, HrmsUsersModule } from './services/hrms';
 import { TrainingNoticesModule } from './api/training-notices';
 import { TrainingNomineesModule } from './api/training-details/components/training-nominees';
 import { TrainingApprovalsModule } from './api/training-details/components/training-approvals';
@@ -39,6 +39,7 @@ import { TrainingApprovalsModule } from './api/training-details/components/train
     //hrms microservice
     HrmsEmployeesModule,
     HrmsEmployeeTagsModule,
+    HrmsUsersModule,
 
     // portal microservices
     PortalEmployeesModule,

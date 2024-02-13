@@ -14,6 +14,7 @@ export enum EmployeeTagsPatterns {
   GET_EMPLOYEES_BY_TAG_ID = 'get_employee_by_tag_id',
   GET_EMPLOYEES_BY_TAGS_IDS = 'get_employees_by_tag_ids',
   DELETE_EMPLOYEE_TAGS = 'delete_employee_tags',
+  COUNT_EMPLOYEE_TAGS = 'count_employee_tags',
 }
 
 export enum TrainingPatterns {
@@ -24,8 +25,15 @@ export enum TrainingPatterns {
   FIND_ALL_TRAINING_BY_EMPLOYEE_ID = 'find_all_training_by_employee_id',
   ADD_NOMINEES_BY_TRAINING_DISTRIBUTION_ID = 'add_nominees_by_training_distribution_id',
   UPDATE_TRAINING_NOMINEES_STATUS_BY_ID = 'update_training_nominees_status_by_id',
+
+  // pdc approvals
   FIND_ALL_PDC_SECRETARY_APPROVAL = 'find_all_pdc_secretary_approval',
   PDC_SECRETARY_APPROVAL = 'for_pdc_secretary_approval',
   FIND_ALL_PDC_CHAIRMAL_APPROVAL = 'find_all_pdc_chairman_approval',
   PDC_CHAIRMAN_APPROVAL = 'for_pdc_chairman_approval',
+}
+
+export enum HrmsUserPatterns {
+  FIND_HRMS_USERS_BY_APP = 'get_hrms_users_by_app',
+  FIND_ASSIGNABLE_LND_USERS = 'get_assignable_lnd_users',
 }

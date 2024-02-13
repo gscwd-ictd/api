@@ -80,7 +80,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
-        return data;
+        return trainingDetails;
       });
       return result;
     } catch (error) {
@@ -154,7 +154,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
-        return data;
+        return trainingDetails;
       });
 
       return result;
@@ -162,13 +162,15 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       Logger.log(error);
       if (error.code === '23505' && error instanceof QueryFailedError) {
         // Duplicate key violation
-        throw new HttpException('Duplicate Key Violation', HttpStatus.CONFLICT);
+        throw new HttpException({ error: { message: 'Duplicate Key Violation', step: 1 }, status: HttpStatus.CONFLICT }, HttpStatus.BAD_REQUEST);
       } else if (error.code === '23503') {
-        // Foreign key constraint violation
-        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          { error: { message: 'Foreign key constraint violation', step: 1 }, status: HttpStatus.BAD_REQUEST },
+          HttpStatus.BAD_REQUEST
+        );
       } else {
         // Handle other errors as needed
-        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+        throw new HttpException({ error: { message: 'Bad Request', step: 1 }, status: HttpStatus.BAD_REQUEST }, HttpStatus.BAD_REQUEST);
       }
     }
   }
@@ -497,10 +499,10 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       const result = await this.datasource.transaction(async (entityManager) => {
         // delete lsp components by lsp id
-        await this.removeTrainingComponents(id, true, entityManager);
+        await this.removeTrainingComponents(id, false, entityManager);
 
         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).delete({
-          softDelete: true,
+          softDelete: false,
           deleteBy: { id },
         });
         return trainingDetails;

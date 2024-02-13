@@ -33,7 +33,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             },
           });
 
-        await this.crudService.transact<TrainingApproval>(entityManager).create({
+        return await this.crudService.transact<TrainingApproval>(entityManager).create({
           dto: data,
           onError: (error) => {
             throw error;
@@ -115,7 +115,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             },
           });
 
-        await this.crudService.transact<TrainingApproval>(entityManager).update({
+        return await this.crudService.transact<TrainingApproval>(entityManager).update({
           updateBy: { trainingDetails: trainingDetails },
           dto: { pdcSecretary: pdcSecretary, pdcSecretaryApprovalDate: dateTimeToday },
           onError: (error) => {
@@ -198,7 +198,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             },
           });
 
-        await this.crudService.update({
+        return await this.crudService.update({
           updateBy: { trainingDetails: trainingDetails },
           dto: { pdcChairman: pdcChairman, pdcChairmanApprovalDate: dateTimeToday },
           onError: (error) => {
