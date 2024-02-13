@@ -11,7 +11,7 @@ import { DataSource, EntityManager, EntityNotFoundError, QueryFailedError } from
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
 import { TrainingLspDetailsService } from '../components/training-lsp-details';
-import { TrainingPreparationStatus } from '@gscwd-api/utils';
+import { TrainingPreparationStatus, TrainingStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -524,6 +524,18 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     } catch (error) {
       Logger.log(error);
       throw new Error(error);
+    }
+  }
+
+  async updateTrainingToForSubmission(id: string) {
+    try {
+      return await this.crudService.update({
+        updateBy: { id },
+        dto: { status: TrainingStatus.REQUIREMENTS_SUBMISSION },
+      });
+    } catch (error) {
+      Logger.log(error);
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
   }
 }
