@@ -24,4 +24,24 @@ export class HrmsUsersService {
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     });
   }
+
+  // create lnd users
+  async createLndUsers() {
+    return await this.microserviceClient.call({
+      action: 'send',
+      pattern: '',
+      payload: '',
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    });
+  }
+
+  // remove lnd users
+  async removeLndUsers(id: string) {
+    return await this.microserviceClient.call({
+      action: 'send',
+      pattern: '',
+      payload: id,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    });
+  }
 }
