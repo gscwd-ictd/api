@@ -142,7 +142,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let noOfTimesUndertime = 0;
     let totalMinutesUndertime = 0;
     let noAttendance = 0;
-    let noOfHalfdays = 0;
+    let noOfTimesHalfDay = 0;
     const lateDates: number[] = [];
     const undertimeDates: number[] = [];
     const summaryResult = await Promise.all(
@@ -161,7 +161,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
 
         if (summary.isHalfDay) {
-          noOfHalfdays += 1;
+          noOfTimesHalfDay += 1;
         }
 
         noOfTimesUndertime += summary.noOfTimesUndertime;
@@ -173,7 +173,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-    return { noOfTimesLate, totalMinutesLate, lateDates, noOfHalfdays, noOfTimesUndertime, totalMinutesUndertime, undertimeDates, noAttendance };
+    return { noOfTimesLate, totalMinutesLate, lateDates, noOfTimesHalfDay, noOfTimesUndertime, totalMinutesUndertime, undertimeDates, noAttendance };
   }
 
   //#region lates,undertimes,halfday functionalities
@@ -216,8 +216,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       */
 
       if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
-        minutesLate += lateAfternoon + 240;
-        noOfLates += 1;
+        isHalfDay = true;
+        minutesLate += lateAfternoon;
+        noOfLates += 2;
       }
 
       if (dtr.timeIn === null && dtr.lunchOut === null && lateAfternoon <= 0) {
