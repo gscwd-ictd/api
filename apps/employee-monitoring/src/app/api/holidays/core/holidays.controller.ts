@@ -18,12 +18,6 @@ export class HolidaysController {
     return await this.holidayService.getHolidaysForTheCurrentYear();
   }
 
-  @UseGuards(AuthenticatedGuard)
-  @Get('asd')
-  async testGuard() {
-    return 'working guard';
-  }
-
   @Put()
   async updateHoliday(@Body() updateHolidayDto: UpdateHolidayDto) {
     return await this.holidayService.updateHoliday(updateHolidayDto);

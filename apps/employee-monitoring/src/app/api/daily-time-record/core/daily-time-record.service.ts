@@ -273,6 +273,18 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
 
+      const restDays = schedule.restDaysNumbers.split(', ');
+
+      console.log('rest', restDays);
+
+      const day = dayjs(data.date).format('d');
+
+      let isRestDay: boolean;
+
+      isRestDay = day in restDays ? true : false;
+
+      console.log(isRestDay);
+
       const employeeIvmsDtr = (await this.client.call<string, { companyId: string; date: Date }, IvmsEntry[]>({
         action: 'send',
         payload: { companyId: id, date: dateCurrent },
@@ -283,6 +295,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         },
       })) as IvmsEntry[];
 
+      const isHoliday = await this.holidayService.isHoliday(data.date);
       //1. check if employee is in dtr table in the current date;
       const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
       const { remarks } = (
@@ -342,16 +355,35 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         noAttendance,
         isHalfDay,
       };
-
-      return { companyId: data.companyId, date: dayjs(data.date).format('YYYY-MM-DD'), schedule, dtr: { ...dtr, remarks }, summary };
+      return {
+        companyId: data.companyId,
+        date: dayjs(data.date).format('YYYY-MM-DD'),
+        schedule,
+        isHoliday,
+        isRestDay,
+        dtr: { ...dtr, remarks },
+        summary,
+      };
     } catch (error) {
       const dateCurrent = dayjs(data.date).toDate();
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
+
+      const restDays = schedule.restDaysNumbers.split(', ');
+
+      console.log('rest', restDays);
+
+      const day = dayjs(data.date).format('d');
+
+      let isRestDay: boolean;
+
+      isRestDay = day in restDays ? true : false;
+
       const { remarks } = (
         await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')])
       )[0];
 
+      const isHoliday = await this.holidayService.isHoliday(data.date);
       let noAttendance = 1;
       if (remarks !== null || remarks !== '') noAttendance = 0;
       return {
@@ -376,6 +408,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         //   timeOut: null,
         // },
         schedule,
+        isHoliday,
+        isRestDay,
         dtr: {
           companyId: null,
           createdAt: null,
