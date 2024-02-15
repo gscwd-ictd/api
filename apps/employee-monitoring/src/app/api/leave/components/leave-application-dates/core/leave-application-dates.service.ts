@@ -23,9 +23,10 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
     //cancellation
     const cancelledLeaveDates = await Promise.all(
       leaveDates.map(async (leaveDate) => {
-        return await this.crudService
+        const leaveDatesCancelled = await this.crudService
           .transact<LeaveApplicationDates>(transactionEntityManager)
           .update({ dto: { status }, updateBy: { leaveApplicationId, leaveDate } });
+        //
       })
     );
     return leaveDateCancellationDto;

@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { Holidays, HolidaysDto, UpdateHolidayDto } from '@gscwd-api/models';
 import { LeaveApplicationStatus } from '@gscwd-api/utils';
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { DataSource, EntityManager } from 'typeorm';
@@ -162,5 +162,16 @@ export class HolidaysService extends CrudHelper<Holidays> {
       },
     });
     if (deleteResult.affected > 0) return holiday;
+  }
+
+  async isHoliday(day: Date) {
+    try {
+      const isHoliday = (await this.rawQuery(`SELECT IF(COUNT(*) > 0,TRUE,FALSE) isHoliday FROM holidays WHERE holiday_date = ?;`, [day]))[0]
+        .isHoliday;
+      if (isHoliday === '0') return false;
+      return true;
+    } catch (error) {
+      Logger.log(error);
+    }
   }
 }
