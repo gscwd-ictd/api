@@ -1,5 +1,6 @@
-import { Controller, Delete, Get, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Delete, Get, HttpException, HttpStatus, Logger, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { HrmsUsersService } from './users.service';
+import { CreateUserDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'hrms' })
 export class HrmsUsersController {
@@ -7,10 +8,14 @@ export class HrmsUsersController {
 
   // find hrms users by app
   @Get('lnd')
-  async findLndUsers() {
+  async findLndUsers(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+  ) {
     try {
-      return await this.hrmsUsersService.findLndUsers();
+      return await this.hrmsUsersService.findLndUsers(page, limit);
     } catch (error) {
+      Logger.log(error);
       throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -25,9 +30,9 @@ export class HrmsUsersController {
   }
 
   @Post('lnd')
-  async createLndUsers() {
+  async createLndUsers(@Body() data: CreateUserDto) {
     try {
-      return await this.hrmsUsersService.createLndUsers();
+      return await this.hrmsUsersService.createLndUsers(data);
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }

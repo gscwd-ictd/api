@@ -101,7 +101,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         return {
           nomineeId: trainingItems.id,
           name:
-            trainingItems.trainingDistribution.trainingDetails.courseContent ||
+            trainingItems.trainingDistribution.trainingDetails.courseTitle ||
             trainingItems.trainingDistribution.trainingDetails.trainingDesign.courseTitle,
           location: trainingItems.trainingDistribution.trainingDetails.location,
           trainingStart: trainingItems.trainingDistribution.trainingDetails.trainingStart,

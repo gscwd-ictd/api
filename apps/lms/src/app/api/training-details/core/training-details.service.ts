@@ -527,6 +527,18 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
+  async updateTrainingToDone(id: string) {
+    try {
+      return await this.crudService.update({
+        updateBy: { id },
+        dto: { trainingPreparationStatus: TrainingPreparationStatus.DONE },
+      });
+    } catch (error) {
+      Logger.log(error);
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   async updateTrainingToForSubmission(id: string) {
     try {
       return await this.crudService.update({

@@ -118,6 +118,11 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.updateTrainingExternalById(data);
   }
 
+  @Put('done/:id')
+  async updateTrainingToDone(@Param('id') id: string) {
+    return await this.trainingDetailsService.updateTrainingToDone(id);
+  }
+
   @Put('requirements-submission/:id')
   async updateTrainingToForSubmission(@Param('id') id: string) {
     return await this.trainingDetailsService.updateTrainingToForSubmission(id);

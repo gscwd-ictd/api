@@ -34,6 +34,8 @@ export enum TrainingPatterns {
 }
 
 export enum HrmsUserPatterns {
-  FIND_HRMS_USERS_BY_APP = 'get_hrms_users_by_app',
+  FIND_LND_USERS = 'get_lnd_users',
   FIND_ASSIGNABLE_LND_USERS = 'get_assignable_lnd_users',
+  CREATE_LND_USERS = 'add_lnd_user',
+  REMOVE_LND_USERS = 'delete_lnd_user_roles',
 }
