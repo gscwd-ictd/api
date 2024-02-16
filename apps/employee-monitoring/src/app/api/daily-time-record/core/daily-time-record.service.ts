@@ -192,7 +192,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       );
 
       const lateAfternoon = dayjs(dayjs('2023-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
-        dayjs('2023-01-01 13:00').format('YYYY-MM-DD HH:mm'),
+        dayjs('2023-01-01' + schedule.lunchIn)
+          .add(29, 'minute')
+          .format('YYYY-MM-DD HH:mm'),
         'm'
       );
 
@@ -273,10 +275,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
 
-      const restDays = schedule.restDaysNumbers.split(', ');
-
-      console.log('rest', restDays);
-
+      const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
       const day = dayjs(data.date).format('d');
 
       let isRestDay: boolean;
@@ -388,25 +387,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       if (remarks !== null || remarks !== '') noAttendance = 0;
       return {
         //fetch day if may leave, holiday, pass slip
-        // schedule: {
-        //   id: null,
-        //   esDateFrom: null,
-        //   esDateTo: null,
-        //   dateFrom: null,
-        //   dateTo: null,
-        //   scheduleBase: null,
-        //   scheduleRange: null,
-        //   lunchIn: null,
-        //   lunchOut: null,
-        //   restDaysNames: null,
-        //   restDaysNumbers: null,
-        //   schedule: null,
-        //   scheduleName: null,
-        //   scheduleType: null,
-        //   shift: null,
-        //   timeIn: null,
-        //   timeOut: null,
-        // },
         schedule,
         isHoliday,
         isRestDay,
