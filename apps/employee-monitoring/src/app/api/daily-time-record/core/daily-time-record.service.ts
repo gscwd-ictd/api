@@ -272,8 +272,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
 
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
-
-      const restDays = schedule.restDaysNumbers.split(', ');
+      console.log('asd asd', schedule);
+      let restDays = [];
+      try {
+        restDays = schedule.restDaysNumbers.split(', ');
+      } catch {}
 
       console.log('rest', restDays);
 
