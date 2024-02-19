@@ -30,6 +30,9 @@ export class CreateOvertimeAccomplishmentDto {
 
   @IsOptional()
   remarks?: string;
+
+  @IsOptional()
+  approvedHours?: number;
 }
 
 export class UpdateOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAccomplishmentDto, [

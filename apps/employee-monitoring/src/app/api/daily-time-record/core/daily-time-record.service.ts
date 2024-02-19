@@ -192,7 +192,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       );
 
       const lateAfternoon = dayjs(dayjs('2023-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
-        dayjs('2023-01-01 13:00').format('YYYY-MM-DD HH:mm'),
+        dayjs('2023-01-01' + schedule.lunchIn)
+          .add(29, 'minute')
+          .format('YYYY-MM-DD HH:mm'),
         'm'
       );
 
@@ -272,19 +274,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
 
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
-      console.log('asd asd', schedule);
-      let restDays = [];
-      try {
-        restDays = schedule.restDaysNumbers.split(', ');
-      } catch {}
 
-      console.log('rest', restDays);
-
+      const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
       const day = dayjs(data.date).format('d');
 
-      let isRestDay: boolean;
-
-      isRestDay = day in restDays ? true : false;
+      const isRestDay = day in restDays ? true : false;
 
       console.log(isRestDay);
 
@@ -391,25 +385,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       if (remarks !== null || remarks !== '') noAttendance = 0;
       return {
         //fetch day if may leave, holiday, pass slip
-        // schedule: {
-        //   id: null,
-        //   esDateFrom: null,
-        //   esDateTo: null,
-        //   dateFrom: null,
-        //   dateTo: null,
-        //   scheduleBase: null,
-        //   scheduleRange: null,
-        //   lunchIn: null,
-        //   lunchOut: null,
-        //   restDaysNames: null,
-        //   restDaysNumbers: null,
-        //   schedule: null,
-        //   scheduleName: null,
-        //   scheduleType: null,
-        //   shift: null,
-        //   timeIn: null,
-        //   timeOut: null,
-        // },
         schedule,
         isHoliday,
         isRestDay,

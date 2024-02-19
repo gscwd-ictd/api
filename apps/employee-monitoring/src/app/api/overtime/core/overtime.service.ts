@@ -110,10 +110,10 @@ export class OvertimeService {
         const employeeDetail = await this.employeeService.getEmployeeDetails(employeeId);
         const { assignment, employeeFullName, companyId, photoUrl } = employeeDetail;
 
-        const { isAccomplishmentSubmitted, status } = (
+        const { isAccomplishmentSubmitted, status, overtimeAccomplishmentId } = (
           await this.employeeScheduleService.rawQuery(
             `
-            SELECT IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted, oa.status status 
+            SELECT oa.overtime_accomplishment overtimeAccomplishmentId,IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted, oa.status status 
               FROM overtime_accomplishment oa 
               INNER JOIN overtime_employee oe ON oe.overtime_employee_id = oa.overtime_employee_id_fk 
             WHERE oe.employee_id_fk = ? AND oe.overtime_application_id_fk = ?;`,
@@ -124,6 +124,7 @@ export class OvertimeService {
         return {
           employeeId,
           companyId,
+          overtimeAccomplishmentId,
           fullName: employeeFullName,
           positionTitle: assignment.positionTitle,
           avatarUrl: photoUrl,
@@ -168,10 +169,10 @@ export class OvertimeService {
             const employeeDetail = await this.employeeService.getEmployeeDetails(employeeId);
             const { assignment, employeeFullName, companyId, photoUrl } = employeeDetail;
 
-            const { isAccomplishmentSubmitted, status } = (
+            const { isAccomplishmentSubmitted, status, overtimeAccomplishmentId } = (
               await this.employeeScheduleService.rawQuery(
                 `
-            SELECT IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted, oa.status status 
+            SELECT oa.overtime_accomplishment overtimeAccomplishmentId,IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted, oa.status status 
               FROM overtime_accomplishment oa 
               INNER JOIN overtime_employee oe ON oe.overtime_employee_id = oa.overtime_employee_id_fk 
             WHERE oe.employee_id_fk = ? AND oe.overtime_application_id_fk = ?;`,
@@ -182,6 +183,7 @@ export class OvertimeService {
             return {
               employeeId,
               companyId,
+              overtimeAccomplishmentId,
               fullName: employeeFullName,
               positionTitle: assignment.positionTitle,
               avatarUrl: photoUrl,
