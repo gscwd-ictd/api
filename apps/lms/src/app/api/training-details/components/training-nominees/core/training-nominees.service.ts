@@ -7,7 +7,7 @@ import {
   TrainingNominee,
   UpdateTrainingBatchDto,
 } from '@gscwd-api/models';
-import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingPreparationStatus, TrainingStatus } from '@gscwd-api/utils';
+import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { DataSource, IsNull, Not } from 'typeorm';
@@ -95,7 +95,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             employeeId,
             status,
             nomineeType: NomineeType.NOMINEE,
-            trainingDistribution: { trainingDetails: { trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION } },
+            trainingDistribution: { trainingDetails: { status: TrainingStatus.ON_GOING_NOMINATION } },
           },
           {
             employeeId,
@@ -152,7 +152,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         where: {
           nomineeType: NomineeType.NOMINEE,
           trainingDistribution: {
-            trainingDetails: { id: trainingId, trainingPreparationStatus: Not(TrainingPreparationStatus.PENDING) },
+            trainingDetails: { id: trainingId, status: Not(TrainingStatus.PENDING) },
           },
         },
       },
@@ -199,7 +199,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           status: TrainingNomineeStatus.ACCEPTED,
           batchNumber: IsNull(),
           trainingDistribution: {
-            trainingDetails: { id: trainingId, trainingPreparationStatus: TrainingPreparationStatus.FOR_BATCHING },
+            trainingDetails: { id: trainingId, status: TrainingStatus.FOR_BATCHING },
           },
         },
       },
@@ -244,7 +244,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         },
         where: {
           nomineeType: type,
-          trainingDistribution: { id: distributionId, trainingDetails: { trainingPreparationStatus: Not(TrainingPreparationStatus.PENDING) } },
+          trainingDistribution: { id: distributionId, trainingDetails: { status: Not(TrainingStatus.PENDING) } },
         },
       },
       onError: () => new NotFoundException(),
@@ -279,7 +279,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           .update({
             updateBy: { id: trainingId },
             dto: {
-              trainingPreparationStatus: TrainingPreparationStatus.DONE_BATCHING,
+              status: TrainingStatus.DONE_BATCHING,
             },
             onError: (error) => {
               throw error;

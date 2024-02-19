@@ -4,7 +4,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityManager, MoreThan } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../training-recommended-employees';
 import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
-import { TrainingPreparationStatus } from '@gscwd-api/utils';
+import { TrainingStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class TrainingDistributionsService extends CrudHelper<TrainingDistribution> {
@@ -122,13 +122,12 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
               location: true,
               trainingStart: true,
               trainingEnd: true,
-              trainingPreparationStatus: true,
+              status: true,
               type: true,
               source: { name: true },
-              status: true,
             },
           },
-          where: { supervisorId, trainingDetails: { trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION } },
+          where: { supervisorId, trainingDetails: { status: TrainingStatus.ON_GOING_NOMINATION } },
         },
         onError: (error) => {
           throw error;
@@ -147,7 +146,6 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
             trainingEnd: distributionItem.trainingDetails.trainingEnd,
             source: distributionItem.trainingDetails.source.name,
             type: distributionItem.trainingDetails.type,
-            trainingPreparationStatus: distributionItem.trainingDetails.trainingPreparationStatus,
             status: distributionItem.trainingDetails.status,
           };
         })

@@ -11,7 +11,7 @@ import { DataSource, EntityManager, EntityNotFoundError, QueryFailedError } from
 import { TrainingTagsService } from '../components/training-tags';
 import { TrainingDistributionsService } from '../components/training-distributions';
 import { TrainingLspDetailsService } from '../components/training-lsp-details';
-import { TrainingPreparationStatus, TrainingStatus } from '@gscwd-api/utils';
+import { TrainingStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -220,7 +220,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             bucketFiles: true,
             source: { id: true, name: true },
             type: true,
-            trainingPreparationStatus: true,
+            status: true,
           },
           where: { id },
         },
@@ -248,7 +248,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
         source: trainingDetails.source,
         type: trainingDetails.type,
-        preparationStatus: trainingDetails.trainingPreparationStatus,
+        status: trainingDetails.status,
         trainingLspDetails: trainingLspDetails,
         trainingTags: trainingTags,
         slotDistribution: slotDistribution,
@@ -279,7 +279,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             bucketFiles: true,
             source: { id: true, name: true },
             type: true,
-            trainingPreparationStatus: true,
+            status: true,
           },
           where: { id: id },
         },
@@ -304,7 +304,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         bucketFiles: JSON.parse(trainingDetails.bucketFiles),
         source: trainingDetails.source,
         type: trainingDetails.type,
-        preparationStatus: trainingDetails.trainingPreparationStatus,
+        status: trainingDetails.status,
         trainingLspDetails: trainingLspDetails,
         trainingTags: trainingTags,
         slotDistribution: slotDistribution,
@@ -324,7 +324,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         await this.removeTrainingComponents(id, false, entityManager);
 
         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).findOneBy({
-          findBy: { id, trainingPreparationStatus: TrainingPreparationStatus.PENDING },
+          findBy: { id, status: TrainingStatus.PENDING },
           onError: (error) => {
             throw error;
           },
@@ -413,7 +413,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         await this.removeTrainingComponents(id, false, entityManager);
 
         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).findOneBy({
-          findBy: { id, trainingPreparationStatus: TrainingPreparationStatus.PENDING },
+          findBy: { id, status: TrainingStatus.PENDING },
           onError: (error) => {
             throw error;
           },
@@ -527,11 +527,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
+  // update training preparation status to done and training status to upcoming
   async updateTrainingToDone(id: string) {
     try {
       return await this.crudService.update({
         updateBy: { id },
-        dto: { trainingPreparationStatus: TrainingPreparationStatus.DONE },
+        dto: { status: TrainingStatus.UPCOMING },
       });
     } catch (error) {
       Logger.log(error);
@@ -539,6 +540,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
+  // update status to requirements submission
   async updateTrainingToForSubmission(id: string) {
     try {
       return await this.crudService.update({

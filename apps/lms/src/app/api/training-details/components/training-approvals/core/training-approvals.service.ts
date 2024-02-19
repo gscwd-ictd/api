@@ -3,7 +3,7 @@ import { CreateTrainingApprovalDto, PdcChairmanDto, PdcSecretaryDto, TrainingApp
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { TrainingDetailsService } from '../../../core/training-details.service';
-import { TrainingPreparationStatus } from '@gscwd-api/utils';
+import { TrainingStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
@@ -26,7 +26,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
           .update({
             updateBy: trainingDetails,
             dto: {
-              trainingPreparationStatus: TrainingPreparationStatus.PDC_SECRETARY_APPROVAL,
+              status: TrainingStatus.PDC_SECRETARY_APPROVAL,
             },
             onError: (error) => {
               throw error;
@@ -67,7 +67,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             source: { name: true },
             type: true,
           },
-          where: { trainingPreparationStatus: TrainingPreparationStatus.PDC_SECRETARY_APPROVAL },
+          where: { status: TrainingStatus.PDC_SECRETARY_APPROVAL },
         },
         onError: () => new InternalServerErrorException(),
       })) as Array<TrainingDetails>;
@@ -108,7 +108,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
           .update({
             updateBy: trainingDetails,
             dto: {
-              trainingPreparationStatus: TrainingPreparationStatus.PDC_CHAIRMAN_APPROVAL,
+              status: TrainingStatus.PDC_CHAIRMAN_APPROVAL,
             },
             onError: (error) => {
               throw error;
@@ -149,7 +149,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             source: { name: true },
             type: true,
           },
-          where: { trainingPreparationStatus: TrainingPreparationStatus.PDC_CHAIRMAN_APPROVAL },
+          where: { status: TrainingStatus.PDC_CHAIRMAN_APPROVAL },
         },
         onError: () => new InternalServerErrorException(),
       })) as Array<TrainingDetails>;
@@ -191,7 +191,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
           .update({
             updateBy: trainingDetails,
             dto: {
-              trainingPreparationStatus: TrainingPreparationStatus.GM_APPROVAL,
+              status: TrainingStatus.GM_APPROVAL,
             },
             onError: (error) => {
               throw error;

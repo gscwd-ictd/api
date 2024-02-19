@@ -16,7 +16,7 @@ export enum TrainingType {
   LEADERSHIP_MANAGERIAL = 'leadership/managerial',
 }
 
-export enum TrainingPreparationStatus {
+export enum TrainingStatus {
   PENDING = 'pending',
   ON_GOING_NOMINATION = 'on going nomination',
   NOMINATION_DONE = 'nomination done',
@@ -25,15 +25,18 @@ export enum TrainingPreparationStatus {
   GM_APPROVAL = 'for gm approval',
   FOR_BATCHING = 'for batching',
   DONE_BATCHING = 'done batching',
-  DONE = 'done',
-}
-
-export enum TrainingStatus {
   UPCOMING = 'upcoming',
-  ONGOING = 'on going',
+  ON_GOING_TRAINING = 'on going training',
   REQUIREMENTS_SUBMISSION = 'requirements submission',
   COMPLETED = 'completed',
 }
+
+// export enum TrainingStatus {
+//   UPCOMING = 'upcoming',
+//   ON_GOING_TRAINING = 'on going training',
+//   REQUIREMENTS_SUBMISSION = 'requirements submission',
+//   COMPLETED = 'completed',
+// }
 
 export enum TrainingDistributionStatus {
   FOR_NOMINATION = 'for nomination',

@@ -22,7 +22,7 @@ import {
 } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { TrainingInterceptor } from '../misc/interceptors';
-import { TrainingPreparationStatus, TrainingStatus } from '@gscwd-api/utils';
+import { TrainingStatus } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -61,7 +61,6 @@ export class TrainingDetailsController {
           bucketFiles: true,
           source: { name: true },
           type: true,
-          trainingPreparationStatus: true,
           status: true,
         },
       },
@@ -71,8 +70,8 @@ export class TrainingDetailsController {
   }
 
   @UseInterceptors(TrainingInterceptor)
-  @Get('upcoming')
-  async findAllUpcoming(
+  @Get('ongoing')
+  async findAllOngoing(
     @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number
   ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
@@ -93,10 +92,9 @@ export class TrainingDetailsController {
           bucketFiles: true,
           source: { name: true },
           type: true,
-          trainingPreparationStatus: true,
           status: true,
         },
-        where: { trainingPreparationStatus: TrainingPreparationStatus.DONE, status: TrainingStatus.UPCOMING },
+        where: { status: TrainingStatus.ON_GOING_TRAINING },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
