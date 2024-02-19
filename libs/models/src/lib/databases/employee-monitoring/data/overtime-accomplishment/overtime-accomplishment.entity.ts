@@ -29,6 +29,9 @@ export class OvertimeAccomplishment extends DatabaseEntity implements IEntity {
   @Column({ type: 'text', default: null })
   accomplishments: string;
 
+  @Column({ name: 'approved_hours', type: 'decimal', scale: 2, precision: 4, nullable: true })
+  approvedHours: number;
+
   @Column({ name: 'follow_estimated_hrs', type: 'boolean', default: null })
   followEstimatedHrs: boolean;
 
