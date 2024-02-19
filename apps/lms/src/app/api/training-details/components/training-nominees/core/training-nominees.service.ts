@@ -7,7 +7,7 @@ import {
   TrainingNominee,
   UpdateTrainingBatchDto,
 } from '@gscwd-api/models';
-import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingPreparationStatus } from '@gscwd-api/utils';
+import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingPreparationStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { DataSource, IsNull, Not } from 'typeorm';
@@ -72,6 +72,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           id: true,
           trainingDistribution: {
             id: true,
+            supervisorId: true,
             trainingDetails: {
               id: true,
               trainingDesign: { courseTitle: true },
@@ -83,13 +84,26 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
               type: true,
             },
           },
+          batchNumber: true,
+          trainingStart: true,
+          trainingEnd: true,
+          status: true,
+          remarks: true,
         },
-        where: {
-          employeeId,
-          status,
-          nomineeType: NomineeType.NOMINEE,
-          trainingDistribution: { trainingDetails: { trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION } },
-        },
+        where: [
+          {
+            employeeId,
+            status,
+            nomineeType: NomineeType.NOMINEE,
+            trainingDistribution: { trainingDetails: { trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION } },
+          },
+          {
+            employeeId,
+            status,
+            nomineeType: NomineeType.NOMINEE,
+            trainingDistribution: { trainingDetails: { status: TrainingStatus.UPCOMING } },
+          },
+        ],
       },
       onError: (error) => {
         throw error;
@@ -98,7 +112,10 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
 
     return await Promise.all(
       training.map(async (trainingItems) => {
+        const supervisorName = await this.hrmsEmployeesService.findEmployeesById(trainingItems.trainingDistribution.supervisorId);
+
         return {
+          supervisorName: supervisorName.fullName,
           nomineeId: trainingItems.id,
           name:
             trainingItems.trainingDistribution.trainingDetails.courseTitle ||
@@ -106,6 +123,11 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           location: trainingItems.trainingDistribution.trainingDetails.location,
           trainingStart: trainingItems.trainingDistribution.trainingDetails.trainingStart,
           trainingEnd: trainingItems.trainingDistribution.trainingDetails.trainingEnd,
+          nomineeStatus: trainingItems.status,
+          remarks: trainingItems.remarks,
+          batchNumber: trainingItems.batchNumber,
+          batchStart: trainingItems.trainingStart,
+          batchEnd: trainingItems.trainingEnd,
         };
       })
     );
