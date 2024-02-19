@@ -141,7 +141,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let totalMinutesLate = 0;
     let noOfTimesUndertime = 0;
     let totalMinutesUndertime = 0;
-    let noAttendance = 0;
+    let noAttendance = [];
     let noOfTimesHalfDay = 0;
     const lateDates: number[] = [];
     const undertimeDates: number[] = [];
@@ -157,7 +157,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
 
         if (summary.noAttendance > 0) {
-          noAttendance += 1;
+          noAttendance.push(parseInt(dayjs(day).format('D')));
         }
 
         if (summary.isHalfDay) {
@@ -300,9 +300,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       )[0];
 
       //1.2 if not in current mysql daily_time_record save data fetched from ivms
-      if (!currEmployeeDtr) {
+      if (currEmployeeDtr === null) {
         //if schedule is regular
         await this.saveDtr(data.companyId, employeeIvmsDtr, schedule);
+        console.log('dtr log:', currEmployeeDtr);
         //if schedule is night shift tabok2
       } else {
         if (schedule.id !== currEmployeeDtr.scheduleId)
@@ -379,10 +380,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const { remarks } = (
         await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')])
       )[0];
-
+      console.log('remarks', remarks);
       const isHoliday = await this.holidayService.isHoliday(data.date);
       let noAttendance = 1;
-      if (remarks !== null || remarks !== '') noAttendance = 0;
+      if ((remarks !== null && remarks !== '') || dayjs(dateCurrent).isAfter(dayjs())) {
+        console.log('here here here');
+        noAttendance = 0;
+      }
       return {
         //fetch day if may leave, holiday, pass slip
         schedule,
