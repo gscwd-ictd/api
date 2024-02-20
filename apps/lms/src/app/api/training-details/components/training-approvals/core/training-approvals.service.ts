@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingApprovalDto, GeneralManagerDto, PdcChairmanDto, PdcSecretaryDto, TrainingApproval, TrainingDetails } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { And, DataSource, Equal, Not } from 'typeorm';
 import { TrainingDetailsService } from '../../../core/training-details.service';
 import { TrainingStatus } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../../training-nominees';
@@ -70,7 +70,8 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             type: true,
             status: true,
           },
-          where: [{ status: TrainingStatus.PDC_SECRETARY_APPROVAL }, { status: TrainingStatus.PDC_CHAIRMAN_APPROVAL }],
+          where: { status: And(Not(Equal(TrainingStatus.PENDING)), Not(Equal(TrainingStatus.ON_GOING_NOMINATION))) },
+          order: { status: 'ASC' },
         },
         onError: () => new InternalServerErrorException(),
       })) as Array<TrainingDetails>;
@@ -192,7 +193,15 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             type: true,
             status: true,
           },
-          where: [{ status: TrainingStatus.PDC_CHAIRMAN_APPROVAL }, { status: TrainingStatus.GM_APPROVAL }],
+          where: {
+            status: And(
+              Not(Equal(TrainingStatus.PENDING)),
+              Not(Equal(TrainingStatus.ON_GOING_NOMINATION)),
+              Not(Equal(TrainingStatus.PDC_SECRETARY_APPROVAL)),
+              Not(Equal(TrainingStatus.PDC_SECRETARY_DECLINED))
+            ),
+          },
+          order: { status: 'ASC' },
         },
         onError: () => new InternalServerErrorException(),
       })) as Array<TrainingDetails>;
@@ -315,7 +324,17 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             type: true,
             status: true,
           },
-          where: [{ status: TrainingStatus.GM_APPROVAL }, { status: TrainingStatus.FOR_BATCHING }],
+          where: {
+            status: And(
+              Not(Equal(TrainingStatus.PENDING)),
+              Not(Equal(TrainingStatus.ON_GOING_NOMINATION)),
+              Not(Equal(TrainingStatus.PDC_SECRETARY_APPROVAL)),
+              Not(Equal(TrainingStatus.PDC_SECRETARY_DECLINED)),
+              Not(Equal(TrainingStatus.PDC_CHAIRMAN_APPROVAL)),
+              Not(Equal(TrainingStatus.PDC_CHAIRMAN_DECLINED))
+            ),
+          },
+          order: { status: 'ASC' },
         },
         onError: () => new InternalServerErrorException(),
       })) as Array<TrainingDetails>;

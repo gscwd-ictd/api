@@ -36,6 +36,6 @@ export class TrainingApproval extends DatabaseEntity implements IEntity {
   @Column({ name: 'general_manager_approval_date', nullable: true, default: null })
   generalManagerApprovalDate: Date;
 
-  @Column({ name: 'secretary_status', type: 'enum', enum: GeneralManagerStatus, nullable: true })
+  @Column({ name: 'general_manager_status', type: 'enum', enum: GeneralManagerStatus, nullable: true })
   generalManagerStatus: GeneralManagerStatus;
 }
