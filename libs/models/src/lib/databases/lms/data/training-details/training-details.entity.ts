@@ -50,6 +50,6 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'training_requirements', type: 'jsonb', nullable: false })
   trainingRequirements: string;
 
-  @Column({ name: 'status', type: 'enum', enum: TrainingStatus, nullable: true })
+  @Column({ name: 'status', type: 'enum', enum: TrainingStatus, default: TrainingStatus.PENDING })
   status: TrainingStatus;
 }

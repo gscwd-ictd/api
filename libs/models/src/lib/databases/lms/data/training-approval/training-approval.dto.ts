@@ -31,3 +31,15 @@ export class PdcChairmanDto {
   @Type(() => TrainingDetailsDto)
   trainingDetails: TrainingDetailsDto;
 }
+
+export class GeneralManagerDto {
+  @IsNotEmpty()
+  @IsUUID('all')
+  generalManager: string;
+
+  @IsNotEmptyObject()
+  @IsObject()
+  @ValidateNested({ each: true })
+  @Type(() => TrainingDetailsDto)
+  trainingDetails: TrainingDetailsDto;
+}

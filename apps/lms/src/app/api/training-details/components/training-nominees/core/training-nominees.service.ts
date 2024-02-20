@@ -133,7 +133,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     );
   }
 
-  // find all training nominee by training id (nominee type = nominee & preparation status = going nomination)
+  // find all training nominee by training id (nominee type = nominee)
   async findAllNomineeByTrainingId(trainingId: string) {
     const distribution = (await this.crudService.findAll({
       find: {
