@@ -10,7 +10,7 @@ import {
 import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
-import { DataSource, EntityManager, IsNull, Not } from 'typeorm';
+import { DataSource, EntityManager, IsNull, MoreThan, Not } from 'typeorm';
 import { TrainingDetailsService } from '../../../core/training-details.service';
 import { TrainingDistributionsService } from '../../training-distributions';
 
@@ -453,5 +453,56 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         throw error;
       },
     });
+  }
+
+  async findAll(trainingId: string) {
+    try {
+      const distribution = (await this.crudService.findAll({
+        find: {
+          relations: { trainingDistribution: true },
+          select: {
+            id: true,
+            trainingDistribution: {
+              id: true,
+              supervisorId: true,
+            },
+            employeeId: true,
+            status: true,
+            nomineeType: true,
+            remarks: true,
+          },
+          where: {
+            nomineeType: NomineeType.NOMINEE,
+            status: TrainingNomineeStatus.ACCEPTED,
+            trainingDistribution: {
+              trainingDetails: { id: trainingId, status: MoreThan(TrainingStatus.PDC_SECRETARY_APPROVAL) },
+            },
+          },
+        },
+        onError: () => new NotFoundException(),
+      })) as Array<TrainingNominee>;
+
+      return await Promise.all(
+        distribution.map(async (distributionItems) => {
+          const supervisorName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.trainingDistribution.supervisorId);
+          const employeeName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.employeeId);
+
+          return {
+            nomineeId: distributionItems.id,
+            employeeId: distributionItems.employeeId,
+            name: employeeName.fullName,
+            status: distributionItems.status,
+            remarks: distributionItems.remarks,
+            supervisor: {
+              supervisorId: distributionItems.trainingDistribution.supervisorId,
+              name: supervisorName.fullName,
+            },
+          };
+        })
+      );
+    } catch (error) {
+      Logger.log(error);
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
   }
 }

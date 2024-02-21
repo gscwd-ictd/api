@@ -63,6 +63,10 @@ export class TrainingDetailsController {
           type: true,
           status: true,
         },
+        order: {
+          status: 'ASC',
+          trainingStart: 'DESC',
+        },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),

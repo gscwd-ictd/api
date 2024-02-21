@@ -78,7 +78,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
 
       return await Promise.all(
         trainingDetails.map(async (trainingItems) => {
-          const nominee = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingItems.id);
+          const nominee = await this.trainingNomineesService.findAll(trainingItems.id);
 
           return {
             createdAt: trainingItems.createdAt,
@@ -140,7 +140,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
   // pdc secretary declined training
   async pdcSecretaryDeclined(data: PdcSecretaryDto) {
     try {
-      const { trainingDetails, pdcSecretary } = data;
+      const { trainingDetails, pdcSecretary, remarks } = data;
       const dateTimeToday = new Date();
 
       return await this.datasource.transaction(async (entityManager) => {
@@ -159,7 +159,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
 
         return await this.crudService.transact<TrainingApproval>(entityManager).update({
           updateBy: { trainingDetails: trainingDetails },
-          dto: { pdcSecretary: pdcSecretary, pdcSecretaryApprovalDate: dateTimeToday },
+          dto: { pdcSecretary: pdcSecretary, pdcSecretaryApprovalDate: dateTimeToday, remarks: remarks },
           onError: (error) => {
             throw error;
           },
@@ -271,7 +271,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
   // pdc chairman declined training
   async pdcChairmanDeclined(data: PdcChairmanDto) {
     try {
-      const { trainingDetails, pdcChairman } = data;
+      const { trainingDetails, pdcChairman, remarks } = data;
       const dateTimeToday = new Date();
 
       return await this.datasource.transaction(async (entityManager) => {
@@ -290,7 +290,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
 
         return await this.crudService.update({
           updateBy: { trainingDetails: trainingDetails },
-          dto: { pdcChairman: pdcChairman, pdcChairmanApprovalDate: dateTimeToday },
+          dto: { pdcChairman: pdcChairman, pdcChairmanApprovalDate: dateTimeToday, remarks: remarks },
           onError: (error) => {
             throw error;
           },
@@ -404,7 +404,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
   // general manager declined training
   async generalManagerDeclined(data: GeneralManagerDto) {
     try {
-      const { trainingDetails, generalManager } = data;
+      const { trainingDetails, generalManager, remarks } = data;
       const dateTimeToday = new Date();
 
       return await this.datasource.transaction(async (entityManager) => {
@@ -423,7 +423,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
 
         return await this.crudService.update({
           updateBy: { trainingDetails: trainingDetails },
-          dto: { generalManager: generalManager, pdcChairmanApprovalDate: dateTimeToday },
+          dto: { generalManager: generalManager, pdcChairmanApprovalDate: dateTimeToday, remarks: remarks },
           onError: (error) => {
             throw error;
           },
