@@ -29,3 +29,7 @@ export * from './training-notices';
 export * from './training-nominees';
 export * from './training-batches';
 export * from './training-approval';
+
+// user
+
+export * from './users';

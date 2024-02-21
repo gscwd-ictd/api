@@ -3,7 +3,7 @@ import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { TrainingPatterns } from '@gscwd-api/microservices';
 import { TrainingNomineesService } from './training-nominees.service';
 import { CreateTrainingNomineeDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
-import { TrainingNomineeRaw } from '@gscwd-api/utils';
+import { NomineeRaw, TrainingNomineeRaw } from '@gscwd-api/utils';
 
 @Controller()
 export class TrainingNomineesMicroserviceController {
@@ -33,10 +33,12 @@ export class TrainingNomineesMicroserviceController {
 
   // find all training by employee id
   @MessagePattern(TrainingPatterns.FIND_ALL_TRAINING_BY_EMPLOYEE_ID)
-  async findAllTrainingByEmployeeId(@Payload() employeeId: string) {
+  async findAllTrainingByEmployeeId(@Payload() data: NomineeRaw) {
     try {
-      return await this.trainingNomineesService.findAllTrainingByEmployeeId(employeeId);
+      const { employeeId, status } = data;
+      return await this.trainingNomineesService.findAllTrainingByEmployeeId(employeeId, status);
     } catch (error) {
+      Logger.log(error);
       throw new RpcException(error);
     }
   }

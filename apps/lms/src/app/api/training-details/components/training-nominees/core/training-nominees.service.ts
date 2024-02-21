@@ -1,16 +1,25 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingBatchDto, CreateTrainingNomineeDto, TrainingDetails, TrainingNominee, UpdateTrainingBatchDto } from '@gscwd-api/models';
-import { NomineeType, TrainingNomineeStatus, TrainingPreparationStatus } from '@gscwd-api/utils';
+import {
+  CreateTrainingBatchDto,
+  CreateTrainingNomineeDto,
+  TrainingDetails,
+  TrainingDistribution,
+  TrainingNominee,
+  UpdateTrainingBatchDto,
+} from '@gscwd-api/models';
+import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingPreparationStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { DataSource, IsNull, Not } from 'typeorm';
 import { TrainingDetailsService } from '../../../core/training-details.service';
+import { TrainingDistributionsService } from '../../training-distributions';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   constructor(
     private readonly crudService: CrudService<TrainingNominee>,
     private readonly trainingDetailsService: TrainingDetailsService,
+    private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
     private readonly datasource: DataSource
   ) {
@@ -23,6 +32,18 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
       //transaction result
       return await this.datasource.transaction(async (entityManager) => {
         const { employees, trainingDistribution } = data;
+
+        await this.trainingDistributionsService
+          .crud()
+          .transact<TrainingDistribution>(entityManager)
+          .update({
+            updateBy: { id: trainingDistribution.id },
+            dto: { status: TrainingDistributionStatus.NOMINATION_COMPLETE },
+            onError: (error) => {
+              throw error;
+            },
+          });
+
         return await Promise.all(
           employees.map(async (employeeItem) => {
             return await this.crudService.transact<TrainingNominee>(entityManager).create({
@@ -41,7 +62,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   }
 
   // find all training by employee id
-  async findAllTrainingByEmployeeId(employeeId: string) {
+  async findAllTrainingByEmployeeId(employeeId: string, status: TrainingNomineeStatus) {
     const training = (await this.crudService.findAll({
       find: {
         relations: {
@@ -51,6 +72,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           id: true,
           trainingDistribution: {
             id: true,
+            supervisorId: true,
             trainingDetails: {
               id: true,
               trainingDesign: { courseTitle: true },
@@ -62,13 +84,26 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
               type: true,
             },
           },
+          batchNumber: true,
+          trainingStart: true,
+          trainingEnd: true,
+          status: true,
+          remarks: true,
         },
-        where: {
-          employeeId,
-          status: TrainingNomineeStatus.PENDING,
-          nomineeType: NomineeType.NOMINEE,
-          trainingDistribution: { trainingDetails: { trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION } },
-        },
+        where: [
+          {
+            employeeId,
+            status,
+            nomineeType: NomineeType.NOMINEE,
+            trainingDistribution: { trainingDetails: { trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION } },
+          },
+          {
+            employeeId,
+            status,
+            nomineeType: NomineeType.NOMINEE,
+            trainingDistribution: { trainingDetails: { status: TrainingStatus.UPCOMING } },
+          },
+        ],
       },
       onError: (error) => {
         throw error;
@@ -77,14 +112,22 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
 
     return await Promise.all(
       training.map(async (trainingItems) => {
+        const supervisorName = await this.hrmsEmployeesService.findEmployeesById(trainingItems.trainingDistribution.supervisorId);
+
         return {
+          supervisorName: supervisorName.fullName,
           nomineeId: trainingItems.id,
           name:
-            trainingItems.trainingDistribution.trainingDetails.courseContent ||
+            trainingItems.trainingDistribution.trainingDetails.courseTitle ||
             trainingItems.trainingDistribution.trainingDetails.trainingDesign.courseTitle,
           location: trainingItems.trainingDistribution.trainingDetails.location,
           trainingStart: trainingItems.trainingDistribution.trainingDetails.trainingStart,
           trainingEnd: trainingItems.trainingDistribution.trainingDetails.trainingEnd,
+          nomineeStatus: trainingItems.status,
+          remarks: trainingItems.remarks,
+          batchNumber: trainingItems.batchNumber,
+          batchStart: trainingItems.trainingStart,
+          batchEnd: trainingItems.trainingEnd,
         };
       })
     );
@@ -214,6 +257,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         return {
           employeeId: distributionItems.employeeId,
           name: employeeName.fullName,
+          nomineeType: distributionItems.nomineeType,
+          status: distributionItems.status,
+          remarks: distributionItems.remarks,
         };
       })
     );

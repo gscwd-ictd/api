@@ -15,6 +15,7 @@ export class TrainingInterceptor implements NestInterceptor {
               deletedAt: trainingItems.deletedAt,
               id: trainingItems.id,
               courseTitle: trainingItems.courseTitle || trainingItems.trainingDesign.courseTitle,
+              numberOfParticipants: trainingItems.numberOfParticipants,
               location: trainingItems.location,
               trainingStart: trainingItems.trainingStart,
               trainingEnd: trainingItems.trainingEnd,

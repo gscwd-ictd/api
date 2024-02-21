@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Get, Logger, Param, Patch, Post } from '@nestjs/common';
 import { TrainingNomineesService } from './training-nominees.service';
 import { CreateTrainingBatchDto, CreateTrainingNomineeDto, UpdateTrainingBatchDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
+import { TrainingNomineeStatus } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'training-nominees' })
 export class TrainingNomineesController {
@@ -44,8 +45,8 @@ export class TrainingNomineesController {
 
   // test microservice in find all training by employee id
   @Get('employee/:id')
-  async findAllTrainingByEmployeeId(@Param('id') employeeId: string) {
-    return await this.trainingNomineesService.findAllTrainingByEmployeeId(employeeId);
+  async findAllTrainingByEmployeeId(@Param('id') employeeId: string, @Param('status') status: TrainingNomineeStatus) {
+    return await this.trainingNomineesService.findAllTrainingByEmployeeId(employeeId, status);
   }
 
   // test microservice in update status for nominated employee by nominee id

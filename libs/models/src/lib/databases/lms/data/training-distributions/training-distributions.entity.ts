@@ -1,6 +1,7 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { TrainingDetails } from '../training-details';
+import { TrainingDistributionStatus } from '@gscwd-api/utils';
 
 @Entity({ name: 'training_distributions' })
 @Unique(['trainingDetails', 'supervisorId'])
@@ -17,4 +18,7 @@ export class TrainingDistribution extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'no_of_slots', nullable: false })
   numberOfSlots: number;
+
+  @Column({ name: 'status', type: 'enum', enum: TrainingDistributionStatus, default: TrainingDistributionStatus.FOR_NOMINATION })
+  status: TrainingDistributionStatus;
 }
