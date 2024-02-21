@@ -6,6 +6,7 @@ import { EmsSettingsModule } from '../app/api/ems-settings/core/ems-settings.mod
 import { HolidaysModule } from '../app/api/holidays/core/holidays.module';
 import { LeaveModule } from '../app/api/leave/core/leave.module';
 import { ModulesModule } from '../app/api/modules/core/modules.module';
+import { OfficerOfTheDayModule } from '../app/api/officer-of-the-day/core/officer-of-the-day.module';
 import { OvertimeModule } from '../app/api/overtime/core/overtime.module';
 import { PassSlipApprovalModule } from '../app/api/pass-slip/components/approval/core/pass-slip-approval.module';
 import { PassSlipModule } from '../app/api/pass-slip/core/pass-slip.module';
@@ -32,4 +33,5 @@ export const appModules = [
   UserLogsModule,
   ReportsModule,
   EmsSettingsModule,
+  OfficerOfTheDayModule,
 ];
