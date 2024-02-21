@@ -71,7 +71,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             status: true,
           },
           where: { status: And(Not(Equal(TrainingStatus.PENDING)), Not(Equal(TrainingStatus.ON_GOING_NOMINATION))) },
-          order: { status: 'ASC' },
+          order: { status: 'ASC', trainingStart: 'DESC' },
         },
         onError: () => new InternalServerErrorException(),
       })) as Array<TrainingDetails>;
@@ -79,6 +79,9 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
       return await Promise.all(
         trainingDetails.map(async (trainingItems) => {
           const nominee = await this.trainingNomineesService.findAll(trainingItems.id);
+          const remarks = await this.crudService.findOne({
+            find: { relations: { trainingDetails: true }, select: { id: true, remarks: true }, where: { trainingDetails: { id: trainingItems.id } } },
+          });
 
           return {
             createdAt: trainingItems.createdAt,
@@ -94,6 +97,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             type: trainingItems.type,
             status: trainingItems.status,
             nominee: nominee,
+            remarks: remarks.remarks,
           };
         })
       );
@@ -201,7 +205,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
               Not(Equal(TrainingStatus.PDC_SECRETARY_DECLINED))
             ),
           },
-          order: { status: 'ASC' },
+          order: { status: 'ASC', trainingStart: 'DESC' },
         },
         onError: () => new InternalServerErrorException(),
       })) as Array<TrainingDetails>;
@@ -209,6 +213,9 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
       return await Promise.all(
         trainingDetails.map(async (trainingItems) => {
           const nominee = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingItems.id);
+          const remarks = await this.crudService.findOne({
+            find: { relations: { trainingDetails: true }, select: { id: true, remarks: true }, where: { trainingDetails: { id: trainingItems.id } } },
+          });
 
           return {
             createdAt: trainingItems.createdAt,
@@ -225,6 +232,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             type: trainingItems.type,
             status: trainingItems.status,
             nominee: nominee,
+            remarks: remarks.remarks,
           };
         })
       );
@@ -334,7 +342,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
               Not(Equal(TrainingStatus.PDC_CHAIRMAN_DECLINED))
             ),
           },
-          order: { status: 'ASC' },
+          order: { status: 'ASC', trainingStart: 'DESC' },
         },
         onError: () => new InternalServerErrorException(),
       })) as Array<TrainingDetails>;
@@ -342,6 +350,9 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
       return await Promise.all(
         trainingDetails.map(async (trainingItems) => {
           const nominee = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingItems.id);
+          const remarks = await this.crudService.findOne({
+            find: { relations: { trainingDetails: true }, select: { id: true, remarks: true }, where: { trainingDetails: { id: trainingItems.id } } },
+          });
 
           return {
             createdAt: trainingItems.createdAt,
@@ -358,6 +369,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             type: trainingItems.type,
             status: trainingItems.status,
             nominee: nominee,
+            remarks: remarks.remarks,
           };
         })
       );
