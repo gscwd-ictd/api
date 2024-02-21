@@ -835,6 +835,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   async updateEmployeeDTR(dailyTimeRecordDto: UpdateDailyTimeRecordDto) {
     const { dtrDate, companyId, ...rest } = dailyTimeRecordDto;
     const updateResult = await this.crud().update({ dto: rest, updateBy: { companyId, dtrDate }, onError: () => new InternalServerErrorException() });
+
     if (updateResult.affected > 0) return dailyTimeRecordDto;
   }
 
