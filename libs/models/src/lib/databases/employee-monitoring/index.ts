@@ -26,3 +26,4 @@ export * from './data/overtime-approval';
 export * from './data/overtime-accomplishment';
 export * from './data/user-logs';
 export * from './data/ems-settings';
+export * from './data/officer-of-the-day';

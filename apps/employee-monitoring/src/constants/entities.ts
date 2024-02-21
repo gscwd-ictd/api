@@ -27,6 +27,7 @@ import {
   UserLogs,
   EmsSettings,
   EmployeeRestDay,
+  OfficerOfTheDay,
 } from '@gscwd-api/models';
 
 export const typeOrmEntities = [
@@ -58,4 +59,5 @@ export const typeOrmEntities = [
   OvertimeAccomplishment,
   UserLogs,
   EmsSettings,
+  OfficerOfTheDay,
 ];
