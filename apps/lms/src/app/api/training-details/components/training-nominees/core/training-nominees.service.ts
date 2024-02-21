@@ -10,16 +10,16 @@ import {
 import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
-import { DataSource, IsNull, Not } from 'typeorm';
+import { DataSource, EntityManager, IsNull, Not } from 'typeorm';
 import { TrainingDetailsService } from '../../../core/training-details.service';
 import { TrainingDistributionsService } from '../../training-distributions';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   constructor(
+    private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly crudService: CrudService<TrainingNominee>,
     private readonly trainingDetailsService: TrainingDetailsService,
-    private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
     private readonly datasource: DataSource
   ) {
@@ -442,5 +442,16 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
       Logger.log(error);
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  // remove training nominee service
+  async remove(trainingId: string, softDelete: boolean, entityManager: EntityManager) {
+    return await this.crudService.transact<TrainingNominee>(entityManager).delete({
+      deleteBy: { trainingDistribution: { trainingDetails: { id: trainingId } } },
+      softDelete: softDelete,
+      onError: (error) => {
+        throw error;
+      },
+    });
   }
 }
