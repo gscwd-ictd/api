@@ -9,7 +9,6 @@ import { TrainingRecommendedEmployeesModule } from '../components/training-recom
 import { LspDetailsModule } from '../../lsp-details';
 import { PortalEmployeesModule } from '../../../services/portal';
 import { TrainingLspDetailsModule } from '../components/training-lsp-details';
-import { TrainingApprovalsModule } from '../components/training-approvals';
 
 @Module({
   imports: [
@@ -18,7 +17,6 @@ import { TrainingApprovalsModule } from '../components/training-approvals';
     TrainingTagsModule,
     TrainingDistributionsModule,
     TrainingRecommendedEmployeesModule,
-    TrainingApprovalsModule,
     LspDetailsModule,
     PortalEmployeesModule,
   ],
