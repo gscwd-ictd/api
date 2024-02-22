@@ -1,11 +1,15 @@
 import { EmployeeTagsPatterns, MicroserviceClient } from '@gscwd-api/microservices';
 import { CreateEmployeeTagDto, DeleteEmployeeTagDto } from '@gscwd-api/models';
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { TagsService } from '../../../../api/tags';
 
 @Injectable()
 export class HrmsEmployeeTagsService {
-  constructor(private readonly microserviceClient: MicroserviceClient, private readonly tagsService: TagsService) {}
+  constructor(
+    private readonly microserviceClient: MicroserviceClient,
+    @Inject(forwardRef(() => TagsService))
+    private readonly tagsService: TagsService
+  ) {}
 
   //add multiple tags in a multiple employees
   async addEmployeeTags(data: CreateEmployeeTagDto) {
@@ -55,6 +59,16 @@ export class HrmsEmployeeTagsService {
       action: 'send',
       pattern: EmployeeTagsPatterns.DELETE_EMPLOYEE_TAGS,
       payload: dto,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    });
+  }
+
+  // count employee tags by tag id
+  async countEmployeeTags(tagId: string) {
+    return await this.microserviceClient.call({
+      action: 'send',
+      pattern: EmployeeTagsPatterns.COUNT_EMPLOYEE_TAGS,
+      payload: tagId,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     });
   }

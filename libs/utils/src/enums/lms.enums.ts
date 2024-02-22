@@ -20,7 +20,8 @@ export enum TrainingPreparationStatus {
   PENDING = 'pending',
   ON_GOING_NOMINATION = 'on going nomination',
   NOMINATION_DONE = 'nomination done',
-  PDC_APPROVAL = 'for pdc approval',
+  PDC_SECRETARY_APPROVAL = 'for pdc secretary approval',
+  PDC_CHAIRMAN_APPROVAL = 'for pdc chairman approval',
   GM_APPROVAL = 'for gm approval',
   FOR_BATCHING = 'for batching',
   DONE_BATCHING = 'done batching',
@@ -32,6 +33,11 @@ export enum TrainingStatus {
   ONGOING = 'on going',
   REQUIREMENTS_SUBMISSION = 'requirements submission',
   COMPLETED = 'completed',
+}
+
+export enum TrainingDistributionStatus {
+  FOR_NOMINATION = 'for nomination',
+  NOMINATION_COMPLETE = 'nomination complete',
 }
 
 export enum TrainingNomineeStatus {

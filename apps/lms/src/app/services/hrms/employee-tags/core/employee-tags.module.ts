@@ -1,11 +1,11 @@
 import { HrmsMicroserviceClientModule } from '@gscwd-api/microservices';
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { HrmsEmployeeTagsService } from './employee-tags.service';
 import { HrmsEmployeeTagsController } from './employee-tags.controller';
 import { TagsModule } from '../../../../api/tags';
 
 @Module({
-  imports: [HrmsMicroserviceClientModule, TagsModule],
+  imports: [HrmsMicroserviceClientModule, forwardRef(() => TagsModule)],
   controllers: [HrmsEmployeeTagsController],
   providers: [HrmsEmployeeTagsService],
   exports: [HrmsEmployeeTagsService],
