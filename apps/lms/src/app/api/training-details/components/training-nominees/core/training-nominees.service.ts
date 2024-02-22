@@ -475,7 +475,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             nomineeType: NomineeType.NOMINEE,
             status: TrainingNomineeStatus.ACCEPTED,
             trainingDistribution: {
-              trainingDetails: { id: trainingId, status: MoreThan(TrainingStatus.PDC_SECRETARY_APPROVAL) },
+              trainingDetails: { id: trainingId, status: MoreThan(TrainingStatus.ON_GOING_NOMINATION) },
             },
           },
         },

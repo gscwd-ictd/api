@@ -64,8 +64,7 @@ export class TrainingDetailsController {
           status: true,
         },
         order: {
-          status: 'ASC',
-          trainingStart: 'DESC',
+          updatedAt: 'DESC',
         },
       },
       pagination: { page, limit },
@@ -105,6 +104,70 @@ export class TrainingDetailsController {
     });
   }
 
+  @UseInterceptors(TrainingInterceptor)
+  @Get('recents')
+  async findAllRequirementsSubmission(
+    @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      find: {
+        relations: { source: true, trainingDesign: true },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          trainingDesign: { courseTitle: true },
+          courseTitle: true,
+          numberOfParticipants: true,
+          location: true,
+          trainingStart: true,
+          trainingEnd: true,
+          bucketFiles: true,
+          source: { name: true },
+          type: true,
+          status: true,
+        },
+        where: { status: TrainingStatus.REQUIREMENTS_SUBMISSION },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
+
+  @UseInterceptors(TrainingInterceptor)
+  @Get('history')
+  async findAllCompleted(
+    @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      find: {
+        relations: { source: true, trainingDesign: true },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          trainingDesign: { courseTitle: true },
+          courseTitle: true,
+          numberOfParticipants: true,
+          location: true,
+          trainingStart: true,
+          trainingEnd: true,
+          bucketFiles: true,
+          source: { name: true },
+          type: true,
+          status: true,
+        },
+        where: { status: TrainingStatus.COMPLETED },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
+
   @Get(':id')
   async findTrainingById(@Param('id') id: string) {
     return await this.trainingDetailsService.findTrainingById(id);
@@ -123,6 +186,11 @@ export class TrainingDetailsController {
   @Put('done/:id')
   async updateTrainingToDone(@Param('id') id: string) {
     return await this.trainingDetailsService.updateTrainingToDone(id);
+  }
+
+  @Put('on-going/:id')
+  async updateTrainingToOnGoing(@Param('id') id: string) {
+    return await this.trainingDetailsService.updateTrainingToOnGoing(id);
   }
 
   @Put('requirements-submission/:id')
