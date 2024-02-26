@@ -3,13 +3,14 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { DailyTimeRecord, UpdateDailyTimeRecordDto } from '@gscwd-api/models';
 import { DtrPayload, IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType } from '@gscwd-api/utils';
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { EmployeesService } from '../../employees/core/employees.service';
 import { HolidaysService } from '../../holidays/core/holidays.service';
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
+import { runInThisContext } from 'vm';
 
 @Injectable()
 export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
@@ -831,10 +832,28 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   //#endregion
   async updateEmployeeDTR(dailyTimeRecordDto: UpdateDailyTimeRecordDto) {
+    //try {
     const { dtrDate, companyId, ...rest } = dailyTimeRecordDto;
-    const updateResult = await this.crud().update({ dto: rest, updateBy: { companyId, dtrDate }, onError: () => new InternalServerErrorException() });
+    const updateResult = await this.crud().update({
+      dto: rest,
+      updateBy: { companyId, dtrDate },
+      onError: (error) => {
+        console.log(error);
+        return new InternalServerErrorException();
+      },
+    });
+
+    // const employeeId = (await this.employeeService.getEmployeeDetailsByCompanyId(companyId)).id;
+    // const schedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dtrDate);
+
+    // if (schedule.schedule.withLunch === 'true') {
+    //   if (rest.lunchIn === null || rest.lunchOut === null || rest.timeIn === null || rest.timeOut === null) {
+    //     throw new HttpException('Please fill out time scans completely', 406);
+    //   }
+    // }
 
     if (updateResult.affected > 0) return dailyTimeRecordDto;
+    else throw new HttpException('No attendance found on this date', HttpStatus.NOT_ACCEPTABLE);
   }
 
   @Cron('0 59 23 * * 0-6')

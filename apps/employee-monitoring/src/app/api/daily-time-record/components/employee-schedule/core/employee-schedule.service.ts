@@ -152,7 +152,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
         s.time_out timeOut, 
         s.shift shift,
         s.schedule_base scheduleBase,
-        s.is_with_lunch withLunch,
+        IF(s.is_with_lunch = 1,'true','false') withLunch,
         DATE_FORMAT(emr.date_from,'%Y-%m-%d') dateFrom,
         DATE_FORMAT(emr.date_to,'%Y-%m-%d') dateTo,
         concat(DATE_FORMAT(emr.date_from,'%Y-%m-%d'),'-',DATE_FORMAT(emr.date_to,'%Y-%m-%d')) scheduleRange,
@@ -167,7 +167,9 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
         [employeeId, currDateString, currDateString]
       )
     )[0];
-    return { employeeName: employeeName.fullName, schedule: { ...schedule } };
+    const { withLunch, ...restSchedule } = schedule;
+
+    return { employeeName: employeeName.fullName, schedule: { withLunch: withLunch === 'true' ? true : false, ...restSchedule } };
   }
 
   async getEmployeeScheduleByScheduleId(employeeId: string, scheduleId: string, dtrDate: Date) {
