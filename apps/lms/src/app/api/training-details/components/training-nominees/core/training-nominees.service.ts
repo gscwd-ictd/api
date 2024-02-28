@@ -13,14 +13,16 @@ import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { DataSource, EntityManager, IsNull, MoreThan, Not } from 'typeorm';
 import { TrainingDetailsService } from '../../../core/training-details.service';
 import { TrainingDistributionsService } from '../../training-distributions';
+import { TrainingRequirementsService } from '../../training-requirements';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   constructor(
-    private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly crudService: CrudService<TrainingNominee>,
+    private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly trainingDetailsService: TrainingDetailsService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
+    private readonly trainingRequirementsService: TrainingRequirementsService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -299,7 +301,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
 
                 //transaction update
                 return await this.crudService.transact<TrainingNominee>(entityManager).update({
-                  updateBy: { id: nomineeId },
+                  updateBy: { id: nomineeId.id },
                   dto: {
                     batchNumber: batchNumber,
                     trainingStart: trainingDate.from,
@@ -423,9 +425,11 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
                 //deconstruct employee items
                 const { nomineeId } = employeeItems;
 
+                await this.trainingRequirementsService.create({ nomineeId }, entityManager);
+
                 //transaction update
                 return await this.crudService.transact<TrainingNominee>(entityManager).update({
-                  updateBy: { id: nomineeId },
+                  updateBy: { id: nomineeId.id },
                   dto: { batchNumber: batchNumber, trainingStart: trainingDate.from, trainingEnd: trainingDate.to },
                   onError: (error) => {
                     throw error;
