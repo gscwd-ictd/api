@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { TrainingDetailsService } from './training-details.service';
@@ -23,6 +24,7 @@ import {
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { TrainingInterceptor } from '../misc/interceptors';
 import { TrainingStatus } from '@gscwd-api/utils';
+import { AuthGuard } from '../../../../guards';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -38,6 +40,7 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.createTrainingExternal(data);
   }
 
+  @UseGuards(AuthGuard)
   @UseInterceptors(TrainingInterceptor)
   @Get()
   async findAll(
