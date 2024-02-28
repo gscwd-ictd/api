@@ -22,4 +22,13 @@ export class TrainingApproval extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'pdc_chairman_approval_date', nullable: true, default: null })
   pdcChairmanApprovalDate: Date;
+
+  @Column({ name: 'general_manager_id_fk', nullable: true, default: null })
+  generalManager: string;
+
+  @Column({ name: 'general_manager_approval_date', nullable: true, default: null })
+  generalManagerApprovalDate: Date;
+
+  @Column({ name: 'remarks', length: 200, nullable: true })
+  remarks: string;
 }

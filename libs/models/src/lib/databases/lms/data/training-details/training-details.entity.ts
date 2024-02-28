@@ -2,7 +2,7 @@ import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TrainingDesign } from '../training-designs';
 import { TrainingSource } from '../training-sources';
-import { TrainingPreparationStatus, TrainingStatus, TrainingType } from '@gscwd-api/utils';
+import { TrainingStatus, TrainingType } from '@gscwd-api/utils';
 
 @Entity('training_details')
 export class TrainingDetails extends DatabaseEntity implements IEntity {
@@ -50,15 +50,6 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'training_requirements', type: 'jsonb', nullable: false })
   trainingRequirements: string;
 
-  @Column({
-    name: 'training_preparation_status',
-    type: 'enum',
-    enum: TrainingPreparationStatus,
-    default: TrainingPreparationStatus.PENDING,
-    nullable: false,
-  })
-  trainingPreparationStatus: TrainingPreparationStatus;
-
-  @Column({ name: 'status', type: 'enum', enum: TrainingStatus, nullable: true })
+  @Column({ name: 'status', type: 'enum', enum: TrainingStatus, default: TrainingStatus.PENDING })
   status: TrainingStatus;
 }
