@@ -25,36 +25,38 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
   }
 
   async cancelLeaveDateTransaction(transactionEntityManager: EntityManager, leaveDateCancellationDto: LeaveDateCancellationDto) {
-    const { leaveApplicationId, leaveDates, status } = leaveDateCancellationDto;
+    const { leaveApplicationId, leaveDates, status, remarks } = leaveDateCancellationDto;
 
-    const _leaveApplicationId = leaveApplicationId as unknown;
+    const leaveType = (
+      await this.rawQuery(
+        `SELECT lb.leave_types leaveType 
+            FROM leave_application la 
+          INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
+          WHERE la.leave_application_id = ?;`,
+        [leaveApplicationId]
+      )
+    )[0].leaveType;
 
-    const cancelledLeaveDates = await Promise.all(
-      leaveDates.map(async (leaveDate) => {
-        const leaveDatesCancelled = await this.crudService
-          .transact<LeaveApplicationDates>(transactionEntityManager)
-          .update({ dto: { status }, updateBy: { leaveApplicationId, leaveDate } });
+    if (leaveType === 'special leave benefit') {
+      const updateResult = await this.rawQuery(
+        `UPDATE leave_application_dates SET status = ?,remarks = ? WHERE leave_date >= ? AND leave_application_id_fk = ?`,
+        [status, remarks, leaveDates[0], leaveApplicationId]
+      );
+    } else {
+      const cancelledLeaveDates = await Promise.all(
+        leaveDates.map(async (leaveDate) => {
+          const leaveDatesCancelled = await this.crudService
+            .transact<LeaveApplicationDates>(transactionEntityManager)
+            .update({ dto: { status, remarks }, updateBy: { leaveApplicationId, leaveDate } });
 
-        if (status === 'cancelled') {
-          /*
-            1. get leave benefit name by leave application id
-            2. if slb dont add back, else add back
-            3. if leave dates are all cancelled, the leave status should be cancelled as well 
-          */
-          const leaveType = (
-            await this.rawQuery(
-              `
-            SELECT lb.leave_types leaveType 
-              FROM leave_application la 
-            INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
-            WHERE la.leave_application_id = ?;
-          `,
-              [leaveApplicationId]
-            )
-          )[0].leaveType;
-          console.log(leaveType);
+          if (status === 'cancelled') {
+            /*
+              1. get leave benefit name by leave application id
+              2. if slb dont add back, else add back
+              3. if leave dates are all cancelled, the leave status should be cancelled as well 
+            */
+            console.log(leaveType);
 
-          if (leaveType !== 'special leave benefit') {
             //add back;
             const leaveApplicationDatesId = await this.getRepository().findOne({
               select: {
@@ -89,10 +91,11 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
               transactionEntityManager
             );
           }
-        }
-        return leaveDate;
-      })
-    );
+          return leaveDate;
+        })
+      );
+    }
+
     //cancellation
     return leaveDateCancellationDto;
   }

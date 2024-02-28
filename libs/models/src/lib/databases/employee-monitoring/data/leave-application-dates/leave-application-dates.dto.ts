@@ -13,4 +13,5 @@ export class LeaveDateCancellationDto {
   leaveApplicationId: LeaveApplication;
   status: LeaveDayStatus;
   leaveDates: Date[];
+  remarks: string;
 }
