@@ -74,6 +74,7 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
 
   async deleteCustomGroup(id: string) {
     const customGroup = await this.crud().findOneOrNull({ find: { where: { id } } });
+    const employeeSchedule = await this.rawQuery(`UPDATE employee_schedule SET custom_group_id_fk = null WHERE custom_group_id_fk = ?`, [id]);
     const deleteCustomGroupMembersResult = await this.customGroupMembersService
       .crud()
       .delete({ deleteBy: { customGroupId: { id } }, softDelete: false });
