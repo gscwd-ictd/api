@@ -157,4 +157,12 @@ export class EmployeesService {
       })) as { companyId: string }
     ).companyId;
   }
+
+  async getAllAssignablePermanentCasualEmployees(employeeIds: string[]) {
+    return (await this.client.call<string, string[], object[]>({
+      action: 'send',
+      pattern: 'get_all_assignable_permanent_casual_employees',
+      payload: employeeIds,
+    })) as { label: string; value: string }[];
+  }
 }

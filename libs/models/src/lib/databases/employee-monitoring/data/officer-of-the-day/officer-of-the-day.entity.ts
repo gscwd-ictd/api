@@ -1,7 +1,8 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
-@Entity()
+@Unique('employee_org_date_from_date_to_uk', ['employeeId', 'orgId', 'dateFrom', 'dateTo'])
+@Entity('officer_of_the_day')
 export class OfficerOfTheDay extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'officer_of_the_day_id' })
   id: string;
