@@ -4,6 +4,10 @@ import { AppModule } from './app/app.module';
 import { ConfigService } from '@nestjs/config';
 import { HybridApp } from '@gscwd-api/microservices';
 import { Transport } from '@nestjs/microservices';
+import session from 'express-session';
+// import * as redis from 'redis';
+import RedisStore from 'connect-redis';
+import { createClient } from 'redis';
 
 /**
  *  Copyright (C) General Santos City Water District - All Rights Reserved
@@ -12,6 +16,19 @@ import { Transport } from '@nestjs/microservices';
  *  Proprietary and confidential
  *
  */
+
+const redisClient = createClient();
+redisClient.connect().catch(console.error);
+
+const redisStore = new RedisStore({
+  client: redisClient,
+  prefix: 'myapp:',
+});
+
+// const redisClientHrms = redis.createClient({
+//   url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:6479`,
+// });
+// redisClientHrms.connect().catch(console.error);
 
 async function bootstrap() {
   /**
@@ -32,9 +49,27 @@ async function bootstrap() {
     'http://172.20.110.45:3002',
     'http://localhost:3002',
     'http://172.20.10.57:3000',
-    'http://172.20.10.57:3010',
-    'http://172.20.110.45:3010',
+    'http://172.20.10.57:3007',
+    'http://172.20.110.45:3007',
   ];
+
+  app.use(
+    '/',
+    session({
+      store: redisStore,
+      name: 'ssid_hrms',
+      secret: process.env.RSP_COOKIE_PASS,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        signed: true,
+        secure: false,
+        maxAge: 86000000,
+        path: '/',
+      },
+    })
+  );
 
   app.enableCors({
     credentials: true,

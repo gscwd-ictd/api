@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { DataSource, EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { TrainingDetailsService } from '../../training-details';
 import { TrainingDetails, TrainingNoticeExternalDto, TrainingNoticeInternalDto } from '@gscwd-api/models';
-import { TrainingPreparationStatus } from '@gscwd-api/utils';
+import { TrainingStatus } from '@gscwd-api/utils';
 import { TrainingLspDetailsService } from '../../training-details/components/training-lsp-details';
 import { TrainingTagsService } from '../../training-details/components/training-tags';
 import { TrainingDistributionsService } from '../../training-details/components/training-distributions';
@@ -29,7 +29,7 @@ export class TrainingNoticesService {
           .crud()
           .transact<TrainingDetails>(entityManager)
           .findOneBy({
-            findBy: { id, trainingPreparationStatus: TrainingPreparationStatus.PENDING },
+            findBy: { id, status: TrainingStatus.PENDING },
             onError: (error) => {
               throw error;
             },
@@ -44,7 +44,7 @@ export class TrainingNoticesService {
             dto: {
               courseContent: JSON.stringify(courseContent),
               trainingRequirements: JSON.stringify(trainingRequirements),
-              trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION,
+              status: TrainingStatus.ON_GOING_NOMINATION,
               ...rest,
             },
             onError: (error) => {
@@ -123,7 +123,7 @@ export class TrainingNoticesService {
           .crud()
           .transact<TrainingDetails>(entityManager)
           .findOneBy({
-            findBy: { id, trainingPreparationStatus: TrainingPreparationStatus.PENDING },
+            findBy: { id, status: TrainingStatus.PENDING },
             onError: (error) => {
               throw error;
             },
@@ -138,7 +138,7 @@ export class TrainingNoticesService {
             dto: {
               courseContent: JSON.stringify(courseContent),
               trainingRequirements: JSON.stringify(trainingRequirements),
-              trainingPreparationStatus: TrainingPreparationStatus.ON_GOING_NOMINATION,
+              status: TrainingStatus.ON_GOING_NOMINATION,
               bucketFiles: JSON.stringify(bucketFiles),
               ...rest,
             },

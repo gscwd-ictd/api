@@ -17,10 +17,10 @@ export class TagsService extends CrudHelper<Tag> {
   async deleteTags(tagId: string) {
     try {
       const count = await this.hrmsEmployeeTagsService.countEmployeeTags(tagId);
-      console.log(count);
-      if (count === 0 || count === null) {
+      if (count === '0' || count === null) {
         return await this.crudService.delete({
           deleteBy: { id: tagId },
+          softDelete: false,
           onError: () => new BadRequestException(),
         });
       } else {

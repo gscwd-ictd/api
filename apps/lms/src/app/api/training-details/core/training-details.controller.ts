@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { TrainingDetailsService } from './training-details.service';
@@ -22,7 +23,8 @@ import {
 } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { TrainingInterceptor } from '../misc/interceptors';
-import { TrainingPreparationStatus, TrainingStatus } from '@gscwd-api/utils';
+import { TrainingStatus } from '@gscwd-api/utils';
+import { AuthGuard } from '../../../../guards';
 
 @Controller({ version: '1', path: 'training-details' })
 export class TrainingDetailsController {
@@ -38,6 +40,7 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.createTrainingExternal(data);
   }
 
+  @UseGuards(AuthGuard)
   @UseInterceptors(TrainingInterceptor)
   @Get()
   async findAll(
@@ -61,8 +64,10 @@ export class TrainingDetailsController {
           bucketFiles: true,
           source: { name: true },
           type: true,
-          trainingPreparationStatus: true,
           status: true,
+        },
+        order: {
+          updatedAt: 'DESC',
         },
       },
       pagination: { page, limit },
@@ -71,8 +76,8 @@ export class TrainingDetailsController {
   }
 
   @UseInterceptors(TrainingInterceptor)
-  @Get('upcoming')
-  async findAllUpcoming(
+  @Get('ongoing')
+  async findAllOngoing(
     @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number
   ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
@@ -93,10 +98,73 @@ export class TrainingDetailsController {
           bucketFiles: true,
           source: { name: true },
           type: true,
-          trainingPreparationStatus: true,
           status: true,
         },
-        where: { trainingPreparationStatus: TrainingPreparationStatus.DONE, status: TrainingStatus.UPCOMING },
+        where: { status: TrainingStatus.ON_GOING_TRAINING },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
+
+  @UseInterceptors(TrainingInterceptor)
+  @Get('recents')
+  async findAllRequirementsSubmission(
+    @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      find: {
+        relations: { source: true, trainingDesign: true },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          trainingDesign: { courseTitle: true },
+          courseTitle: true,
+          numberOfParticipants: true,
+          location: true,
+          trainingStart: true,
+          trainingEnd: true,
+          bucketFiles: true,
+          source: { name: true },
+          type: true,
+          status: true,
+        },
+        where: { status: TrainingStatus.REQUIREMENTS_SUBMISSION },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
+
+  @UseInterceptors(TrainingInterceptor)
+  @Get('history')
+  async findAllCompleted(
+    @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      find: {
+        relations: { source: true, trainingDesign: true },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          trainingDesign: { courseTitle: true },
+          courseTitle: true,
+          numberOfParticipants: true,
+          location: true,
+          trainingStart: true,
+          trainingEnd: true,
+          bucketFiles: true,
+          source: { name: true },
+          type: true,
+          status: true,
+        },
+        where: { status: TrainingStatus.COMPLETED },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
@@ -121,6 +189,11 @@ export class TrainingDetailsController {
   @Put('done/:id')
   async updateTrainingToDone(@Param('id') id: string) {
     return await this.trainingDetailsService.updateTrainingToDone(id);
+  }
+
+  @Put('on-going/:id')
+  async updateTrainingToOnGoing(@Param('id') id: string) {
+    return await this.trainingDetailsService.updateTrainingToOnGoing(id);
   }
 
   @Put('requirements-submission/:id')

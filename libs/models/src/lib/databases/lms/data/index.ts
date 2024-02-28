@@ -29,6 +29,7 @@ export * from './training-notices';
 export * from './training-nominees';
 export * from './training-batches';
 export * from './training-approval';
+export * from './training-requirements';
 
 // user
 
