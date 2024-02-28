@@ -17,4 +17,7 @@ export class LeaveApplicationDates extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'status', type: 'enum', enum: LeaveDayStatus })
   status: LeaveDayStatus;
+
+  @Column({ name: 'remarks', type: 'text' })
+  remarks: string;
 }

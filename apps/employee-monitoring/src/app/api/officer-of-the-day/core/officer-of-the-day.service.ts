@@ -1,8 +1,9 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { OfficerOfTheDay, OfficerOfTheDayDto } from '@gscwd-api/models';
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { OrganizationService } from '../../organization/core/organization.service';
+import { TypeORMError } from 'typeorm';
 
 @Injectable()
 export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
@@ -48,7 +49,13 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
   }
 
   async setOfficerOfTheDay(officerOfTheDayDto: OfficerOfTheDayDto) {
-    return await this.crud().create({ dto: officerOfTheDayDto });
+    return await this.crud().create({
+      dto: officerOfTheDayDto,
+      onError: (error: any) => {
+        if (error.error.driverError.code === 'ER_DUP_ENTRY') throw new HttpException('Officer of the Day assignment already exists', 406);
+        throw new InternalServerErrorException();
+      },
+    });
   }
 
   async deleteOfficerOfTheDay(id: string) {
