@@ -3,10 +3,9 @@
  * This is only a minimal backend to get started.
  */
 
-import { HybridApp } from '@gscwd-api/microservices';
-import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Transport } from '@nestjs/microservices';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as session from 'express-session';
 import * as redis from 'redis';
