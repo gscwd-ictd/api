@@ -426,19 +426,24 @@ export class OvertimeService {
 
   async getOvertimeApplications() {
     try {
-      const overtimes = (await this.overtimeApplicationService.crud().findAll({
-        find: {
-          select: {
-            id: true,
-            plannedDate: true,
-            estimatedHours: true,
-            purpose: true,
-            status: true,
-            overtimeImmediateSupervisorId: { employeeId: true },
+      const overtimes = (
+        (await this.overtimeApplicationService.crud().findAll({
+          find: {
+            select: {
+              id: true,
+              plannedDate: true,
+              estimatedHours: true,
+              purpose: true,
+              status: true,
+              overtimeImmediateSupervisorId: { employeeId: true },
+            },
+            relations: { overtimeImmediateSupervisorId: true },
           },
-          relations: { overtimeImmediateSupervisorId: true },
-        },
-      })) as OvertimeApplication[];
+        })) as OvertimeApplication[]
+      ).map((oa) => {
+        const { plannedDate, ...restOfOa } = oa;
+        return { plannedDate: dayjs(plannedDate).format('YYYY-MM-DD'), ...restOfOa };
+      });
 
       const result = await Promise.all(
         overtimes.map(async (overtime) => {
