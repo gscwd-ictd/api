@@ -278,6 +278,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
       const day = dayjs(data.date).format('d');
 
+      const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
+
       let isRestDay: boolean;
 
       isRestDay = day in restDays ? true : false;
@@ -315,6 +317,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const dtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
       const latesUndertimesNoAttendance = await this.getLatesUndertimesNoAttendancePerDay(dtr, schedule, employeeDetails.userId);
       //const undertimes = await this.getUndertimesPerDay(dtr, schedule);
+
       //1.1 compute late by the day
       const noOfLates = latesUndertimesNoAttendance.noOfLates;
       if (noOfLates > 0) {
@@ -359,6 +362,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         companyId: data.companyId,
         date: dayjs(data.date).format('YYYY-MM-DD'),
         schedule,
+        leaveDateStatus,
         isHoliday,
         isRestDay,
         dtr: { ...dtr, remarks },
@@ -368,8 +372,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const dateCurrent = dayjs(data.date).toDate();
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
-
+      console.log(schedule);
+      //const cancelledLeaveStatus = false;
       const restDays = schedule.restDaysNumbers.split(', ');
+      const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
+
+      console.log(leaveDateStatus);
 
       console.log('rest', restDays);
 
@@ -392,6 +400,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       return {
         //fetch day if may leave, holiday, pass slip
         schedule,
+        leaveDateStatus,
         isHoliday,
         isRestDay,
         dtr: {
@@ -834,6 +843,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   //#endregion
   async updateEmployeeDTR(dailyTimeRecordDto: UpdateDailyTimeRecordDto) {
     const { dtrDate, companyId, ...rest } = dailyTimeRecordDto;
+    const employeeId = (await this.employeeService.getEmployeeDetailsByCompanyId(companyId)).userId;
+    const schedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dtrDate);
+
+    if (schedule.schedule.withLunch === 'true') {
+      if (rest.lunchIn === null || rest.lunchOut === null || rest.timeIn === null || rest.timeOut === null) {
+        throw new HttpException('Please fill out time scans completely', 406);
+      }
+    }
     const updateResult = await this.crud().update({
       dto: rest,
       updateBy: { companyId, dtrDate },
@@ -842,15 +859,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         return new InternalServerErrorException();
       },
     });
-
-    const employeeId = (await this.employeeService.getEmployeeDetailsByCompanyId(companyId)).id;
-    const schedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dtrDate);
-
-    if (schedule.schedule.withLunch === 'true') {
-      if (rest.lunchIn === null || rest.lunchOut === null || rest.timeIn === null || rest.timeOut === null) {
-        throw new HttpException('Please fill out time scans completely', 406);
-      }
-    }
 
     if (updateResult.affected > 0) return dailyTimeRecordDto;
     else throw new HttpException('No attendance found on this date', HttpStatus.NOT_ACCEPTABLE);

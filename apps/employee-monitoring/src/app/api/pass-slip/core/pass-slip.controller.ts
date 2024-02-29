@@ -1,11 +1,18 @@
 import { PassSlipDto, UpdatePassSlipApprovalDto, UpdatePassSlipTimeRecordDto } from '@gscwd-api/models';
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { PassSlipService } from './pass-slip.service';
+import { AuthenticatedGuard } from '../../users/guards/authenticated.guard';
 
 @Controller({ version: '1', path: 'pass-slip' })
 export class PassSlipController {
   constructor(private readonly passSlipService: PassSlipService, private readonly passSlipApprovalService: PassSlipApprovalService) {}
+
+  @UseGuards(AuthenticatedGuard)
+  @Get('fufurufu')
+  async getAllPassSlips2() {
+    return await this.passSlipService.getAllPassSlips();
+  }
 
   @Post()
   async addPassSlip(@Body() passSlipDto: PassSlipDto) {

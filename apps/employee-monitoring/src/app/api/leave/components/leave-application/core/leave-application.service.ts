@@ -9,6 +9,7 @@ import { MicroserviceClient } from '@gscwd-api/microservices';
 import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
 import { typeOrmEntities } from 'apps/employee-monitoring/src/constants/entities';
+import dayjs = require('dayjs');
 
 @Injectable()
 export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
@@ -592,38 +593,45 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
   }
 
   async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
-    const leaves = <LeaveApplication[]>await this.crud().findAll({
-      find: {
-        select: {
-          id: true,
-          abroad: true,
-          dateOfFiling: true,
-          employeeId: true,
-          forBarBoardReview: true,
-          forMastersCompletion: true,
-          forMonetization: true,
-          hrdmApprovalDate: true,
-          hrdmDisapprovalRemarks: true,
-          hrmoApprovalDate: true,
-          supervisorApprovalDate: true,
-          supervisorDisapprovalRemarks: true,
-          inHospital: true,
-          inPhilippines: true,
-          isTerminalLeave: true,
-          supervisorId: true,
-          studyLeaveOther: true,
-          outPatient: true,
-          cancelDate: true,
-          cancelReason: true,
-          requestedCommutation: true,
-          splWomen: true,
-          leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
-          status: true,
+    const leaves = ((<LeaveApplication[]>await this.crud().findAll({
+        find: {
+          select: {
+            id: true,
+            abroad: true,
+            dateOfFiling: true,
+            employeeId: true,
+            forBarBoardReview: true,
+            forMastersCompletion: true,
+            forMonetization: true,
+            hrdmApprovalDate: true,
+            hrdmDisapprovalRemarks: true,
+            hrmoApprovalDate: true,
+            supervisorApprovalDate: true,
+            supervisorDisapprovalRemarks: true,
+            inHospital: true,
+            inPhilippines: true,
+            isTerminalLeave: true,
+            supervisorId: true,
+            studyLeaveOther: true,
+            outPatient: true,
+            cancelDate: true,
+            cancelReason: true,
+            requestedCommutation: true,
+            splWomen: true,
+            leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
+            status: true,
+          },
+          relations: { leaveBenefitsId: true },
+          where: { status: leaveApplicationStatus },
+          order: { dateOfFiling: 'DESC' },
         },
-        relations: { leaveBenefitsId: true },
-        where: { status: leaveApplicationStatus },
-        order: { dateOfFiling: 'DESC' },
-      },
+      })) as LeaveApplication[]).map((la) => {
+      const { dateOfFiling, cancelDate, ...restOfLeave } = la;
+      return {
+        dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
+        cancelDate: cancelDate === null ? null : dayjs(cancelDate).format('YYYY-MM-DD'),
+        ...restOfLeave,
+      };
     });
 
     const leavesDetails = await Promise.all(
