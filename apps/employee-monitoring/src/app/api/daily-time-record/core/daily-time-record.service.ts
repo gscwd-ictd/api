@@ -280,8 +280,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
 
-      //console.log('leave date status', leaveDateStatus);
-
       let isRestDay: boolean;
 
       isRestDay = day in restDays ? true : false;

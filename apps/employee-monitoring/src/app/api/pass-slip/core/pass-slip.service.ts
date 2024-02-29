@@ -437,7 +437,15 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         //console.log('assignment: ', assignment);
         const avatarUrl = (await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId)).photoUrl;
         const { passSlipId, ...restOfPassSlip } = passSlip;
-        return { ...restOfPassSlip, ...passSlipId, ...names, avatarUrl, assignmentName: assignment.assignment.name };
+        const { dateOfApplication, ...restOfPassSlipId } = passSlipId;
+        return {
+          ...restOfPassSlip,
+          dateOfApplication: dayjs(dateOfApplication).format('YYYY-MM-DD'),
+          ...restOfPassSlipId,
+          ...names,
+          avatarUrl,
+          assignmentName: assignment.assignment.name,
+        };
       })
     );
 
