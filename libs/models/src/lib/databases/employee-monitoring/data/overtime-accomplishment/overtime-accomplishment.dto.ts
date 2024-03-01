@@ -30,6 +30,9 @@ export class CreateOvertimeAccomplishmentDto {
 
   @IsOptional()
   remarks?: string;
+
+  @IsOptional()
+  actualHrs?: number;
 }
 
 export class UpdateOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAccomplishmentDto, [
@@ -38,6 +41,15 @@ export class UpdateOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAcco
   'encodedTimeOut',
 ] as const) {
   employeeId: string;
+  overtimeApplicationId: OvertimeApplication;
+}
+
+export class UpdateAllOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAccomplishmentDto, [
+  'overtimeEmployeeId',
+  'encodedTimeIn',
+  'encodedTimeOut',
+] as const) {
+  employeeIds: string[];
   overtimeApplicationId: OvertimeApplication;
 }
 

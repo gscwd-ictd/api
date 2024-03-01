@@ -1,5 +1,6 @@
 import {
   CreateOvertimeDto,
+  UpdateAllOvertimeAccomplishmentDto,
   UpdateOvertimeAccomplishmentByEmployeeDto,
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
@@ -70,6 +71,11 @@ export class OvertimeController {
   @Patch('/accomplishments/approval')
   async approveOvertimeAccomplishment(@Body() updateOvertimeAccomplishmentDto: UpdateOvertimeAccomplishmentDto) {
     return await this.overtimeService.updateOvertimeAccomplishment(updateOvertimeAccomplishmentDto);
+  }
+
+  @Patch('/accomplishments/approval/all')
+  async approveAllOvertimeAccomplishment(@Body() updateAllOvertimeAccomplishmentDto: UpdateAllOvertimeAccomplishmentDto) {
+    return await this.overtimeService.updateAllOvertimeAccomplishment(updateAllOvertimeAccomplishmentDto);
   }
 
   @Patch(':employee_id/:overtime_application_id')

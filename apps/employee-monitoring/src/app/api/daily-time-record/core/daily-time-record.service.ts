@@ -383,9 +383,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       const day = dayjs(data.date).format('d');
 
-      let isRestDay: boolean;
-
-      isRestDay = day in restDays ? true : false;
+      const isRestDay: boolean = day in restDays ? true : false;
 
       const { remarks } = (
         await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')])

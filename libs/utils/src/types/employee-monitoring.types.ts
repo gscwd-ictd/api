@@ -246,6 +246,11 @@ export enum OvertimeSummaryHalf {
   SECOND_HALF = 'second',
 }
 
+export enum DtrCorrectionStatus {
+  FOR_APPROVAL = 'for approval',
+  APPROVED = 'approved',
+}
+
 export type PassSlipForDispute = {
   passSlipId: string;
   supervisorId: string;

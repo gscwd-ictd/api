@@ -4,6 +4,7 @@ import {
   OvertimeApplication,
   OvertimeEmployee,
   OvertimeImmediateSupervisor,
+  UpdateAllOvertimeAccomplishmentDto,
   UpdateOvertimeAccomplishmentByEmployeeDto,
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
@@ -697,6 +698,30 @@ export class OvertimeService {
     });
 
     if (result.affected > 0) return updateOvertimeAccomplishmentDto;
+  }
+
+  async updateAllOvertimeAccomplishment(updateAllOvertimeAccomplishmentDto: UpdateAllOvertimeAccomplishmentDto) {
+    const { employeeIds, overtimeApplicationId, ...restOfOvertimeAccomplishmentDto } = updateAllOvertimeAccomplishmentDto;
+    const updatedOvertimeAccomplishments = await Promise.all(
+      employeeIds.map(async (employeeId) => {
+        const id = (
+          await this.overtimeAccomplishmentService.rawQuery(
+            `
+        SELECT oa.overtime_accomplishment id FROM overtime_accomplishment oa INNER JOIN overtime_employee oe ON oa.overtime_employee_id_fk = oe.overtime_employee_id WHERE employee_id_fk=? AND overtime_application_id_fk = ?;`,
+            [employeeId, overtimeApplicationId]
+          )
+        )[0];
+        const result = await this.overtimeAccomplishmentService.crud().update({
+          dto: restOfOvertimeAccomplishmentDto,
+          updateBy: {
+            id: id.id,
+          },
+        });
+        if (result.affected > 0) return { employeeId, ...restOfOvertimeAccomplishmentDto };
+      })
+    );
+
+    return updatedOvertimeAccomplishments;
   }
 
   async getEmployeeListBySupervisorId(employeeId: string) {
