@@ -11,7 +11,7 @@ export class DtrCorrection extends DatabaseEntity implements IEntity {
 
   @JoinColumn({ name: 'daily_time_record_id_fk' })
   @ManyToOne(() => DailyTimeRecord, (dtr) => dtr.id)
-  dtrId: string;
+  dtrId: DailyTimeRecord;
 
   @Column({ name: 'time_in', type: 'time', nullable: true })
   timeIn: number;

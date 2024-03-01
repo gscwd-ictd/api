@@ -560,7 +560,7 @@ export class OvertimeService {
     if (scheduleBase === ScheduleBase.OFFICE) {
       didFaceScan = await this.dailyTimeRecordService.getHasIvms({
         companyId: employeeDetails.companyId.replace('-', ''),
-        entryDate: dayjs(rest.overtimeEmployeeId.overtimeApplicationId.plannedDate).toDate(),
+        entryDate: rest.overtimeEmployeeId.overtimeApplicationId.plannedDate,
       });
 
       if (didFaceScan) {
