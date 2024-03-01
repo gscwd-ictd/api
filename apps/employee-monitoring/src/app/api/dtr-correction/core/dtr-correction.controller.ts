@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
 import { DtrCorrectionService } from './dtr-correction.service';
-import { CreateDtrCorrectionDto } from '@gscwd-api/models';
+import { ApproveDtrCorrectionDto, CreateDtrCorrectionDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'dtr-correction' })
 export class DtrCorrectionController {
@@ -14,5 +14,10 @@ export class DtrCorrectionController {
   @Get()
   async getAllDtrCorrections() {
     return await this.dtrCorrectionService.getDtrCorrections();
+  }
+
+  @Patch()
+  async approvalOfDtrCorrection(@Body() approveDtrCorrectionDto: ApproveDtrCorrectionDto) {
+    return await this.dtrCorrectionService.approvalOfDtrCorrection(approveDtrCorrectionDto);
   }
 }
