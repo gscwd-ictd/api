@@ -1,10 +1,17 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateDtrCorrectionDto, DtrCorrection } from '@gscwd-api/models';
+import { ApproveDtrCorrectionDto, CreateDtrCorrectionDto, DtrCorrection } from '@gscwd-api/models';
+import { DtrCorrectionsType } from '@gscwd-api/utils';
 import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { EmployeesService } from '../../employees/core/employees.service';
+import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 
 @Injectable()
 export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
-  constructor(private readonly crudService: CrudService<DtrCorrection>) {
+  constructor(
+    private readonly crudService: CrudService<DtrCorrection>,
+    private readonly employeeService: EmployeesService,
+    private readonly dailyTimeRecordService: DailyTimeRecordService
+  ) {
     super(crudService);
   }
 
@@ -19,6 +26,57 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
   }
 
   async getDtrCorrections() {
-    return '';
+    const dtrCorrections = (await this.rawQuery(`
+        SELECT 
+        dtrc.dtr_correction_id id,
+        dtr.daily_time_record_id dtrId,
+        dtr.company_id_fk companyId,
+        DATE_FORMAT(dtr.dtr_date,'%Y-%m-%d') dtrDate,
+        dtr.time_in dtrTimeIn, 
+        dtrc.time_in correctedTimeIn,
+          dtr.lunch_out dtrLunchOut,
+          dtrc.lunch_out correctedLunchOut,
+          dtr.lunch_in dtrLunchIn,
+          dtrc.lunch_in correctedLunchIn,
+          dtr.time_out dtrTimeOut,
+          dtrc.time_out correctedTimeOut,
+          dtrc.\`status\` \`status\`,
+          dtrc.remarks remarks
+        FROM dtr_correction dtrc 
+        INNER JOIN daily_time_record dtr ON dtr.daily_time_record_id = dtrc.daily_time_record_id_fk
+    `)) as DtrCorrectionsType[];
+
+    const dtrCorrectionsWithEmployeeName = await Promise.all(
+      dtrCorrections.map(async (dtrCorrection) => {
+        const { companyId, ...restOfDtrCorrection } = dtrCorrection;
+        const employeeFullName = (await this.employeeService.getEmployeeDetailsByCompanyId(companyId)).employeeFullName;
+        return { companyId, employeeFullName, ...restOfDtrCorrection };
+      })
+    );
+
+    console.log(dtrCorrections);
+    return dtrCorrectionsWithEmployeeName;
+  }
+
+  async approvalOfDtrCorrection(approveDtrCorrectionDto: ApproveDtrCorrectionDto) {
+    const { id, status } = approveDtrCorrectionDto;
+    const result = await this.crud().update({ dto: { status }, updateBy: { id } });
+    if (result.affected > 0) {
+      if (status === 'approved') {
+        const correctedDtr = await this.crudService.findOne({
+          find: {
+            select: { id: true, dtrId: { id: true }, timeIn: true, lunchOut: true, lunchIn: true, timeOut: true },
+            where: { id },
+            relations: { dtrId: true },
+          },
+        });
+        const { dtrId, lunchIn, lunchOut, timeIn, timeOut } = correctedDtr;
+        const dtrUpdateResult = await this.dailyTimeRecordService
+          .crud()
+          .update({ dto: { timeIn, timeOut, lunchIn, lunchOut }, updateBy: { id: dtrId.id } });
+        if (dtrUpdateResult.affected > 0) return approveDtrCorrectionDto;
+      }
+      return approveDtrCorrectionDto;
+    }
   }
 }

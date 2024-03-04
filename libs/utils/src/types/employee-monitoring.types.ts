@@ -249,6 +249,7 @@ export enum OvertimeSummaryHalf {
 export enum DtrCorrectionStatus {
   FOR_APPROVAL = 'for approval',
   APPROVED = 'approved',
+  DISAPPROVED = 'disapproved',
 }
 
 export type PassSlipForDispute = {
@@ -270,4 +271,22 @@ export type OvertimeHrsRendered = {
 export type User = {
   employeeId: string;
   name: string;
+};
+
+export type DtrCorrectionsType = {
+  id: string;
+  dtrId: string;
+  employeeFullName?: string;
+  dtrDate: Date;
+  companyId: string;
+  dtrTimeIn: number;
+  correctedTimeIn: number;
+  dtrLunchOut: number;
+  correctedLunchOut: number;
+  dtrLunchIn: number;
+  correctedLunchIn: number;
+  dtrTimeOut: number;
+  correctedTimeOut: number;
+  status: DtrCorrectionStatus;
+  remarks: string;
 };
