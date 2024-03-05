@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { DailyTimeRecordService } from './daily-time-record.service';
 import { DailyTimeRecordController } from './daily-time-record.controller';
 import { CrudModule } from '@gscwd-api/crud';
@@ -12,6 +12,8 @@ import { LeaveCardLedgerDebitModule } from '../../leave/components/leave-card-le
 import { LeaveCardLedgerCreditModule } from '../../leave/components/leave-card-ledger-credit/core/leave-card-ledger-credit.module';
 import { LeaveAddBackModule } from '../../leave/components/leave-add-back/core/leave-add-back.module';
 import { EmployeesModule } from '../../employees/core/employees.module';
+import { DtrCorrectionModule } from '../../dtr-correction/core/dtr-correction.module';
+import { DtrCorrectionService } from '../../dtr-correction/core/dtr-correction.service';
 
 @Module({
   imports: [
