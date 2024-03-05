@@ -25,15 +25,15 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
     });
   }
 
-  async getDtrCorrections() {
+  async getDtrCorrections(): Promise<DtrCorrectionsType[]> {
     const dtrCorrections = (await this.rawQuery(`
         SELECT 
-        dtrc.dtr_correction_id id,
-        dtr.daily_time_record_id dtrId,
-        dtr.company_id_fk companyId,
-        DATE_FORMAT(dtr.dtr_date,'%Y-%m-%d') dtrDate,
-        dtr.time_in dtrTimeIn, 
-        dtrc.time_in correctedTimeIn,
+          dtrc.dtr_correction_id id,
+          dtr.daily_time_record_id dtrId,
+          dtr.company_id_fk companyId,
+          DATE_FORMAT(dtr.dtr_date,'%Y-%m-%d') dtrDate,
+          dtr.time_in dtrTimeIn, 
+          dtrc.time_in correctedTimeIn,
           dtr.lunch_out dtrLunchOut,
           dtrc.lunch_out correctedLunchOut,
           dtr.lunch_in dtrLunchIn,

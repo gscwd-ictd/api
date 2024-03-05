@@ -10,6 +10,7 @@ import { EmployeesService } from '../../employees/core/employees.service';
 import { HolidaysService } from '../../holidays/core/holidays.service';
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
+import { DtrCorrectionService } from '../../dtr-correction/core/dtr-correction.service';
 
 @Injectable()
 export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
@@ -296,6 +297,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         },
       })) as IvmsEntry[];
 
+      let hasPendingDtrCorrection = false;
+
       const isHoliday = await this.holidayService.isHoliday(data.date);
       //1. check if employee is in dtr table in the current date;
       const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
@@ -313,6 +316,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         if (schedule.id !== currEmployeeDtr.scheduleId)
           await this.crud().update({ dto: { scheduleId: { id: schedule.id } }, updateBy: { id: currEmployeeDtr.id } });
         await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
+        hasPendingDtrCorrection = await this.hasPendingDtrCorrection(currEmployeeDtr.id);
       }
       const dtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
       const latesUndertimesNoAttendance = await this.getLatesUndertimesNoAttendancePerDay(dtr, schedule, employeeDetails.userId);
@@ -365,6 +369,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         leaveDateStatus,
         isHoliday,
         isRestDay,
+        hasPendingDtrCorrection,
         dtr: { ...dtr, remarks },
         summary,
       };
@@ -401,6 +406,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         leaveDateStatus,
         isHoliday,
         isRestDay,
+        hasPendingDtrCorrection: false,
         dtr: {
           companyId: null,
           createdAt: null,
@@ -875,5 +881,15 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       })
     );
     console.log('CRON Job for DTR Ledger');
+  }
+
+  async hasPendingDtrCorrection(dtrId: string) {
+    const hasPendingDtrCorrection = (
+      await this.rawQuery(
+        `SELECT IF(count(distinct daily_time_record_id_fk)>0,true,false) hasPendingDtrCorrection FROM dtr_correction WHERE daily_time_record_id_fk = ?`,
+        [dtrId]
+      )
+    )[0].hasPendingDtrCorrection;
+    return hasPendingDtrCorrection === '0' ? false : true;
   }
 }
