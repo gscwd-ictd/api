@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { DtrCorrectionService } from './dtr-correction.service';
 import { DtrCorrectionController } from './dtr-correction.controller';
 import { CrudModule } from '@gscwd-api/crud';

@@ -21,6 +21,7 @@ export class OvertimeController {
   @Get(':overtime_application_id/accomplishments/employees')
   async getOvertimeAccomplishmentsByOvertimeApplicationId(@Param('overtime_application_id') overtimeApplicationId: string) {
     console.log(overtimeApplicationId);
+    return await this.overtimeService.getOvertimeAccomplishmentsByOvertimeApplicationId(overtimeApplicationId);
   }
 
   @Get('immediate-supervisors')
