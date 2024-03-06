@@ -886,7 +886,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   async hasPendingDtrCorrection(dtrId: string) {
     const hasPendingDtrCorrection = (
       await this.rawQuery(
-        `SELECT IF(count(distinct daily_time_record_id_fk)>0,true,false) hasPendingDtrCorrection FROM dtr_correction WHERE daily_time_record_id_fk = ?`,
+        `SELECT IF(count(distinct daily_time_record_id_fk)>0,true,false) hasPendingDtrCorrection 
+            FROM dtr_correction 
+         WHERE daily_time_record_id_fk = ?`,
         [dtrId]
       )
     )[0].hasPendingDtrCorrection;
