@@ -463,10 +463,10 @@ export class OvertimeService {
               const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
 
               const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
-              //console.log(employeeSchedules);
+              console.log('schedules', employeeSchedules);
 
-              const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
-              console.log(employeeDetails.employeeFullName, ' | ', employeeSchedules[0].scheduleName, ' | ', scheduleBase);
+              const scheduleBase = employeeSchedules !== null && employeeSchedules.length > 0 ? employeeSchedules[0].scheduleBase : null;
+              //console.log(employeeDetails.employeeFullName, ' | ', employeeSchedules[0].scheduleName, ' | ', scheduleBase);
 
               const { companyId, employeeFullName, positionTitle, assignment, photoUrl } = employeeDetails;
               const { isAccomplishmentSubmitted, status } = (

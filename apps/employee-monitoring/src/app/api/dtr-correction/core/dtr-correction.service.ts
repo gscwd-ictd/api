@@ -25,8 +25,12 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
     });
   }
 
-  async getDtrCorrections(): Promise<DtrCorrectionsType[]> {
-    const dtrCorrections = (await this.rawQuery(`
+  async getDtrCorrections(employeeId: any): Promise<DtrCorrectionsType[]> {
+    //get company id of supervised employees
+    const companyIds = (await this.employeeService.getEmployeesUnderSupervisor(employeeId)).map((emp) => emp.companyId);
+
+    const dtrCorrections = (await this.rawQuery(
+      `
         SELECT 
           dtrc.dtr_correction_id id,
           dtr.daily_time_record_id dtrId,
@@ -44,7 +48,12 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
           dtrc.remarks remarks
         FROM dtr_correction dtrc 
         INNER JOIN daily_time_record dtr ON dtr.daily_time_record_id = dtrc.daily_time_record_id_fk
-    `)) as DtrCorrectionsType[];
+        WHERE dtr.company_id_fk IN (?)
+        ;
+        
+    `,
+      [companyIds]
+    )) as DtrCorrectionsType[];
 
     const dtrCorrectionsWithEmployeeName = await Promise.all(
       dtrCorrections.map(async (dtrCorrection) => {
