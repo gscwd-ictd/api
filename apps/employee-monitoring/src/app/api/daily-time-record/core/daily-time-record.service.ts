@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { DailyTimeRecord, UpdateDailyTimeRecordDto } from '@gscwd-api/models';
+import { DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto } from '@gscwd-api/models';
 import { DtrPayload, IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
@@ -298,6 +298,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       })) as IvmsEntry[];
 
       let hasPendingDtrCorrection = false;
+      let dtrCorrection: DtrCorrection;
 
       const isHoliday = await this.holidayService.isHoliday(data.date);
       //1. check if employee is in dtr table in the current date;
@@ -317,6 +318,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           await this.crud().update({ dto: { scheduleId: { id: schedule.id } }, updateBy: { id: currEmployeeDtr.id } });
         await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
         hasPendingDtrCorrection = await this.hasPendingDtrCorrection(currEmployeeDtr.id);
+        dtrCorrection = await this.getDtrCorrection(currEmployeeDtr.id);
       }
       const dtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
       const latesUndertimesNoAttendance = await this.getLatesUndertimesNoAttendancePerDay(dtr, schedule, employeeDetails.userId);
@@ -370,6 +372,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         isHoliday,
         isRestDay,
         hasPendingDtrCorrection,
+        dtrCorrection,
         dtr: { ...dtr, remarks },
         summary,
       };
@@ -407,6 +410,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         isHoliday,
         isRestDay,
         hasPendingDtrCorrection: false,
+        dtrCorrection: null,
         dtr: {
           companyId: null,
           createdAt: null,
@@ -888,10 +892,20 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       await this.rawQuery(
         `SELECT IF(count(distinct daily_time_record_id_fk)>0,true,false) hasPendingDtrCorrection 
             FROM dtr_correction 
-         WHERE daily_time_record_id_fk = ?`,
+         WHERE daily_time_record_id_fk = ? AND status='for approval'`,
         [dtrId]
       )
     )[0].hasPendingDtrCorrection;
     return hasPendingDtrCorrection === '0' ? false : true;
+  }
+
+  async getDtrCorrection(dtrId: string) {
+    const dtrCorrection = (
+      await this.rawQuery(
+        `SELECT time_in timeIn, lunch_out lunchOut, lunch_in lunchIn,time_out timeOut, status,remarks FROM dtr_correction WHERE daily_time_record_id_fk = ?`,
+        [dtrId]
+      )
+    )[0] as DtrCorrection;
+    return dtrCorrection;
   }
 }
