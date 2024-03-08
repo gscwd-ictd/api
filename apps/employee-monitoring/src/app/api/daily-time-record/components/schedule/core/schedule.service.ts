@@ -91,6 +91,12 @@ export class ScheduleService extends CrudHelper<Schedule> {
   }
 
   async deleteSchedule(scheduleId: string) {
+    //check if schedule is currently in use (daily_time_record)
+    const dtrEntry = await this.hasDtrByScheduleId(scheduleId);
+    const hasEmployeeSchedule = await this.hasEmployeeScheduleByScheduleId(scheduleId);
+    if (dtrEntry) throw new HttpException('Schedule is currently being used for DTR', HttpStatus.METHOD_NOT_ALLOWED);
+    if (hasEmployeeSchedule) throw new HttpException('Schedule is currently being used as Employee Schedule', HttpStatus.METHOD_NOT_ALLOWED);
+
     const deletedSchedule = await this.crud().delete({
       deleteBy: { id: scheduleId },
       softDelete: false,
@@ -185,5 +191,26 @@ export class ScheduleService extends CrudHelper<Schedule> {
     console.log(deleteEmployeeCustomGroupResult.affectedRows);
     if (deleteEmployeeCustomGroupResult.affectedRows > 0) return groupSchedule;
     else throw new InternalServerErrorException();
+  }
+
+  async hasDtrByScheduleId(scheduleId: string) {
+    const hasDtr = (
+      await this.rawQuery(`SELECT IF(count(dtr.schedule_id_fk) > 0, true, false) hasDtr FROM daily_time_record dtr WHERE dtr.schedule_id_fk = ?;`, [
+        scheduleId,
+      ])
+    )[0].hasDtr;
+
+    if (hasDtr === '0') return false;
+    return true;
+  }
+
+  async hasEmployeeScheduleByScheduleId(scheduleId: string) {
+    const hasEmployeeSchedule = (
+      await this.rawQuery(`SELECT IF(count(schedule_id_fk)>0, true, false) hasEmployeeSchedule FROM employee_schedule WHERE schedule_id_fk = ?;`, [
+        scheduleId,
+      ])
+    )[0].hasEmployeeSchedule;
+    if (hasEmployeeSchedule === '0') return false;
+    return true;
   }
 }
