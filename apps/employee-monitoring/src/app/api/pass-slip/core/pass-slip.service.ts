@@ -764,4 +764,26 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
   //notes: CREATE MODULE FOR employee sungkit from microservice,
   //create functions under utils;
+
+  async getUsedPassSlipsCountByEmployeeId(employeeId: string) {
+    try {
+      return {
+        passSlipCount: parseInt(
+          (
+            await this.rawQuery(
+              `
+            SELECT count(pass_slip_id) usedPassSlipCount FROM pass_slip ps 
+              INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
+            WHERE psa.status = 'used' AND ps.employee_id_fk = ?;
+      `,
+              [employeeId]
+            )
+          )[0].usedPassSlipCount
+        ),
+      };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException();
+    }
+  }
 }
