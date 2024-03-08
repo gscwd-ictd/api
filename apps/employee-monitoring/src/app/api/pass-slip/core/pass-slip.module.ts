@@ -8,6 +8,7 @@ import { LeaveCardLedgerDebitModule } from '../../leave/components/leave-card-le
 import { PassSlipApprovalModule } from '../components/approval/core/pass-slip-approval.module';
 import { PassSlipController } from './pass-slip.controller';
 import { PassSlipService } from './pass-slip.service';
+import { PassSlipControllerMs } from './pass-slip-ms.controller';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { PassSlipService } from './pass-slip.service';
     EmployeesModule,
   ],
   providers: [PassSlipService, MicroserviceClient],
-  controllers: [PassSlipController],
+  controllers: [PassSlipController, PassSlipControllerMs],
   exports: [PassSlipService],
 })
 export class PassSlipModule {}
