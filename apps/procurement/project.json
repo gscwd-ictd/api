@@ -13,7 +13,8 @@
         "outputPath": "dist/apps/procurement",
         "main": "apps/procurement/src/main.ts",
         "tsConfig": "apps/procurement/tsconfig.app.json",
-        "assets": ["apps/procurement/src/assets"]
+        "assets": ["apps/procurement/src/assets"],
+        "webpackConfig": "apps/procurement/webpack.config.js"
       },
       "configurations": {
         "production": {
@@ -42,10 +43,7 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/procurement/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",

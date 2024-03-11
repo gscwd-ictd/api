@@ -13,7 +13,8 @@
         "outputPath": "dist/apps/employee-monitoring",
         "main": "apps/employee-monitoring/src/main.ts",
         "tsConfig": "apps/employee-monitoring/tsconfig.app.json",
-        "assets": ["apps/employee-monitoring/src/assets"]
+        "assets": ["apps/employee-monitoring/src/assets"],
+        "webpackConfig": "apps/employee-monitoring/webpack.config.js"
       },
       "configurations": {
         "production": {
@@ -42,10 +43,7 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/employee-monitoring/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",
