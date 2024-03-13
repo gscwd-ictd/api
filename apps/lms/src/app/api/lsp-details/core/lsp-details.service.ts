@@ -10,7 +10,7 @@ import {
 } from '@gscwd-api/models';
 import { LspSource, LspType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { DataSource, EntityManager } from 'typeorm';
+import { DataSource, EntityManager, EntityNotFoundError } from 'typeorm';
 import { LspAffiliationsService } from '../components/affiliations';
 import { LspAwardsService } from '../components/awards';
 import { LspCertificationsService } from '../components/certifications';
@@ -522,6 +522,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
             return await this.lspTrainingsService.createTrainings({ lspDetails, ...items }, entityManager);
           })
         );
+
+        return data;
       });
     } catch (error) {
       Logger.error(error);
@@ -531,6 +533,9 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       } else if (error.code === '23503') {
         /* Foreign key constraint violation */
         throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else if (error instanceof EntityNotFoundError) {
+        /* Entity not found */
+        throw new HttpException('Not found', HttpStatus.NOT_FOUND);
       } else {
         /*  Handle other errors as needed */
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
@@ -627,9 +632,12 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       } else if (error.code === '23503') {
         /* Foreign key constraint violation */
         throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else if (error instanceof EntityNotFoundError) {
+        /* Entity not found */
+        throw new HttpException('Not found', HttpStatus.NOT_FOUND);
       } else {
-        /* Handle other errors as needed */
-        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+        /*  Handle other errors as needed */
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
       }
     }
   }
@@ -708,6 +716,9 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       } else if (error.code === '23503') {
         /* Foreign key constraint violation */
         throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+      } else if (error instanceof EntityNotFoundError) {
+        /* Entity not found */
+        throw new HttpException('Not found', HttpStatus.NOT_FOUND);
       } else {
         /*  Handle other errors as needed */
         throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
