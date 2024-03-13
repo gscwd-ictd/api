@@ -14,7 +14,6 @@
         "main": "apps/lms/src/main.ts",
         "tsConfig": "apps/lms/tsconfig.app.json",
         "assets": ["apps/lms/src/assets"],
-        "isolatedConfig": true,
         "webpackConfig": "apps/lms/webpack.config.js"
       },
       "configurations": {
@@ -38,10 +37,7 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/lms/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",
