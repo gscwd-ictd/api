@@ -4,13 +4,15 @@ import { CreateLeaveApplicationDatesDto, LeaveApplicationDates, LeaveDateCancell
 import { EntityManager } from 'typeorm';
 import { LeaveAddBackService } from '../../leave-add-back/core/leave-add-back.service';
 import { LeaveCardLedgerCreditService } from '../../leave-card-ledger-credit/core/leave-card-ledger-credit.service';
+import { EmployeesService } from '../../../../employees/core/employees.service';
 
 @Injectable()
 export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDates> {
   constructor(
     private readonly crudService: CrudService<LeaveApplicationDates>,
     private readonly leaveAddBackService: LeaveAddBackService,
-    private readonly leaveCardLedgerCreditService: LeaveCardLedgerCreditService
+    private readonly leaveCardLedgerCreditService: LeaveCardLedgerCreditService,
+    private readonly employeesService: EmployeesService
   ) {
     super(crudService);
   }
@@ -98,5 +100,44 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
 
     //cancellation
     return leaveDateCancellationDto;
+  }
+
+  async getForApprovalLeaveDates() {
+    const forApprovals = (await this.rawQuery(`
+     SELECT
+        la.leave_application_id leaveApplicationId,
+        DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') dateOfFiling,
+          la.employee_id_fk employeeId,
+          lb.leave_name leaveName,
+        GROUP_CONCAT(DATE_FORMAT(lad.leave_date,'%Y-%m-%d') SEPARATOR ', ') forCancellationLeaveDates,
+          lad.status status,
+          lad.remarks remarks
+      FROM leave_application la 
+        INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+        INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
+      WHERE lad.status ='for cancellation' GROUP BY la.leave_application_id, lad.status,lad.remarks; 
+     `)) as {
+      leaveApplicationId: string;
+      dateOfFiling: string;
+      employeeId: string;
+      leaveName: string;
+      forCancellationLeaveDates: string;
+      status: string;
+      remarks: string;
+    }[];
+
+    const forApprovalsWithEmployeeDetails = await Promise.all(
+      forApprovals.map(async (forApproval) => {
+        const { employeeId, ...restOfForApproval } = forApproval;
+        const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
+        const { employeeFullName, companyId, assignment, photoUrl } = employeeDetails;
+        return {
+          employeeDetails: { employeeName: employeeFullName, companyId, positionTitle: assignment.positionTitle, photoUrl },
+          ...restOfForApproval,
+        };
+      })
+    );
+
+    return forApprovalsWithEmployeeDetails;
   }
 }
