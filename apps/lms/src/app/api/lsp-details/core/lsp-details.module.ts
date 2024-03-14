@@ -3,13 +3,13 @@ import { LspDetails } from '@gscwd-api/models';
 import { Module } from '@nestjs/common';
 import { LspDetailsService } from './lsp-details.service';
 import { LspDetailsController } from './lsp-details.controller';
-import { LspAffiliationsModule } from '../components/lsp-affiliations';
-import { LspAwardsModule } from '../components/lsp-awards';
-import { LspCertificationsModule } from '../components/lsp-certifications';
-import { LspCoachingsModule } from '../components/lsp-coachings';
-import { LspEducationsModule } from '../components/lsp-educations';
-import { LspProjectsModule } from '../components/lsp-projects';
-import { LspTrainingsModule } from '../components/lsp-trainings';
+import { LspAffiliationsModule } from '../components/affiliations';
+import { LspAwardsModule } from '../components/awards';
+import { LspCertificationsModule } from '../components/certifications';
+import { LspCoachingsModule } from '../components/coachings';
+import { LspEducationsModule } from '../components/educations';
+import { LspProjectsModule } from '../components/projects';
+import { LspTrainingsModule } from '../components/trainings';
 import { PortalEmployeesModule } from '../../../services/portal';
 
 @Module({
