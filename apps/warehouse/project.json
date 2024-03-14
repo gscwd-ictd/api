@@ -13,7 +13,8 @@
         "outputPath": "dist/apps/warehouse",
         "main": "apps/warehouse/src/main.ts",
         "tsConfig": "apps/warehouse/tsconfig.app.json",
-        "assets": ["apps/warehouse/src/assets"]
+        "assets": ["apps/warehouse/src/assets"],
+        "webpackConfig": "apps/warehouse/webpack.config.js"
       },
       "configurations": {
         "production": {
@@ -42,10 +43,7 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/warehouse/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",

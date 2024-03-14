@@ -12,19 +12,31 @@ import { HrmsEmployeeTagsModule, HrmsEmployeesModule, HrmsUsersModule } from './
 import { TrainingNoticesModule } from './api/training-notices';
 import { TrainingNomineesModule } from './api/training-details/components/training-nominees';
 import { TrainingApprovalsModule } from './api/training-details/components/training-approvals';
+import { LspAffiliationsModule } from './api/lsp-details/components/affiliations';
+import { LspAwardsModule } from './api/lsp-details/components/awards';
+import { LspCertificationsModule } from './api/lsp-details/components/certifications';
+import { LspCoachingsModule } from './api/lsp-details/components/coachings';
+import { LspEducationsModule } from './api/lsp-details/components/educations';
+import { LspProjectsModule } from './api/lsp-details/components/projects';
+import { LspTrainingsModule } from './api/lsp-details/components/trainings';
 
 @Module({
   imports: [
-    // config module setup for reading env variables
+    /* config module setup for reading env variables */
     ConfigModule.forRoot({ isGlobal: true, envFilePath: join(__dirname, '../../../.env') }),
 
-    // database connection via typeorm
+    /* database connection via typeorm */
     DatabaseModule,
 
-    //Api Modules
-
-    //new learning service provider
+    /* learning service provider */
     LspDetailsModule,
+    LspAffiliationsModule,
+    LspAwardsModule,
+    LspCertificationsModule,
+    LspCoachingsModule,
+    LspEducationsModule,
+    LspProjectsModule,
+    LspTrainingsModule,
 
     //new trainings
     TrainingSourcesModule,

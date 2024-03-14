@@ -1,1 +1,1 @@
-export * from './lsp.interceptor';
+export * from './find-all-lsp.interceptor';

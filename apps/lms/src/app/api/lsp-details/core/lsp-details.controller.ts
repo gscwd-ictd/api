@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   DefaultValuePipe,
@@ -24,21 +25,21 @@ import {
 } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { LspSource, LspType } from '@gscwd-api/utils';
-import { LspInterceptor } from '../misc/interceptors';
+import { FindAllLspInterceptor } from '../misc/interceptors';
 
-@Controller({ version: '1', path: 'lsp-details' })
+@Controller({ version: '1', path: 'lsp' })
 export class LspDetailsController {
   constructor(private readonly lspDetailsService: LspDetailsService) {}
 
-  // find lsp
-  @UseInterceptors(LspInterceptor)
+  /* find all learning service provider */
+  @UseInterceptors(FindAllLspInterceptor)
   @Get('q')
-  async findLspIndividual(
+  async findAllLsp(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('type') type: LspType,
     @Query('source') source: LspSource
-  ): Promise<Pagination<LspDetails> | LspDetails[]> {
+  ): Promise<Pagination<LspDetails> | Array<LspDetails>> {
     return await this.lspDetailsService.crud().findAll({
       find: {
         select: {
@@ -67,46 +68,55 @@ export class LspDetailsController {
     });
   }
 
-  // insert lsp (type = individual, source = internal)
-  @Post('/individual/internal')
-  async createLspIndividualInternal(@Body() data: CreateLspIndividualInternalDto) {
-    return await this.lspDetailsService.addLspIndividualInternal(data);
-  }
-
-  // insert lsp (type = individual, source = external)
-  @Post('/individual/external')
-  async createLspIndividualExternal(@Body() data: CreateLspIndividualExternalDto) {
-    return await this.lspDetailsService.addLspIndividualExternal(data);
-  }
-
-  // insert lsp (type = organization, source = external)
-  @Post('/organization/external')
-  async createLspOrganizationExternal(@Body() data: CreateLspOrganizationExternalDto) {
-    return await this.lspDetailsService.addLspOrganizationExternal(data);
-  }
-
+  /* find learning service provider by id */
   @Get(':id')
   async findLspById(@Param('id') id: string) {
     return await this.lspDetailsService.findLspById(id);
   }
 
+  /* insert learning service provider (type = individual & source = internal) */
+  @Post('/individual/internal')
+  async createLspIndividualInternal(@Body() data: CreateLspIndividualInternalDto) {
+    return await this.lspDetailsService.createLspIndividualInternal(data);
+  }
+
+  /* insert learning service provider (type = individual & source = external) */
+  @Post('/individual/external')
+  async createLspIndividualExternal(@Body() data: CreateLspIndividualExternalDto) {
+    return await this.lspDetailsService.createLspIndividualExternal(data);
+  }
+
+  /* insert learning service provider (type = organization & source = external) */
+  @Post('/organization/external')
+  async createLspOrganizationExternal(@Body() data: CreateLspOrganizationExternalDto) {
+    return await this.lspDetailsService.createLspOrganizationExternal(data);
+  }
+
+  /* edit learning service provider by id (type = individual & source = internal) */
   @Put('/individual/internal')
   async updateLspIndividualInternal(@Body() data: UpdateLspIndividualInternalDto) {
     return await this.lspDetailsService.updateLspIndividualInternal(data);
   }
 
+  /* edit learning service provider by id (type = individual & source = external) */
   @Put('/individual/external')
   async updateLspIndividualExternal(@Body() data: UpdateLspIndividualExternalDto) {
     return await this.lspDetailsService.updateLspIndividualExternal(data);
   }
 
+  /* edit learning service provider by id (type = organization & source = external) */
   @Put('/organization/external')
   async updateLspOrganizationExternal(@Body() data: UpdateLspOrganizationExternalDto) {
     return await this.lspDetailsService.updateLspOrganizationExternal(data);
   }
 
+  /* remove learning service provider by id */
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    return this.lspDetailsService.removeLspById(id);
+  async deleteLspById(@Param('id') id: string) {
+    return await this.lspDetailsService.crud().delete({
+      deleteBy: { id },
+      softDelete: false,
+      onError: () => new BadRequestException(),
+    });
   }
 }
