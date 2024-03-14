@@ -5,6 +5,7 @@ import { EntityManager } from 'typeorm';
 import { LeaveAddBackService } from '../../leave-add-back/core/leave-add-back.service';
 import { LeaveCardLedgerCreditService } from '../../leave-card-ledger-credit/core/leave-card-ledger-credit.service';
 import { EmployeesService } from '../../../../employees/core/employees.service';
+import { LeaveDayStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDates> {
@@ -103,41 +104,81 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
   }
 
   async getForApprovalLeaveDates() {
-    const forApprovals = (await this.rawQuery(`
+    /*
+    leaveDates: Array<string>;
+    forCancellationLeaveDates: Array<string>;
+    */
+
+    const leaveApplications = await this.getAllLeaveApplicationIdsFromLeaveDates();
+    const leaveApplicationDateDetails = await Promise.all(
+      leaveApplications.map(async (leaveApplication) => {
+        const { dateOfFiling, leaveApplicationId } = leaveApplication;
+        const leaveDates = (await this.getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId, LeaveDayStatus.APPROVED)).map(
+          (ld) => ld.leaveDate
+        );
+        const forCancellationLeaveDates = (
+          await this.getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId, LeaveDayStatus.FOR_CANCELLATION)
+        ).map((ld) => ld.leaveDate);
+
+        const leaveDatesDetails = await this.getLeaveDatesDetailsByLeaveApplicationId(leaveApplicationId);
+        const { employeeId, ...restOfLeaveDatesDetails } = leaveDatesDetails;
+        const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
+        const { employeeFullName, companyId, assignment, photoUrl } = employeeDetails;
+        return {
+          employeeDetails: { employeeName: employeeFullName, positionTitle: assignment.positionTitle, companyId, photoUrl },
+          ...restOfLeaveDatesDetails,
+          leaveDates,
+          forCancellationLeaveDates,
+        };
+      })
+    );
+    return leaveApplicationDateDetails;
+  }
+  async getAllLeaveApplicationIdsFromLeaveDates() {
+    return (await this.rawQuery(
+      `SELECT DISTINCT leave_application_id leaveApplicationId,DATE_FORMAT(date_of_filing,'%Y-%m-%d') dateOfFiling FROM leave_application WHERE status = 'approved' ORDER BY DATE_FORMAT(date_of_filing,'%Y-%m-%d') DESC;`
+    )) as { leaveApplicationId: string; dateOfFiling: Date }[];
+  }
+
+  async getLeaveDatesDetailsByLeaveApplicationId(leaveApplicationId: string) {
+    return (
+      await this.rawQuery(
+        `
      SELECT
         la.leave_application_id leaveApplicationId,
         DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') dateOfFiling,
-          la.employee_id_fk employeeId,
-          lb.leave_name leaveName,
-        GROUP_CONCAT(DATE_FORMAT(lad.leave_date,'%Y-%m-%d') SEPARATOR ', ') forCancellationLeaveDates,
-          lad.status status,
-          lad.remarks remarks
+        la.employee_id_fk employeeId,
+        lb.leave_name leaveName,
+        la.status status
       FROM leave_application la 
-        INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
         INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
-      WHERE lad.status ='for cancellation' GROUP BY la.leave_application_id, lad.status,lad.remarks; 
-     `)) as {
+      WHERE la.leave_application_id = ? 
+     `,
+        [leaveApplicationId]
+      )
+    )[0] as {
       leaveApplicationId: string;
       dateOfFiling: string;
       employeeId: string;
       leaveName: string;
-      forCancellationLeaveDates: string;
+      leaveDate: string;
       status: string;
-      remarks: string;
+    };
+  }
+
+  async getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId: string, status: LeaveDayStatus) {
+    return (await this.rawQuery(
+      `
+      SELECT
+         DATE_FORMAT(lad.leave_date,'%Y-%m-%d') leaveDate
+       FROM leave_application la 
+         INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+         INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
+       WHERE la.leave_application_id=?  AND lad.status =?; 
+      `,
+      [leaveApplicationId, status]
+    )) as {
+      leaveDate: string;
     }[];
-
-    const forApprovalsWithEmployeeDetails = await Promise.all(
-      forApprovals.map(async (forApproval) => {
-        const { employeeId, ...restOfForApproval } = forApproval;
-        const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
-        const { employeeFullName, companyId, assignment, photoUrl } = employeeDetails;
-        return {
-          employeeDetails: { employeeName: employeeFullName, companyId, positionTitle: assignment.positionTitle, photoUrl },
-          ...restOfForApproval,
-        };
-      })
-    );
-
-    return forApprovalsWithEmployeeDetails;
   }
 }
