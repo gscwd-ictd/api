@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsString, IsUUID, Length } from 'class-validator';
-import { LspDetails } from '../lsp-details';
+import { LspDetailsDto } from '../lsp-details';
 
 export class CoachingDto {
   @IsString({ message: 'lsp coaching name must be a string' })
@@ -10,7 +10,7 @@ export class CoachingDto {
 
 export class CreateLspCoachingDto extends CoachingDto {
   @IsUUID('4')
-  lspDetails: LspDetails;
+  lspDetails: LspDetailsDto;
 }
 
 export class UpdateLspCoachingDto extends PartialType(CreateLspCoachingDto) {}

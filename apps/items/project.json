@@ -13,7 +13,8 @@
         "outputPath": "dist/apps/items",
         "main": "apps/items/src/main.ts",
         "tsConfig": "apps/items/tsconfig.app.json",
-        "assets": ["apps/items/src/assets"]
+        "assets": ["apps/items/src/assets"],
+        "webpackConfig": "apps/items/webpack.config.js"
       },
       "configurations": {
         "production": {
@@ -42,10 +43,7 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/items/**/*.ts"]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",

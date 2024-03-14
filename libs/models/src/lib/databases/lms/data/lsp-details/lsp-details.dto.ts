@@ -12,11 +12,11 @@ import { TrainingDto } from '../lsp-trainings';
 
 export class LspDetailsDto {
   @IsNotEmpty()
-  @IsUUID()
+  @IsUUID('4')
   id: string;
 }
 
-// create lsp (type = individual , source = internal)
+/* insert learning service provider dto (type = individual & source = internal) */
 export class CreateLspIndividualInternalDto {
   @IsNotEmpty()
   @IsUUID('all')
@@ -55,7 +55,7 @@ export class CreateLspIndividualInternalDto {
   trainings: Array<TrainingDto>;
 }
 
-// create lsp (type = individual , source = external)
+/* insert learning service provider dto (type = individual & source = external) */
 export class CreateLspIndividualExternalDto {
   @IsNotEmpty()
   @IsString({ message: 'lsp first name must be a string' })
@@ -157,9 +157,9 @@ export class CreateLspIndividualExternalDto {
   trainings: Array<TrainingDto>;
 }
 
-// create lsp (type = organization, source = external)
+/* insert learning service provider dto (type = organization & source = external) */
 export class CreateLspOrganizationExternalDto {
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'lsp organization name should not empty' })
   @IsString({ message: 'lsp organization name must be a string' })
   @Length(1, 100, { message: 'lsp organization name must be between 1 to 100 characters' })
   organizationName: string;
@@ -220,20 +220,23 @@ export class CreateLspOrganizationExternalDto {
   trainings: Array<TrainingDto>;
 }
 
-// update lsp (type = individual , source = internal)
+/* edit learning service provider dto (type = individual & source = internal) */
 export class UpdateLspIndividualInternalDto extends PartialType(CreateLspIndividualInternalDto) {
-  @IsUUID()
+  @IsNotEmpty()
+  @IsUUID('4')
   id: string;
 }
 
-// update lsp (type = individual , source = external)
+/* edit learning service provider dto (type = individual & source = external) */
 export class UpdateLspIndividualExternalDto extends PartialType(CreateLspIndividualExternalDto) {
-  @IsUUID()
+  @IsNotEmpty()
+  @IsUUID('4')
   id: string;
 }
 
-// update lsp (type = organization, source = external)
+/* edit learning service provider dto (type = organization & source = external) */
 export class UpdateLspOrganizationExternalDto extends PartialType(CreateLspOrganizationExternalDto) {
-  @IsUUID()
+  @IsNotEmpty()
+  @IsUUID('4')
   id: string;
 }
