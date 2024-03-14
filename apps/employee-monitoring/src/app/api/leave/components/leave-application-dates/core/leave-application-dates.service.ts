@@ -104,11 +104,6 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
   }
 
   async getForApprovalLeaveDates() {
-    /*
-    leaveDates: Array<string>;
-    forCancellationLeaveDates: Array<string>;
-    */
-
     const leaveApplications = await this.getAllLeaveApplicationIdsFromLeaveDates();
     const leaveApplicationDateDetails = await Promise.all(
       leaveApplications.map(async (leaveApplication) => {
