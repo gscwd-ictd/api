@@ -8,4 +8,9 @@ export class StatsController {
   async countAllPendingApplicationsForManager(@Param('employee_id') employeeId: string) {
     return await this.statsService.countAllPendingApplicationsForManager(employeeId);
   }
+
+  @Get('lates/department')
+  async getLatesPerDepartment() {
+    return await this.statsService.getLatesPerDepartment();
+  }
 }

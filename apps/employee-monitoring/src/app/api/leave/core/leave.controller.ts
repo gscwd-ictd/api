@@ -73,4 +73,9 @@ export class LeaveController {
   async addAdjustment(@Body() leaveAdjustmentDto: LeaveAdjustmentDto) {
     return await this.leaveService.addAdjustment(leaveAdjustmentDto);
   }
+
+  @Post('adjustment/beginning-balance')
+  async addAdjustmentBeginningBalance(@Body() leaveAdjustmentDto: LeaveAdjustmentDto) {
+    return await this.leaveService.addAdjustment(leaveAdjustmentDto);
+  }
 }

@@ -21,7 +21,7 @@ export class AuthenticatedGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.session.user;
     console.log(user);
-    if (user) return true;
+    if (user.isEmsUser) return true;
     return false;
   }
 }
