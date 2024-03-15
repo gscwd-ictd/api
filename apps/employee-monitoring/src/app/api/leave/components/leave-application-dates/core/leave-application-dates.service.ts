@@ -6,6 +6,7 @@ import { LeaveAddBackService } from '../../leave-add-back/core/leave-add-back.se
 import { LeaveCardLedgerCreditService } from '../../leave-card-ledger-credit/core/leave-card-ledger-credit.service';
 import { EmployeesService } from '../../../../employees/core/employees.service';
 import { LeaveDayStatus } from '@gscwd-api/utils';
+import dayjs = require('dayjs');
 
 @Injectable()
 export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDates> {
@@ -48,16 +49,15 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
     } else {
       const cancelledLeaveDates = await Promise.all(
         leaveDates.map(async (leaveDate) => {
-          const leaveDatesCancelled = await this.crudService
-            .transact<LeaveApplicationDates>(transactionEntityManager)
-            .update({ dto: { status, remarks }, updateBy: { leaveApplicationId, leaveDate } });
-
           if (status === 'cancelled') {
             /*
               1. get leave benefit name by leave application id
               2. if slb dont add back, else add back
               3. if leave dates are all cancelled, the leave status should be cancelled as well 
             */
+            const leaveDatesCancelled = await this.crudService
+              .transact<LeaveApplicationDates>(transactionEntityManager)
+              .update({ dto: { status, remarks, cancelDate: dayjs().toDate() }, updateBy: { leaveApplicationId, leaveDate } });
             console.log(leaveType);
 
             //add back;
@@ -93,7 +93,13 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
               },
               transactionEntityManager
             );
+          } else if (status === 'for cancellation') {
+            const leaveDatesCancelled = await this.crudService
+              .transact<LeaveApplicationDates>(transactionEntityManager)
+              .update({ dto: { status, remarks, forCancellationDate: dayjs().toDate() }, updateBy: { leaveApplicationId, leaveDate } });
+            console.log(leaveType);
           }
+
           return leaveDate;
         })
       );
@@ -133,7 +139,7 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
 
   async getAllLeaveApplicationIdsFromLeaveDates() {
     return (await this.rawQuery(
-      `SELECT DISTINCT leave_application_id leaveApplicationId,DATE_FORMAT(date_of_filing,'%Y-%m-%d') dateOfFiling 
+      `SELECT DISTINCT leave_application_id leaveApplicationId,DATE_FORMAT(for_cancellation_date,'%Y-%m-%d') dateOfFiling 
        FROM leave_application la 
        INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id 
        WHERE la.status = 'approved' AND (lad.status='cancelled' OR lad.status = 'for cancellation') ORDER BY DATE_FORMAT(date_of_filing,'%Y-%m-%d') DESC;`
