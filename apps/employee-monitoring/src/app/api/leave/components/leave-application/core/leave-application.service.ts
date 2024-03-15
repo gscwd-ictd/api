@@ -125,6 +125,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d') hrdmApprovalDate,
         la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
         la.cancel_reason cancelReason,
+        get_leave_date_cancellation_status(la.leave_application_id) leaveDateStatus,
         DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 

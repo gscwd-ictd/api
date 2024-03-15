@@ -98,28 +98,21 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
         })
       );
     }
-
-    //cancellation
+    //cancellation of dates
     return leaveDateCancellationDto;
   }
 
   async getForApprovalLeaveDates() {
-    /*
-    leaveDates: Array<string>;
-    forCancellationLeaveDates: Array<string>;
-    */
-
     const leaveApplications = await this.getAllLeaveApplicationIdsFromLeaveDates();
     const leaveApplicationDateDetails = await Promise.all(
       leaveApplications.map(async (leaveApplication) => {
         const { dateOfFiling, leaveApplicationId } = leaveApplication;
-        const leaveDates = (await this.getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId, LeaveDayStatus.APPROVED)).map(
-          (ld) => ld.leaveDate
-        );
+        const leaveDates = (await this.getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId, null)).map((ld) => ld.leaveDate);
         const forCancellationLeaveDates = (
           await this.getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId, LeaveDayStatus.FOR_CANCELLATION)
         ).map((ld) => ld.leaveDate);
-
+        const statusAndRemarks = await this.getLeaveDateStatusAndRemarksByLeaveApplicationId(leaveApplicationId);
+        const { remarks, status } = statusAndRemarks;
         const leaveDatesDetails = await this.getLeaveDatesDetailsByLeaveApplicationId(leaveApplicationId);
         const { employeeId, ...restOfLeaveDatesDetails } = leaveDatesDetails;
         const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
@@ -127,17 +120,35 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
         return {
           employeeDetails: { employeeName: employeeFullName, positionTitle: assignment.positionTitle, companyId, photoUrl },
           ...restOfLeaveDatesDetails,
+          dateOfFiling,
           leaveDates,
           forCancellationLeaveDates,
+          remarks,
+          status,
         };
       })
     );
     return leaveApplicationDateDetails;
   }
+
   async getAllLeaveApplicationIdsFromLeaveDates() {
     return (await this.rawQuery(
-      `SELECT DISTINCT leave_application_id leaveApplicationId,DATE_FORMAT(date_of_filing,'%Y-%m-%d') dateOfFiling FROM leave_application WHERE status = 'approved' ORDER BY DATE_FORMAT(date_of_filing,'%Y-%m-%d') DESC;`
+      `SELECT DISTINCT leave_application_id leaveApplicationId,DATE_FORMAT(date_of_filing,'%Y-%m-%d') dateOfFiling 
+       FROM leave_application la 
+       INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id 
+       WHERE la.status = 'approved' AND (lad.status='cancelled' OR lad.status = 'for cancellation') ORDER BY DATE_FORMAT(date_of_filing,'%Y-%m-%d') DESC;`
     )) as { leaveApplicationId: string; dateOfFiling: Date }[];
+  }
+
+  async getLeaveDateStatusAndRemarksByLeaveApplicationId(leaveApplicationId: string) {
+    return (
+      await this.rawQuery(
+        `SELECT
+      DISTINCT remarks, status FROM leave_application_dates WHERE leave_application_id_fk=? AND status <> 'approved'
+    `,
+        [leaveApplicationId]
+      )
+    )[0] as { remarks: string; status: string };
   }
 
   async getLeaveDatesDetailsByLeaveApplicationId(leaveApplicationId: string) {
@@ -166,7 +177,22 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
     };
   }
 
-  async getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId: string, status: LeaveDayStatus) {
+  async getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId: string, status: LeaveDayStatus | null) {
+    if (status === null)
+      return (await this.rawQuery(
+        `
+        SELECT
+          DATE_FORMAT(lad.leave_date,'%Y-%m-%d') leaveDate
+        FROM leave_application la 
+          INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+          INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
+        WHERE la.leave_application_id=?; 
+        `,
+        [leaveApplicationId]
+      )) as {
+        leaveDate: string;
+      }[];
+
     return (await this.rawQuery(
       `
       SELECT
