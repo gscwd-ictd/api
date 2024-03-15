@@ -70,11 +70,13 @@ export class StatsService {
     }
   }
 
-  async getLatesPerDepartment() {
+  async getLatesPerDepartment(date: Date) {
     try {
+      console.log(date.toLocaleDateString());
       const depts = (await this.organizationService.getAllDepartmentsAndOgm()).map((dept) => ({ _id: dept._id, code: dept.code }));
       //get company_ids per department;
 
+      console.log(depts);
       //return depts;
     } catch (error) {
       console.log(error);
