@@ -1,5 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { StatsService } from './stats.service';
+import dayjs = require('dayjs');
 
 @Controller({ version: '1', path: 'stats' })
 export class StatsController {
@@ -11,6 +12,6 @@ export class StatsController {
 
   @Get('lates/department')
   async getLatesPerDepartment() {
-    return await this.statsService.getLatesPerDepartment();
+    return await this.statsService.getLatesPerDepartment(dayjs('2024-03-14').toDate());
   }
 }
