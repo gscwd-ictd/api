@@ -2,13 +2,19 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveApplicationDto, LeaveApplicationDates, UpdateLeaveApplicationDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveApplication } from '@gscwd-api/models';
-import { LeaveApplicationStatus, LeaveApplicationType, SickLeaveDetails, StudyLeaveDetails, VacationLeaveDetails } from '@gscwd-api/utils';
+import {
+  LeaveApplicationStatus,
+  LeaveApplicationType,
+  LeaveDayStatus,
+  SickLeaveDetails,
+  StudyLeaveDetails,
+  VacationLeaveDetails,
+} from '@gscwd-api/utils';
 import { RpcException } from '@nestjs/microservices';
 import { DataSource, EntityManager } from 'typeorm';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
-import { typeOrmEntities } from 'apps/employee-monitoring/src/constants/entities';
 import dayjs = require('dayjs');
 
 @Injectable()
@@ -144,10 +150,29 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           `,
             [leaveApplication.id]
           );
-          return { ...leaveApplication, debitValue, leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)) };
+
+          const forCancellationLeaveDates = (
+            (await this.leaveApplicationDatesService.getLeaveDatesByLeaveApplicationIdAndStatus(
+              leaveApplication.id,
+              LeaveDayStatus.FOR_CANCELLATION
+            )) as { leaveDate: string }[]
+          ).map((ld) => ld.leaveDate);
+
+          const cancelledLeaveDates = (
+            (await this.leaveApplicationDatesService.getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplication.id, LeaveDayStatus.CANCELLED)) as {
+              leaveDate: string;
+            }[]
+          ).map((ld) => ld.leaveDate);
+
+          return {
+            ...leaveApplication,
+            debitValue,
+            leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
+            forCancellationLeaveDates,
+            cancelledLeaveDates,
+          };
         })
       );
-
       return leaveApplicationsWithDates;
     } catch (error) {
       throw new HttpException(error.message, error.status);
