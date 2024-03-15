@@ -332,7 +332,7 @@ export class OvertimeService {
         },
         where: { overtimeImmediateSupervisorId: { id }, status },
         relations: { overtimeImmediateSupervisorId: true },
-        order: { createdAt: 'ASC' },
+        order: { plannedDate: 'DESC' },
       },
     })) as OvertimeApplication[];
 

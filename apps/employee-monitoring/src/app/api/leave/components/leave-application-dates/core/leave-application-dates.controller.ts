@@ -6,7 +6,7 @@ import { AuthenticatedGuard } from '../../../../users/guards/authenticated.guard
 export class LeaveApplicationDatesController {
   constructor(private readonly leaveApplicationDatesService: LeaveApplicationDatesService) {}
 
-  @UseGuards(AuthenticatedGuard)
+  //@UseGuards(AuthenticatedGuard)
   @Get('/for-cancellation/')
   async getForApprovalLeaveDates() {
     return await this.leaveApplicationDatesService.getForApprovalLeaveDates();
