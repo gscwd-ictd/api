@@ -602,6 +602,4 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       Logger.error;
     }
   }
-
-  async findAllTrainingRecommendedEmployeesBySupevisorId(supervisorId: string) {}
 }

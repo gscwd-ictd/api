@@ -16,7 +16,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     super(crudService);
   }
 
-  /* find all slot distribution by training id */
+  /* find all training slot distributions by training id */
   async findAllDistributionByTrainingId(trainingId: string) {
     try {
       /* find all slot distribution */
@@ -92,7 +92,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     }
   }
 
-  /* remove all training slot distribution by training id */
+  /* remove all training slot distributions by training id */
   async deleteAllDistributionByTrainingId(trainingId: string, entityManager: EntityManager) {
     try {
       return await this.crudService.transact<TrainingDistribution>(entityManager).delete({
@@ -110,14 +110,19 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     }
   }
 
-  //microservices
+  /* microservices for employees portal */
 
-  // find training by supervisor id (microservices)
-  async findTrainingDistributionSupervisorId(supervisorId: string) {
+  /* find all distributed training by supervisor id */
+  async findAllDistributionBySupervisorId(supervisorId: string) {
     try {
       const trainingDetails = (await this.crudService.findAll({
         find: {
-          relations: { trainingDetails: { trainingDesign: true, source: true } },
+          relations: {
+            trainingDetails: {
+              trainingDesign: true,
+              source: true,
+            },
+          },
           select: {
             id: true,
             numberOfSlots: true,
@@ -132,12 +137,14 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
               trainingEnd: true,
               status: true,
               type: true,
-              source: { name: true },
+              source: {
+                name: true,
+              },
             },
           },
           where: {
-            supervisorId,
-            trainingDetails: { status: Not(TrainingStatus.PENDING) },
+            supervisorId: supervisorId,
+            trainingDetails: { status: MoreThan(TrainingStatus.PENDING) },
           },
         },
         onError: (error) => {
@@ -146,24 +153,24 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
       })) as Array<TrainingDistribution>;
 
       return await Promise.all(
-        trainingDetails.map(async (distributionItem) => {
+        trainingDetails.map(async (items) => {
           return {
-            distributionId: distributionItem.id,
-            numberOfSlots: distributionItem.numberOfSlots,
-            trainingId: distributionItem.trainingDetails.id,
-            courseTitle: distributionItem.trainingDetails.courseTitle || distributionItem.trainingDetails.trainingDesign.courseTitle,
-            location: distributionItem.trainingDetails.location,
-            trainingStart: distributionItem.trainingDetails.trainingStart,
-            trainingEnd: distributionItem.trainingDetails.trainingEnd,
-            source: distributionItem.trainingDetails.source.name,
-            type: distributionItem.trainingDetails.type,
-            status: distributionItem.trainingDetails.status,
+            distributionId: items.id,
+            numberOfSlots: items.numberOfSlots,
+            trainingId: items.trainingDetails.id,
+            courseTitle: items.trainingDetails.courseTitle || items.trainingDetails.trainingDesign.courseTitle,
+            location: items.trainingDetails.location,
+            trainingStart: items.trainingDetails.trainingStart,
+            trainingEnd: items.trainingDetails.trainingEnd,
+            source: items.trainingDetails.source.name,
+            type: items.trainingDetails.type,
+            status: items.trainingDetails.status,
           };
         })
       );
     } catch (error) {
-      Logger.log(error);
-      throw error;
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
