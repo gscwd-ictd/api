@@ -22,7 +22,7 @@ import { TrainingLspDetailsDto } from '../training-lsp-details';
 import { TrainingTagDto } from '../training-tags';
 import { SlotDistributionDto } from '../training-distributions';
 
-export class TrainingNoticeInternalDto {
+export class SendTrainingNoticeInternalDto {
   @IsNotEmpty()
   @IsUUID('4')
   id: string;
@@ -95,7 +95,7 @@ export class TrainingNoticeInternalDto {
   slotDistribution: Array<SlotDistributionDto>;
 }
 
-export class TrainingNoticeExternalDto {
+export class SendTrainingNoticeExternalDto {
   @IsNotEmpty()
   @IsUUID('4')
   id: string;

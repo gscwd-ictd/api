@@ -3,15 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { DatabaseModule } from '../connections';
 import { LspDetailsModule } from './api/lsp-details';
-import { TagsModule } from './api/tags';
-import { TrainingSourcesModule } from './api/training-sources';
-import { TrainingDesignsModule } from './api/training-designs';
-import { TrainingDetailsModule } from './api/training-details';
-import { PortalEmployeesModule } from './services/portal';
-import { HrmsEmployeeTagsModule, HrmsEmployeesModule, HrmsUsersModule } from './services/hrms';
-import { TrainingNoticesModule } from './api/training-notices';
-import { TrainingNomineesModule } from './api/training-details/components/training-nominees';
-import { TrainingApprovalsModule } from './api/training-details/components/training-approvals';
 import { LspAffiliationsModule } from './api/lsp-details/components/affiliations';
 import { LspAwardsModule } from './api/lsp-details/components/awards';
 import { LspCertificationsModule } from './api/lsp-details/components/certifications';
@@ -19,6 +10,12 @@ import { LspCoachingsModule } from './api/lsp-details/components/coachings';
 import { LspEducationsModule } from './api/lsp-details/components/educations';
 import { LspProjectsModule } from './api/lsp-details/components/projects';
 import { LspTrainingsModule } from './api/lsp-details/components/trainings';
+import { TagsModule } from './api/tags';
+import { HrmsEmployeeTagsModule, HrmsEmployeesModule, HrmsUsersModule } from './services/hrms';
+import { PortalEmployeesModule } from './services/portal';
+import { TrainingSourcesModule } from './api/training/components/sources';
+import { TrainingDesignsModule } from './api/training/components/designs';
+import { TrainingDetailsModule } from './api/training';
 
 @Module({
   imports: [
@@ -38,23 +35,22 @@ import { LspTrainingsModule } from './api/lsp-details/components/trainings';
     LspProjectsModule,
     LspTrainingsModule,
 
-    //new trainings
-    TrainingSourcesModule,
-    TrainingDesignsModule,
-    TrainingDetailsModule,
-    TrainingNoticesModule,
-    TrainingNomineesModule,
-    TrainingApprovalsModule,
-    //tags
+    /* tag */
     TagsModule,
 
-    //hrms microservice
+    /* hrms microservice */
     HrmsEmployeesModule,
     HrmsEmployeeTagsModule,
     HrmsUsersModule,
 
-    // portal microservices
+    /* portal microservices */
     PortalEmployeesModule,
+
+    /* trainings */
+    TrainingSourcesModule,
+    TrainingDesignsModule,
+
+    TrainingDetailsModule,
   ],
 })
 export class AppModule {}

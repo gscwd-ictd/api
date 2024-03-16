@@ -12,7 +12,7 @@ import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { DataSource, EntityManager, IsNull, MoreThan, Not } from 'typeorm';
 import { TrainingDetailsService } from '../../../core/training-details.service';
-import { TrainingDistributionsService } from '../../training-distributions';
+import { TrainingDistributionsService } from '../../../../training/components/slot-distributions';
 import { TrainingRequirementsService } from '../../training-requirements';
 
 @Injectable()

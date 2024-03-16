@@ -5,7 +5,7 @@ import { TrainingNomineesService } from './training-nominees.service';
 import { TrainingNomineesController } from './training-nominees.controller';
 import { TrainingNomineesMicroserviceController } from './training-nominees-ms.controller';
 import { HrmsEmployeesModule } from '../../../../../services/hrms';
-import { TrainingDistributionsModule } from '../../training-distributions';
+import { TrainingDistributionsModule } from '../../../../training/components/slot-distributions';
 import { TrainingRequirementsModule } from '../../training-requirements';
 import { TrainingDetailsModule } from '../../../core/training-details.module';
 

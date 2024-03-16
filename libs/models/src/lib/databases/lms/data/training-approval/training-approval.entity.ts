@@ -7,7 +7,7 @@ export class TrainingApproval extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_approval_id' })
   id: string;
 
-  @OneToOne(() => TrainingDetails, (trainingDetails) => trainingDetails.id, { nullable: false })
+  @OneToOne(() => TrainingDetails, (trainingDetails) => trainingDetails.id, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'training_details_id_fk' })
   trainingDetails: TrainingDetails;
 

@@ -9,14 +9,14 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_details_id' })
   id: string;
 
-  @ManyToOne(() => TrainingSource, (source) => source.id, { nullable: false })
+  @ManyToOne(() => TrainingSource, (source) => source.id, { nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'training_source_id_fk' })
   source: TrainingSource;
 
   @Column({ name: 'training_type', type: 'enum', enum: TrainingType, nullable: false })
   type: TrainingType;
 
-  @ManyToOne(() => TrainingDesign, (trainingDesign) => trainingDesign.id, { nullable: true })
+  @ManyToOne(() => TrainingDesign, (trainingDesign) => trainingDesign.id, { nullable: true, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'training_design_id_fk' })
   trainingDesign: TrainingDesign;
 
@@ -26,7 +26,7 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'course_content', type: 'jsonb', nullable: true })
   courseContent: string;
 
-  @Column({ name: 'location', type: 'varchar', length: 500, nullable: true })
+  @Column({ name: 'location', type: 'varchar', nullable: true })
   location: string;
 
   @Column({ name: 'training_start', type: 'timestamp', nullable: false })

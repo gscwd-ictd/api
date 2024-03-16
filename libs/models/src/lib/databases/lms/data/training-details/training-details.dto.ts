@@ -118,6 +118,7 @@ export class UpdateTrainingInternalDto extends PartialType(CreateTrainingInterna
 }
 
 export class UpdateTrainingExternalDto extends PartialType(CreateTrainingExternalDto) {
+  @IsNotEmpty()
   @IsUUID('4')
   id: string;
 }
