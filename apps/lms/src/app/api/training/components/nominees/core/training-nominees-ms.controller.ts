@@ -13,7 +13,7 @@ export class TrainingNomineesMicroserviceController {
   @MessagePattern(TrainingPatterns.ADD_NOMINEES_BY_TRAINING_DISTRIBUTION_ID)
   async create(@Payload() data: CreateTrainingNomineeDto) {
     try {
-      return await this.trainingNomineesService.create(data);
+      return await this.trainingNomineesService.createNominees(data);
     } catch (error) {
       throw new RpcException(error);
     }

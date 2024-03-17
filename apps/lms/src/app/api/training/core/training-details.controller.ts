@@ -26,11 +26,12 @@ import {
 import { TrainingDetailsService } from './training-details.service';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { FindAllTrainingInterceptor } from '../misc/interceptors';
-import { TrainingStatus } from '@gscwd-api/utils';
+import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
+import { TrainingNomineesService } from '../components/nominees';
 
 @Controller({ version: '1', path: 'training' })
 export class TrainingDetailsController {
-  constructor(private readonly trainingDetailsService: TrainingDetailsService) {}
+  constructor(private readonly trainingDetailsService: TrainingDetailsService, private readonly trainingNomineesService: TrainingNomineesService) {}
 
   /* find all training */
   @UseInterceptors(FindAllTrainingInterceptor)
@@ -41,24 +42,33 @@ export class TrainingDetailsController {
   ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
     return await this.trainingDetailsService.crud().findAll({
       find: {
-        relations: { source: true, trainingDesign: true },
+        relations: {
+          source: true,
+          trainingDesign: true,
+        },
         select: {
           createdAt: true,
           updatedAt: true,
           deletedAt: true,
           id: true,
-          trainingDesign: { courseTitle: true },
+          trainingDesign: {
+            courseTitle: true,
+          },
           courseTitle: true,
           numberOfParticipants: true,
           location: true,
           trainingStart: true,
           trainingEnd: true,
           bucketFiles: true,
-          source: { name: true },
+          source: {
+            name: true,
+          },
           type: true,
           status: true,
         },
-        order: { updatedAt: 'DESC' },
+        order: {
+          updatedAt: 'DESC',
+        },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
@@ -74,25 +84,36 @@ export class TrainingDetailsController {
   ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
     return await this.trainingDetailsService.crud().findAll({
       find: {
-        relations: { source: true, trainingDesign: true },
+        relations: {
+          source: true,
+          trainingDesign: true,
+        },
         select: {
           createdAt: true,
           updatedAt: true,
           deletedAt: true,
           id: true,
-          trainingDesign: { courseTitle: true },
+          trainingDesign: {
+            courseTitle: true,
+          },
           courseTitle: true,
           numberOfParticipants: true,
           location: true,
           trainingStart: true,
           trainingEnd: true,
           bucketFiles: true,
-          source: { name: true },
+          source: {
+            name: true,
+          },
           type: true,
           status: true,
         },
-        where: { status: TrainingStatus.ON_GOING_TRAINING },
-        order: { updatedAt: 'DESC' },
+        where: {
+          status: TrainingStatus.ON_GOING_TRAINING,
+        },
+        order: {
+          updatedAt: 'DESC',
+        },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
@@ -108,25 +129,36 @@ export class TrainingDetailsController {
   ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
     return await this.trainingDetailsService.crud().findAll({
       find: {
-        relations: { source: true, trainingDesign: true },
+        relations: {
+          source: true,
+          trainingDesign: true,
+        },
         select: {
           createdAt: true,
           updatedAt: true,
           deletedAt: true,
           id: true,
-          trainingDesign: { courseTitle: true },
+          trainingDesign: {
+            courseTitle: true,
+          },
           courseTitle: true,
           numberOfParticipants: true,
           location: true,
           trainingStart: true,
           trainingEnd: true,
           bucketFiles: true,
-          source: { name: true },
+          source: {
+            name: true,
+          },
           type: true,
           status: true,
         },
-        where: { status: TrainingStatus.REQUIREMENTS_SUBMISSION },
-        order: { updatedAt: 'DESC' },
+        where: {
+          status: TrainingStatus.REQUIREMENTS_SUBMISSION,
+        },
+        order: {
+          updatedAt: 'DESC',
+        },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
@@ -142,25 +174,36 @@ export class TrainingDetailsController {
   ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
     return await this.trainingDetailsService.crud().findAll({
       find: {
-        relations: { source: true, trainingDesign: true },
+        relations: {
+          source: true,
+          trainingDesign: true,
+        },
         select: {
           createdAt: true,
           updatedAt: true,
           deletedAt: true,
           id: true,
-          trainingDesign: { courseTitle: true },
+          trainingDesign: {
+            courseTitle: true,
+          },
           courseTitle: true,
           numberOfParticipants: true,
           location: true,
           trainingStart: true,
           trainingEnd: true,
           bucketFiles: true,
-          source: { name: true },
+          source: {
+            name: true,
+          },
           type: true,
           status: true,
         },
-        where: { status: TrainingStatus.COMPLETED },
-        order: { updatedAt: 'DESC' },
+        where: {
+          status: TrainingStatus.COMPLETED,
+        },
+        order: {
+          updatedAt: 'DESC',
+        },
       },
       pagination: { page, limit },
       onError: () => new InternalServerErrorException(),
@@ -220,10 +263,19 @@ export class TrainingDetailsController {
   }
 
   /* send a training notice to the managers to nominate */
-  @Patch('notices/:id')
+  @Patch('notices/:trainingId')
   async sendNoticeToManagers(@Param() id: string) {
     /* set status to on going nomination */
     const status = TrainingStatus.ON_GOING_NOMINATION;
     return await this.trainingDetailsService.updateTrainingStatusById(id, status);
+  }
+
+  /* find all accepted nominees by training id */
+  @Get('training/:trainingId/nominees/accepted')
+  async findAllAcceptedNomineesByTrainingId(@Param('trainingId') trainingId: string) {
+    const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
+    const nomineeType = NomineeType.NOMINEE;
+    const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
+    return await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
   }
 }

@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingDistributionDto, TrainingDistribution } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { EntityManager, MoreThan, Not } from 'typeorm';
+import { EntityManager, MoreThan } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../recommended-employees';
 import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
 import { TrainingStatus } from '@gscwd-api/utils';

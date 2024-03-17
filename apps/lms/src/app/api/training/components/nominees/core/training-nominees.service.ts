@@ -10,10 +10,10 @@ import {
 import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
-import { DataSource, EntityManager, IsNull, MoreThan, Not } from 'typeorm';
+import { DataSource, EntityManager, IsNull, MoreThan, MoreThanOrEqual, Not } from 'typeorm';
 import { TrainingDetailsService } from '../../../core/training-details.service';
 import { TrainingDistributionsService } from '../../../../training/components/slot-distributions';
-import { TrainingRequirementsService } from '../../training-requirements';
+import { TrainingRequirementsService } from '../../../../training-details/components/training-requirements';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
@@ -28,6 +28,8 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     super(crudService);
   }
 
+  /* microservices for employees portal */
+
   /* insert training nominees */
   async createNominees(data: CreateTrainingNomineeDto) {
     try {
@@ -35,6 +37,13 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         /* deconstruct data */
         const { employees, trainingDistribution } = data;
 
+        /* count the number of employees nominated */
+        const countEmployees = employees.length;
+
+        /* set training distribution status complete or ineligible */
+        const status = countEmployees === 0 ? TrainingDistributionStatus.NOMINATION_INELIGIBLE : TrainingDistributionStatus.NOMINATION_COMPLETED;
+
+        /* edit training distribution status by id */
         await this.trainingDistributionsService
           .crud()
           .transact<TrainingDistribution>(entityManager)
@@ -43,17 +52,21 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
               id: trainingDistribution.id,
             },
             dto: {
-              status: TrainingDistributionStatus.NOMINATION_COMPLETE,
+              status: status,
             },
             onError: (error) => {
               throw error;
             },
           });
 
+        /* insert training nominees */
         return await Promise.all(
-          employees.map(async (employeeItem) => {
+          employees.map(async (items) => {
             return await this.crudService.transact<TrainingNominee>(entityManager).create({
-              dto: { trainingDistribution, ...employeeItem },
+              dto: {
+                ...items,
+                trainingDistribution: trainingDistribution,
+              },
               onError: (error) => {
                 throw error;
               },
@@ -62,126 +75,209 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         );
       });
     } catch (error) {
-      Logger.log(error);
-      throw error;
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 
-  // find all training by employee id
+  /* find all training details by employee id */
   async findAllTrainingByEmployeeId(employeeId: string, status: TrainingNomineeStatus) {
-    const training = (await this.crudService.findAll({
-      find: {
-        relations: {
-          trainingDistribution: { trainingDetails: { trainingDesign: true } },
-        },
-        select: {
-          id: true,
-          trainingDistribution: {
-            id: true,
-            supervisorId: true,
-            trainingDetails: {
-              id: true,
-              trainingDesign: { courseTitle: true },
-              courseTitle: true,
-              location: true,
-              trainingStart: true,
-              trainingEnd: true,
-              source: { name: true },
-              type: true,
+    try {
+      /* find all training details */
+      const trainingDetails = (await this.crudService.findAll({
+        find: {
+          relations: {
+            trainingDistribution: {
+              trainingDetails: {
+                trainingDesign: true,
+              },
             },
           },
-          batchNumber: true,
-          trainingStart: true,
-          trainingEnd: true,
-          status: true,
-          remarks: true,
+          select: {
+            id: true,
+            trainingDistribution: {
+              id: true,
+              supervisorId: true,
+              trainingDetails: {
+                id: true,
+                trainingDesign: {
+                  courseTitle: true,
+                },
+                courseTitle: true,
+                location: true,
+                trainingStart: true,
+                trainingEnd: true,
+                source: {
+                  name: true,
+                },
+                type: true,
+              },
+            },
+            batchNumber: true,
+            trainingStart: true,
+            trainingEnd: true,
+            status: true,
+            remarks: true,
+          },
+          where: [
+            {
+              employeeId: employeeId,
+              status: status,
+              nomineeType: NomineeType.NOMINEE,
+              trainingDistribution: {
+                trainingDetails: {
+                  status: MoreThanOrEqual(TrainingStatus.ON_GOING_NOMINATION),
+                },
+              },
+            },
+          ],
         },
-        where: [
-          {
-            employeeId,
-            status,
-            nomineeType: NomineeType.NOMINEE,
-            trainingDistribution: { trainingDetails: { status: TrainingStatus.ON_GOING_NOMINATION } },
-          },
-          {
-            employeeId,
-            status,
-            nomineeType: NomineeType.NOMINEE,
-            trainingDistribution: { trainingDetails: { status: TrainingStatus.UPCOMING } },
-          },
-        ],
-      },
-      onError: (error) => {
-        throw error;
-      },
-    })) as Array<TrainingNominee>;
+        onError: (error) => {
+          throw error;
+        },
+      })) as Array<TrainingNominee>;
 
-    return await Promise.all(
-      training.map(async (trainingItems) => {
-        const supervisorName = await this.hrmsEmployeesService.findEmployeesById(trainingItems.trainingDistribution.supervisorId);
+      return await Promise.all(
+        trainingDetails.map(async (items) => {
+          const supervisorName = (await this.hrmsEmployeesService.findEmployeesById(items.trainingDistribution.supervisorId)).fullName;
 
-        return {
-          supervisorName: supervisorName.fullName,
-          nomineeId: trainingItems.id,
-          name:
-            trainingItems.trainingDistribution.trainingDetails.courseTitle ||
-            trainingItems.trainingDistribution.trainingDetails.trainingDesign.courseTitle,
-          location: trainingItems.trainingDistribution.trainingDetails.location,
-          trainingStart: trainingItems.trainingDistribution.trainingDetails.trainingStart,
-          trainingEnd: trainingItems.trainingDistribution.trainingDetails.trainingEnd,
-          nomineeStatus: trainingItems.status,
-          remarks: trainingItems.remarks,
-          batchNumber: trainingItems.batchNumber,
-          batchStart: trainingItems.trainingStart,
-          batchEnd: trainingItems.trainingEnd,
-        };
-      })
-    );
+          return {
+            supervisorName: supervisorName,
+            nomineeId: items.id,
+            name: items.trainingDistribution.trainingDetails.courseTitle || items.trainingDistribution.trainingDetails.trainingDesign.courseTitle,
+            location: items.trainingDistribution.trainingDetails.location,
+            trainingStart: items.trainingDistribution.trainingDetails.trainingStart,
+            trainingEnd: items.trainingDistribution.trainingDetails.trainingEnd,
+            nomineeStatus: items.status,
+            remarks: items.remarks,
+            batchNumber: items.batchNumber,
+            batchStart: items.trainingStart,
+            batchEnd: items.trainingEnd,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
-  // find all training nominee by training id (nominee type = nominee)
-  async findAllNomineeByTrainingId(trainingId: string) {
-    const distribution = (await this.crudService.findAll({
-      find: {
-        relations: { trainingDistribution: true },
-        select: {
-          id: true,
-          trainingDistribution: {
+  /* find all training nominee by distribution id (nominee type = nominee or stand-in) */
+  async findAllNomineesByDistributionId(distributionId: string, nomineeType: NomineeType) {
+    try {
+      /* find all training training nominee */
+      const distribution = (await this.crudService.findAll({
+        find: {
+          relations: {
+            trainingDistribution: true,
+          },
+          select: {
             id: true,
-            supervisorId: true,
+            trainingDistribution: {
+              id: true,
+              supervisorId: true,
+            },
+            employeeId: true,
+            status: true,
+            nomineeType: true,
+            remarks: true,
           },
-          employeeId: true,
-          status: true,
-          nomineeType: true,
-          remarks: true,
+          where: {
+            nomineeType: nomineeType,
+            trainingDistribution: {
+              id: distributionId,
+              trainingDetails: {
+                status: MoreThanOrEqual(TrainingStatus.PENDING),
+              },
+            },
+          },
         },
-        where: {
-          nomineeType: NomineeType.NOMINEE,
-          trainingDistribution: {
-            trainingDetails: { id: trainingId, status: Not(TrainingStatus.PENDING) },
+        onError: (error) => {
+          throw error;
+        },
+      })) as Array<TrainingNominee>;
+
+      return await Promise.all(
+        distribution.map(async (items) => {
+          /* find employee name by employee id */
+          const employeeName = (await this.hrmsEmployeesService.findEmployeesById(items.employeeId)).fullName;
+
+          /* custom return */
+          return {
+            employeeId: items.employeeId,
+            name: employeeName,
+            nomineeType: items.nomineeType,
+            status: items.status,
+            remarks: items.remarks,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* find all training nominee by training id */
+  async findAllNomineeByTrainingId(
+    trainingId: string,
+    trainingStatus: TrainingStatus,
+    nomineeType: NomineeType,
+    nomineeStatus: TrainingNomineeStatus
+  ) {
+    try {
+      /* find all training training nominee */
+      const distribution = (await this.crudService.findAll({
+        find: {
+          relations: {
+            trainingDistribution: true,
+          },
+          select: {
+            id: true,
+            trainingDistribution: {
+              id: true,
+              supervisorId: true,
+            },
+            employeeId: true,
+            status: true,
+            nomineeType: true,
+            remarks: true,
+          },
+          where: {
+            nomineeType: nomineeType,
+            status: nomineeStatus,
+            trainingDistribution: {
+              trainingDetails: {
+                id: trainingId,
+                status: MoreThanOrEqual(trainingStatus),
+              },
+            },
           },
         },
-      },
-      onError: () => new NotFoundException(),
-    })) as Array<TrainingNominee>;
+        onError: () => new NotFoundException(),
+      })) as Array<TrainingNominee>;
 
-    return await Promise.all(
-      distribution.map(async (distributionItems) => {
-        const supervisorName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.trainingDistribution.supervisorId);
-        const employeeName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.employeeId);
+      return await Promise.all(
+        distribution.map(async (distributionItems) => {
+          const supervisorName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.trainingDistribution.supervisorId);
+          const employeeName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.employeeId);
 
-        return {
-          employeeId: distributionItems.employeeId,
-          name: employeeName.fullName,
-          status: distributionItems.status,
-          remarks: distributionItems.remarks,
-          supervisor: {
-            supervisorId: distributionItems.trainingDistribution.supervisorId,
-            name: supervisorName.fullName,
-          },
-        };
-      })
-    );
+          return {
+            employeeId: distributionItems.employeeId,
+            name: employeeName.fullName,
+            status: distributionItems.status,
+            remarks: distributionItems.remarks,
+            supervisor: {
+              supervisorId: distributionItems.trainingDistribution.supervisorId,
+              name: supervisorName.fullName,
+            },
+          };
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   // find all accepted training nominee by training id (nominee type = nominee & preparation status = for batching)
@@ -227,45 +323,6 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             supervisorId: distributionItems.trainingDistribution.supervisorId,
             name: supervisorName.fullName,
           },
-        };
-      })
-    );
-  }
-
-  // find all training nominee by distribution id (nominee type = nominee or stand-in)
-  async findAllNomineesByDistributionId(distributionId: string, type: NomineeType) {
-    const distribution = (await this.crudService.findAll({
-      find: {
-        relations: { trainingDistribution: true },
-        select: {
-          id: true,
-          trainingDistribution: {
-            id: true,
-            supervisorId: true,
-          },
-          employeeId: true,
-          status: true,
-          nomineeType: true,
-          remarks: true,
-        },
-        where: {
-          nomineeType: type,
-          trainingDistribution: { id: distributionId, trainingDetails: { status: Not(TrainingStatus.PENDING) } },
-        },
-      },
-      onError: () => new NotFoundException(),
-    })) as Array<TrainingNominee>;
-
-    return await Promise.all(
-      distribution.map(async (distributionItems) => {
-        const employeeName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.employeeId);
-
-        return {
-          employeeId: distributionItems.employeeId,
-          name: employeeName.fullName,
-          nomineeType: distributionItems.nomineeType,
-          status: distributionItems.status,
-          remarks: distributionItems.remarks,
         };
       })
     );

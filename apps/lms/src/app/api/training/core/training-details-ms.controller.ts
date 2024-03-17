@@ -1,16 +1,20 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Post } from '@nestjs/common';
 import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { TrainingPatterns } from '@gscwd-api/microservices';
 import { TrainingDetailsService } from './training-details.service';
 import { TrainingDistributionsService } from '../components/slot-distributions';
 import { TrainingRecommendedEmployeeService } from '../components/recommended-employees';
+import { TrainingNomineesService } from '../components/nominees';
+import { CreateTrainingNomineeDto } from '@gscwd-api/models';
+import { TrainingNomineeRaw } from '@gscwd-api/utils';
 
 @Controller()
 export class TrainingDetailsMicroserviceController {
   constructor(
     private readonly trainingDetailsService: TrainingDetailsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
-    private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService
+    private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
+    private readonly trainingNomineesService: TrainingNomineesService
   ) {}
 
   /* find all training distribution by supervisor id */
@@ -33,6 +37,28 @@ export class TrainingDetailsMicroserviceController {
     }
   }
 
+  /* insert training nominees by training distribution id */
+  @MessagePattern(TrainingPatterns.ADD_NOMINEES_BY_TRAINING_DISTRIBUTION_ID)
+  async createNominees(@Payload() data: CreateTrainingNomineeDto) {
+    try {
+      return await this.trainingNomineesService.createNominees(data);
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  /* find all training nominees (type = nominee or stand-in) by distribution id */
+  @MessagePattern(TrainingPatterns.FIND_TRAINING_NOMINEES_BY_DISTRIBUTION_ID)
+  async findAllNomineesByDistributionId(@Payload() data: TrainingNomineeRaw) {
+    try {
+      const { distributionId, nomineeType } = data;
+      return await this.trainingNomineesService.findAllNomineesByDistributionId(distributionId, nomineeType);
+    } catch (error) {
+      Logger.error(error);
+      throw new RpcException(error);
+    }
+  }
+
   /* testing microservices */
 
   /* find all training distribution by supervisor id */
@@ -41,8 +67,22 @@ export class TrainingDetailsMicroserviceController {
     return await this.trainingDistributionsService.findAllDistributionBySupervisorId(supervisorId);
   }
 
-  @Get('training/distribution/:id/recommended/employees')
-  async findAllByDistributionId(@Param('id') distributionId: string) {
+  /* find all recommended employees by distribution id */
+  @Get('training/distribution/:id/recommended')
+  async findAllTrainingRecommendedEmployeesByDistributionId(@Param('id') distributionId: string) {
     return await this.trainingRecommendedEmployeesService.findAllRecommendedEmployeesByDistributionId(distributionId);
+  }
+
+  /* insert training nominees by training distribution id */
+  @Post('training/nominees')
+  async createTrainingNominees(@Body() data: CreateTrainingNomineeDto) {
+    return await this.trainingNomineesService.createNominees(data);
+  }
+
+  /* find all training nominees (type = nominee or stand-in) by distribution id */
+  @Get('training/distribution/:id/nominees')
+  async findAllTrainingNomineesByDistributionId(@Param('id') distributionId: string) {
+    const nomineeType = null;
+    return await this.trainingNomineesService.findAllNomineesByDistributionId(distributionId, nomineeType);
   }
 }

@@ -1,29 +1,11 @@
 import { BadRequestException, Body, Controller, Get, Logger, Param, Patch, Post } from '@nestjs/common';
 import { TrainingNomineesService } from './training-nominees.service';
-import { CreateTrainingBatchDto, CreateTrainingNomineeDto, UpdateTrainingBatchDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
+import { CreateTrainingBatchDto, UpdateTrainingBatchDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
 import { TrainingNomineeStatus } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'training-nominees' })
 export class TrainingNomineesController {
   constructor(private readonly trainingNomineesService: TrainingNomineesService) {}
-
-  // test microservice in insert training nominee by distribution id
-  @Post()
-  async create(@Body() data: CreateTrainingNomineeDto) {
-    return await this.trainingNomineesService.create(data);
-  }
-
-  // find all training nominee by training id (nominee type = nominee & preparation status = on going nomination)
-  @Get(':id')
-  async findAllNomineeByTrainingId(@Param('id') trainingId: string) {
-    return await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId);
-  }
-
-  // find all accepted training nominee by training id (nominee type = nominee & preparation status = on going nomination)
-  @Get(':id/accepted')
-  async findAllAcceptedNomineeByTrainingId(@Param('id') trainingId: string) {
-    return await this.trainingNomineesService.findAllAcceptedNomineeByTrainingId(trainingId);
-  }
 
   // create training nominee batching
   @Post('batch')
