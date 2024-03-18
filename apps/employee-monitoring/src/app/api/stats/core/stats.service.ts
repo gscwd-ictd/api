@@ -2,10 +2,15 @@ import { LeaveApplicationStatus, OvertimeStatus, PassSlipApprovalStatus } from '
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { PassSlipService } from '../../pass-slip/core/pass-slip.service';
+import { OrganizationService } from '../../organization/core/organization.service';
 
 @Injectable()
 export class StatsService {
-  constructor(private readonly passSlipService: PassSlipService, private employeeService: EmployeesService) {}
+  constructor(
+    private readonly passSlipService: PassSlipService,
+    private readonly employeeService: EmployeesService,
+    private readonly organizationService: OrganizationService
+  ) {}
 
   async countAllPendingApplicationsForManager(employeeId: string) {
     try {
@@ -62,6 +67,19 @@ export class StatsService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
+    }
+  }
+
+  async getLatesPerDepartment(date: Date) {
+    try {
+      console.log(date.toLocaleDateString());
+      const depts = (await this.organizationService.getAllDepartmentsAndOgm()).map((dept) => ({ _id: dept._id, code: dept.code }));
+      //get company_ids per department;
+
+      console.log(depts);
+      //return depts;
+    } catch (error) {
+      console.log(error);
     }
   }
 }

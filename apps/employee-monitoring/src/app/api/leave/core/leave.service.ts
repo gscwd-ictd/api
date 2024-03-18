@@ -8,7 +8,6 @@ import {
 } from '@gscwd-api/models';
 import { LeaveApplicationStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { count } from 'console';
 import dayjs = require('dayjs');
 import { DataSource, EntityManager } from 'typeorm';
 import { EmployeesService } from '../../employees/core/employees.service';
