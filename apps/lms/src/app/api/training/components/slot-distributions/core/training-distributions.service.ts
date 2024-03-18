@@ -126,6 +126,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
           select: {
             id: true,
             numberOfSlots: true,
+            status: true,
             trainingDetails: {
               id: true,
               courseTitle: true,
@@ -165,6 +166,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
             source: items.trainingDetails.source.name,
             type: items.trainingDetails.type,
             status: items.trainingDetails.status,
+            nominationStatus: items.status,
           };
         })
       );

@@ -50,8 +50,8 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'subject_matter_expertise', type: 'jsonb', nullable: true })
   expertise: string;
 
-  @Column({ name: 'photo_url', nullable: true })
-  photoUrl: string;
+  @Column({ name: 'photo_id', nullable: true })
+  photoId: string;
 
   @Column({ name: 'experience_number_of_years', nullable: true })
   experience: number;

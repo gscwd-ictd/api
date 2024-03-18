@@ -32,20 +32,10 @@ export class CreateTrainingNomineeDto {
   employees: Array<NomineeDto>;
 }
 
-export class UpdateTrainingNomineeDto extends PartialType(CreateTrainingNomineeDto) {
-  @IsNotEmpty()
-  @IsUUID('4')
-  id: string;
-
-  @IsNotEmpty()
-  @IsEnum(TrainingNomineeStatus)
-  status: TrainingNomineeStatus;
-}
-
 export class UpdateTrainingNomineeStatusDto {
   @IsNotEmpty()
   @IsUUID('4')
-  id: string;
+  nomineeId: string;
 
   @IsNotEmpty()
   @IsEnum(TrainingNomineeStatus)

@@ -150,10 +150,6 @@ export class SendTrainingNoticeExternalDto {
 
   @ArrayNotEmpty()
   @IsArray()
-  bucketFiles: Array<string>;
-
-  @ArrayNotEmpty()
-  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TrainingLspDetailsDto)
   trainingLspDetails: Array<TrainingLspDetailsDto>;

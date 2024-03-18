@@ -41,9 +41,6 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'deadline_for_submission', type: 'date', nullable: true })
   deadlineForSubmission: Date;
 
-  @Column({ name: 'bucket_files', type: 'jsonb', nullable: true })
-  bucketFiles: string;
-
   @Column({ name: 'number_of_participants', nullable: false })
   numberOfParticipants: number;
 

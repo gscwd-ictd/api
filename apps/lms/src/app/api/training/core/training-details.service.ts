@@ -12,7 +12,6 @@ import { TrainingTagsService } from '../components/tags';
 import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
 import { TrainingStatus } from '@gscwd-api/utils';
-import { TrainingNomineesService } from '../components/nominees';
 import { TrainingApprovalsService } from '../components/approvals';
 
 @Injectable()
@@ -161,7 +160,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         deadlineForSubmission: trainingDetails.deadlineForSubmission,
         numberOfParticipants: trainingDetails.numberOfParticipants,
         trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
-        bucketFiles: JSON.parse(trainingDetails.bucketFiles),
         source: {
           id: trainingDetails.source.id,
           name: trainingDetails.source.name,
@@ -240,7 +238,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       return this.dataSource.transaction(async (entityManager) => {
         /* deconstruct data */
-        const { courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
+        const { courseContent, trainingRequirements, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
 
         /* insert training details */
         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).create({
@@ -248,7 +246,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             ...rest,
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
-            bucketFiles: JSON.stringify(bucketFiles),
           },
           onError: (error) => {
             throw error;
@@ -367,7 +364,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       return this.dataSource.transaction(async (entityManager) => {
         /* deconstruct data */
-        const { id, courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
+        const { id, courseContent, trainingRequirements, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
 
         /* check training id */
         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).findOneBy({
@@ -384,7 +381,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             ...rest,
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
-            bucketFiles: JSON.stringify(bucketFiles),
           },
           onError: (error) => {
             throw error;
@@ -521,7 +517,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       return this.dataSource.transaction(async (entityManager) => {
         /* deconstruct data */
-        const { id, courseContent, trainingRequirements, bucketFiles, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
+        const { id, courseContent, trainingRequirements, trainingLspDetails, trainingTags, slotDistribution, ...rest } = data;
 
         /* check training id */
         const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).findOneBy({
@@ -538,7 +534,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             ...rest,
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
-            bucketFiles: JSON.stringify(bucketFiles),
             status: TrainingStatus.ON_GOING_NOMINATION,
           },
           onError: (error) => {
@@ -584,26 +579,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         /* Handle other errors as needed */
         throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
       }
-    }
-  }
-
-  /* send training notice to managers */
-  async updateTrainingStatusById(id: string, status: TrainingStatus) {
-    try {
-      return await this.crudService.update({
-        updateBy: {
-          id: id,
-        },
-        dto: {
-          status: status,
-        },
-        onError: () => {
-          throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-        },
-      });
-    } catch (error) {
-      Logger.error(error);
-      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     }
   }
 

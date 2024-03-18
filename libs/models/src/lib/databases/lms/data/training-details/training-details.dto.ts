@@ -105,10 +105,6 @@ export class CreateTrainingExternalDto extends CreateTrainingDetailsDto {
   @IsString({ message: 'training course title must be a string' })
   @Length(1, 100, { message: 'training course title must be between 1 to 100 characters' })
   courseTitle: string;
-
-  @IsOptional()
-  @IsArray()
-  bucketFiles: Array<string>;
 }
 
 export class UpdateTrainingInternalDto extends PartialType(CreateTrainingInternalDto) {

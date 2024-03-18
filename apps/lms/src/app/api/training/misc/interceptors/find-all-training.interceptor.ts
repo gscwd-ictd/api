@@ -20,7 +20,6 @@ export class FindAllTrainingInterceptor implements NestInterceptor {
               location: trainingItems.location,
               trainingStart: trainingItems.trainingStart,
               trainingEnd: trainingItems.trainingEnd,
-              bucketFiles: JSON.parse(trainingItems.bucketFiles),
               source: trainingItems.source.name,
               type: trainingItems.type,
               status: trainingItems.status,

@@ -59,7 +59,6 @@ export class TrainingDetailsController {
           location: true,
           trainingStart: true,
           trainingEnd: true,
-          bucketFiles: true,
           source: {
             name: true,
           },
@@ -101,7 +100,6 @@ export class TrainingDetailsController {
           location: true,
           trainingStart: true,
           trainingEnd: true,
-          bucketFiles: true,
           source: {
             name: true,
           },
@@ -146,7 +144,6 @@ export class TrainingDetailsController {
           location: true,
           trainingStart: true,
           trainingEnd: true,
-          bucketFiles: true,
           source: {
             name: true,
           },
@@ -191,7 +188,6 @@ export class TrainingDetailsController {
           location: true,
           trainingStart: true,
           trainingEnd: true,
-          bucketFiles: true,
           source: {
             name: true,
           },
@@ -262,17 +258,9 @@ export class TrainingDetailsController {
     return await this.trainingDetailsService.sendNoticeToManagersExternal(data);
   }
 
-  /* send a training notice to the managers to nominate */
-  @Patch('notices/:trainingId')
-  async sendNoticeToManagers(@Param() id: string) {
-    /* set status to on going nomination */
-    const status = TrainingStatus.ON_GOING_NOMINATION;
-    return await this.trainingDetailsService.updateTrainingStatusById(id, status);
-  }
-
   /* find all accepted nominees by training id */
-  @Get('training/:trainingId/nominees/accepted')
-  async findAllAcceptedNomineesByTrainingId(@Param('trainingId') trainingId: string) {
+  @Get(':id/nominees/accepted')
+  async findAllAcceptedNomineesByTrainingId(@Param('id') trainingId: string) {
     const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
     const nomineeType = NomineeType.NOMINEE;
     const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
