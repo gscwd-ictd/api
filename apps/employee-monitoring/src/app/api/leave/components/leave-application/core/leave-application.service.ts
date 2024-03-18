@@ -2,13 +2,19 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveApplicationDto, LeaveApplicationDates, UpdateLeaveApplicationDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveApplication } from '@gscwd-api/models';
-import { LeaveApplicationStatus, LeaveApplicationType, SickLeaveDetails, StudyLeaveDetails, VacationLeaveDetails } from '@gscwd-api/utils';
+import {
+  LeaveApplicationStatus,
+  LeaveApplicationType,
+  LeaveDayStatus,
+  SickLeaveDetails,
+  StudyLeaveDetails,
+  VacationLeaveDetails,
+} from '@gscwd-api/utils';
 import { RpcException } from '@nestjs/microservices';
 import { DataSource, EntityManager } from 'typeorm';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
-import { typeOrmEntities } from 'apps/employee-monitoring/src/constants/entities';
 import dayjs = require('dayjs');
 
 @Injectable()
@@ -125,7 +131,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d') hrdmApprovalDate,
         la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
         la.cancel_reason cancelReason,
-        DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate 
+        get_leave_date_cancellation_status(la.leave_application_id) leaveDateStatus,
+        DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate,
+        get_leave_date_cancellation_remarks(la.leave_application_id) leaveDateCancellationRemarks 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
           WHERE la.leave_application_id = ? 
@@ -143,10 +151,29 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           `,
             [leaveApplication.id]
           );
-          return { ...leaveApplication, debitValue, leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)) };
+
+          const forCancellationLeaveDates = (
+            (await this.leaveApplicationDatesService.getLeaveDatesByLeaveApplicationIdAndStatus(
+              leaveApplication.id,
+              LeaveDayStatus.FOR_CANCELLATION
+            )) as { leaveDate: string }[]
+          ).map((ld) => ld.leaveDate);
+
+          const cancelledLeaveDates = (
+            (await this.leaveApplicationDatesService.getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplication.id, LeaveDayStatus.CANCELLED)) as {
+              leaveDate: string;
+            }[]
+          ).map((ld) => ld.leaveDate);
+
+          return {
+            ...leaveApplication,
+            debitValue,
+            leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
+            forCancellationLeaveDates,
+            cancelledLeaveDates,
+          };
         })
       );
-
       return leaveApplicationsWithDates;
     } catch (error) {
       throw new HttpException(error.message, error.status);

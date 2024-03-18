@@ -22,4 +22,13 @@ export class OrganizationService {
       onError: (error) => new NotFoundException(error),
     })) as string;
   }
+
+  async getAllDepartmentsAndOgm() {
+    return (await this.client.call({
+      action: 'send',
+      payload: {},
+      pattern: 'get_all_departments_and_ogm',
+      onError: (error) => new NotFoundException(error),
+    })) as { _id: string; name: string; orgStruct: string; code: string }[];
+  }
 }
