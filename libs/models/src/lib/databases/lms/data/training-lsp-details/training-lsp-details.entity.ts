@@ -9,7 +9,7 @@ export class TrainingLspDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_lsp_details_id' })
   id: string;
 
-  @ManyToOne(() => TrainingDetails, (trainingDetails) => trainingDetails.id, { nullable: false })
+  @ManyToOne(() => TrainingDetails, (trainingDetails) => trainingDetails.id, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'training_details_id_fk' })
   trainingDetails: TrainingDetails;
 

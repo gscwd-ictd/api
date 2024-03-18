@@ -114,7 +114,7 @@ export class CreateLspIndividualExternalDto {
 
   @IsOptional()
   @IsString({ message: 'lsp photo url must be a string' })
-  photoUrl: string;
+  photoId: string;
 
   @ValidateNested({ each: true })
   @IsArray()
@@ -187,7 +187,7 @@ export class CreateLspOrganizationExternalDto {
 
   @IsOptional()
   @IsString({ message: 'lsp photo url must be a string' })
-  photoUrl: string;
+  photoId: string;
 
   @ValidateNested({ each: true })
   @IsArray()

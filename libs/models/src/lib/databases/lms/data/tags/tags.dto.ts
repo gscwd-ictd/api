@@ -1,5 +1,11 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID, Length } from 'class-validator';
+
+export class TagDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  id: string;
+}
 
 export class CreateTagDto {
   @IsString({ message: 'tag name must be a string' })

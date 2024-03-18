@@ -1,8 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { Tag } from '@gscwd-api/models';
-import { BadRequestException, HttpException, Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { HrmsEmployeeTagsService } from '../../../services/hrms';
-import { HttpStatusCode } from 'axios';
 
 @Injectable()
 export class TagsService extends CrudHelper<Tag> {
@@ -14,24 +13,31 @@ export class TagsService extends CrudHelper<Tag> {
     super(crudService);
   }
 
-  async deleteTags(tagId: string) {
+  /* remove tag by id */
+  async deleteTags(id: string) {
     try {
-      const count = await this.hrmsEmployeeTagsService.countEmployeeTags(tagId);
-      if (count === '0' || count === null) {
+      /* count all tags that have been used by employees */
+      const countTag = await this.hrmsEmployeeTagsService.countEmployeeTags(id);
+
+      /* count the number of tags that have been used */
+      if (countTag === '0' || countTag === null) {
+        /* remove tag */
         return await this.crudService.delete({
-          deleteBy: { id: tagId },
+          deleteBy: { id: id },
           softDelete: false,
-          onError: () => new BadRequestException(),
+          onError: () => {
+            throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+          },
         });
       } else {
-        throw new HttpException('The tag cannot be deleted because it is already in use by another entity.', HttpStatusCode.Conflict);
+        throw new HttpException('The tag cannot be deleted because it is already in use by another entity.', HttpStatus.CONFLICT);
       }
     } catch (error) {
-      Logger.log(error);
+      Logger.error(error);
       if (error.status == 409) {
-        throw new HttpException('The tag cannot be deleted because it is already in use by another entity.', HttpStatusCode.Conflict);
+        throw new HttpException('The tag cannot be deleted because it is already in use by another entity.', HttpStatus.CONFLICT);
       } else {
-        throw new HttpException('Bad Request', HttpStatusCode.BadRequest);
+        throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
       }
     }
   }

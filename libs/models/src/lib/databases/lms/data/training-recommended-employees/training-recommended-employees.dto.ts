@@ -8,6 +8,7 @@ export class TrainingRecommendedEmployeeDto {
 }
 
 export class CreateTrainingRecommendedEmployeeDto extends TrainingRecommendedEmployeeDto {
+  @IsNotEmpty()
   @IsUUID('4')
   trainingDistribution: TrainingDistributionDto;
 }
