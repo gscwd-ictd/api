@@ -20,13 +20,13 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'training_design_id_fk' })
   trainingDesign: TrainingDesign;
 
-  @Column({ name: 'course_title', type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'course_title', type: 'varchar', length: 200, nullable: true })
   courseTitle: string;
 
   @Column({ name: 'course_content', type: 'jsonb', nullable: true })
   courseContent: string;
 
-  @Column({ name: 'location', type: 'varchar', nullable: true })
+  @Column({ name: 'location', type: 'varchar', length: 500, nullable: true })
   location: string;
 
   @Column({ name: 'training_start', type: 'timestamp', nullable: false })
