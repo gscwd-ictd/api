@@ -8,10 +8,10 @@ export class CreateTrainingApprovalDto {
   trainingDetails: TrainingDetailsDto;
 }
 
-export class PdcSecretaryDto {
+export class PdcSecretariatDto {
   @IsNotEmpty()
   @IsUUID('all')
-  pdcSecretary: string;
+  pdcSecretariat: string;
 
   @IsNotEmpty()
   @IsUUID('4')
