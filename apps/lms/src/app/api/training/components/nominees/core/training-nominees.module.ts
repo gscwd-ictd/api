@@ -10,14 +10,8 @@ import { TrainingDetailsModule } from '../../../core/training-details.module';
 import { TrainingRequirementsModule } from '../../../../training-details/components/training-requirements';
 
 @Module({
-  imports: [
-    CrudModule.register(TrainingNominee),
-    HrmsEmployeesModule,
-    TrainingDetailsModule,
-    TrainingDistributionsModule,
-    TrainingRequirementsModule,
-  ],
-  controllers: [TrainingNomineesController, TrainingNomineesMicroserviceController],
+  imports: [CrudModule.register(TrainingNominee), HrmsEmployeesModule, TrainingDistributionsModule, TrainingRequirementsModule],
+  controllers: [],
   providers: [TrainingNomineesService],
   exports: [TrainingNomineesService],
 })

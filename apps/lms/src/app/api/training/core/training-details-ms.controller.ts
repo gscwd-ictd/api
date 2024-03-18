@@ -6,7 +6,8 @@ import { TrainingDistributionsService } from '../components/slot-distributions';
 import { TrainingRecommendedEmployeeService } from '../components/recommended-employees';
 import { TrainingNomineesService } from '../components/nominees';
 import { CreateTrainingNomineeDto } from '@gscwd-api/models';
-import { TrainingNomineeRaw } from '@gscwd-api/utils';
+import { TrainingNomineeRaw, TrainingStatus } from '@gscwd-api/utils';
+import { TrainingApprovalsService } from '../components/approvals';
 
 @Controller()
 export class TrainingDetailsMicroserviceController {
@@ -14,7 +15,8 @@ export class TrainingDetailsMicroserviceController {
     private readonly trainingDetailsService: TrainingDetailsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
-    private readonly trainingNomineesService: TrainingNomineesService
+    private readonly trainingNomineesService: TrainingNomineesService,
+    private readonly trainingApprovalsService: TrainingApprovalsService
   ) {}
 
   /* find all training distribution by supervisor id */
@@ -55,6 +57,39 @@ export class TrainingDetailsMicroserviceController {
       return await this.trainingNomineesService.findAllNomineesByDistributionId(distributionId, nomineeType);
     } catch (error) {
       Logger.error(error);
+      throw new RpcException(error);
+    }
+  }
+
+  /* find all training to be approved by the pdc secretary */
+  @MessagePattern(TrainingPatterns.FIND_ALL_PDC_SECRETARY_APPROVAL)
+  async findAllTrainingForPdcSecretaryApproval() {
+    try {
+      const status = TrainingStatus.PDC_SECRETARY_APPROVAL;
+      return await this.trainingApprovalsService.findAllApprovalByPdcStatus(status);
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  /* find all training to be approved by the pdc chairman */
+  @MessagePattern(TrainingPatterns.FIND_ALL_PDC_CHAIRMAN_APPROVAL)
+  async findAllTrainingForPdcChairmanApproval() {
+    try {
+      const status = TrainingStatus.PDC_CHAIRMAN_APPROVAL;
+      return await this.trainingApprovalsService.findAllApprovalByPdcStatus(status);
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  /* find all training to be approved by the general manager */
+  @MessagePattern(TrainingPatterns.FIND_ALL_GM_APPROVAL)
+  async findAllTrainingForGmApproval() {
+    try {
+      const status = TrainingStatus.GM_APPROVAL;
+      return await this.trainingApprovalsService.findAllApprovalByPdcStatus(status);
+    } catch (error) {
       throw new RpcException(error);
     }
   }

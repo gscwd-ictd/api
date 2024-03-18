@@ -19,6 +19,6 @@ export class TrainingDistribution extends DatabaseEntity implements IEntity {
   @Column({ name: 'no_of_slots', nullable: false })
   numberOfSlots: number;
 
-  @Column({ name: 'status', type: 'enum', enum: TrainingDistributionStatus, default: TrainingDistributionStatus.FOR_NOMINATION })
+  @Column({ name: 'status', type: 'enum', enum: TrainingDistributionStatus, default: TrainingDistributionStatus.NOMINATION_PENDING })
   status: TrainingDistributionStatus;
 }

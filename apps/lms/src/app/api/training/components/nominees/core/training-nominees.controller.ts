@@ -7,7 +7,7 @@ import { TrainingNomineeStatus } from '@gscwd-api/utils';
 export class TrainingNomineesController {
   constructor(private readonly trainingNomineesService: TrainingNomineesService) {}
 
-  // create training nominee batching
+  /*  // create training nominee batching
   @Post('batch')
   async createTrainingNomineeBatch(@Body() data: CreateTrainingBatchDto) {
     return await this.trainingNomineesService.createTrainingNomineeBatch(data);
@@ -43,5 +43,5 @@ export class TrainingNomineesController {
         throw new BadRequestException();
       },
     });
-  }
+  } */
 }

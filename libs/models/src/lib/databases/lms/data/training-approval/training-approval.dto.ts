@@ -13,10 +13,8 @@ export class PdcSecretaryDto {
   @IsUUID('all')
   pdcSecretary: string;
 
-  @IsNotEmptyObject()
-  @IsObject()
-  @ValidateNested({ each: true })
-  @Type(() => TrainingDetailsDto)
+  @IsNotEmpty()
+  @IsUUID('4')
   trainingDetails: TrainingDetailsDto;
 
   @IsOptional()

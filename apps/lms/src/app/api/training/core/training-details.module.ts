@@ -7,9 +7,20 @@ import { TrainingLspDetailsModule } from '../components/lsp';
 import { TrainingTagsModule } from '../components/tags';
 import { TrainingDistributionsModule } from '../components/slot-distributions';
 import { TrainingDetailsMicroserviceController } from './training-details-ms.controller';
+import { TrainingNomineesModule } from '../components/nominees';
+import { TrainingRecommendedEmployeesModule } from '../components/recommended-employees';
+import { TrainingApprovalsModule } from '../components/approvals';
 
 @Module({
-  imports: [CrudModule.register(TrainingDetails), TrainingLspDetailsModule, TrainingTagsModule, TrainingDistributionsModule],
+  imports: [
+    CrudModule.register(TrainingDetails),
+    TrainingLspDetailsModule,
+    TrainingTagsModule,
+    TrainingDistributionsModule,
+    TrainingRecommendedEmployeesModule,
+    TrainingNomineesModule,
+    TrainingApprovalsModule,
+  ],
   controllers: [TrainingDetailsController, TrainingDetailsMicroserviceController],
   providers: [TrainingDetailsService],
   exports: [TrainingDetailsService],

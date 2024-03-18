@@ -6,8 +6,8 @@ import { CreateTrainingApprovalDto } from '@gscwd-api/models';
 export class TrainingApprovalsController {
   constructor(private readonly trainingApprovalsService: TrainingApprovalsService) {}
 
-  @Post()
-  async create(@Body() data: CreateTrainingApprovalDto) {
-    return await this.trainingApprovalsService.create(data);
-  }
+  // @Post()
+  // async create(@Body() data: CreateTrainingApprovalDto) {
+  //   return await this.trainingApprovalsService.create(data);
+  // }
 }

@@ -7,13 +7,13 @@ import {
   UpdateTrainingInternalDto,
 } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { DataSource, EntityManager, MoreThanOrEqual } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { TrainingTagsService } from '../components/tags';
 import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
-import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
-import { TrainingApprovalsService } from '../components/approvals';
+import { TrainingStatus } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../components/nominees';
+import { TrainingApprovalsService } from '../components/approvals';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -22,7 +22,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly trainingLspDetailsService: TrainingLspDetailsService,
     private readonly trainingTagsService: TrainingTagsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
-    private readonly trainingNomineesService: TrainingNomineesService,
     private readonly trainingApprovalsService: TrainingApprovalsService,
     private readonly dataSource: DataSource
   ) {
@@ -641,86 +640,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
-    }
-  }
-
-  /* find all training to be approved by the pdc secretary */
-  async findAllpdcSecretaryApproval() {
-    try {
-      /* find all trainings */
-      const trainingDetails = (await this.crudService.findAll({
-        find: {
-          relations: {
-            source: true,
-            trainingDesign: true,
-          },
-          select: {
-            createdAt: true,
-            updatedAt: true,
-            deletedAt: true,
-            id: true,
-            courseTitle: true,
-            trainingDesign: {
-              courseTitle: true,
-            },
-            numberOfHours: true,
-            numberOfParticipants: true,
-            location: true,
-            trainingStart: true,
-            trainingEnd: true,
-            source: {
-              name: true,
-            },
-            type: true,
-            status: true,
-          },
-          where: {
-            status: MoreThanOrEqual(TrainingStatus.PDC_SECRETARY_APPROVAL),
-          },
-          order: {
-            updatedAt: 'DESC',
-          },
-        },
-        onError: (error) => {
-          throw error;
-        },
-      })) as Array<TrainingDetails>;
-
-      return await Promise.all(
-        trainingDetails.map(async (items) => {
-          const trainingId = items.id;
-          const trainingStatus = TrainingStatus.PDC_SECRETARY_APPROVAL;
-          const nomineeType = NomineeType.NOMINEE;
-          const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
-
-          /* find all training nominees */
-          const nominees = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
-
-          /* find remark on training approvals by training id */
-          const remarks = (await this.trainingApprovalsService.findApprovalsByTrainingId(trainingId)).remarks;
-
-          /* custom returns */
-          return {
-            createdAt: items.createdAt,
-            updatedAt: items.updatedAt,
-            deletedAt: items.deletedAt,
-            id: items.id,
-            courseTitle: items.courseTitle || items.trainingDesign.courseTitle,
-            numberOfParticipants: items.numberOfParticipants,
-            location: items.location,
-            trainingStart: items.trainingStart,
-            trainingEnd: items.trainingEnd,
-            source: items.source.name,
-            type: items.type,
-            status: items.status,
-            nominees: nominees,
-            remarks: remarks,
-          };
-        })
-      );
-    } catch (error) {
-      Logger.error(error);
-      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

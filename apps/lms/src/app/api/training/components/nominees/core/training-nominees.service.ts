@@ -1,28 +1,17 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import {
-  CreateTrainingBatchDto,
-  CreateTrainingNomineeDto,
-  TrainingDetails,
-  TrainingDistribution,
-  TrainingNominee,
-  UpdateTrainingBatchDto,
-} from '@gscwd-api/models';
+import { CreateTrainingNomineeDto, TrainingDistribution, TrainingNominee } from '@gscwd-api/models';
 import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
-import { DataSource, EntityManager, IsNull, MoreThan, MoreThanOrEqual, Not } from 'typeorm';
-import { TrainingDetailsService } from '../../../core/training-details.service';
+import { DataSource, MoreThanOrEqual } from 'typeorm';
 import { TrainingDistributionsService } from '../../../../training/components/slot-distributions';
-import { TrainingRequirementsService } from '../../../../training-details/components/training-requirements';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   constructor(
     private readonly crudService: CrudService<TrainingNominee>,
     private readonly trainingDistributionsService: TrainingDistributionsService,
-    private readonly trainingDetailsService: TrainingDetailsService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
-    private readonly trainingRequirementsService: TrainingRequirementsService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -280,7 +269,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     }
   }
 
-  // find all accepted training nominee by training id (nominee type = nominee & preparation status = for batching)
+  /* // find all accepted training nominee by training id (nominee type = nominee & preparation status = for batching)
   async findAllAcceptedNomineeByTrainingId(trainingId: string) {
     const distribution = (await this.crudService.findAll({
       find: {
@@ -569,5 +558,5 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
       Logger.log(error);
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
-  }
+  } */
 }
