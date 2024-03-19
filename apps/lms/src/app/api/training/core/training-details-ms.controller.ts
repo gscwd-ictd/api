@@ -264,14 +264,14 @@ export class TrainingDetailsMicroserviceController {
   }
 
   /* general manager approved a training by training id */
-  @Patch('training/approvals/chairman/gm')
+  @Patch('training/approvals/gm/approved')
   async approvedTrainingByGm(@Body() data: GeneralManagerDto) {
     const trainingStatus = TrainingStatus.FOR_BATCHING;
     return await this.trainingDetailsService.generalManagerApproval(data, trainingStatus);
   }
 
   /* general manager declined a training by training id */
-  @Patch('training/approvals/chairman/gm')
+  @Patch('training/approvals/gm/declined')
   async declinedTrainingByGm(@Body() data: GeneralManagerDto) {
     const trainingStatus = TrainingStatus.GM_DECLINED;
     return await this.trainingDetailsService.generalManagerApproval(data, trainingStatus);
