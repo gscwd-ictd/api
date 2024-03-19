@@ -6,7 +6,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 export class HrmsEmployeesService {
   constructor(private readonly microserviceClient: MicroserviceClient) {}
 
-  //find employees by name match
+  /* find all employees by name match */
   async findEmployeesByName(name: string) {
     return await this.microserviceClient.call({
       action: 'send',
@@ -16,7 +16,7 @@ export class HrmsEmployeesService {
     });
   }
 
-  //find employees full name by id
+  /* find employees name by id */
   async findEmployeesById(id: string) {
     return (await this.microserviceClient.call({
       action: 'send',

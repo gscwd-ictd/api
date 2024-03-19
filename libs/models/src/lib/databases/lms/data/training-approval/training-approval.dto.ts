@@ -8,15 +8,13 @@ export class CreateTrainingApprovalDto {
   trainingDetails: TrainingDetailsDto;
 }
 
-export class PdcSecretaryDto {
+export class PdcSecretariatDto {
   @IsNotEmpty()
   @IsUUID('all')
-  pdcSecretary: string;
+  pdcSecretariat: string;
 
-  @IsNotEmptyObject()
-  @IsObject()
-  @ValidateNested({ each: true })
-  @Type(() => TrainingDetailsDto)
+  @IsNotEmpty()
+  @IsUUID('4')
   trainingDetails: TrainingDetailsDto;
 
   @IsOptional()
