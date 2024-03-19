@@ -2,6 +2,9 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import {
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
+  GeneralManagerDto,
+  PdcChairmanDto,
+  PdcSecretariatDto,
   TrainingDetails,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
@@ -93,6 +96,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         id: trainingDetails.id,
         trainingDesign: {
           id: trainingDetails.trainingDesign.id,
+          courseTitle: trainingDetails.trainingDesign.courseTitle,
         },
         courseTitle: trainingDetails.trainingDesign.courseTitle,
         courseContent: JSON.parse(trainingDetails.courseContent),
@@ -216,7 +220,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
-        return data;
+        return trainingDetails;
       });
     } catch (error) {
       Logger.error(error);
@@ -273,19 +277,46 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
-        return data;
+        return trainingDetails;
       });
     } catch (error) {
       Logger.error(error);
+
+      /* custom error */
       if (error.code === '23505') {
         /* Duplicate key violation */
-        throw new HttpException('Duplicate key violation', HttpStatus.CONFLICT);
+        throw new HttpException(
+          {
+            status: HttpStatus.CONFLICT,
+            error: { message: 'Duplicate key violation', step: 1 },
+          },
+          HttpStatus.CONFLICT,
+          {
+            cause: error,
+          }
+        );
       } else if (error.code === '23503') {
         /* Foreign key constraint violation */
-        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: { message: 'Foreign key constraint violation', step: 1 },
+          },
+          HttpStatus.BAD_REQUEST,
+          {
+            cause: error,
+          }
+        );
       } else {
         /* Handle other errors as needed */
-        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: { message: 'Bad request', step: 1 },
+          },
+          HttpStatus.BAD_REQUEST,
+          { cause: error }
+        );
       }
     }
   }
@@ -615,6 +646,92 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* microservices */
+
+  /* pdc secretariat approval of training by training id */
+  async pdcSecretariatApproval(data: PdcSecretariatDto, trainingStatus: TrainingStatus) {
+    try {
+      return await this.dataSource.transaction(async (entityManager) => {
+        const { trainingDetails } = data;
+
+        /* update training status */
+        await this.crudService.transact<TrainingDetails>(entityManager).update({
+          updateBy: {
+            id: trainingDetails,
+          },
+          dto: {
+            status: trainingStatus,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+
+        /* update training approvals by training id */
+        return await this.trainingApprovalsService.pdcSecretariatApproval(data, entityManager);
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* pdc chairman approval of training by training id */
+  async pdcChairmanApproval(data: PdcChairmanDto, trainingStatus: TrainingStatus) {
+    try {
+      return await this.dataSource.transaction(async (entityManager) => {
+        const { trainingDetails } = data;
+
+        /* update training status */
+        await this.crudService.transact<TrainingDetails>(entityManager).update({
+          updateBy: {
+            id: trainingDetails,
+          },
+          dto: {
+            status: trainingStatus,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+
+        /* update training approvals by training id */
+        return await this.trainingApprovalsService.pdcChairmanApproval(data, entityManager);
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* general manager approval of training by training id */
+  async generalManagerApproval(data: GeneralManagerDto, trainingStatus: TrainingStatus) {
+    try {
+      return await this.dataSource.transaction(async (entityManager) => {
+        const { trainingDetails } = data;
+
+        /* update training status */
+        await this.crudService.transact<TrainingDetails>(entityManager).update({
+          updateBy: {
+            id: trainingDetails,
+          },
+          dto: {
+            status: trainingStatus,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+
+        /* update training approvals by training id */
+        return await this.trainingApprovalsService.generalManagerApproval(data, entityManager);
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 }

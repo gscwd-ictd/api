@@ -7,6 +7,7 @@ import {
   UpdateLspIndividualExternalDto,
   UpdateLspIndividualInternalDto,
   UpdateLspOrganizationExternalDto,
+  UploadPhotoDto,
 } from '@gscwd-api/models';
 import { LspSource, LspType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
@@ -161,6 +162,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       /* find all trainings by learning service provider id */
       const trainings = await this.lspTrainingsService.findAllTrainingsByLspId(lspDetails.id);
 
+      /* custom return */
       return {
         createdAt: lspDetails.createdAt,
         updatedAt: lspDetails.updatedAt,
@@ -180,7 +182,8 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         tin: lspDetails.tin,
         experience: lspDetails.experience,
         introduction: lspDetails.introduction,
-        photoId: lspDetails.id,
+        photoId: lspDetails.photoId,
+        photoUrl: lspDetails.photoUrl,
         type: lspDetails.type,
         source: lspDetails.source,
         expertise: JSON.parse(lspDetails.expertise),
@@ -237,6 +240,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         experience: lspDetails.experience,
         introduction: lspDetails.introduction,
         photoId: lspDetails.photoId,
+        photoUrl: lspDetails.photoUrl,
         type: lspDetails.type,
         source: lspDetails.source,
         expertise: JSON.parse(lspDetails.expertise),
@@ -753,6 +757,27 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     } catch (error) {
       Logger.error(error);
       throw error;
+    }
+  }
+
+  async uploadPhoto(data: UploadPhotoDto) {
+    try {
+      const { lspId, photoId, photoUrl } = data;
+      return await this.crudService.update({
+        updateBy: {
+          id: lspId,
+        },
+        dto: {
+          photoId: photoId,
+          photoUrl: photoUrl,
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 }
