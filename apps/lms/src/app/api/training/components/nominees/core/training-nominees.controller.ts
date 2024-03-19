@@ -1,7 +1,5 @@
-import { BadRequestException, Body, Controller, Get, Logger, Param, Patch, Post } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { TrainingNomineesService } from './training-nominees.service';
-import { CreateTrainingBatchDto, UpdateTrainingBatchDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
-import { TrainingNomineeStatus } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'training-nominees' })
 export class TrainingNomineesController {

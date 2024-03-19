@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingApprovalDto, GeneralManagerDto, PdcChairmanDto, PdcSecretaryDto, TrainingApproval } from '@gscwd-api/models';
+import { CreateTrainingApprovalDto, GeneralManagerDto, PdcChairmanDto, PdcSecretariatDto, TrainingApproval } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../../nominees';
@@ -64,7 +64,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
       return await Promise.all(
         trainingDetails.map(async (items) => {
           const trainingId = items.id;
-          const trainingStatus = TrainingStatus.PDC_SECRETARY_APPROVAL;
+          const trainingStatus = items.trainingDetails.status;
           const nomineeType = NomineeType.NOMINEE;
           const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
 
@@ -111,11 +111,11 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
     }
   }
 
-  /* pdc secretary approved training by training id*/
-  async pdcSecretaryApproved(data: PdcSecretaryDto) {
+  /* pdc secretariat approved training by training id*/
+  async pdcSecretariatApproved(data: PdcSecretariatDto) {
     try {
       /* deconstruct data */
-      const { trainingDetails, pdcSecretary } = data;
+      const { trainingDetails, pdcSecretariat } = data;
       /* set the date to today */
       const today = new Date();
 
@@ -125,8 +125,8 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
           trainingDetails: trainingDetails,
         },
         dto: {
-          pdcSecretary: pdcSecretary,
-          pdcSecretaryApprovalDate: today,
+          pdcSecretariat: pdcSecretariat,
+          pdcSecretariatApprovalDate: today,
           trainingDetails: {
             status: TrainingStatus.PDC_CHAIRMAN_APPROVAL,
           },
@@ -141,11 +141,11 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
     }
   }
 
-  /* pdc secretary declined training by training id */
-  async pdcSecretaryDeclined(data: PdcSecretaryDto) {
+  /* pdc secretariat declined training by training id */
+  async pdcSecretariatDeclined(data: PdcSecretariatDto) {
     try {
       /* deconstruct data */
-      const { trainingDetails, pdcSecretary } = data;
+      const { trainingDetails, pdcSecretariat } = data;
       /* set the date to today */
       const today = new Date();
 
@@ -155,10 +155,10 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
           trainingDetails: trainingDetails,
         },
         dto: {
-          pdcSecretary: pdcSecretary,
-          pdcSecretaryApprovalDate: today,
+          pdcSecretariat: pdcSecretariat,
+          pdcSecretariatApprovalDate: today,
           trainingDetails: {
-            status: TrainingStatus.PDC_SECRETARY_DECLINED,
+            status: TrainingStatus.PDC_SECRETARIAT_DECLINED,
           },
         },
         onError: (error) => {
@@ -232,7 +232,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
   }
 
   /* general manager approved training by training id */
-  async generalManagerApproval(data: GeneralManagerDto) {
+  async generalManagerApproved(data: GeneralManagerDto) {
     try {
       /* deconstruct data */
       const { trainingDetails, generalManager } = data;

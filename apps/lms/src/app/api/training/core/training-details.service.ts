@@ -596,13 +596,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           },
         });
 
-        /* update training status to pdc secretary approval */
+        /* update training status to pdc secretariat approval */
         await this.crudService.transact<TrainingDetails>(entityManager).update({
           updateBy: {
             id: id,
           },
           dto: {
-            status: TrainingStatus.PDC_SECRETARY_APPROVAL,
+            status: TrainingStatus.PDC_SECRETARIAT_APPROVAL,
           },
           onError: (error) => {
             throw error;

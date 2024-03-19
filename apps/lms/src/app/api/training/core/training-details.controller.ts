@@ -260,10 +260,16 @@ export class TrainingDetailsController {
 
   /* find all accepted nominees by training id */
   @Get(':id/nominees/accepted')
-  async findAllAcceptedNomineesByTrainingId(@Param('id') trainingId: string) {
+  async findAllAcceptedNomineesByTrainingId(@Param('id') id: string) {
     const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
     const nomineeType = NomineeType.NOMINEE;
     const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
-    return await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
+    return await this.trainingNomineesService.findAllNomineeByTrainingId(id, trainingStatus, nomineeType, nomineeStatus);
+  }
+
+  /* send approvals to the personnel development committee */
+  @Patch(':id/approvals')
+  async updateTrainingStatusToAppovals(@Param('id') id: string) {
+    return await this.trainingDetailsService.sendToPdc(id);
   }
 }

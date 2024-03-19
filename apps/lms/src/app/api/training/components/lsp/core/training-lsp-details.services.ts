@@ -49,7 +49,7 @@ export class TrainingLspDetailsService extends CrudHelper<TrainingLspDetails> {
         })
       );
     } catch (error) {
-      Logger.log(error);
+      Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

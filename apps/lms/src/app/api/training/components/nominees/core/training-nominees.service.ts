@@ -4,7 +4,7 @@ import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, Trainin
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { DataSource, MoreThanOrEqual } from 'typeorm';
-import { TrainingDistributionsService } from '../../../../training/components/slot-distributions';
+import { TrainingDistributionsService } from '../../slot-distributions';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
