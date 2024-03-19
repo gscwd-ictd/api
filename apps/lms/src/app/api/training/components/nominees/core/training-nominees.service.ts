@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateTrainingNomineeDto, TrainingDistribution, TrainingNominee, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
 import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
-import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { DataSource, MoreThanOrEqual } from 'typeorm';
 import { TrainingDistributionsService } from '../../slot-distributions';
@@ -161,7 +161,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             },
           },
         },
-        onError: () => new NotFoundException(),
+        onError: (error) => {
+          throw error;
+        },
       })) as Array<TrainingNominee>;
 
       return await Promise.all(

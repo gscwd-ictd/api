@@ -63,7 +63,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
 
       return await Promise.all(
         trainingDetails.map(async (items) => {
-          const trainingId = items.id;
+          const trainingId = items.trainingDetails.id;
           const trainingStatus = items.trainingDetails.status;
           const nomineeType = NomineeType.NOMINEE;
           const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
@@ -76,7 +76,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             createdAt: items.trainingDetails.createdAt,
             updatedAt: items.trainingDetails.updatedAt,
             deletedAt: items.trainingDetails.deletedAt,
-            id: items.id,
+            trainingId: items.trainingDetails.id,
             courseTitle: items.trainingDetails.courseTitle || items.trainingDetails.trainingDesign.courseTitle,
             numberOfParticipants: items.trainingDetails.numberOfParticipants,
             location: items.trainingDetails.location,
@@ -111,25 +111,25 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
     }
   }
 
-  /* pdc secretariat approved training by training id*/
-  async pdcSecretariatApproved(data: PdcSecretariatDto) {
+  /* pdc secretariat approval of training by training id*/
+  async pdcSecretariatApproval(data: PdcSecretariatDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
       const { trainingDetails, pdcSecretariat } = data;
+
       /* set the date to today */
       const today = new Date();
 
       /* edit training status and set date approval */
-      return await this.crudService.update({
+      return await this.crudService.transact<TrainingApproval>(entityManager).update({
         updateBy: {
-          trainingDetails: trainingDetails,
+          trainingDetails: {
+            id: trainingDetails,
+          },
         },
         dto: {
           pdcSecretariat: pdcSecretariat,
           pdcSecretariatApprovalDate: today,
-          trainingDetails: {
-            status: TrainingStatus.PDC_CHAIRMAN_APPROVAL,
-          },
         },
         onError: (error) => {
           throw error;
@@ -141,38 +141,8 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
     }
   }
 
-  /* pdc secretariat declined training by training id */
-  async pdcSecretariatDeclined(data: PdcSecretariatDto) {
-    try {
-      /* deconstruct data */
-      const { trainingDetails, pdcSecretariat } = data;
-      /* set the date to today */
-      const today = new Date();
-
-      /* edit training status and set date approval */
-      return await this.crudService.update({
-        updateBy: {
-          trainingDetails: trainingDetails,
-        },
-        dto: {
-          pdcSecretariat: pdcSecretariat,
-          pdcSecretariatApprovalDate: today,
-          trainingDetails: {
-            status: TrainingStatus.PDC_SECRETARIAT_DECLINED,
-          },
-        },
-        onError: (error) => {
-          throw error;
-        },
-      });
-    } catch (error) {
-      Logger.error(error);
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-    }
-  }
-
-  /* pdc chairman approved training by training id*/
-  async pdcChairmanApproved(data: PdcChairmanDto) {
+  /* pdc chairman approval of training by training id*/
+  async pdcChairmanApproval(data: PdcChairmanDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
       const { trainingDetails, pdcChairman } = data;
@@ -180,16 +150,13 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
       const today = new Date();
 
       /* edit training status and set date approval */
-      return await this.crudService.update({
+      return await this.crudService.transact<TrainingApproval>(entityManager).update({
         updateBy: {
-          trainingDetails: trainingDetails,
+          trainingDetails: { id: trainingDetails },
         },
         dto: {
           pdcChairman: pdcChairman,
           pdcChairmanApprovalDate: today,
-          trainingDetails: {
-            status: TrainingStatus.GM_APPROVAL,
-          },
         },
         onError: (error) => {
           throw error;
@@ -201,38 +168,8 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
     }
   }
 
-  /* pdc chairman declined training by training id*/
-  async pdcChairmanDeclined(data: PdcChairmanDto) {
-    try {
-      /* deconstruct data */
-      const { trainingDetails, pdcChairman } = data;
-      /* set the date to today */
-      const today = new Date();
-
-      /* edit training status and set date approval */
-      return await this.crudService.update({
-        updateBy: {
-          trainingDetails: trainingDetails,
-        },
-        dto: {
-          pdcChairman: pdcChairman,
-          pdcChairmanApprovalDate: today,
-          trainingDetails: {
-            status: TrainingStatus.PDC_CHAIRMAN_DECLINED,
-          },
-        },
-        onError: (error) => {
-          throw error;
-        },
-      });
-    } catch (error) {
-      Logger.error(error);
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-    }
-  }
-
-  /* general manager approved training by training id */
-  async generalManagerApproved(data: GeneralManagerDto) {
+  /* general manager approval of training by training id */
+  async generalManagerApproval(data: GeneralManagerDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
       const { trainingDetails, generalManager } = data;
@@ -240,46 +177,15 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
       const today = new Date();
 
       /* edit training status and set date approval */
-      return await this.crudService.update({
+      return await this.crudService.transact<TrainingApproval>(entityManager).update({
         updateBy: {
-          trainingDetails: trainingDetails,
+          trainingDetails: {
+            id: trainingDetails,
+          },
         },
         dto: {
           generalManager: generalManager,
           generalManagerApprovalDate: today,
-          trainingDetails: {
-            status: TrainingStatus.FOR_BATCHING,
-          },
-        },
-        onError: (error) => {
-          throw error;
-        },
-      });
-    } catch (error) {
-      Logger.error(error);
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-    }
-  }
-
-  // general manager declined training
-  async generalManagerDeclined(data: GeneralManagerDto) {
-    try {
-      /* deconstruct data */
-      const { trainingDetails, generalManager } = data;
-      /* set the date to today */
-      const today = new Date();
-
-      /* edit training status and set date approval */
-      return await this.crudService.update({
-        updateBy: {
-          trainingDetails: trainingDetails,
-        },
-        dto: {
-          generalManager: generalManager,
-          generalManagerApprovalDate: today,
-          trainingDetails: {
-            status: TrainingStatus.GM_DECLINED,
-          },
         },
         onError: (error) => {
           throw error;
