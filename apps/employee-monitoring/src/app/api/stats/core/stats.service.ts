@@ -3,6 +3,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { PassSlipService } from '../../pass-slip/core/pass-slip.service';
 import { OrganizationService } from '../../organization/core/organization.service';
+import dayjs = require('dayjs');
 
 @Injectable()
 export class StatsService {
@@ -70,14 +71,44 @@ export class StatsService {
     }
   }
 
-  async getLatesPerDepartment(date: Date) {
+  async getLatesPerDepartment() {
     try {
-      console.log(date.toLocaleDateString());
       const depts = (await this.organizationService.getAllDepartmentsAndOgm()).map((dept) => ({ _id: dept._id, code: dept.code }));
       //get company_ids per department;
-
       console.log(depts);
-      //return depts;
+      //return depts
+      const result = await Promise.all(
+        depts.map(async (dep) => {
+          const { _id, code } = dep;
+          let lates = 0;
+          const companyIds = await this.employeeService.getCompanyIdsByOrgId(_id);
+
+          const latesCountPerDepartment = await Promise.all(
+            companyIds.map(async (_companyId) => {
+              const { companyId } = _companyId;
+              const dateFrom = dayjs(dayjs().year() + '-' + (dayjs().month() + 1).toString() + '-' + '1').toDate();
+              const dateTo = dayjs().toDate();
+              const reportOnAttendance = (
+                await this.passSlipService.rawQuery(`CALL sp_generate_report_on_attendance(?,?,?);`, [
+                  companyId,
+                  dayjs(dateFrom).format('YYYY-MM-DD'),
+                  dayjs(dateTo).format('YYYY-MM-DD'),
+                ])
+              )[0][0] as {
+                numberOfTimesLate: number;
+              };
+              lates += typeof reportOnAttendance === 'undefined' ? 0 : reportOnAttendance.numberOfTimesLate;
+            })
+          );
+          return { code, lates };
+        })
+      );
+      const labels = result.map((res) => res.code);
+      const data = result.map((res) => res.lates);
+      return {
+        labels,
+        data,
+      };
     } catch (error) {
       console.log(error);
     }
