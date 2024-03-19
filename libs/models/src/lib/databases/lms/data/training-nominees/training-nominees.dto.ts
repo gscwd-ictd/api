@@ -1,4 +1,4 @@
-import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { PartialType } from '@nestjs/swagger';
 import { NomineeType, TrainingNomineeStatus } from '@gscwd-api/utils';
 import { TrainingDistributionDto } from '../training-distributions';
@@ -21,30 +21,21 @@ export class NomineeDto {
 }
 
 export class CreateTrainingNomineeDto {
+  @IsNotEmpty()
   @IsUUID('4')
   trainingDistribution: TrainingDistributionDto;
 
-  @IsNotEmpty()
+  @ArrayNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => NomineeDto)
   employees: Array<NomineeDto>;
 }
 
-export class UpdateTrainingNomineeDto extends PartialType(CreateTrainingNomineeDto) {
-  @IsNotEmpty()
-  @IsUUID('4')
-  id: string;
-
-  @IsNotEmpty()
-  @IsEnum(TrainingNomineeStatus)
-  status: TrainingNomineeStatus;
-}
-
 export class UpdateTrainingNomineeStatusDto {
   @IsNotEmpty()
   @IsUUID('4')
-  id: string;
+  nomineeId: string;
 
   @IsNotEmpty()
   @IsEnum(TrainingNomineeStatus)

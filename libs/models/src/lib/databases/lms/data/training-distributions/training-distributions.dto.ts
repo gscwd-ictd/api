@@ -33,24 +33,8 @@ export class SlotDistributionDto {
   employees: Array<TrainingRecommendedEmployeeDto>;
 }
 
-export class CreateTrainingDistributionDto {
+export class CreateTrainingDistributionDto extends SlotDistributionDto {
   @IsNotEmpty()
   @IsUUID('4')
   trainingDetails: TrainingDetailsDto;
-
-  @IsNotEmpty()
-  @IsObject()
-  @ValidateNested({ each: true })
-  @Type(() => Supervisor)
-  supervisor: Supervisor;
-
-  @IsNotEmpty()
-  @IsInt({ message: 'training distribution number of slot must be a number' })
-  numberOfSlots: number;
-
-  @IsNotEmpty()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => TrainingRecommendedEmployeeDto)
-  employees: Array<TrainingRecommendedEmployeeDto>;
 }

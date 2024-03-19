@@ -70,8 +70,8 @@ export class LspDetailsController {
 
   /* find learning service provider by id */
   @Get(':id')
-  async findLspById(@Param('id') id: string) {
-    return await this.lspDetailsService.findLspById(id);
+  async findLspDetailsById(@Param('id') id: string) {
+    return await this.lspDetailsService.findLspDetailsById(id);
   }
 
   /* insert learning service provider (type = individual & source = internal) */
