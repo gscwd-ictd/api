@@ -6,5 +6,7 @@ export class EventsAnnouncementsController {
   constructor(private readonly eventsAnnounceService: EventsAnnouncementsService) {}
 
   @Get()
-  async getEventsAnnouncements() {}
+  async getEventsAnnouncements() {
+    return await this.eventsAnnounceService.getEventsAnnouncements();
+  }
 }
