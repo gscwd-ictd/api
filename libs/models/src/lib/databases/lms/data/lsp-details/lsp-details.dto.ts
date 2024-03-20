@@ -112,10 +112,6 @@ export class CreateLspIndividualExternalDto {
   @Length(1, 250, { message: 'lsp introduction must be between 1 to 250 characters' })
   introduction: string;
 
-  @IsOptional()
-  @IsString({ message: 'lsp photo url must be a string' })
-  photoId: string;
-
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => SubjectMatterExperts)
@@ -185,10 +181,6 @@ export class CreateLspOrganizationExternalDto {
   @Length(1, 250, { message: 'lsp introduction must be between 1 to 250 characters' })
   introduction: string;
 
-  @IsOptional()
-  @IsString({ message: 'lsp photo url must be a string' })
-  photoId: string;
-
   @ValidateNested({ each: true })
   @IsArray()
   @Type(() => SubjectMatterExperts)
@@ -239,4 +231,18 @@ export class UpdateLspOrganizationExternalDto extends PartialType(CreateLspOrgan
   @IsNotEmpty()
   @IsUUID('4')
   id: string;
+}
+
+export class UploadPhotoDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  lspId: string;
+
+  @IsNotEmpty()
+  @IsString({ message: 'lsp id must be a string' })
+  photoId: string;
+
+  @IsNotEmpty()
+  @IsString({ message: 'lsp photo url must be a string' })
+  photoUrl: string;
 }

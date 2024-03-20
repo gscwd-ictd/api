@@ -1,6 +1,5 @@
-import { IsNotEmpty, IsNotEmptyObject, IsObject, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { TrainingDetailsDto } from '../training-details';
-import { Type } from 'class-transformer';
 
 export class CreateTrainingApprovalDto {
   @IsNotEmpty()
@@ -10,12 +9,12 @@ export class CreateTrainingApprovalDto {
 
 export class PdcSecretariatDto {
   @IsNotEmpty()
-  @IsUUID('all')
-  pdcSecretariat: string;
+  @IsUUID('4')
+  trainingDetails: string;
 
   @IsNotEmpty()
-  @IsUUID('4')
-  trainingDetails: TrainingDetailsDto;
+  @IsUUID('all')
+  pdcSecretariat: string;
 
   @IsOptional()
   @IsString({ message: 'training nominee remarks must be string' })
@@ -24,14 +23,12 @@ export class PdcSecretariatDto {
 
 export class PdcChairmanDto {
   @IsNotEmpty()
+  @IsUUID('4')
+  trainingDetails: string;
+
+  @IsNotEmpty()
   @IsUUID('all')
   pdcChairman: string;
-
-  @IsNotEmptyObject()
-  @IsObject()
-  @ValidateNested({ each: true })
-  @Type(() => TrainingDetailsDto)
-  trainingDetails: TrainingDetailsDto;
 
   @IsOptional()
   @IsString({ message: 'training nominee remarks must be string' })
@@ -40,14 +37,12 @@ export class PdcChairmanDto {
 
 export class GeneralManagerDto {
   @IsNotEmpty()
+  @IsUUID('4')
+  trainingDetails: string;
+
+  @IsNotEmpty()
   @IsUUID('all')
   generalManager: string;
-
-  @IsNotEmptyObject()
-  @IsObject()
-  @ValidateNested({ each: true })
-  @Type(() => TrainingDetailsDto)
-  trainingDetails: TrainingDetailsDto;
 
   @IsOptional()
   @IsString({ message: 'training nominee remarks must be string' })

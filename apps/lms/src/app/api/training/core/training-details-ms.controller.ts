@@ -7,10 +7,12 @@ import { TrainingNomineesService } from '../components/nominees';
 import { CreateTrainingNomineeDto, GeneralManagerDto, PdcChairmanDto, PdcSecretariatDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
 import { TrainingNomineeRaw, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
+import { TrainingDetailsService } from './training-details.service';
 
 @Controller()
 export class TrainingDetailsMicroserviceController {
   constructor(
+    private readonly trainingDetailsService: TrainingDetailsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
     private readonly trainingNomineesService: TrainingNomineesService,
@@ -89,7 +91,8 @@ export class TrainingDetailsMicroserviceController {
   @MessagePattern(TrainingPatterns.PDC_SECRETARIAT_APPROVAL)
   async pdcSecretariatApproved(@Payload() data: PdcSecretariatDto) {
     try {
-      return await this.trainingApprovalsService.pdcSecretariatApproved(data);
+      const trainingStatus = TrainingStatus.PDC_CHAIRMAN_APPROVAL;
+      return await this.trainingDetailsService.pdcSecretariatApproval(data, trainingStatus);
     } catch (error) {
       throw new RpcException(error);
     }
@@ -99,7 +102,8 @@ export class TrainingDetailsMicroserviceController {
   @MessagePattern(TrainingPatterns.PDC_SECRETARIAT_DECLINED)
   async pdcSecretariatDeclined(@Payload() data: PdcSecretariatDto) {
     try {
-      return await this.trainingApprovalsService.pdcSecretariatDeclined(data);
+      const trainingStatus = TrainingStatus.PDC_SECRETARIAT_DECLINED;
+      return await this.trainingDetailsService.pdcSecretariatApproval(data, trainingStatus);
     } catch (error) {
       throw new RpcException(error);
     }
@@ -109,8 +113,8 @@ export class TrainingDetailsMicroserviceController {
   @MessagePattern(TrainingPatterns.FIND_ALL_PDC_CHAIRMAN_APPROVAL)
   async findAllTrainingForPdcChairmanApproval() {
     try {
-      const status = TrainingStatus.PDC_CHAIRMAN_APPROVAL;
-      return await this.trainingApprovalsService.findAllApprovalByPdcStatus(status);
+      const trainingStatus = TrainingStatus.PDC_CHAIRMAN_APPROVAL;
+      return await this.trainingApprovalsService.findAllApprovalByPdcStatus(trainingStatus);
     } catch (error) {
       throw new RpcException(error);
     }
@@ -120,7 +124,8 @@ export class TrainingDetailsMicroserviceController {
   @MessagePattern(TrainingPatterns.PDC_CHAIRMAN_APPROVAL)
   async pdcChairmanApproved(@Payload() data: PdcChairmanDto) {
     try {
-      return await this.trainingApprovalsService.pdcChairmanApproved(data);
+      const trainingStatus = TrainingStatus.GM_APPROVAL;
+      return await this.trainingDetailsService.pdcChairmanApproval(data, trainingStatus);
     } catch (error) {
       throw new RpcException(error);
     }
@@ -130,7 +135,8 @@ export class TrainingDetailsMicroserviceController {
   @MessagePattern(TrainingPatterns.PDC_CHAIRMAN_DECLINED)
   async pdcChairmanDeclined(@Payload() data: PdcChairmanDto) {
     try {
-      return await this.trainingApprovalsService.pdcChairmanDeclined(data);
+      const trainingStatus = TrainingStatus.PDC_CHAIRMAN_DECLINED;
+      return await this.trainingDetailsService.pdcChairmanApproval(data, trainingStatus);
     } catch (error) {
       throw new RpcException(error);
     }
@@ -140,8 +146,8 @@ export class TrainingDetailsMicroserviceController {
   @MessagePattern(TrainingPatterns.FIND_ALL_GM_APPROVAL)
   async findAllTrainingForGmApproval() {
     try {
-      const status = TrainingStatus.GM_APPROVAL;
-      return await this.trainingApprovalsService.findAllApprovalByPdcStatus(status);
+      const trainingStatus = TrainingStatus.GM_APPROVAL;
+      return await this.trainingApprovalsService.findAllApprovalByPdcStatus(trainingStatus);
     } catch (error) {
       throw new RpcException(error);
     }
@@ -151,7 +157,8 @@ export class TrainingDetailsMicroserviceController {
   @MessagePattern(TrainingPatterns.GM_APPROVAL)
   async generalManagerApproved(@Payload() data: GeneralManagerDto) {
     try {
-      return await this.trainingApprovalsService.generalManagerApproved(data);
+      const trainingStatus = TrainingStatus.FOR_BATCHING;
+      return await this.trainingDetailsService.generalManagerApproval(data, trainingStatus);
     } catch (error) {
       throw new RpcException(error);
     }
@@ -161,7 +168,8 @@ export class TrainingDetailsMicroserviceController {
   @MessagePattern(TrainingPatterns.GM_DECLINED)
   async generalManagerDeclined(@Payload() data: GeneralManagerDto) {
     try {
-      return await this.trainingApprovalsService.generalManagerDeclined(data);
+      const trainingStatus = TrainingStatus.GM_DECLINED;
+      return await this.trainingDetailsService.generalManagerApproval(data, trainingStatus);
     } catch (error) {
       throw new RpcException(error);
     }
@@ -216,13 +224,15 @@ export class TrainingDetailsMicroserviceController {
   /* pdc secretariat approved a training by training id */
   @Patch('training/approvals/secretariat/approved')
   async approvedTrainingBySecretariat(@Body() data: PdcSecretariatDto) {
-    return await this.trainingApprovalsService.pdcSecretariatApproved(data);
+    const trainingStatus = TrainingStatus.PDC_CHAIRMAN_APPROVAL;
+    return await this.trainingDetailsService.pdcSecretariatApproval(data, trainingStatus);
   }
 
   /* pdc secretariat declined a training by training id */
   @Patch('training/approvals/secretariat/declined')
   async declinedTrainingBySecretariat(@Body() data: PdcSecretariatDto) {
-    return await this.trainingApprovalsService.pdcSecretariatDeclined(data);
+    const trainingStatus = TrainingStatus.PDC_SECRETARIAT_DECLINED;
+    return await this.trainingDetailsService.pdcSecretariatApproval(data, trainingStatus);
   }
 
   /* find all training to be approved by the pdc chairman */
@@ -235,31 +245,35 @@ export class TrainingDetailsMicroserviceController {
   /* pdc chairman approved a training by training id */
   @Patch('training/approvals/chairman/approved')
   async approvedTrainingByChairman(@Body() data: PdcChairmanDto) {
-    return await this.trainingApprovalsService.pdcChairmanApproved(data);
+    const trainingStatus = TrainingStatus.GM_APPROVAL;
+    return await this.trainingDetailsService.pdcChairmanApproval(data, trainingStatus);
   }
 
   /* pdc chairman declined a training by training id */
   @Patch('training/approvals/chairman/declined')
   async declinedTrainingByChairman(@Body() data: PdcChairmanDto) {
-    return await this.trainingApprovalsService.pdcChairmanDeclined(data);
+    const trainingStatus = TrainingStatus.PDC_CHAIRMAN_DECLINED;
+    return await this.trainingDetailsService.pdcChairmanApproval(data, trainingStatus);
   }
 
   /* find all training to be approved by the general manager */
-  @Get('training/approvals/chairman')
+  @Get('training/approvals/gm')
   async findAllTrainingGeneralManagernApproval() {
     const trainingStatus = TrainingStatus.GM_APPROVAL;
     return await this.trainingApprovalsService.findAllApprovalByPdcStatus(trainingStatus);
   }
 
   /* general manager approved a training by training id */
-  @Patch('training/approvals/chairman/approved')
+  @Patch('training/approvals/gm/approved')
   async approvedTrainingByGm(@Body() data: GeneralManagerDto) {
-    return await this.trainingApprovalsService.generalManagerApproved(data);
+    const trainingStatus = TrainingStatus.FOR_BATCHING;
+    return await this.trainingDetailsService.generalManagerApproval(data, trainingStatus);
   }
 
   /* general manager declined a training by training id */
-  @Patch('training/approvals/chairman/declined')
+  @Patch('training/approvals/gm/declined')
   async declinedTrainingByGm(@Body() data: GeneralManagerDto) {
-    return await this.trainingApprovalsService.generalManagerDeclined(data);
+    const trainingStatus = TrainingStatus.GM_DECLINED;
+    return await this.trainingDetailsService.generalManagerApproval(data, trainingStatus);
   }
 }
