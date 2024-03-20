@@ -10,6 +10,7 @@ import {
   UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
+  UpdateTrainingStatusDto,
 } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
@@ -691,6 +692,27 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
         /* insert a batch training */
         return await this.trainingNomineesService.createTrainingBatch(batches, entityManager);
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* edit training status */
+  async updateTrainingStatus(data: UpdateTrainingStatusDto) {
+    try {
+      const { trainingId, status } = data;
+      return await this.crudService.update({
+        updateBy: {
+          id: trainingId,
+        },
+        dto: {
+          status: status,
+        },
+        onError: (error) => {
+          throw error;
+        },
       });
     } catch (error) {
       Logger.error(error);

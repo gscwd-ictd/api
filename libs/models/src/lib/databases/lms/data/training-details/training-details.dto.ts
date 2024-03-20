@@ -16,7 +16,7 @@ import { Type } from 'class-transformer';
 import { CourseContentDto } from '../course-contents';
 import { TrainingDesignDto } from '../training-designs';
 import { TrainingSourceDto } from '../training-sources';
-import { TrainingType } from '@gscwd-api/utils';
+import { TrainingStatus, TrainingType } from '@gscwd-api/utils';
 import { TrainingTagDto } from '../training-tags';
 import { SlotDistributionDto } from '../training-distributions';
 import { TrainingRequirementsDto } from '../training-requirements';
@@ -117,4 +117,14 @@ export class UpdateTrainingExternalDto extends PartialType(CreateTrainingExterna
   @IsNotEmpty()
   @IsUUID('4')
   id: string;
+}
+
+export class UpdateTrainingStatusDto {
+  @IsNotEmpty({ message: 'training id must not be empty' })
+  @IsUUID('4')
+  trainingId: string;
+
+  @IsNotEmpty({ message: 'training status must not be empty' })
+  @IsEnum(TrainingStatus)
+  status: TrainingStatus;
 }

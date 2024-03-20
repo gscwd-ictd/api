@@ -24,6 +24,7 @@ import {
   UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
+  UpdateTrainingStatusDto,
 } from '@gscwd-api/models';
 import { TrainingDetailsService } from './training-details.service';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -297,5 +298,11 @@ export class TrainingDetailsController {
   @Patch('batch')
   async updateTrainingBatch(@Body() data: UpdateTrainingBatchDto) {
     return await this.trainingDetailsService.updateTrainingBatch(data);
+  }
+
+  /* edit training status */
+  @Patch()
+  async updateTrainingStatus(@Body() data: UpdateTrainingStatusDto) {
+    return await this.trainingDetailsService.updateTrainingStatus(data);
   }
 }
