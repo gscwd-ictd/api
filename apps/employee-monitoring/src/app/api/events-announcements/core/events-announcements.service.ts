@@ -1,11 +1,12 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateAccountGroupDto, EventsAnnouncements } from '@gscwd-api/models';
+import { CreateEventsAnnouncementsDto, EventsAnnouncements } from '@gscwd-api/models';
 import { EventsAnnouncementsStatus } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { AppwriteService } from '../../appwrite/core/appwrite.service';
 
 @Injectable()
 export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> {
-  constructor(private readonly crudService: CrudService<EventsAnnouncements>) {
+  constructor(private readonly crudService: CrudService<EventsAnnouncements>, private readonly appwriteService: AppwriteService) {
     super(crudService);
   }
 
@@ -24,7 +25,22 @@ export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> 
     throw new InternalServerErrorException();
   }
 
-  async addEventAnnouncement(eventAnnouncementDto: CreateAccountGroupDto) {
-    //return await this.crudService.create({dto: eventAnnouncementDto,})
+  async addEventAnnouncement(eventAnnouncementDto: CreateEventsAnnouncementsDto) {
+    const { photoUrl, fileName, ...restOfEventAnnouncements } = eventAnnouncementDto;
+    const eventAnnouncement = await this.crudService.create({
+      dto: { photoUrl: null, ...restOfEventAnnouncements },
+      onError: () => new InternalServerErrorException(),
+    });
+    const file = await this.appwriteService.createFile(photoUrl, fileName, eventAnnouncement.id);
+    const photo_url = await this.appwriteService.getFileUrl(file.$id);
+    const updateResult = await this.crudService.update({
+      dto: { photoUrl: photo_url },
+      updateBy: { id: eventAnnouncement.id },
+    });
+
+    return {
+      ...eventAnnouncement,
+      photoUrl: photo_url,
+    };
   }
 }

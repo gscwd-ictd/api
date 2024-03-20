@@ -1,6 +1,7 @@
 import { EventsAnnouncementsStatus } from '@gscwd-api/utils';
 import { PartialType } from '@nestjs/swagger';
-import { IsDate, IsEnum, IsString, IsUUID, IsUrl } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString, IsUUID, IsUrl } from 'class-validator';
+import { IsNull } from 'typeorm';
 
 export class CreateEventsAnnouncementsDto {
   @IsString()
@@ -12,14 +13,18 @@ export class CreateEventsAnnouncementsDto {
   @IsUrl()
   url: string;
 
-  @IsUrl()
-  photoUrl: string;
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
 
   @IsEnum(EventsAnnouncementsStatus)
   status: EventsAnnouncementsStatus;
 
-  @IsDate()
+  @IsDateString()
   eventAnnouncementDate: Date;
+
+  @IsString()
+  fileName: string;
 }
 
 export class UpdateEventsAnnouncementsDto extends PartialType(CreateEventsAnnouncementsDto) {
