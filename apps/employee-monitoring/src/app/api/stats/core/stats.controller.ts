@@ -12,6 +12,6 @@ export class StatsController {
 
   @Get('lates/department')
   async getLatesPerDepartment() {
-    return await this.statsService.getLatesPerDepartment(dayjs('2024-03-14').toDate());
+    return await this.statsService.getLatesPerDepartment();
   }
 }
