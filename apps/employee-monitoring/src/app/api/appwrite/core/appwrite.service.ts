@@ -8,17 +8,16 @@ export class AppwriteService {
   getStorage() {
     const sdk = require('node-appwrite');
     const client = new sdk.Client()
-      .setEndpoint(`http://${process.env.APPWRITE_HOST}:${process.env.APPWRITE_PORT}/v1`) // Your API Endpoint
-      .setProject(process.env.APPWRITE_PROJECT_ID) // Your project ID
+      .setEndpoint(`http://${process.env.APPWRITE_HOST}:${process.env.APPWRITE_PORT}/v1`)
+      .setProject(process.env.APPWRITE_PROJECT_ID)
       .setKey(process.env.APPWRITE_API_KEY);
-    // Your secret API key
+
     const storage = new sdk.Storage(client);
     return storage;
   }
 
   async createFile(fileUrl: string, fileName: string, id: string) {
     const file = InputFile.fromPath(fileUrl, fileName);
-    console.log(file);
     const result = await this.getStorage().createFile(process.env.APPWRITE_BUCKET_ID, id, file);
     return result;
   }
