@@ -15,11 +15,13 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import {
+  CreateTrainingBatchDto,
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
   SendTrainingNoticeExternalDto,
   SendTrainingNoticeInternalDto,
   TrainingDetails,
+  UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
 } from '@gscwd-api/models';
@@ -271,5 +273,29 @@ export class TrainingDetailsController {
   @Patch(':id/approvals')
   async updateTrainingStatusToAppovals(@Param('id') id: string) {
     return await this.trainingDetailsService.sendToPdc(id);
+  }
+
+  /* find all nominees in all batches by training id */
+  @Get(':id/nominees/batch')
+  async findAllNomineeInBatchesByTrainingId(@Param('id') trainingId: string) {
+    return await this.trainingNomineesService.findAllNomineeInBatchesByTrainingId(trainingId);
+  }
+
+  /* insert a batch training */
+  @Post('batch')
+  async createTrainingBatch(@Body() data: CreateTrainingBatchDto) {
+    return await this.trainingDetailsService.createTrainingBatch(data);
+  }
+
+  /* find all batches by training id */
+  @Get(':id/batch')
+  async findAllBatchByTrainingId(@Param('id') id: string) {
+    return await this.trainingNomineesService.findAllBatchByTrainingId(id);
+  }
+
+  /* edit a batch training */
+  @Patch('batch')
+  async updateTrainingBatch(@Body() data: UpdateTrainingBatchDto) {
+    return await this.trainingDetailsService.updateTrainingBatch(data);
   }
 }
