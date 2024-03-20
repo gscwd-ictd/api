@@ -23,23 +23,6 @@ export class TrainingNomineesController {
     return await this.trainingNomineesService.findAllBatchByTrainingId(trainingId);
   }
 
-  // test microservice in find all training by employee id
-  @Get('employee/:id')
-  async findAllTrainingByEmployeeId(@Param('id') employeeId: string, @Param('status') status: TrainingNomineeStatus) {
-    return await this.trainingNomineesService.findAllTrainingByEmployeeId(employeeId, status);
-  }
 
-  // test microservice in update status for nominated employee by nominee id
-  @Patch()
-  async updateTrainingNomineeStatus(@Body() data: UpdateTrainingNomineeStatusDto) {
-    const { id, ...rest } = data;
-    return await this.trainingNomineesService.crud().update({
-      updateBy: { id },
-      dto: rest,
-      onError: (error) => {
-        Logger.log(error);
-        throw new BadRequestException();
-      },
-    });
-  } */
+*/
 }

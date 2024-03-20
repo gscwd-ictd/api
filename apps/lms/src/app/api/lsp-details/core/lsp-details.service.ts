@@ -103,7 +103,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         updatedAt: lspDetails.updatedAt,
         deletedAt: lspDetails.deletedAt,
         id: lspDetails.id,
-        /* employeeId: employeeDetails.employeeId, */
+        employeeId: employeeDetails.employeeId,
         name: employeeDetails.fullName,
         sex: employeeDetails.sex,
         contactNumber: employeeDetails.contactNumber,
