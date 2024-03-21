@@ -27,3 +27,7 @@ export type NomineeRaw = {
   employeeId: string;
   status: TrainingNomineeStatus;
 };
+
+export type TrainingRequirementsRaw = {
+  document: string;
+};

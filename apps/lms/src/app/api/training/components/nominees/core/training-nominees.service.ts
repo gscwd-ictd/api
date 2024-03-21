@@ -1,10 +1,18 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingNomineeDto, TrainingBatchDto, TrainingDistribution, TrainingNominee, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
+import {
+  CreateTrainingNomineeDto,
+  RequirementsDto,
+  TrainingBatchDto,
+  TrainingDistribution,
+  TrainingNominee,
+  UpdateTrainingNomineeStatusDto,
+} from '@gscwd-api/models';
 import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { DataSource, EntityManager, IsNull, MoreThanOrEqual, Not } from 'typeorm';
 import { TrainingDistributionsService } from '../../slot-distributions';
+import { TrainingRequirementsService } from '../../requirements';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
@@ -12,6 +20,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     private readonly crudService: CrudService<TrainingNominee>,
     private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
+    private readonly trainingRequirementsService: TrainingRequirementsService,
     private readonly datasource: DataSource
   ) {
     super(crudService);
@@ -167,17 +176,21 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
       })) as Array<TrainingNominee>;
 
       return await Promise.all(
-        distribution.map(async (distributionItems) => {
-          const supervisorName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.trainingDistribution.supervisorId);
-          const employeeName = await this.hrmsEmployeesService.findEmployeesById(distributionItems.employeeId);
+        distribution.map(async (items) => {
+          /* find employee name by employee id */
+          const employeeName = await this.hrmsEmployeesService.findEmployeesById(items.employeeId);
+
+          /* find supervisor name by employee id */
+          const supervisorName = await this.hrmsEmployeesService.findEmployeesById(items.trainingDistribution.supervisorId);
 
           return {
-            employeeId: distributionItems.employeeId,
+            nomineeId: items.id,
+            employeeId: items.employeeId,
             name: employeeName.fullName,
-            status: distributionItems.status,
-            remarks: distributionItems.remarks,
+            status: items.status,
+            remarks: items.remarks,
             supervisor: {
-              supervisorId: distributionItems.trainingDistribution.supervisorId,
+              supervisorId: items.trainingDistribution.supervisorId,
               name: supervisorName.fullName,
             },
           };
@@ -358,17 +371,21 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   }
 
   /* insert a batch training */
-  async createTrainingBatch(data: Array<TrainingBatchDto>, entityManager: EntityManager) {
+  async createTrainingBatch(data: Array<TrainingBatchDto>, requirements: RequirementsDto, entityManager: EntityManager) {
     try {
       return await Promise.all(
         data.map(async (items) => {
           /* deconstruct items */
           const { employees, batchNumber, trainingDate } = items;
 
+          /* insert a batch of nominees */
           return await Promise.all(
             employees.map(async (items) => {
               /* deconstruct items */
               const { nomineeId } = items;
+
+              /* insert nominee requirements */
+              await this.trainingRequirementsService.createNomineeRequirements(nomineeId, requirements, entityManager);
 
               /* set a batch of nominees */
               return await this.crudService.transact<TrainingNominee>(entityManager).update({
