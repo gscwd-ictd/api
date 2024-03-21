@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { EventsAnnouncementsService } from './events-announcements.service';
-import { CreateEventsAnnouncementsDto } from '@gscwd-api/models';
+import { CreateEventsAnnouncementsDto, UpdateEventsAnnouncementsDto } from '@gscwd-api/models';
 
 @Controller({ version: '1', path: 'events-announcements' })
 export class EventsAnnouncementsController {
@@ -19,5 +19,10 @@ export class EventsAnnouncementsController {
   @Post()
   async addEventAnnouncement(@Body() eventAnnouncementDto: CreateEventsAnnouncementsDto) {
     return await this.eventsAnnounceService.addEventAnnouncement(eventAnnouncementDto);
+  }
+
+  @Put()
+  async updateEventAnnouncement(@Body() updateEventsAnnouncementsDto: UpdateEventsAnnouncementsDto) {
+    return await this.eventsAnnounceService.updateEventAnnouncement(updateEventsAnnouncementsDto);
   }
 }

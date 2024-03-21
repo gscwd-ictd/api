@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InputFile } from 'node-appwrite';
+import sdk = require('node-appwrite');
 
 @Injectable()
 export class AppwriteService {
   constructor() {}
 
   getStorage() {
-    const sdk = require('node-appwrite');
     const client = new sdk.Client()
       .setEndpoint(`http://${process.env.APPWRITE_HOST}:${process.env.APPWRITE_PORT}/v1`)
       .setProject(process.env.APPWRITE_PROJECT_ID)
@@ -29,5 +29,11 @@ export class AppwriteService {
 
   async getFileUrl(fileId: string) {
     return `http://${process.env.APPWRITE_HOST}:${process.env.APPWRITE_PORT}/v1/storage/buckets/${process.env.APPWRITE_BUCKET_ID}/files/${fileId}/view?project=${process.env.APPWRITE_PROJECT_ID}`;
+  }
+
+  async deleteFile(fileId: string) {
+    const result = await this.getStorage().deleteFile(process.env.APPWRITE_BUCKET_ID, fileId);
+    console.log(result);
+    return result;
   }
 }
