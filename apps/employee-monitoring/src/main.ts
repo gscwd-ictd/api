@@ -108,7 +108,7 @@ async function bootstrap() {
   // })
 
   app.startAllMicroservices();
-  app.useGlobalPipes(new ValidationPipe({ enableDebugMessages: true }));
+  //app.useGlobalPipes(new ValidationPipe({ enableDebugMessages: true }));
   app.enableCors({
     credentials: true,
     origin: whitelist,

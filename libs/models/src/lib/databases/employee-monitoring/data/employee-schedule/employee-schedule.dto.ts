@@ -6,7 +6,7 @@ import { IsArray, IsDateString, IsOptional, IsUUID } from 'class-validator';
 export class CreateEmployeeScheduleDto {
   scheduleId: Schedule;
 
-  @IsUUID(4)
+  @IsUUID()
   employeeId: string;
 
   @IsOptional()
