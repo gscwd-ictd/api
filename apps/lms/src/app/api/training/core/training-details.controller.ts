@@ -15,13 +15,16 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import {
+  CreateTrainingBatchDto,
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
   SendTrainingNoticeExternalDto,
   SendTrainingNoticeInternalDto,
   TrainingDetails,
+  UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
+  UpdateTrainingStatusDto,
 } from '@gscwd-api/models';
 import { TrainingDetailsService } from './training-details.service';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -267,9 +270,48 @@ export class TrainingDetailsController {
     return await this.trainingNomineesService.findAllNomineeByTrainingId(id, trainingStatus, nomineeType, nomineeStatus);
   }
 
+  /* find all nominees by training id */
+  @Get(':id/nominees')
+  async findAllNomineesByTrainingId(@Param('id') id: string) {
+    const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
+    const nomineeType = NomineeType.NOMINEE;
+    const nomineeStatus = null;
+    return await this.trainingNomineesService.findAllNomineeByTrainingId(id, trainingStatus, nomineeType, nomineeStatus);
+  }
+
   /* send approvals to the personnel development committee */
   @Patch(':id/approvals')
   async updateTrainingStatusToAppovals(@Param('id') id: string) {
     return await this.trainingDetailsService.sendToPdc(id);
+  }
+
+  /* find all nominees in all batches by training id */
+  @Get(':id/nominees/batch')
+  async findAllNomineeInBatchesByTrainingId(@Param('id') trainingId: string) {
+    return await this.trainingNomineesService.findAllNomineeInBatchesByTrainingId(trainingId);
+  }
+
+  /* insert a batch training */
+  @Post('batch')
+  async createTrainingBatch(@Body() data: CreateTrainingBatchDto) {
+    return await this.trainingDetailsService.createTrainingBatch(data);
+  }
+
+  /* find all batches by training id */
+  @Get(':id/batch')
+  async findAllBatchByTrainingId(@Param('id') id: string) {
+    return await this.trainingNomineesService.findAllBatchByTrainingId(id);
+  }
+
+  /* edit a batch training */
+  @Patch('batch')
+  async updateTrainingBatch(@Body() data: UpdateTrainingBatchDto) {
+    return await this.trainingDetailsService.updateTrainingBatch(data);
+  }
+
+  /* edit training status */
+  @Patch()
+  async updateTrainingStatus(@Body() data: UpdateTrainingStatusDto) {
+    return await this.trainingDetailsService.updateTrainingStatus(data);
   }
 }

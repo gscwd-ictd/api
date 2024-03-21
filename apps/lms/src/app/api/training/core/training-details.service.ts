@@ -1,13 +1,16 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import {
+  CreateTrainingBatchDto,
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
   GeneralManagerDto,
   PdcChairmanDto,
   PdcSecretariatDto,
   TrainingDetails,
+  UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
+  UpdateTrainingStatusDto,
 } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
@@ -16,6 +19,7 @@ import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
 import { TrainingStatus } from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
+import { TrainingNomineesService } from '../components/nominees';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -25,6 +29,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly trainingTagsService: TrainingTagsService,
     private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly trainingApprovalsService: TrainingApprovalsService,
+    private readonly trainingNomineesService: TrainingNomineesService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -646,6 +651,72 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* insert a batch training */
+  async createTrainingBatch(data: CreateTrainingBatchDto) {
+    try {
+      return await this.dataSource.transaction(async (entityManager) => {
+        /* deconstruct data */
+        const { trainingId, batches } = data;
+
+        /* update training status  */
+        await this.crudService.transact<TrainingDetails>(entityManager).update({
+          updateBy: {
+            id: trainingId,
+          },
+          dto: {
+            status: TrainingStatus.DONE_BATCHING,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+
+        /* insert a batch training */
+        await this.trainingNomineesService.createTrainingBatch(batches, entityManager);
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* edit a batch training */
+  async updateTrainingBatch(data: UpdateTrainingBatchDto) {
+    try {
+      return await this.dataSource.transaction(async (entityManager) => {
+        /* deconstruct data */
+        const { batches } = data;
+
+        /* insert a batch training */
+        return await this.trainingNomineesService.createTrainingBatch(batches, entityManager);
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* edit training status */
+  async updateTrainingStatus(data: UpdateTrainingStatusDto) {
+    try {
+      const { trainingId, status } = data;
+      return await this.crudService.update({
+        updateBy: {
+          id: trainingId,
+        },
+        dto: {
+          status: status,
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 
