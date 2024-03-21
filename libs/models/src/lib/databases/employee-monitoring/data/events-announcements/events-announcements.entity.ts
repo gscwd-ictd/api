@@ -1,6 +1,5 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { EventsAnnouncementsStatus } from '@gscwd-api/utils';
-import { ColdObservable } from 'rxjs/internal/testing/ColdObservable';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'events_announcements' })
@@ -17,7 +16,7 @@ export class EventsAnnouncements extends DatabaseEntity implements IEntity {
   @Column({ name: 'url', type: 'text' })
   url: string;
 
-  @Column({ name: 'photo_url', type: 'text' })
+  @Column({ name: 'photo_url', type: 'text', nullable: true })
   photoUrl: string;
 
   @Column({ name: 'status', type: 'enum', enum: EventsAnnouncementsStatus, default: EventsAnnouncementsStatus.ACTIVE })
