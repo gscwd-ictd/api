@@ -448,6 +448,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
                 trainingDistribution: true,
               },
               select: {
+                id: true,
                 employeeId: true,
                 trainingDistribution: {
                   supervisorId: true,
@@ -492,8 +493,10 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           /* custom return */
           return {
             batchNumber: items.batchNumber,
-            trainingStart: items.trainingStart,
-            trainingEnd: items.trainingEnd,
+            trainingDate: {
+              from: items.trainingStart,
+              to: items.trainingEnd,
+            },
             employees: employees,
           };
         })
