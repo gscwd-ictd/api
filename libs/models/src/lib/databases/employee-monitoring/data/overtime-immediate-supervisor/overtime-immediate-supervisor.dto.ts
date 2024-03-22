@@ -1,9 +1,9 @@
 import { IsUUID } from 'class-validator';
 
 export class CreateOvertimeImmediateSupervisorDto {
-  @IsUUID(4)
+  @IsUUID()
   employeeId: string;
 
-  @IsUUID(4)
+  @IsUUID()
   orgId: string;
 }
