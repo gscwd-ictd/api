@@ -2,10 +2,10 @@ import { LeaveBenefits } from '@gscwd-api/models';
 import { IsDecimal, IsNotEmptyObject, IsNumber, IsString, IsUUID } from 'class-validator';
 
 export class LeaveCreditDeductionsDto {
-  @IsUUID(4)
+  @IsUUID()
   id: string;
 
-  @IsUUID(4)
+  @IsUUID()
   employeeId: string;
 
   leaveBenefitsId: LeaveBenefits;
