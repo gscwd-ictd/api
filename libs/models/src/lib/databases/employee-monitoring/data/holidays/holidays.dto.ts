@@ -16,6 +16,6 @@ export class HolidaysDto {
 }
 
 export class UpdateHolidayDto extends PartialType(HolidaysDto) {
-  @IsUUID(4)
+  @IsUUID()
   id: string;
 }

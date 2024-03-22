@@ -39,7 +39,7 @@ export class PassSlipDto {
 }
 
 export class UpdatePassSlipTimeRecordDto {
-  @IsUUID(4)
+  @IsUUID()
   id: string;
 
   @IsString()

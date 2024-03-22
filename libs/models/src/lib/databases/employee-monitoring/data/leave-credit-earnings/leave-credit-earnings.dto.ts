@@ -6,7 +6,7 @@ export class CreateLeaveCreditEarningsDto {
   @IsOptional()
   createdAt?: Date;
 
-  @IsUUID(4)
+  @IsUUID()
   employeeId: string;
 
   @IsOptional()
@@ -32,6 +32,6 @@ export class UpdateLeaveCreditEarningsDto extends PickType(CreateLeaveCreditEarn
   'employeeId',
   'leaveBenefitsId',
 ]) {
-  @IsUUID(4)
+  @IsUUID()
   id: string;
 }
