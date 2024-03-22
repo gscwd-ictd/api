@@ -209,6 +209,5 @@ export class ScheduleService extends CrudHelper<Schedule> {
       ])
     )[0].hasEmployeeSchedule;
     if (hasEmployeeSchedule === '0') return false;
-    return true;
   }
 }
