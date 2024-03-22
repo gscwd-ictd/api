@@ -560,7 +560,85 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
       ); */
     } catch (error) {
       Logger.error(error);
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* find all nominees requirements by training id */
+  async findAllNomineesRequirementsByTrainingId(trainingId: string) {
+    try {
+      /* find all batch in a training */
+      let batch = (await this.crudService.findAll({
+        find: {
+          select: {
+            batchNumber: true,
+          },
+          order: {
+            batchNumber: 'ASC',
+          },
+          where: {
+            batchNumber: Not(IsNull()),
+            trainingDistribution: {
+              trainingDetails: {
+                id: trainingId,
+              },
+            },
+          },
+        },
+      })) as Array<TrainingNominee>;
+
+      /* distinct batch training */
+      batch = await Promise.all(batch.filter((value, index, self) => index === self.findIndex((t) => t.batchNumber === value.batchNumber)));
+
+      return await Promise.all(
+        batch.map(async (items) => {
+          /* find all employees by batch number */
+          const batchEmployees = (await this.crudService.findAll({
+            find: {
+              select: {
+                id: true,
+                employeeId: true,
+              },
+              where: {
+                batchNumber: items.batchNumber,
+                trainingDistribution: {
+                  trainingDetails: {
+                    id: trainingId,
+                  },
+                },
+              },
+            },
+            onError: (error) => {
+              throw error;
+            },
+          })) as Array<TrainingNominee>;
+
+          const employees = await Promise.all(
+            batchEmployees.map(async (items) => {
+              /* find employee name by employee id */
+              const employeeName = (await this.hrmsEmployeesService.findEmployeesById(items.employeeId)).fullName;
+
+              const requirements = await this.trainingRequirementsService.findNomineeRequirementsByNomineeId(items.id);
+              /* custom return */
+              return {
+                nomineeId: items.id,
+                employeeId: items.employeeId,
+                name: employeeName,
+                requirements: requirements,
+              };
+            })
+          );
+
+          /* custom return */
+          return {
+            batchNumber: items.batchNumber,
+            employees: employees,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
