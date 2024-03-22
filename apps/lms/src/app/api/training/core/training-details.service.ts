@@ -17,7 +17,7 @@ import { DataSource, EntityManager } from 'typeorm';
 import { TrainingTagsService } from '../components/tags';
 import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
-import { TrainingStatus } from '@gscwd-api/utils';
+import { DocumentRequirementsType, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
 import { TrainingNomineesService } from '../components/nominees';
 
@@ -674,8 +674,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           },
         });
 
+        /* insert list of requirements */
+        const requirements = await this.createListOfRequirements(trainingId, entityManager);
+
         /* insert a batch training */
-        await this.trainingNomineesService.createTrainingBatch(batches, entityManager);
+        await this.trainingNomineesService.createTrainingBatch(batches, requirements, entityManager);
+
+        return data;
       });
     } catch (error) {
       Logger.error(error);
@@ -688,10 +693,11 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       return await this.dataSource.transaction(async (entityManager) => {
         /* deconstruct data */
-        const { batches } = data;
+        const { trainingId, batches } = data;
 
+        const requirements = await this.createListOfRequirements(trainingId, entityManager);
         /* insert a batch training */
-        return await this.trainingNomineesService.createTrainingBatch(batches, entityManager);
+        return await this.trainingNomineesService.createTrainingBatch(batches, requirements, entityManager);
       });
     } catch (error) {
       Logger.error(error);
@@ -714,6 +720,58 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           throw error;
         },
       });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* insert a list of requirements that nominees must submit */
+  async createListOfRequirements(trainingId: string, entityManager: EntityManager) {
+    try {
+      /* find training requirements */
+      const trainingDetails = await this.crudService.transact<TrainingDetails>(entityManager).findOne({
+        find: {
+          select: {
+            trainingRequirements: true,
+          },
+          where: {
+            id: trainingId,
+          },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+
+      const requirements = JSON.parse(trainingDetails.trainingRequirements) as Array<TrainingRequirementsRaw>;
+      const preTest = requirements.find((items) => items.document === DocumentRequirementsType.PRE_TEST) ? false : null;
+      const courseMaterials = requirements.find((items) => items.document === DocumentRequirementsType.COURSE_MATERIALS) ? false : null;
+      const postTrainingReport = requirements.find((items) => items.document === DocumentRequirementsType.POST_TRAINING_REPORT) ? false : null;
+      const courseEvaluationReport = requirements.find((items) => items.document === DocumentRequirementsType.COURSE_EVALUATION_REPORT)
+        ? false
+        : null;
+      const learningApplicationPlan = requirements.find((items) => items.document === DocumentRequirementsType.LEARNING_APPLICATION_PLAN)
+        ? false
+        : null;
+      const postTest = requirements.find((items) => items.document === DocumentRequirementsType.POST_TEST) ? false : null;
+      const certificateOfTraining = requirements.find((items) => items.document === DocumentRequirementsType.CERTIFICATE_OF_TRAINING) ? false : null;
+      const certificateOfAppearance = requirements.find((items) => items.document === DocumentRequirementsType.CERTIFICATE_OF_APPEARANCE)
+        ? false
+        : null;
+      const program = requirements.find((items) => items.document === DocumentRequirementsType.PROGRAM) ? false : null;
+
+      return {
+        preTest: preTest,
+        courseMaterials: courseMaterials,
+        postTrainingReport: postTrainingReport,
+        courseEvaluationReport: courseEvaluationReport,
+        learningApplicationPlan: learningApplicationPlan,
+        postTest: postTest,
+        certificateOfTraining: certificateOfTraining,
+        certificateOfAppearance: certificateOfAppearance,
+        program: program,
+      };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);

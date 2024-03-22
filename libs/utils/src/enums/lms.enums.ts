@@ -50,3 +50,15 @@ export enum NomineeType {
   NOMINEE = 'nominee',
   STAND_IN = 'stand-in',
 }
+
+export enum DocumentRequirementsType {
+  PRE_TEST = 'Pre-test',
+  COURSE_MATERIALS = 'Course Materials',
+  POST_TRAINING_REPORT = 'Post Training Report',
+  COURSE_EVALUATION_REPORT = 'Course Evaluation Report',
+  LEARNING_APPLICATION_PLAN = 'Learning Application Plan',
+  POST_TEST = 'Post-test',
+  CERTIFICATE_OF_TRAINING = 'Certificate of Training',
+  CERTIFICATE_OF_APPEARANCE = 'Certificate of Appearance',
+  PROGRAM = 'Program',
+}

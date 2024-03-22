@@ -1,17 +1,18 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { TrainingNominee } from '../training-nominees';
 
 @Entity('training_requirements')
+@Unique(['trainingNominee'])
 export class TrainingRequirements extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_requirement_id' })
   id: string;
 
-  @ManyToOne(() => TrainingNominee, (trainingNominee) => trainingNominee.id, { nullable: false })
+  @OneToOne(() => TrainingNominee, (trainingNominee) => trainingNominee.id, { nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'training_nominee_id_fk' })
   trainingNominee: TrainingNominee;
 
-  @Column({ name: 'attendance', type: 'boolean', default: null })
+  @Column({ name: 'attendance', type: 'boolean', default: false })
   attendance: boolean;
 
   @Column({ name: 'pre_test', type: 'boolean', default: null })
