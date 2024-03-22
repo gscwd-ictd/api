@@ -125,15 +125,13 @@ export class ScheduleService extends CrudHelper<Schedule> {
     console.log(groupSchedule);
     const { customGroupId, dateFrom, dateTo, scheduleId } = groupSchedule;
     //2. delete employees from custom group where scheduleId,dateFrom,dateTo
+
     const employeeIds = (await this.rawQuery(
-      `(SELECT DISTINCT es.employee_id_fk employeeId 
-        FROM employee_schedule es 
-      INNER JOIN custom_group_members cgm ON es.employee_id_fk = cgm.employee_id_fk 
-      WHERE date_from=? AND date_to=? AND schedule_id_fk=?) UNION (SELECT DISTINCT es.employee_id_fk employeeId 
-         FROM employee_schedule es 
-       INNER JOIN custom_groups cg ON es.custom_group_id_fk = cg.custom_group_id 
-       WHERE date_from=? AND date_to=? AND schedule_id_fk=?)`,
-      [dateFrom, dateTo, scheduleId, dateFrom, dateTo, scheduleId]
+      `SELECT DISTINCT es.employee_id_fk employeeId 
+      FROM employee_schedule es 
+     INNER JOIN custom_groups cg ON cg.custom_group_id = es.custom_group_id_fk
+     WHERE date_from=? AND date_to=? AND schedule_id_fk=? AND es.custom_group_id_fk = ?`,
+      [dateFrom, dateTo, scheduleId, customGroupId]
     )) as { employeeId: string }[];
 
     if (employeeIds.length === 0 || typeof employeeIds === 'undefined') {
@@ -156,8 +154,8 @@ export class ScheduleService extends CrudHelper<Schedule> {
     //));
 
     const deleteEmployeeCustomGroupResult = (await this.rawQuery(
-      `DELETE FROM employee_schedule WHERE employee_id_fk IN (?) AND date_format(date_from, '%Y-%m-%d') = ? and date_format(date_to, '%Y-%m-%d') = ? AND schedule_id_fk = ?;`,
-      [employeeIdsArray, dateFrom, dateTo, scheduleId]
+      `DELETE FROM employee_schedule WHERE employee_id_fk IN (?) AND date_format(date_from, '%Y-%m-%d') = ? and date_format(date_to, '%Y-%m-%d') = ? AND schedule_id_fk = ? AND custom_group_id_fk = ?;`,
+      [employeeIdsArray, dateFrom, dateTo, scheduleId, customGroupId]
     )) as { affectedRows: number };
 
     console.log('affected: ', deleteEmployeeCustomGroupResult.affectedRows);

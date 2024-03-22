@@ -49,7 +49,7 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
       `
         SELECT DISTINCT es.employee_id_fk employeeId 
         FROM employee_schedule es 
-       INNER JOIN custom_group cg ON cg.custom_group_id = es.custom_group_id_fk
+       INNER JOIN custom_groups cg ON cg.custom_group_id = es.custom_group_id_fk
        WHERE date_from=? AND date_to=? AND schedule_id_fk=? AND es.custom_group_id_fk = ?
        `,
       [dateFrom, dateTo, scheduleId, customGroupId]
