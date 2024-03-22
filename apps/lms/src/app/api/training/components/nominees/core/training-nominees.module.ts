@@ -4,9 +4,10 @@ import { Module } from '@nestjs/common';
 import { TrainingNomineesService } from './training-nominees.service';
 import { HrmsEmployeesModule } from '../../../../../services/hrms';
 import { TrainingDistributionsModule } from '../../slot-distributions';
+import { TrainingRequirementsModule } from '../../requirements';
 
 @Module({
-  imports: [CrudModule.register(TrainingNominee), HrmsEmployeesModule, TrainingDistributionsModule],
+  imports: [CrudModule.register(TrainingNominee), HrmsEmployeesModule, TrainingDistributionsModule, TrainingRequirementsModule],
   controllers: [],
   providers: [TrainingNomineesService],
   exports: [TrainingNomineesService],

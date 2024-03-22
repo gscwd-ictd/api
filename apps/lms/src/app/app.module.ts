@@ -16,6 +16,13 @@ import { PortalEmployeesModule } from './services/portal';
 import { TrainingSourcesModule } from './api/training/components/sources';
 import { TrainingDesignsModule } from './api/training/components/designs';
 import { TrainingDetailsModule } from './api/training';
+import { TrainingLspDetailsModule } from './api/training/components/lsp';
+import { TrainingTagsModule } from './api/training/components/tags';
+import { TrainingDistributionsModule } from './api/training/components/slot-distributions';
+import { TrainingRecommendedEmployeesModule } from './api/training/components/recommended-employees';
+import { TrainingNomineesModule } from './api/training/components/nominees';
+import { TrainingApprovalsModule } from './api/training/components/approvals';
+import { TrainingRequirementsModule } from './api/training/components/requirements';
 
 @Module({
   imports: [
@@ -51,6 +58,13 @@ import { TrainingDetailsModule } from './api/training';
     TrainingDesignsModule,
 
     TrainingDetailsModule,
+    TrainingLspDetailsModule,
+    TrainingTagsModule,
+    TrainingDistributionsModule,
+    TrainingRecommendedEmployeesModule,
+    TrainingNomineesModule,
+    TrainingApprovalsModule,
+    TrainingRequirementsModule,
   ],
 })
 export class AppModule {}
