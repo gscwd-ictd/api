@@ -24,6 +24,7 @@ import {
   UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
+  UpdateTrainingRequirementsDto,
   UpdateTrainingStatusDto,
 } from '@gscwd-api/models';
 import { TrainingDetailsService } from './training-details.service';
@@ -31,10 +32,15 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { FindAllTrainingInterceptor } from '../misc/interceptors';
 import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../components/nominees';
+import { TrainingRequirementsService } from '../components/requirements';
 
 @Controller({ version: '1', path: 'training' })
 export class TrainingDetailsController {
-  constructor(private readonly trainingDetailsService: TrainingDetailsService, private readonly trainingNomineesService: TrainingNomineesService) {}
+  constructor(
+    private readonly trainingDetailsService: TrainingDetailsService,
+    private readonly trainingNomineesService: TrainingNomineesService,
+    private readonly trainingRequirementsService: TrainingRequirementsService
+  ) {}
 
   /* find all training */
   @UseInterceptors(FindAllTrainingInterceptor)
@@ -313,5 +319,17 @@ export class TrainingDetailsController {
   @Patch()
   async updateTrainingStatus(@Body() data: UpdateTrainingStatusDto) {
     return await this.trainingDetailsService.updateTrainingStatus(data);
+  }
+
+  /* find all nominee requirements by training id */
+  @Get(':id/requirements')
+  async findAllNomineesRequirementsByTrainingId(@Param('id') id: string) {
+    return await this.trainingNomineesService.findAllNomineesRequirementsByTrainingId(id);
+  }
+
+  /* find all nominee requirements by training id */
+  @Put('requirements')
+  async updateNomineeRequirements(@Body() data: UpdateTrainingRequirementsDto) {
+    return await this.trainingRequirementsService.updateNomineeRequirements(data);
   }
 }

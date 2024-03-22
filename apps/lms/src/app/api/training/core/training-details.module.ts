@@ -10,6 +10,7 @@ import { TrainingDetailsMicroserviceController } from './training-details-ms.con
 import { TrainingNomineesModule } from '../components/nominees';
 import { TrainingRecommendedEmployeesModule } from '../components/recommended-employees';
 import { TrainingApprovalsModule } from '../components/approvals';
+import { TrainingRequirementsModule } from '../components/requirements';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TrainingApprovalsModule } from '../components/approvals';
     TrainingRecommendedEmployeesModule,
     TrainingNomineesModule,
     TrainingApprovalsModule,
+    TrainingRequirementsModule,
   ],
   controllers: [TrainingDetailsController, TrainingDetailsMicroserviceController],
   providers: [TrainingDetailsService],
