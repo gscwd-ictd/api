@@ -11,7 +11,7 @@ export class CreateOvertimeApprovalDto {
   dateApproved?: Date;
 
   @IsOptional()
-  @IsUUID(4)
+  @IsUUID()
   managerId?: string;
 
   @IsOptional()

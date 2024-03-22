@@ -4,8 +4,6 @@ import sdk = require('node-appwrite');
 
 @Injectable()
 export class AppwriteService {
-  constructor() {}
-
   getStorage() {
     const client = new sdk.Client()
       .setEndpoint(`http://${process.env.APPWRITE_HOST}:${process.env.APPWRITE_PORT}/v1`)
