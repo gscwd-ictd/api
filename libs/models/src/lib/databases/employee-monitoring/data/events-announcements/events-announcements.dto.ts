@@ -13,9 +13,8 @@ export class CreateEventsAnnouncementsDto {
   @IsUrl()
   url: string;
 
-  @IsString()
   @IsOptional()
-  photoUrl?: string;
+  file?: any;
 
   @IsEnum(EventsAnnouncementsStatus)
   status: EventsAnnouncementsStatus;
@@ -30,4 +29,6 @@ export class CreateEventsAnnouncementsDto {
 export class UpdateEventsAnnouncementsDto extends PartialType(CreateEventsAnnouncementsDto) {
   @IsUUID()
   id: string;
+
+  photoUrl: string;
 }
