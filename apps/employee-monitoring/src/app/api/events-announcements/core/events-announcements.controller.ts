@@ -20,7 +20,7 @@ export class EventsAnnouncementsController {
 
   @Post()
   @UseInterceptors(FileInterceptor('file'))
-  async addEventAnnouncement2(@Body() eventAnnouncementDto: CreateEventsAnnouncementsDto, @UploadedFile() file: any) {
+  async addEventAnnouncement(@Body() eventAnnouncementDto: CreateEventsAnnouncementsDto, @UploadedFile() file: any) {
     await this.eventsAnnounceService.addEventAnnouncementFromFileBuffer(eventAnnouncementDto, file);
     return { ...eventAnnouncementDto, file };
   }
