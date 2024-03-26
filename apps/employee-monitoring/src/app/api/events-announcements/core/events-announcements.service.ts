@@ -29,13 +29,35 @@ export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> 
     //throw new InternalServerErrorException();
   }
 
-  async addEventAnnouncement(eventAnnouncementDto: CreateEventsAnnouncementsDto) {
-    const { photoUrl, fileName, ...restOfEventAnnouncements } = eventAnnouncementDto;
+  async addEventAnnouncementFromFileUrl(eventAnnouncementDto: CreateEventsAnnouncementsDto) {
+    const { fileName, ...restOfEventAnnouncements } = eventAnnouncementDto;
     const eventAnnouncement = await this.crudService.create({
       dto: { photoUrl: null, ...restOfEventAnnouncements },
       onError: () => new InternalServerErrorException(),
     });
+    const photoUrl = '';
     const file = await this.appwriteService.createFile(photoUrl, fileName, eventAnnouncement.id);
+    const photo_url = await this.appwriteService.getFileUrl(file.$id);
+    const updateResult = await this.crudService.update({
+      dto: { photoUrl: photo_url },
+      updateBy: { id: eventAnnouncement.id },
+    });
+
+    return {
+      ...eventAnnouncement,
+      photoUrl: photo_url,
+    };
+  }
+
+  async addEventAnnouncementFromFileBuffer(eventAnnouncementDto: CreateEventsAnnouncementsDto, uploaded_file: any) {
+    console.log(uploaded_file);
+    const { fileName, ...restOfEventAnnouncements } = eventAnnouncementDto;
+    const eventAnnouncement = await this.crudService.create({
+      dto: { photoUrl: null, ...restOfEventAnnouncements },
+      onError: () => new InternalServerErrorException(),
+    });
+    const file = await this.appwriteService.createFileFromBuffer(uploaded_file, eventAnnouncement.id);
+
     const photo_url = await this.appwriteService.getFileUrl(file.$id);
     const updateResult = await this.crudService.update({
       dto: { photoUrl: photo_url },

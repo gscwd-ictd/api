@@ -20,6 +20,13 @@ export class AppwriteService {
     return result;
   }
 
+  async createFileFromBuffer(file: any, id: string) {
+    console.log('file file file', file);
+    const _file = InputFile.fromBuffer(file.buffer, file.originalname);
+    const result = await this.getStorage().createFile(process.env.APPWRITE_BUCKET_ID, id, _file);
+    return result;
+  }
+
   async listFiles() {
     const result = await this.getStorage().listFiles(process.env.APPWRITE_BUCKET_ID);
     return result;
