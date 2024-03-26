@@ -1,6 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { EventsAnnouncementsService } from './events-announcements.service';
 import { CreateEventsAnnouncementsDto, UpdateEventsAnnouncementsDto } from '@gscwd-api/models';
+import { Express } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller({ version: '1', path: 'events-announcements' })
 export class EventsAnnouncementsController {
@@ -17,12 +19,18 @@ export class EventsAnnouncementsController {
   }
 
   @Post()
-  async addEventAnnouncement(@Body() eventAnnouncementDto: CreateEventsAnnouncementsDto) {
-    return await this.eventsAnnounceService.addEventAnnouncement(eventAnnouncementDto);
+  @UseInterceptors(FileInterceptor('file'))
+  async addEventAnnouncement2(@Body() eventAnnouncementDto: CreateEventsAnnouncementsDto, @UploadedFile() file: any) {
+    await this.eventsAnnounceService.addEventAnnouncementFromFileBuffer(eventAnnouncementDto, file);
+    return { ...eventAnnouncementDto, file };
   }
 
   @Put()
   async updateEventAnnouncement(@Body() updateEventsAnnouncementsDto: UpdateEventsAnnouncementsDto) {
     return await this.eventsAnnounceService.updateEventAnnouncement(updateEventsAnnouncementsDto);
   }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadFile(@UploadedFile() file: any, @Body() eventAnnouncementDto: CreateEventsAnnouncementsDto) {}
 }

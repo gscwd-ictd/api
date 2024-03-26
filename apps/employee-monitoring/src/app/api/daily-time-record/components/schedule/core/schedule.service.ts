@@ -115,13 +115,6 @@ export class ScheduleService extends CrudHelper<Schedule> {
   }
 
   async deleteGroupSchedule(groupSchedule: GroupScheduleType) {
-    /*
-    1. delete schedule 
-       SELECT es.employee_id_fk employeeId 
-         FROM employee_schedule es 
-       INNER JOIN custom_group_members cgm ON es.employee_id_fk = cgm.employee_id_fk 
-       WHERE date_from=? AND date_to=? AND schedule_id_fk=?
-    */
     console.log(groupSchedule);
     const { customGroupId, dateFrom, dateTo, scheduleId } = groupSchedule;
     //2. delete employees from custom group where scheduleId,dateFrom,dateTo
@@ -146,12 +139,6 @@ export class ScheduleService extends CrudHelper<Schedule> {
     )) as string[];
 
     console.log('employees:', employeeIdsArray);
-
-    //console.log(employeeIdsArray);
-    // const deleteEmployeeCustomGroupResult = (await this.rawQuery(
-    //   `DELETE FROM custom_group_members WHERE custom_group_id_fk = ? AND employee_id_fk IN (?);`,
-    //   [customGroupId, employeeIdsArray]
-    //));
 
     const deleteEmployeeCustomGroupResult = (await this.rawQuery(
       `DELETE FROM employee_schedule WHERE employee_id_fk IN (?) AND date_format(date_from, '%Y-%m-%d') = ? and date_format(date_to, '%Y-%m-%d') = ? AND schedule_id_fk = ? AND custom_group_id_fk = ?;`,
