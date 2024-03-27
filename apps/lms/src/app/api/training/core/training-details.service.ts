@@ -778,6 +778,38 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
+  async findNomineesRequirementsByTrainingId(trainingId: string) {
+    try {
+      /* find training details */
+      const trainingDetails = await this.crudService.findOne({
+        find: {
+          select: {
+            id: true,
+            trainingRequirements: true,
+          },
+          where: {
+            id: trainingId,
+          },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+
+      /* find nominees requirements  */
+      const batches = await this.trainingNomineesService.findAllNomineesRequirementsByTrainingId(trainingId);
+
+      /* custom return */
+      return {
+        requirements: JSON.parse(trainingDetails.trainingRequirements),
+        batches: batches,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   /* microservices */
 
   /* pdc secretariat approval of training by training id */
