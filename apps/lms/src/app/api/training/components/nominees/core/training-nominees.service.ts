@@ -47,7 +47,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           .transact<TrainingDistribution>(entityManager)
           .update({
             updateBy: {
-              id: trainingDistribution.id,
+              id: trainingDistribution,
             },
             dto: {
               status: status,
@@ -63,7 +63,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             return await this.crudService.transact<TrainingNominee>(entityManager).create({
               dto: {
                 ...items,
-                trainingDistribution: trainingDistribution,
+                trainingDistribution: {
+                  id: trainingDistribution,
+                },
               },
               onError: (error) => {
                 throw error;
