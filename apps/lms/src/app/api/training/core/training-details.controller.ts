@@ -324,7 +324,7 @@ export class TrainingDetailsController {
   /* find all nominee requirements by training id */
   @Get(':id/requirements')
   async findAllNomineesRequirementsByTrainingId(@Param('id') id: string) {
-    return await this.trainingNomineesService.findAllNomineesRequirementsByTrainingId(id);
+    return await this.trainingDetailsService.findNomineesRequirementsByTrainingId(id);
   }
 
   /* find all nominee requirements by training id */

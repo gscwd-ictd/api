@@ -12,7 +12,7 @@ export class TrainingRequirementsService extends CrudHelper<TrainingRequirements
   /* find all nominee requirements by nominee id */
   async findNomineeRequirementsByNomineeId(nomineeId: string) {
     try {
-      return await this.crudService.findOne({
+      const requirements = (await this.crudService.findOne({
         find: {
           select: {
             id: true,
@@ -24,6 +24,7 @@ export class TrainingRequirementsService extends CrudHelper<TrainingRequirements
             learningApplicationPlan: true,
             postTest: true,
             certificateOfTraining: true,
+            certificateOfAppearance: true,
             program: true,
           },
           where: {
@@ -35,7 +36,50 @@ export class TrainingRequirementsService extends CrudHelper<TrainingRequirements
         onError: (error) => {
           throw error;
         },
-      });
+      })) as TrainingRequirements;
+
+      return [
+        {
+          document: 'Attendance',
+          isSelected: requirements.attendance,
+        },
+        {
+          document: 'Pre-test',
+          isSelected: requirements.preTest,
+        },
+        {
+          document: 'Course Materials',
+          isSelected: requirements.courseMaterials,
+        },
+        {
+          document: 'Post Training Report',
+          isSelected: requirements.postTrainingReport,
+        },
+        {
+          document: 'Course Evaluation Report',
+          isSelected: requirements.courseEvaluationReport,
+        },
+        {
+          document: 'Learning Application Plan',
+          isSelected: requirements.learningApplicationPlan,
+        },
+        {
+          document: 'Post-test',
+          isSelected: requirements.postTest,
+        },
+        {
+          document: 'Certificate of Training',
+          isSelected: requirements.certificateOfTraining,
+        },
+        {
+          document: 'Certificate of Appearance',
+          isSelected: requirements.certificateOfAppearance,
+        },
+        {
+          document: 'Program',
+          isSelected: requirements.program,
+        },
+      ];
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
