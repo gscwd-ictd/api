@@ -503,63 +503,6 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           };
         })
       );
-
-      /* const distinctBatch = (await Promise.all(
-        batch.filter((obj, index, self) => index === self.findIndex((t) => t.batchNumber === obj.batchNumber))
-      )) as Array<TrainingNominee>; */
-
-      /* return await Promise.all(
-        distinctBatch.map(async (batchItems) => {
-          const batchEmployees = (await this.crudService.findAll({
-            find: {
-              relations: { trainingDistribution: true },
-              select: {
-                id: true,
-                employeeId: true,
-                trainingDistribution: {
-                  id: true,
-                  supervisorId: true,
-                },
-              },
-              where: {
-                batchNumber: batchItems.batchNumber,
-                trainingDistribution: {
-                  trainingDetails: {
-                    id: trainingId,
-                  },
-                },
-              },
-            },
-          })) as Array<TrainingNominee>;
-
-          const employees = await Promise.all(
-            batchEmployees.map(async (employeeItems) => {
-              const supervisorName = await this.hrmsEmployeesService.findEmployeesById(employeeItems.trainingDistribution.supervisorId);
-              const employeeName = await this.hrmsEmployeesService.findEmployeesById(employeeItems.employeeId);
-
-              return {
-                nomineeId: employeeItems.id,
-                employeeId: employeeItems.employeeId,
-                name: employeeName.fullName,
-                distributionId: employeeItems.trainingDistribution.id,
-                supervisor: {
-                  supervisorId: employeeItems.trainingDistribution.supervisorId,
-                  name: supervisorName.fullName,
-                },
-              };
-            })
-          );
-
-          return {
-            batchNumber: batchItems.batchNumber,
-            trainingDate: {
-              from: batchItems.trainingStart,
-              to: batchItems.trainingEnd,
-            },
-            employees,
-          };
-        })
-      ); */
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -574,6 +517,8 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         find: {
           select: {
             batchNumber: true,
+            trainingStart: true,
+            trainingEnd: true,
           },
           order: {
             batchNumber: 'ASC',
@@ -634,6 +579,10 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           /* custom return */
           return {
             batchNumber: items.batchNumber,
+            trainingDate: {
+              from: items.trainingStart,
+              to: items.trainingEnd,
+            },
             employees: employees,
           };
         })
