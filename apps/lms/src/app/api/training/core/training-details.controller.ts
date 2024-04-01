@@ -328,7 +328,7 @@ export class TrainingDetailsController {
   }
 
   /* find all nominee requirements by training id */
-  @Post('requirements')
+  @Put('requirements')
   async updateNomineeRequirements(@Body() data: BatchRequirementsDto) {
     return await this.trainingRequirementsService.updateNomineeRequirements(data);
   }
