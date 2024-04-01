@@ -1,6 +1,6 @@
-import { IsBoolean, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { TrainingNomineeDto } from '../training-nominees';
-import { PartialType } from '@nestjs/swagger';
+import { DocumentRequirementsType } from '@gscwd-api/utils';
 
 export class TrainingRequirementsDto {
   @IsString({ message: 'training requirements must be a string' })
@@ -57,8 +57,31 @@ export class CreateTrainingRequirementsDto {
   nomineeId: TrainingNomineeDto;
 }
 
-export class UpdateTrainingRequirementsDto extends PartialType(AttendanceDto) {
+export class UpdateTrainingRequirementsDto {
   @IsNotEmpty()
   @IsUUID('4')
   nomineeId: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  requirements: Array<NomineeRequirementsDto>;
+}
+
+export class NomineeRequirementsDto {
+  @IsNotEmpty()
+  @IsString({ message: 'training requirements must be a string' })
+  document: DocumentRequirementsType;
+
+  @IsString({ message: 'training requirements must be a string' })
+  isSelected: boolean;
+}
+
+export class BatchRequirementsDto {
+  @IsNotEmpty({ message: 'batch number must not be empty' })
+  @IsInt({ message: 'batch number must be string' })
+  batchNumber: number;
+
+  @IsNotEmpty()
+  @IsArray()
+  employees: Array<UpdateTrainingRequirementsDto>;
 }

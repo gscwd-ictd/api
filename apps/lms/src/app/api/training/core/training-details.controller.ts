@@ -15,6 +15,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import {
+  BatchRequirementsDto,
   CreateTrainingBatchDto,
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
@@ -24,7 +25,6 @@ import {
   UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
-  UpdateTrainingRequirementsDto,
   UpdateTrainingStatusDto,
 } from '@gscwd-api/models';
 import { TrainingDetailsService } from './training-details.service';
@@ -329,7 +329,7 @@ export class TrainingDetailsController {
 
   /* find all nominee requirements by training id */
   @Post('requirements')
-  async updateNomineeRequirements(@Body() data: UpdateTrainingRequirementsDto) {
+  async updateNomineeRequirements(@Body() data: BatchRequirementsDto) {
     return await this.trainingRequirementsService.updateNomineeRequirements(data);
   }
 }

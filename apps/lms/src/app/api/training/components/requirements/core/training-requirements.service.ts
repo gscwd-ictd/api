@@ -1,5 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { RequirementsDto, TrainingRequirements, UpdateTrainingRequirementsDto } from '@gscwd-api/models';
+import { BatchRequirementsDto, RequirementsDto, TrainingRequirements } from '@gscwd-api/models';
+import { DocumentRequirementsType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 
@@ -111,31 +112,61 @@ export class TrainingRequirementsService extends CrudHelper<TrainingRequirements
   }
 
   /* update nominee requirements by nominee id */
-  async updateNomineeRequirements(data: UpdateTrainingRequirementsDto) {
+  async updateNomineeRequirements(data: BatchRequirementsDto) {
     try {
       /* deconstruct data */
-      const { nomineeId, ...rest } = data;
+      const { employees } = data;
 
-      /* update nominee requirements */
-      return await this.crudService.update({
-        updateBy: {
-          trainingNominee: {
-            id: nomineeId,
-          },
-        },
-        dto: {
-          ...rest,
-        },
-        onError: (error) => {
-          throw error;
-        },
-      });
+      return await Promise.all(
+        employees.map(async (items) => {
+          const { nomineeId, requirements } = items;
+          const attendance = requirements.find((items) => items.document === DocumentRequirementsType.ATTENDANCE).isSelected;
+          const preTest = requirements.find((items) => items.document === DocumentRequirementsType.PRE_TEST).isSelected;
+          const courseMaterials = requirements.find((items) => items.document === DocumentRequirementsType.COURSE_MATERIALS).isSelected;
+          const postTrainingReport = requirements.find((items) => items.document === DocumentRequirementsType.POST_TRAINING_REPORT).isSelected;
+          const courseEvaluationReport = requirements.find(
+            (items) => items.document === DocumentRequirementsType.COURSE_EVALUATION_REPORT
+          ).isSelected;
+          const learningApplicationPlan = requirements.find(
+            (items) => items.document === DocumentRequirementsType.LEARNING_APPLICATION_PLAN
+          ).isSelected;
+          const postTest = requirements.find((items) => items.document === DocumentRequirementsType.POST_TEST).isSelected;
+          const certificateOfTraining = requirements.find((items) => items.document === DocumentRequirementsType.CERTIFICATE_OF_TRAINING).isSelected;
+          const certificateOfAppearance = requirements.find(
+            (items) => items.document === DocumentRequirementsType.CERTIFICATE_OF_APPEARANCE
+          ).isSelected;
+          const program = requirements.find((items) => items.document === DocumentRequirementsType.PROGRAM).isSelected;
+
+          /* update nominee requirements */
+          return await this.crudService.update({
+            updateBy: {
+              trainingNominee: {
+                id: nomineeId,
+              },
+            },
+            dto: {
+              attendance: attendance,
+              preTest: preTest,
+              courseMaterials: courseMaterials,
+              postTrainingReport: postTrainingReport,
+              courseEvaluationReport: courseEvaluationReport,
+              learningApplicationPlan: learningApplicationPlan,
+              postTest: postTest,
+              certificateOfTraining: certificateOfTraining,
+              certificateOfAppearance: certificateOfAppearance,
+              program: program,
+            },
+            onError: (error) => {
+              throw error;
+            },
+          });
+        })
+      );
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
-
   /* delete nominee requirement by nominee id */
   async deleteNomineeRequirements(nomineeId: string, entityManager: EntityManager) {
     try {
