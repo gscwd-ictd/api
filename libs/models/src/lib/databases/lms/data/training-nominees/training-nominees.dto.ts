@@ -23,9 +23,8 @@ export class NomineeDto {
 export class CreateTrainingNomineeDto {
   @IsNotEmpty()
   @IsUUID('4')
-  trainingDistribution: TrainingDistributionDto;
+  trainingDistribution: string;
 
-  @ArrayNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => NomineeDto)
