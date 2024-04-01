@@ -52,6 +52,7 @@ export enum NomineeType {
 }
 
 export enum DocumentRequirementsType {
+  ATTENDANCE = 'Attendance',
   PRE_TEST = 'Pre-test',
   COURSE_MATERIALS = 'Course Materials',
   POST_TRAINING_REPORT = 'Post Training Report',
