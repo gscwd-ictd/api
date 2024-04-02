@@ -484,7 +484,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             }
           }
         } else {
-          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))) {
+          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))) {
             if (_timeIn === null) _timeIn = time;
           }
           if (
@@ -523,14 +523,15 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           if (
             (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn)) ||
               dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeIn))) &&
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))
           ) {
             _timeIn = time;
           }
         } else {
           if (
             dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeIn)) &&
-            (dayjs().isAfter(dayjs('2023-01-01 ' + timeOut)) || dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut)))
+            (dayjs().isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour')) ||
+              dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour')))
           ) {
             _timeOut = time;
           }
@@ -676,7 +677,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             _timeIn = time;
           } else {
             //baka halfday lang siya
-            if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))) {
+            if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))) {
               _timeIn = time;
             }
           }
@@ -769,7 +770,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           if (
             (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn)) ||
               dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeIn))) &&
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))
           ) {
             _timeIn = time;
           }
@@ -819,7 +820,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             if (
               (dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + lunchIn)) ||
                 dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + lunchIn))) &&
-              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))
             ) {
               _lunchIn = time;
             }
@@ -828,7 +829,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               (dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + lunchOut)) ||
                 dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + lunchOut))) &&
               dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + lunchIn)) &&
-              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))
             ) {
               _lunchOut = time;
             }
@@ -839,7 +840,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             (dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + lunchOut)) ||
               dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + lunchOut))) &&
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + lunchIn)) &&
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))
           ) {
             if (suspensionHours >= 4) _timeOut = time;
             else _lunchOut = time;
@@ -847,7 +848,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           if (
             (dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + lunchIn)) ||
               dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + lunchIn))) &&
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut))
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))
           ) {
             if (suspensionHours >= 4) _timeOut = time;
             else if (_lunchIn === null) _lunchIn = time;
