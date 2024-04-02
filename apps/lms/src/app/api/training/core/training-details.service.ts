@@ -796,17 +796,84 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         },
       });
 
+      const requirements = await this.trainingRequirements(JSON.parse(trainingDetails.trainingRequirements));
+
       /* find nominees requirements  */
       const batches = await this.trainingNomineesService.findAllNomineesRequirementsByTrainingId(trainingId);
 
       /* custom return */
       return {
-        requirements: JSON.parse(trainingDetails.trainingRequirements),
+        requirements: requirements,
         batches: batches,
       };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async trainingRequirements(requirements: Array<TrainingRequirementsRaw>) {
+    try {
+      const attendance = requirements.find((items) => items.document === DocumentRequirementsType.ATTENDANCE) ? true : null;
+      const preTest = requirements.find((items) => items.document === DocumentRequirementsType.PRE_TEST) ? true : null;
+      const courseMaterials = requirements.find((items) => items.document === DocumentRequirementsType.COURSE_MATERIALS) ? true : null;
+      const postTrainingReport = requirements.find((items) => items.document === DocumentRequirementsType.POST_TRAINING_REPORT) ? true : null;
+      const courseEvaluationReport = requirements.find((items) => items.document === DocumentRequirementsType.COURSE_EVALUATION_REPORT) ? true : null;
+      const learningApplicationPlan = requirements.find((items) => items.document === DocumentRequirementsType.LEARNING_APPLICATION_PLAN)
+        ? true
+        : null;
+      const postTest = requirements.find((items) => items.document === DocumentRequirementsType.POST_TEST) ? true : null;
+      const certificateOfTraining = requirements.find((items) => items.document === DocumentRequirementsType.CERTIFICATE_OF_TRAINING) ? true : null;
+      const certificateOfAppearance = requirements.find((items) => items.document === DocumentRequirementsType.CERTIFICATE_OF_APPEARANCE)
+        ? true
+        : null;
+      const program = requirements.find((items) => items.document === DocumentRequirementsType.PROGRAM) ? true : null;
+
+      return [
+        {
+          document: 'Attendance',
+          isSelected: attendance,
+        },
+        {
+          document: 'Pre-test',
+          isSelected: preTest,
+        },
+        {
+          document: 'Course Materials',
+          isSelected: courseMaterials,
+        },
+        {
+          document: 'Post Training Report',
+          isSelected: postTrainingReport,
+        },
+        {
+          document: 'Course Evaluation Report',
+          isSelected: courseEvaluationReport,
+        },
+        {
+          document: 'Learning Application Plan',
+          isSelected: learningApplicationPlan,
+        },
+        {
+          document: 'Post-test',
+          isSelected: postTest,
+        },
+        {
+          document: 'Certificate of Training',
+          isSelected: certificateOfTraining,
+        },
+        {
+          document: 'Certificate of Appearance',
+          isSelected: certificateOfAppearance,
+        },
+        {
+          document: 'Program',
+          isSelected: program,
+        },
+      ];
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 

@@ -115,7 +115,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
   async pdcSecretariatApproval(data: PdcSecretariatDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
-      const { trainingDetails, pdcSecretariat } = data;
+      const { trainingDetails, pdcSecretariat, remarks } = data;
 
       /* set the date to today */
       const today = new Date();
@@ -130,6 +130,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
         dto: {
           pdcSecretariat: pdcSecretariat,
           pdcSecretariatApprovalDate: today,
+          remarks: remarks,
         },
         onError: (error) => {
           throw error;
@@ -145,7 +146,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
   async pdcChairmanApproval(data: PdcChairmanDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
-      const { trainingDetails, pdcChairman } = data;
+      const { trainingDetails, pdcChairman, remarks } = data;
       /* set the date to today */
       const today = new Date();
 
@@ -157,6 +158,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
         dto: {
           pdcChairman: pdcChairman,
           pdcChairmanApprovalDate: today,
+          remarks: remarks,
         },
         onError: (error) => {
           throw error;
@@ -172,7 +174,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
   async generalManagerApproval(data: GeneralManagerDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
-      const { trainingDetails, generalManager } = data;
+      const { trainingDetails, generalManager, remarks } = data;
       /* set the date to today */
       const today = new Date();
 
@@ -186,6 +188,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
         dto: {
           generalManager: generalManager,
           generalManagerApprovalDate: today,
+          remarks: remarks,
         },
         onError: (error) => {
           throw error;
