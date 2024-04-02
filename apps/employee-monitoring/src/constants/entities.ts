@@ -30,6 +30,7 @@ import {
   OfficerOfTheDay,
   DtrCorrection,
   EventsAnnouncements,
+  WorkSuspension,
 } from '@gscwd-api/models';
 
 export const typeOrmEntities = [
@@ -64,4 +65,5 @@ export const typeOrmEntities = [
   OfficerOfTheDay,
   DtrCorrection,
   EventsAnnouncements,
+  WorkSuspension,
 ];
