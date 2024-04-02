@@ -8,8 +8,9 @@ export class TrainingDesignDto {
 }
 
 export class CreateTrainingDesignDto {
+  @IsNotEmpty({ message: 'training design course title must not be empty' })
   @IsString({ message: 'training design course title must be a string' })
-  @Length(1, 100, { message: 'training design course title must be between 1 to 100 characters' })
+  @Length(1, 200, { message: 'training design course title must be between 1 to 200 characters' })
   courseTitle: string;
 
   @IsObject({ message: 'training design course description must be a object' })

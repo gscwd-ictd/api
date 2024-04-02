@@ -1,17 +1,18 @@
 import { IsNotEmpty, IsUUID } from 'class-validator';
-import { Tag } from '../tags';
 import { PartialType } from '@nestjs/swagger';
-import { TrainingDetails } from '../training-details';
+import { TrainingDetailsDto } from '../training-details';
+import { TagDto } from '../tags';
 
 export class TrainingTagDto {
   @IsNotEmpty()
   @IsUUID('4')
-  id: Tag;
+  id: TagDto;
 }
 
 export class CreateTrainingTagDto extends TrainingTagDto {
+  @IsNotEmpty()
   @IsUUID('4')
-  trainingDetails: TrainingDetails;
+  trainingDetails: TrainingDetailsDto;
 }
 
 export class UpdateTrainingTagDto extends PartialType(CreateTrainingTagDto) {}

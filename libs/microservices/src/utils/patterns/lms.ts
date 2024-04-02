@@ -6,6 +6,8 @@ export enum FindEmployeesPatterns {
   GET_EMPLOYEES_BY_NAME_MATCH = 'get_employees_by_name_match',
   GET_EMPLOYEES_BY_ID = 'get_employee_name',
   GET_EMPLOYEES_DETAILS_BY_ID = 'get_lsp_pds_details',
+  GET_ALL_ORGANIZATION = 'get_all_departments_and_ogm',
+  GET_EMPLOYEES_BY_ORGANIZATION_ID = 'get_employees_by_org_id',
 }
 
 export enum EmployeeTagsPatterns {
@@ -27,9 +29,9 @@ export enum TrainingPatterns {
   UPDATE_TRAINING_NOMINEES_STATUS_BY_ID = 'update_training_nominees_status_by_id',
 
   // pdc approvals
-  FIND_ALL_PDC_SECRETARY_APPROVAL = 'find_all_pdc_secretary_approval',
-  PDC_SECRETARY_APPROVAL = 'for_pdc_secretary_approval',
-  PDC_SECRETARY_DECLINED = 'for_pdc_secretary_declined',
+  FIND_ALL_PDC_SECRETARIAT_APPROVAL = 'find_all_pdc_secretariat_approval',
+  PDC_SECRETARIAT_APPROVAL = 'for_pdc_secretariat_approval',
+  PDC_SECRETARIAT_DECLINED = 'for_pdc_secretariat_declined',
   FIND_ALL_PDC_CHAIRMAN_APPROVAL = 'find_all_pdc_chairman_approval',
   PDC_CHAIRMAN_APPROVAL = 'for_pdc_chairman_approval',
   PDC_CHAIRMAN_DECLINED = 'for_pdc_chairman_declined',

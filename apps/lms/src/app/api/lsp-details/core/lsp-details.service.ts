@@ -7,6 +7,7 @@ import {
   UpdateLspIndividualExternalDto,
   UpdateLspIndividualInternalDto,
   UpdateLspOrganizationExternalDto,
+  UploadPhotoDto,
 } from '@gscwd-api/models';
 import { LspSource, LspType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
@@ -38,11 +39,14 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
   }
 
   /* find learning service provider by id */
-  async findLspById(id: string) {
+  async findLspDetailsById(id: string) {
     try {
       /* check if learning service provider id is existing */
       const lspDetails = await this.crudService.findOneBy({
-        findBy: { id },
+        findBy: { id: id },
+        onError: () => {
+          throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+        },
       });
 
       switch (true) {
@@ -73,10 +77,13 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     try {
       /* find learning service provider details */
       const lspDetails = await this.crudService.findOneBy({
-        findBy: { id },
+        findBy: { id: id },
+        onError: () => {
+          throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+        },
       });
 
-      /*  find employee details by employee */
+      /*  find employee details by employee id */
       const employeeDetails = await this.portalEmployeesService.findEmployeesDetailsById(lspDetails.employeeId);
 
       /* find all affiliations by learning service provider id */
@@ -96,7 +103,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         updatedAt: lspDetails.updatedAt,
         deletedAt: lspDetails.deletedAt,
         id: lspDetails.id,
-        /* employeeId: employeeDetails.employeeId, */
+        employeeId: employeeDetails.employeeId,
         name: employeeDetails.fullName,
         sex: employeeDetails.sex,
         contactNumber: employeeDetails.contactNumber,
@@ -118,7 +125,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         trainings: trainings,
       };
     } catch (error) {
-      Logger.log(error);
+      Logger.error(error);
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     }
   }
@@ -128,7 +135,10 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     try {
       /*  find learning service provider details by id */
       const lspDetails = await this.crudService.findOneBy({
-        findBy: { id },
+        findBy: { id: id },
+        onError: () => {
+          throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+        },
       });
 
       /* find all affiliations by learning service provider id */
@@ -152,17 +162,18 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
       /* find all trainings by learning service provider id */
       const trainings = await this.lspTrainingsService.findAllTrainingsByLspId(lspDetails.id);
 
+      /* custom return */
       return {
         createdAt: lspDetails.createdAt,
         updatedAt: lspDetails.updatedAt,
         deletedAt: lspDetails.deletedAt,
         id: lspDetails.id,
-        /* firstName: lspDetails.firstName,
+        firstName: lspDetails.firstName,
         middleName: lspDetails.middleName,
         lastName: lspDetails.lastName,
         prefixName: lspDetails.prefixName,
         suffixName: lspDetails.suffixName,
-        extensionName: lspDetails.extensionName, */
+        extensionName: lspDetails.extensionName,
         name: lspDetails.fullName,
         sex: lspDetails.sex,
         contactNumber: lspDetails.contactNumber,
@@ -171,6 +182,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         tin: lspDetails.tin,
         experience: lspDetails.experience,
         introduction: lspDetails.introduction,
+        photoId: lspDetails.photoId,
         photoUrl: lspDetails.photoUrl,
         type: lspDetails.type,
         source: lspDetails.source,
@@ -194,7 +206,10 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
     try {
       /*  find learning service provider details by id */
       const lspDetails = await this.crudService.findOneBy({
-        findBy: { id },
+        findBy: { id: id },
+        onError: () => {
+          throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+        },
       });
 
       /* find all affiliations by learning service provider id */
@@ -224,6 +239,7 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
         tin: lspDetails.tin,
         experience: lspDetails.experience,
         introduction: lspDetails.introduction,
+        photoId: lspDetails.photoId,
         photoUrl: lspDetails.photoUrl,
         type: lspDetails.type,
         source: lspDetails.source,
@@ -739,8 +755,29 @@ export class LspDetailsService extends CrudHelper<LspDetails> {
 
       return await Promise.all([affiliations, awards, certifications, coachings, educations, projects, trainings]);
     } catch (error) {
-      Logger.log(error);
+      Logger.error(error);
       throw error;
+    }
+  }
+
+  async uploadPhoto(data: UploadPhotoDto) {
+    try {
+      const { lspId, photoId, photoUrl } = data;
+      return await this.crudService.update({
+        updateBy: {
+          id: lspId,
+        },
+        dto: {
+          photoId: photoId,
+          photoUrl: photoUrl,
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 }

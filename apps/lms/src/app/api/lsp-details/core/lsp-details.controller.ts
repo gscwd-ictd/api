@@ -8,6 +8,7 @@ import {
   InternalServerErrorException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -22,6 +23,7 @@ import {
   UpdateLspIndividualExternalDto,
   UpdateLspIndividualInternalDto,
   UpdateLspOrganizationExternalDto,
+  UploadPhotoDto,
 } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { LspSource, LspType } from '@gscwd-api/utils';
@@ -70,8 +72,8 @@ export class LspDetailsController {
 
   /* find learning service provider by id */
   @Get(':id')
-  async findLspById(@Param('id') id: string) {
-    return await this.lspDetailsService.findLspById(id);
+  async findLspDetailsById(@Param('id') id: string) {
+    return await this.lspDetailsService.findLspDetailsById(id);
   }
 
   /* insert learning service provider (type = individual & source = internal) */
@@ -118,5 +120,11 @@ export class LspDetailsController {
       softDelete: false,
       onError: () => new BadRequestException(),
     });
+  }
+
+  /* upload the photo of learning service provider */
+  @Patch('upload/photo')
+  async uploadPhoto(@Body() data: UploadPhotoDto) {
+    return await this.lspDetailsService.uploadPhoto(data);
   }
 }

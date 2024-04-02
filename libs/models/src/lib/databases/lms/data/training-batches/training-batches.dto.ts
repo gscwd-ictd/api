@@ -1,7 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsDateString, IsInt, IsNotEmpty, IsObject, IsUUID, ValidateNested } from 'class-validator';
-import { TrainingNomineeDto } from '../training-nominees';
 
 export class TrainingDateDto {
   @IsNotEmpty()
@@ -16,7 +15,7 @@ export class TrainingDateDto {
 export class BatchEmployeeDto {
   @IsNotEmpty()
   @IsUUID('4')
-  nomineeId: TrainingNomineeDto;
+  nomineeId: string;
 }
 
 export class TrainingBatchDto {

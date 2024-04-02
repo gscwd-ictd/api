@@ -6,8 +6,8 @@ import { CreateUserDto } from '@gscwd-api/models';
 export class HrmsUsersController {
   constructor(private readonly hrmsUsersService: HrmsUsersService) {}
 
-  // find hrms users by app
-  @Get('lnd')
+  /* find lnd users */
+  @Get('lnd/users')
   async findLndUsers(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
@@ -20,7 +20,8 @@ export class HrmsUsersController {
     }
   }
 
-  @Get('lnd/assignable')
+  /* find lnd assignable users */
+  @Get('lnd/users/assignable')
   async findAssignableUsers() {
     try {
       return await this.hrmsUsersService.findAssignableLndUsers();
@@ -29,7 +30,8 @@ export class HrmsUsersController {
     }
   }
 
-  @Post('lnd')
+  /* create lnd users */
+  @Post('lnd/users')
   async createLndUsers(@Body() data: CreateUserDto) {
     try {
       return await this.hrmsUsersService.createLndUsers(data);
@@ -38,10 +40,11 @@ export class HrmsUsersController {
     }
   }
 
-  @Delete('lnd/:id')
-  async removeLndUsers(@Param('id') id: string) {
+  /* delete lnd users by employee id */
+  @Delete('lnd/users/:id')
+  async deleteLndUsers(@Param('id') id: string) {
     try {
-      return await this.hrmsUsersService.removeLndUsers(id);
+      return await this.hrmsUsersService.deleteLndUsers(id);
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }

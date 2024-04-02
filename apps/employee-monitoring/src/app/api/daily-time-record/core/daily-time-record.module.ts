@@ -14,6 +14,7 @@ import { LeaveAddBackModule } from '../../leave/components/leave-add-back/core/l
 import { EmployeesModule } from '../../employees/core/employees.module';
 import { DtrCorrectionModule } from '../../dtr-correction/core/dtr-correction.module';
 import { DtrCorrectionService } from '../../dtr-correction/core/dtr-correction.service';
+import { WorkSuspensionModule } from '../../work-suspension/core/work-suspension.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { DtrCorrectionService } from '../../dtr-correction/core/dtr-correction.s
     LeaveCardLedgerCreditModule,
     LeaveAddBackModule,
     EmployeesModule,
+    WorkSuspensionModule,
   ],
   providers: [DailyTimeRecordService, MicroserviceClient],
   controllers: [DailyTimeRecordController],

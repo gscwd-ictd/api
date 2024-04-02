@@ -28,3 +28,5 @@ export * from './data/user-logs';
 export * from './data/ems-settings';
 export * from './data/officer-of-the-day';
 export * from './data/dtr-correction';
+export * from './data/events-announcements';
+export * from './data/work-suspension';

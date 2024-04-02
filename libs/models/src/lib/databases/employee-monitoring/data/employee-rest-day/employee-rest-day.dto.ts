@@ -2,7 +2,7 @@ import { RestDays } from '@gscwd-api/utils';
 import { IsArray, IsDateString, IsUUID } from 'class-validator';
 
 export class CreateEmployeeRestDayDto {
-  @IsUUID(4)
+  @IsUUID()
   employeeId: string;
 
   @IsDateString()

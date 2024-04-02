@@ -181,4 +181,12 @@ export class EmployeesService {
       payload: employeeIds,
     })) as { label: string; value: string }[];
   }
+
+  async getCompanyIdsByOrgId(orgId: string) {
+    return (await this.client.call<string, string, object[]>({
+      action: 'send',
+      pattern: 'get_company_ids_by_org_id',
+      payload: orgId,
+    })) as { companyId: string }[];
+  }
 }

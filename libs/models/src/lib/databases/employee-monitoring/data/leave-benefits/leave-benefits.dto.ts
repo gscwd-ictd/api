@@ -31,6 +31,6 @@ export class CreateLeaveBenefitsDto {
 }
 
 export class UpdateLeaveBenefitsDto extends PartialType(CreateLeaveBenefitsDto) {
-  @IsUUID(4)
+  @IsUUID()
   id: string;
 }
