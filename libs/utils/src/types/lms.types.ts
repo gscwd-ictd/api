@@ -4,6 +4,18 @@ export type EmployeeFullNameRaw = {
   fullName: string;
 };
 
+export type OrganizationRaw = {
+  _id: string;
+  name: string;
+  orgStruct: string;
+  code: string;
+};
+
+export type OrganizationEmployeeRaw = {
+  value: string;
+  label: string;
+};
+
 export type PortalEmployeeDetailsRaw = {
   employeeId: string;
   sex: string;

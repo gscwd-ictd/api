@@ -9,4 +9,9 @@ export class StatsController {
   async countTrainingStatus() {
     return await this.statsService.countTrainingStatus();
   }
+
+  @Get('nominees/count/accepted')
+  async countAcceptedNominees() {
+    return await this.statsService.countAcceptedNominees();
+  }
 }
