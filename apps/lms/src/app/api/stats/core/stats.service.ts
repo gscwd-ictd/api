@@ -64,6 +64,7 @@ export class StatsService {
           const totalCount = count.reduce((total, count) => total + count, 0);
 
           return {
+            code: items.code,
             department: items.name,
             count: totalCount,
           };
