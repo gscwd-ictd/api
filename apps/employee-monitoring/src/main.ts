@@ -32,6 +32,7 @@ const whitelist = [
   'http://172.20.110.45:3001',
   'http://172.20.110.45:3002',
   'http://172.20.10.63:3005',
+  'http://172.20.10.63:3000',
   'http://172.20.10.58:3000',
 ];
 //${process.env.EMPLOYEE_MONITORING_REDIS_HOST}
