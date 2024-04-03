@@ -1,10 +1,8 @@
 export * from './course-contents';
 export * from './nominee-qualifications';
 
-//new learning service provider
+/* learning service provider */
 export * from './lsp-details';
-
-//new child entity learning service provider
 export * from './lsp-affiliations';
 export * from './lsp-awards';
 export * from './lsp-certifications';
@@ -13,11 +11,11 @@ export * from './lsp-educations';
 export * from './lsp-projects';
 export * from './lsp-trainings';
 
-//tags
+/* tags */
 export * from './tags';
 export * from './employee-tags';
 
-//new training
+/* training */
 export * from './training-sources';
 export * from './training-designs';
 export * from './training-details';
@@ -31,6 +29,9 @@ export * from './training-batches';
 export * from './training-approval';
 export * from './training-requirements';
 
-// user
+/* benchmark */
+export * from './benchmark';
+export * from './benchmark-participants';
 
+/* users */
 export * from './users';
