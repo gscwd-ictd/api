@@ -413,7 +413,14 @@ export class OvertimeService {
     console.log('for approval');
     const forApprovalOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.PENDING);
 
-    const approvedOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(approvedOvertimes);
+    const cancelledOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.CANCELLED);
+    const disapprovedOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.DISAPPROVED);
+
+    const completedOvertimes = [...approvedOvertimes, ...cancelledOvertimes, ...disapprovedOvertimes].sort((a, b) =>
+      a.plannedDate > b.plannedDate ? -1 : a.plannedDate < b.plannedDate ? 1 : 0
+    );
+
+    const approvedOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(completedOvertimes);
     const forApprovalOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(forApprovalOvertimes);
 
     return {
