@@ -340,13 +340,13 @@ export class OvertimeService {
       overtimeApplication.map(async (otApplication) => {
         const { id } = otApplication;
 
-        const { dateApproved } = (
+        const { dateApproved, remarks } = (
           await this.overtimeApprovalService.rawQuery(
-            `SELECT date_approved dateApproved FROM overtime_approval WHERE overtime_application_id_fk = ?`,
+            `SELECT date_approved dateApproved, remarks FROM overtime_approval WHERE overtime_application_id_fk = ?`,
             [id]
           )
         )[0];
-        return { ...otApplication, dateApproved };
+        return { ...otApplication, dateApproved, remarks };
       })
     );
 
