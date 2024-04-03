@@ -24,6 +24,8 @@ import { TrainingNomineesModule } from './api/training/components/nominees';
 import { TrainingApprovalsModule } from './api/training/components/approvals';
 import { TrainingRequirementsModule } from './api/training/components/requirements';
 import { StatsModule } from './api/stats';
+import { BenchmarkModule } from './api/benchmark';
+import { BenchmarkParticipantsModule } from './api/benchmark/components/participants';
 
 @Module({
   imports: [
@@ -69,6 +71,10 @@ import { StatsModule } from './api/stats';
 
     /* stats */
     StatsModule,
+
+    /* benchmark */
+    BenchmarkModule,
+    BenchmarkParticipantsModule,
   ],
 })
 export class AppModule {}

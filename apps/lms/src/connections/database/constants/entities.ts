@@ -1,4 +1,6 @@
 import {
+  Benchmark,
+  BenchmarkParticipants,
   LspAffiliation,
   LspAward,
   LspCertification,
@@ -23,7 +25,7 @@ import {
 export const DB_ENTITIES = [
   // entities
 
-  //new learning service provider
+  /* learning service provider */
   LspDetails,
   LspAffiliation,
   LspAward,
@@ -33,10 +35,10 @@ export const DB_ENTITIES = [
   LspProject,
   LspTraining,
 
-  //new tag
+  /* tag */
   Tag,
 
-  //new training
+  /* training */
   TrainingSource,
   TrainingDesign,
   TrainingDetails,
@@ -47,5 +49,8 @@ export const DB_ENTITIES = [
   TrainingNominee,
   TrainingApproval,
   TrainingRequirements,
-  // views
+
+  /* benchmark */
+  Benchmark,
+  BenchmarkParticipants,
 ];
