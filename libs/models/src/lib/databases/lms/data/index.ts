@@ -32,6 +32,7 @@ export * from './training-requirements';
 /* benchmark */
 export * from './benchmark';
 export * from './benchmark-participants';
+export * from './benchmark-participant-requirements';
 
 /* users */
 export * from './users';

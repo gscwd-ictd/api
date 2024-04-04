@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'benchmark' })
 export class Benchmark extends DatabaseEntity implements IEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'training_details_id' })
+  @PrimaryGeneratedColumn('uuid', { name: 'benchmark_id' })
   id: string;
 
   @Column({ name: 'title', type: 'varchar', length: '300', nullable: false })
