@@ -832,6 +832,10 @@ export class OvertimeService {
 
   async getOvertimeAccomplishmentByEmployeeId(employeeId: string) {
     //!TODO refactor this
+
+    const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
+    const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
+
     const pendingOvertimes = (await this.overtimeAccomplishmentService.crud().findAll({
       find: {
         select: {
@@ -873,6 +877,7 @@ export class OvertimeService {
         const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
 
         return {
+          supervisorName,
           ...overtimeAccomplishmentDetails,
           overtimeApplicationId: overtimeApplicationId.id,
           estimatedHours,
