@@ -1,5 +1,9 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { BenchmarkParticipantRequirements, CreateBenchmarkParticipantRequirementsDto } from '@gscwd-api/models';
+import {
+  BenchmarkParticipantRequirements,
+  CreateBenchmarkParticipantRequirementsDto,
+  UpdateBenchmarkParticipantRequirementsDto,
+} from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 
@@ -9,14 +13,69 @@ export class BenchmarkParticipantRequirementsService extends CrudHelper<Benchmar
     super(crudService);
   }
 
-  /* insert participant requirements */
-  async createParticipantRequirementsService(data: CreateBenchmarkParticipantRequirementsDto, entityManager: EntityManager) {
+  /* find participants requirements */
+  async findParticipantRequirementsByParticipantsId(participantsId: string) {
     try {
+      const requirements = await this.crudService.findOne({
+        find: {
+          select: {
+            id: true,
+            learningApplicationPlan: true,
+          },
+          where: {
+            benchmarkParticipants: {
+              id: participantsId,
+            },
+          },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+
+      /* custom return */
+      return requirements.learningApplicationPlan;
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* insert participant requirements */
+  async createParticipantRequirements(data: CreateBenchmarkParticipantRequirementsDto, entityManager: EntityManager) {
+    try {
+      /* deconstruct data */
+      const { benchmarkParticipants } = data;
+
       return await this.crudService.transact<BenchmarkParticipantRequirements>(entityManager).create({
         dto: {
           benchmarkParticipants: {
-            id: data.benchmarkParticipants,
+            id: benchmarkParticipants,
           },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* edit participant requirements */
+  async updateParticipantRequirements(data: UpdateBenchmarkParticipantRequirementsDto, entityManager: EntityManager) {
+    try {
+      /* deconstruct data */
+      const { benchmarkParticipants, learningApplicationPlan } = data;
+
+      /* insert requirements */
+      return await this.crudService.transact<BenchmarkParticipantRequirements>(entityManager).create({
+        dto: {
+          benchmarkParticipants: {
+            id: benchmarkParticipants,
+          },
+          learningApplicationPlan: learningApplicationPlan,
         },
         onError: (error) => {
           throw error;
