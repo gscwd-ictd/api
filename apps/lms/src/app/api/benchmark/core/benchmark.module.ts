@@ -4,9 +4,10 @@ import { Module } from '@nestjs/common';
 import { BenchmarkController } from './benchmark.controller';
 import { BenchmarkService } from './benchmark.service';
 import { BenchmarkParticipantsModule } from '../components/participants';
+import { BenchmarkParticipantRequirementsModule } from '../components/participants-requirements';
 
 @Module({
-  imports: [CrudModule.register(Benchmark), BenchmarkParticipantsModule],
+  imports: [CrudModule.register(Benchmark), BenchmarkParticipantsModule, BenchmarkParticipantRequirementsModule],
   controllers: [BenchmarkController],
   providers: [BenchmarkService],
   exports: [BenchmarkService],
