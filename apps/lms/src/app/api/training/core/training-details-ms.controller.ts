@@ -175,6 +175,16 @@ export class TrainingDetailsMicroserviceController {
     }
   }
 
+  /* count pending nomination by supervisor id */
+  @MessagePattern(TrainingPatterns.COUNT_PENDING_NOMINATION_BY_SUPERVISOR_ID)
+  async countPendingNominationBySupervisorId(@Payload() supervisorId: string) {
+    try {
+      return await this.trainingDistributionsService.countPendingNominationBySupervisorId(supervisorId);
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
   /* testing microservices */
 
   /* find all training distribution by supervisor id */
@@ -275,5 +285,11 @@ export class TrainingDetailsMicroserviceController {
   async declinedTrainingByGm(@Body() data: GeneralManagerDto) {
     const trainingStatus = TrainingStatus.GM_DECLINED;
     return await this.trainingDetailsService.generalManagerApproval(data, trainingStatus);
+  }
+
+  /* count pending nomination by supervisor id */
+  @Get('count/nomination/supervisor/:supevisorId')
+  async pendingNominationBySupervisorId(@Param('supervisorId') supervisorId: string) {
+    return await this.trainingDistributionsService.countPendingNominationBySupervisorId(supervisorId);
   }
 }

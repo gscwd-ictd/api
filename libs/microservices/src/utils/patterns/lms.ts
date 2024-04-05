@@ -20,15 +20,16 @@ export enum EmployeeTagsPatterns {
 }
 
 export enum TrainingPatterns {
-  //distribution
+  /* distribution */
   FIND_TRAINING_DISTRIBUTION_BY_SUPERVISOR_ID = 'find_training_distribution_by_supervisor_id',
   FIND_TRAINING_RECOMMENDED_EMPLOYEES_BY_DISTRIBUTION_ID = 'find_training_recommended_employees_by_distribution_id',
   FIND_TRAINING_NOMINEES_BY_DISTRIBUTION_ID = 'find_training_nominees_by_distribution_id',
   FIND_ALL_TRAINING_BY_EMPLOYEE_ID = 'find_all_training_by_employee_id',
   ADD_NOMINEES_BY_TRAINING_DISTRIBUTION_ID = 'add_nominees_by_training_distribution_id',
   UPDATE_TRAINING_NOMINEES_STATUS_BY_ID = 'update_training_nominees_status_by_id',
+  COUNT_PENDING_NOMINATION_BY_SUPERVISOR_ID = 'count_pending_nomination_by_supervisor_id',
 
-  // pdc approvals
+  /*  pdc approvals */
   FIND_ALL_PDC_SECRETARIAT_APPROVAL = 'find_all_pdc_secretariat_approval',
   PDC_SECRETARIAT_APPROVAL = 'for_pdc_secretariat_approval',
   PDC_SECRETARIAT_DECLINED = 'for_pdc_secretariat_declined',
