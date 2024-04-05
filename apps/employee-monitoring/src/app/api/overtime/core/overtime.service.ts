@@ -408,6 +408,10 @@ export class OvertimeService {
 
   async getOvertimeApplicationsByImmediateSupervisorId(id: string) {
     console.log('approved');
+    const employeeId = await this.overtimeImmediateSupervisorService.crud().findOne({ find: { select: { employeeId: true }, where: { id } } });
+    const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId.employeeId);
+    const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
+
     const approvedOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.APPROVED);
 
     console.log('for approval');
@@ -424,6 +428,7 @@ export class OvertimeService {
     const forApprovalOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(forApprovalOvertimes);
 
     return {
+      supervisorName,
       completed: approvedOvertimesWithEmployees,
       forApproval: forApprovalOvertimesWithEmployees,
     };
@@ -827,6 +832,10 @@ export class OvertimeService {
 
   async getOvertimeAccomplishmentByEmployeeId(employeeId: string) {
     //!TODO refactor this
+
+    const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
+    const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
+
     const pendingOvertimes = (await this.overtimeAccomplishmentService.crud().findAll({
       find: {
         select: {
@@ -868,6 +877,7 @@ export class OvertimeService {
         const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
 
         return {
+          supervisorName,
           ...overtimeAccomplishmentDetails,
           overtimeApplicationId: overtimeApplicationId.id,
           estimatedHours,

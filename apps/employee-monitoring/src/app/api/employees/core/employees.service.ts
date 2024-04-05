@@ -89,12 +89,12 @@ export class EmployeesService {
   }
 
   async getEmployeeSupervisorId(employeeId: string) {
-    return await this.client.call<string, string, string>({
+    return (await this.client.call<string, string, string>({
       action: 'send',
       payload: employeeId,
       pattern: 'get_employee_supervisor_id',
       onError: (error) => new NotFoundException(error),
-    });
+    })) as string;
   }
 
   //get_monthly_hourly_rate_by_employee_id
