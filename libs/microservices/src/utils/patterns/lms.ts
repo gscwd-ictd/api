@@ -33,12 +33,15 @@ export enum TrainingPatterns {
   FIND_ALL_PDC_SECRETARIAT_APPROVAL = 'find_all_pdc_secretariat_approval',
   PDC_SECRETARIAT_APPROVAL = 'for_pdc_secretariat_approval',
   PDC_SECRETARIAT_DECLINED = 'for_pdc_secretariat_declined',
+  COUNT_PDC_SECRETARIAT_APPROVAL = 'count_pdc_secretariat_approval',
   FIND_ALL_PDC_CHAIRMAN_APPROVAL = 'find_all_pdc_chairman_approval',
   PDC_CHAIRMAN_APPROVAL = 'for_pdc_chairman_approval',
   PDC_CHAIRMAN_DECLINED = 'for_pdc_chairman_declined',
+  COUNT_PDC_CHAIRMAN_APPROVAL = 'count_pdc_chairman_approval',
   FIND_ALL_GM_APPROVAL = 'find_all_gm_approval',
   GM_APPROVAL = 'for_gm_approval',
   GM_DECLINED = 'for_gm_declined',
+  COUNT_GM_APPROVAL = 'count_gm_approval',
 }
 
 export enum HrmsUserPatterns {

@@ -41,7 +41,7 @@ export class BenchmarkController {
 
   /* find a benchmark by id*/
   @Get(':id')
-  async findBenchmarkById(@Param('id') id: string): Promise<Benchmark> {
+  async findBenchmarkById(@Param('id') id: string) {
     return await this.benchmarkService.findBenchmarkById(id);
   }
 
@@ -52,7 +52,7 @@ export class BenchmarkController {
   }
 
   /* delete a benchmark */
-  @Delete(':id  ')
+  @Delete(':id')
   async deleteBenchmark(@Param('id') id: string): Promise<DeleteResult> {
     return await this.benchmarkService.crud().delete({
       deleteBy: {

@@ -22,8 +22,8 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
         findBy: {
           id: id,
         },
-        onError: (error) => {
-          throw error;
+        onError: () => {
+          throw new HttpException('Not found', HttpStatus.NOT_FOUND);
         },
       });
 
