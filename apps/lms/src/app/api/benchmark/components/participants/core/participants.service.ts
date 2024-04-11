@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { BenchmarkParticipants, CreateBenchmarkParticipantsDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { EntityManager, QueryFailedError } from 'typeorm';
 
 @Injectable()
 export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipants> {
@@ -29,7 +29,31 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       });
 
       /* custom return */
-      return { employeeId: employee.employeeId };
+      return { id: employee.id, employeeId: employee.employeeId };
+    } catch (error) {
+      Logger.error(error);
+      if (error.code === '23505' && error instanceof QueryFailedError) {
+        throw new HttpException('Duplicate key violation', HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+      }
+    }
+  }
+
+  /* remove participants by benchmark id */
+  async deleteParticipants(benchmarkId: string, entityManager: EntityManager) {
+    try {
+      return await this.crudService.transact<BenchmarkParticipants>(entityManager).delete({
+        deleteBy: {
+          benchmark: {
+            id: benchmarkId,
+          },
+        },
+        softDelete: false,
+        onError: (error) => {
+          throw error;
+        },
+      });
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);

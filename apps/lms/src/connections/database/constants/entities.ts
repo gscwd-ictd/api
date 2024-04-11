@@ -1,5 +1,6 @@
 import {
   Benchmark,
+  BenchmarkParticipantRequirements,
   BenchmarkParticipants,
   LspAffiliation,
   LspAward,
@@ -53,4 +54,5 @@ export const DB_ENTITIES = [
   /* benchmark */
   Benchmark,
   BenchmarkParticipants,
+  BenchmarkParticipantRequirements,
 ];

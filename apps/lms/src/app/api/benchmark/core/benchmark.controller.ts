@@ -16,16 +16,15 @@ import {
 import { BenchmarkService } from './benchmark.service';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Benchmark, CreateBenchmarkDto } from '@gscwd-api/models';
-import { ICrudRoutes } from '@gscwd-api/crud';
 import { DeleteResult } from 'typeorm';
 
 @Controller({ version: '1', path: 'benchmark' })
-export class BenchmarkController implements ICrudRoutes {
+export class BenchmarkController {
   constructor(private readonly benchmarkService: BenchmarkService) {}
 
   /* find all benchmark */
   @Get()
-  async findAll(
+  async findAllBenchmark(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
   ): Promise<Pagination<Benchmark> | Benchmark[]> {
@@ -37,13 +36,13 @@ export class BenchmarkController implements ICrudRoutes {
 
   /* insert a benchmark */
   @Post()
-  async create(@Body() data: CreateBenchmarkDto): Promise<Benchmark> {
+  async createBenchmark(@Body() data: CreateBenchmarkDto): Promise<Benchmark> {
     return await this.benchmarkService.createBenchmark(data);
   }
 
   /* find a benchmark by id*/
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<Benchmark> {
+  async findBenchmarkById(@Param('id') id: string): Promise<Benchmark> {
     return await this.benchmarkService.crud().findOneBy({
       findBy: {
         id: id,
@@ -54,19 +53,13 @@ export class BenchmarkController implements ICrudRoutes {
 
   /* edit a benchmark */
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() data: CreateBenchmarkDto) {
-    return await this.benchmarkService.crud().update({
-      updateBy: {
-        id: id,
-      },
-      dto: data,
-      onError: () => new NotFoundException(),
-    });
+  async updateBenchmark(@Param('id') id: string, @Body() data: CreateBenchmarkDto) {
+    return await this.benchmarkService.updateBenchmark(id, data);
   }
 
   /* delete a benchmark */
   @Delete(':id  ')
-  async delete(@Param('id') id: string): Promise<DeleteResult> {
+  async deleteBenchmark(@Param('id') id: string): Promise<DeleteResult> {
     return await this.benchmarkService.crud().delete({
       deleteBy: {
         id: id,
