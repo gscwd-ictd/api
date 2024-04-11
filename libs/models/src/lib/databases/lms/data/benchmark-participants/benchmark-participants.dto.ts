@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsUUID } from 'class-validator';
+import { PartialType } from '@nestjs/swagger';
+import { IsBoolean, IsNotEmpty, IsUUID } from 'class-validator';
 
 export class ParticipantsDto {
   @IsNotEmpty()
@@ -6,8 +7,14 @@ export class ParticipantsDto {
   employeeId: string;
 }
 
-export class CreateBenchmarkParticipantsDto extends ParticipantsDto {
+export class CreateBenchmarkParticipantsDto extends PartialType(ParticipantsDto) {
   @IsNotEmpty()
   @IsUUID('4')
   benchmark: string;
+}
+
+export class UpdateBenchmarkParticipantsDto extends PartialType(CreateBenchmarkParticipantsDto) {
+  @IsNotEmpty()
+  @IsBoolean()
+  learningApplicationPlan: boolean;
 }

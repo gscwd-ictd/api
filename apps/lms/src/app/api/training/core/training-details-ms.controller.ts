@@ -175,6 +175,49 @@ export class TrainingDetailsMicroserviceController {
     }
   }
 
+  /* count pending nomination by supervisor id */
+  @MessagePattern(TrainingPatterns.COUNT_PENDING_NOMINATION_BY_SUPERVISOR_ID)
+  async countPendingNominationBySupervisorId(@Payload() supervisorId: string) {
+    try {
+      return await this.trainingDistributionsService.countPendingNominationBySupervisorId(supervisorId);
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  /* count pdc secretariat approval */
+  @MessagePattern(TrainingPatterns.COUNT_PDC_SECRETARIAT_APPROVAL)
+  async countSecretariatApproval() {
+    try {
+      const trainingStatus = TrainingStatus.PDC_SECRETARIAT_APPROVAL;
+      return await this.trainingDetailsService.countTrainingApproval(trainingStatus);
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  /* count pdc chairman approval */
+  @MessagePattern(TrainingPatterns.COUNT_PDC_CHAIRMAN_APPROVAL)
+  async countChairmanApproval() {
+    try {
+      const trainingStatus = TrainingStatus.PDC_CHAIRMAN_APPROVAL;
+      return await this.trainingDetailsService.countTrainingApproval(trainingStatus);
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  /* count general manager approval */
+  @MessagePattern(TrainingPatterns.COUNT_GM_APPROVAL)
+  async countGmApproval() {
+    try {
+      const trainingStatus = TrainingStatus.GM_APPROVAL;
+      return await this.trainingDetailsService.countTrainingApproval(trainingStatus);
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
   /* testing microservices */
 
   /* find all training distribution by supervisor id */
@@ -275,5 +318,32 @@ export class TrainingDetailsMicroserviceController {
   async declinedTrainingByGm(@Body() data: GeneralManagerDto) {
     const trainingStatus = TrainingStatus.GM_DECLINED;
     return await this.trainingDetailsService.generalManagerApproval(data, trainingStatus);
+  }
+
+  /* count pending nomination by supervisor id */
+  @Get('count/nomination/supervisor/:supevisorId')
+  async pendingNominationBySupervisorId(@Param('supervisorId') supervisorId: string) {
+    return await this.trainingDistributionsService.countPendingNominationBySupervisorId(supervisorId);
+  }
+
+  /* count secretariat approval */
+  @Get('count/approvals/secretariat')
+  async countApprovalSecretariat() {
+    const trainingStatus = TrainingStatus.PDC_SECRETARIAT_APPROVAL;
+    return await this.trainingDetailsService.countTrainingApproval(trainingStatus);
+  }
+
+  /* count secretariat approval */
+  @Get('count/approvals/chairman')
+  async countApprovalChairman() {
+    const trainingStatus = TrainingStatus.PDC_CHAIRMAN_APPROVAL;
+    return await this.trainingDetailsService.countTrainingApproval(trainingStatus);
+  }
+
+  /* count secretariat approval */
+  @Get('count/approvals/gm')
+  async countApprovalGm() {
+    const trainingStatus = TrainingStatus.GM_APPROVAL;
+    return await this.trainingDetailsService.countTrainingApproval(trainingStatus);
   }
 }

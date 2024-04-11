@@ -1,9 +1,9 @@
 import { PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsDateString, IsNotEmpty, IsString, Length, ValidateNested } from 'class-validator';
-import { ParticipantsDto } from '../benchmark-participants';
+import { ArrayNotEmpty, IsArray, IsBoolean, IsDateString, IsNotEmpty, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
+import { ParticipantsDto, UpdateBenchmarkParticipantsDto } from '../benchmark-participants';
 
-export class CreateBenchmarkDto {
+export class BenchmarkDto {
   @IsNotEmpty()
   @IsString({ message: 'benchmark title must be a string' })
   @Length(1, 300, { message: 'benchmark title must be between 1 to 300 characters' })
@@ -26,7 +26,19 @@ export class CreateBenchmarkDto {
   @IsString({ message: 'benchmark location must be a string' })
   @Length(1, 500, { message: 'benchmark location must be between 1 to 500 characters' })
   location: string;
+}
 
+export class ParticipantRequirementsDto {
+  @IsNotEmpty()
+  @IsUUID('all')
+  employeeId: string;
+
+  @IsNotEmpty()
+  @IsBoolean()
+  learningApplicationPlan: boolean;
+}
+
+export class CreateBenchmarkDto extends PartialType(BenchmarkDto) {
   @ArrayNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
@@ -34,4 +46,10 @@ export class CreateBenchmarkDto {
   participants: Array<ParticipantsDto>;
 }
 
-export class UpdateBenchmarkDto extends PartialType(CreateBenchmarkDto) {}
+export class UpdateBenchmarkDto extends PartialType(BenchmarkDto) {
+  @ArrayNotEmpty()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ParticipantRequirementsDto)
+  participants: Array<ParticipantRequirementsDto>;
+}

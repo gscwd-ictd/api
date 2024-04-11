@@ -1040,4 +1040,20 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  /* count training approval by training status */
+  async countTrainingApproval(trainingStatus: TrainingStatus) {
+    try {
+      const count = await this.crudService.getRepository().countBy({
+        status: trainingStatus,
+      });
+
+      return {
+        pendingApproval: count,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
 }
