@@ -136,6 +136,25 @@ export class OvertimeService {
     return { id: overtimeApplicationId, ...rest, immediateSupervisorName, employees: employeesWithDetails };
   }
 
+  async getOvertimeApplicationsForManagerApprovalCount(managerId: string) {
+    //
+    //1. get manager organization id
+    const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
+    //2. get employeeIds from organization id
+    const employees = await this.employeeService.getEmployeesByOrgId(managerOrgId);
+    const employeeIds = employees.map((emp) => emp.value);
+
+    const count = (
+      await this.overtimeApplicationService.rawQuery(
+        `SELECT COUNT(*) countForApprovalOT FROM overtime_application oa 
+          INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
+         WHERE employee_id_fk IN (?) AND status = 'pending';`,
+        [employeeIds]
+      )
+    )[0].countForApprovalOT;
+    return parseInt(count);
+  }
+
   async getOvertimeApplicationsForApprovalV2(managerId: string) {
     //
     //1. get manager organization id
@@ -847,6 +866,8 @@ export class OvertimeService {
           remarks: true,
           status: true,
           accomplishments: true,
+          encodedTimeIn: true,
+          encodedTimeOut: true,
           actualHrs: true,
           id: true,
         },
