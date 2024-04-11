@@ -139,7 +139,7 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
 
   async getAllLeaveApplicationIdsFromLeaveDates() {
     return (await this.rawQuery(
-      `SELECT DISTINCT leave_application_id leaveApplicationId,DATE_FORMAT(for_cancellation_date,'%Y-%m-%d') dateOfFiling 
+      `SELECT DISTINCT leave_application_id leaveApplicationId,DATE_FORMAT(date_of_filing,'%Y-%m-%d') dateOfFiling 
        FROM leave_application la 
        INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id 
        WHERE la.status = 'approved' AND (lad.status='cancelled' OR lad.status = 'for cancellation') ORDER BY DATE_FORMAT(date_of_filing,'%Y-%m-%d') DESC;`

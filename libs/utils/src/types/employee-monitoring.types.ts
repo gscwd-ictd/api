@@ -34,6 +34,7 @@ export type LeaveApplicationType = {
   leaveName: string;
   dateOfFiling: Date;
   status: LeaveApplicationStatus;
+  supervisorId: string;
 };
 
 export type DtrPayload = {
