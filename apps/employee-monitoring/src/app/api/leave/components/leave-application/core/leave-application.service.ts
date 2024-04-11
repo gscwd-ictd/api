@@ -384,7 +384,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     });
 
     const { leaveName } = leaveApplicationBasicInfo;
-    if (leaveName === 'Vacation Leave' || leaveName === 'Special Privilege Leave') {
+    if (leaveName === 'Vacation Leave' || leaveName === 'Special Privilege Leave' || leaveName === 'Forced Leave') {
       const leaveApplicationDetails = await this.getVacationLeaveDetails(leaveApplicationId);
       return { employeeDetails, leaveApplicationBasicInfo, leaveApplicationDetails };
     } else if (leaveName === 'Sick Leave') {

@@ -877,7 +877,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       onError: () => new InternalServerErrorException(),
     });
   }
-
   //#endregion
   async updateEmployeeDTR(dailyTimeRecordDto: UpdateDailyTimeRecordDto) {
     const { dtrDate, companyId, ...rest } = dailyTimeRecordDto;
