@@ -259,6 +259,15 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             },
             status: PassSlipApprovalStatus.APPROVED,
           },
+          {
+            passSlipId: {
+              employeeId,
+              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              natureOfBusiness: NatureOfBusiness.UNDERTIME,
+              timeIn: IsNull(),
+            },
+            status: PassSlipApprovalStatus.APPROVED,
+          },
         ],
       },
     });
