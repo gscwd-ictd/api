@@ -233,4 +233,11 @@ export class LeaveService {
 
     return adjustment;
   }
+
+  async getForHrdmApprovalCount() {
+    return parseInt(
+      (await this.leaveApplicationService.rawQuery(`SELECT count(*) forHrdmCount FROM leave_application WHERE status = 'for hrdm approval';`))[0]
+        .forHrdmCount
+    );
+  }
 }
