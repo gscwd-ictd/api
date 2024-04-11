@@ -41,7 +41,7 @@ export class BenchmarkParticipantRequirementsService extends CrudHelper<Benchmar
     }
   }
 
-  /* insert participant requirements */
+  /* insert participant requirements with no requirements */
   async createParticipantRequirements(data: CreateBenchmarkParticipantRequirementsDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
@@ -63,8 +63,8 @@ export class BenchmarkParticipantRequirementsService extends CrudHelper<Benchmar
     }
   }
 
-  /* edit participant requirements */
-  async updateParticipantRequirements(data: UpdateBenchmarkParticipantRequirementsDto, entityManager: EntityManager) {
+  /* insert participant requirements with requirements */
+  async createParticipantRequirementsWithRequirements(data: UpdateBenchmarkParticipantRequirementsDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
       const { benchmarkParticipants, learningApplicationPlan } = data;
@@ -75,6 +75,30 @@ export class BenchmarkParticipantRequirementsService extends CrudHelper<Benchmar
           benchmarkParticipants: {
             id: benchmarkParticipants,
           },
+          learningApplicationPlan: learningApplicationPlan,
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* update participant requirements by participant id */
+  async updateParticipantRequirementsByParticipantId(data: UpdateBenchmarkParticipantRequirementsDto, entityManager: EntityManager) {
+    try {
+      /* deconstruct data */
+      const { benchmarkParticipants, learningApplicationPlan } = data;
+      return await this.crudService.transact<BenchmarkParticipantRequirements>(entityManager).update({
+        updateBy: {
+          benchmarkParticipants: {
+            id: benchmarkParticipants,
+          },
+        },
+        dto: {
           learningApplicationPlan: learningApplicationPlan,
         },
         onError: (error) => {

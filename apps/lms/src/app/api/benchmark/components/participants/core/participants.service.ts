@@ -20,6 +20,7 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       const employees = (await this.crudService.findAll({
         find: {
           select: {
+            id: true,
             employeeId: true,
           },
           where: {
@@ -41,6 +42,8 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
 
           /* custom return */
           return {
+            benchmarkParticipants: items.id,
+            supevisorName: '',
             employeeId: items.employeeId,
             name: '',
             learningApplicationPlan: requirements,
@@ -49,7 +52,7 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       );
     } catch (error) {
       Logger.error(error);
-      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     }
   }
 
@@ -114,7 +117,7 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       });
 
       /* insert requirements */
-      await this.benchmarkParticipantRequirementsService.updateParticipantRequirements(
+      await this.benchmarkParticipantRequirementsService.createParticipantRequirementsWithRequirements(
         {
           benchmarkParticipants: participants.id,
           learningApplicationPlan: learningApplicationPlan,

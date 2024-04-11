@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsDateString, IsNotEmpty, IsString, Length, ValidateNested } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsBoolean, IsDateString, IsNotEmpty, IsString, IsUUID, Length, ValidateNested } from 'class-validator';
 import { ParticipantsDto, UpdateBenchmarkParticipantsDto } from '../benchmark-participants';
 
 export class BenchmarkDto {
@@ -28,6 +28,16 @@ export class BenchmarkDto {
   location: string;
 }
 
+export class ParticipantRequirementsDto {
+  @IsNotEmpty()
+  @IsUUID('all')
+  employeeId: string;
+
+  @IsNotEmpty()
+  @IsBoolean()
+  learningApplicationPlan: boolean;
+}
+
 export class CreateBenchmarkDto extends PartialType(BenchmarkDto) {
   @ArrayNotEmpty()
   @IsArray()
@@ -40,6 +50,6 @@ export class UpdateBenchmarkDto extends PartialType(BenchmarkDto) {
   @ArrayNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => UpdateBenchmarkParticipantsDto)
-  participants: Array<UpdateBenchmarkParticipantsDto>;
+  @Type(() => ParticipantRequirementsDto)
+  participants: Array<ParticipantRequirementsDto>;
 }

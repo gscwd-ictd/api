@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { BenchmarkService } from './benchmark.service';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { Benchmark, CreateBenchmarkDto, UpdateBenchmarkDto } from '@gscwd-api/models';
+import { Benchmark, BenchmarkParticipantRequirementsDto, CreateBenchmarkDto, UpdateBenchmarkDto } from '@gscwd-api/models';
 import { DeleteResult } from 'typeorm';
 
 @Controller({ version: '1', path: 'benchmark' })
@@ -61,5 +61,17 @@ export class BenchmarkController {
       softDelete: false,
       onError: () => new BadRequestException(),
     });
+  }
+
+  /* find all participants by benchmark id */
+  @Get(':benchmarkId/participant/requirements')
+  async findAllParticipantRequirementsByBenchmarkId(@Param('benchmarkId') benchmarkId: string) {
+    return await this.benchmarkService.findAllParticipantRequirementsByBenchmarkId(benchmarkId);
+  }
+
+  /* update all participants */
+  @Patch(':benchmarkId/participant/requirements')
+  async updateAllParticipantRequirementsByBenchmarkId(@Param('benchmarkId') benchmarkId: string, @Body() data: BenchmarkParticipantRequirementsDto) {
+    return await this.benchmarkService.updateAllParticipantRequirementsByBenchmarkId(benchmarkId, data);
   }
 }

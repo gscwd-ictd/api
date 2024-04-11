@@ -1,14 +1,16 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { Benchmark, CreateBenchmarkDto, UpdateBenchmarkDto } from '@gscwd-api/models';
+import { Benchmark, BenchmarkParticipantRequirementsDto, CreateBenchmarkDto, UpdateBenchmarkDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { BenchmarkParticipantsService } from '../components/participants';
+import { BenchmarkParticipantRequirementsService } from '../components/participants-requirements';
 
 @Injectable()
 export class BenchmarkService extends CrudHelper<Benchmark> {
   constructor(
     private readonly crudService: CrudService<Benchmark>,
     private readonly benchmarkParticipantsService: BenchmarkParticipantsService,
+    private readonly benchmarkParticipantRequirementsService: BenchmarkParticipantRequirementsService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -128,6 +130,16 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
         /* deconstruct data */
         const { participants, ...rest } = data;
 
+        /* check if benchmark id is existing */
+        await this.crudService.transact<Benchmark>(entityManager).findOneBy({
+          findBy: {
+            id: id,
+          },
+          onError: () => {
+            throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+          },
+        });
+
         /* remove all participants by benchmark id */
         const deleteParticipants = await this.benchmarkParticipantsService.deleteParticipants(id, entityManager);
 
@@ -164,7 +176,7 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
         }
       });
     } catch (error) {
-      Logger.error(error);
+      Logger.error({ error });
       /* custom error */
       if (error.code === '23505' || error.status === 409) {
         /* Duplicate key violation */
@@ -190,6 +202,18 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
             cause: error,
           }
         );
+      } else if (error.status === 404) {
+        /* Foreign key constraint violation */
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: { message: 'Not found', step: 1 },
+          },
+          HttpStatus.NOT_FOUND,
+          {
+            cause: error,
+          }
+        );
       } else {
         /* Handle other errors as needed */
         throw new HttpException(
@@ -201,6 +225,54 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
           { cause: error }
         );
       }
+    }
+  }
+
+  /* find all participants by benchmark id */
+  async findAllParticipantRequirementsByBenchmarkId(benchmarkId: string) {
+    try {
+      const participants = await this.benchmarkParticipantsService.findAllParticipantsByBenchmarkId(benchmarkId);
+
+      /* custom return */
+      return {
+        participants: participants,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* update all requirements by participant id */
+  async updateAllParticipantRequirementsByBenchmarkId(benchmarkId: string, data: BenchmarkParticipantRequirementsDto) {
+    try {
+      return await this.dataSource.transaction(async (entityManager) => {
+        const { participants } = data;
+        /* check if benchmark id is existing */
+        await this.crudService.transact<Benchmark>(entityManager).findOneBy({
+          findBy: {
+            id: benchmarkId,
+          },
+          onError: () => {
+            throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+          },
+        });
+
+        /* update all participants requirements */
+        const affected = await Promise.all(
+          participants.map(async (items) => {
+            return await this.benchmarkParticipantRequirementsService.updateParticipantRequirementsByParticipantId(items, entityManager);
+          })
+        );
+
+        const totalCount = affected.reduce((total, count) => total + count.affected, 0);
+        return {
+          affected: totalCount,
+        };
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     }
   }
 }
