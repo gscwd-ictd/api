@@ -6,7 +6,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 export class HrmsUsersService {
   constructor(private readonly microserviceClient: MicroserviceClient) {}
 
-  // find lnd users by app
+  /* find lnd users */
   async findLndUsers(page: number, limit: number) {
     return await this.microserviceClient.call({
       action: 'send',
@@ -16,7 +16,7 @@ export class HrmsUsersService {
     });
   }
 
-  // find lnd users assignable
+  /* find lnd assignable users */
   async findAssignableLndUsers() {
     return await this.microserviceClient.call({
       action: 'send',
@@ -26,7 +26,7 @@ export class HrmsUsersService {
     });
   }
 
-  // create lnd users
+  /* create lnd users */
   async createLndUsers(data: CreateUserDto) {
     const { employeeId } = data;
     return await this.microserviceClient.call({
@@ -37,8 +37,8 @@ export class HrmsUsersService {
     });
   }
 
-  // remove lnd users
-  async removeLndUsers(employeeId: string) {
+  /* delete lnd users by employee id */
+  async deleteLndUsers(employeeId: string) {
     return await this.microserviceClient.call({
       action: 'send',
       pattern: HrmsUserPatterns.REMOVE_LND_USERS,

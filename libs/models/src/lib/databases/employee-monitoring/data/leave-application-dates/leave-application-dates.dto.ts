@@ -14,4 +14,6 @@ export class LeaveDateCancellationDto {
   status: LeaveDayStatus;
   leaveDates: Date[];
   remarks: string;
+  forCancellationDate?: Date;
+  cancelDate?: Date;
 }

@@ -9,18 +9,18 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_details_id' })
   id: string;
 
-  @ManyToOne(() => TrainingSource, (source) => source.id, { nullable: false })
+  @ManyToOne(() => TrainingSource, (source) => source.id, { nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'training_source_id_fk' })
   source: TrainingSource;
 
   @Column({ name: 'training_type', type: 'enum', enum: TrainingType, nullable: false })
   type: TrainingType;
 
-  @ManyToOne(() => TrainingDesign, (trainingDesign) => trainingDesign.id, { nullable: true })
+  @ManyToOne(() => TrainingDesign, (trainingDesign) => trainingDesign.id, { nullable: true, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'training_design_id_fk' })
   trainingDesign: TrainingDesign;
 
-  @Column({ name: 'course_title', type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'course_title', type: 'varchar', nullable: true })
   courseTitle: string;
 
   @Column({ name: 'course_content', type: 'jsonb', nullable: true })
@@ -40,9 +40,6 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'deadline_for_submission', type: 'date', nullable: true })
   deadlineForSubmission: Date;
-
-  @Column({ name: 'bucket_files', type: 'jsonb', nullable: true })
-  bucketFiles: string;
 
   @Column({ name: 'number_of_participants', nullable: false })
   numberOfParticipants: number;

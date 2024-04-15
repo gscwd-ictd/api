@@ -91,6 +91,12 @@ export class ScheduleService extends CrudHelper<Schedule> {
   }
 
   async deleteSchedule(scheduleId: string) {
+    //check if schedule is currently in use (daily_time_record)
+    const dtrEntry = await this.hasDtrByScheduleId(scheduleId);
+    const hasEmployeeSchedule = await this.hasEmployeeScheduleByScheduleId(scheduleId);
+    if (dtrEntry) throw new HttpException('Schedule is currently being used for DTR', HttpStatus.METHOD_NOT_ALLOWED);
+    if (hasEmployeeSchedule) throw new HttpException('Schedule is currently being used as Employee Schedule', HttpStatus.METHOD_NOT_ALLOWED);
+
     const deletedSchedule = await this.crud().delete({
       deleteBy: { id: scheduleId },
       softDelete: false,
@@ -109,25 +115,16 @@ export class ScheduleService extends CrudHelper<Schedule> {
   }
 
   async deleteGroupSchedule(groupSchedule: GroupScheduleType) {
-    /*
-    1. delete schedule 
-       SELECT es.employee_id_fk employeeId 
-         FROM employee_schedule es 
-       INNER JOIN custom_group_members cgm ON es.employee_id_fk = cgm.employee_id_fk 
-       WHERE date_from=? AND date_to=? AND schedule_id_fk=?
-    */
     console.log(groupSchedule);
     const { customGroupId, dateFrom, dateTo, scheduleId } = groupSchedule;
     //2. delete employees from custom group where scheduleId,dateFrom,dateTo
+
     const employeeIds = (await this.rawQuery(
-      `(SELECT DISTINCT es.employee_id_fk employeeId 
-        FROM employee_schedule es 
-      INNER JOIN custom_group_members cgm ON es.employee_id_fk = cgm.employee_id_fk 
-      WHERE date_from=? AND date_to=? AND schedule_id_fk=?) UNION (SELECT DISTINCT es.employee_id_fk employeeId 
-         FROM employee_schedule es 
-       INNER JOIN custom_groups cg ON es.custom_group_id_fk = cg.custom_group_id 
-       WHERE date_from=? AND date_to=? AND schedule_id_fk=?)`,
-      [dateFrom, dateTo, scheduleId, dateFrom, dateTo, scheduleId]
+      `SELECT DISTINCT es.employee_id_fk employeeId 
+      FROM employee_schedule es 
+     INNER JOIN custom_groups cg ON cg.custom_group_id = es.custom_group_id_fk
+     WHERE date_from=? AND date_to=? AND schedule_id_fk=? AND es.custom_group_id_fk = ?`,
+      [dateFrom, dateTo, scheduleId, customGroupId]
     )) as { employeeId: string }[];
 
     if (employeeIds.length === 0 || typeof employeeIds === 'undefined') {
@@ -143,15 +140,9 @@ export class ScheduleService extends CrudHelper<Schedule> {
 
     console.log('employees:', employeeIdsArray);
 
-    //console.log(employeeIdsArray);
-    // const deleteEmployeeCustomGroupResult = (await this.rawQuery(
-    //   `DELETE FROM custom_group_members WHERE custom_group_id_fk = ? AND employee_id_fk IN (?);`,
-    //   [customGroupId, employeeIdsArray]
-    //));
-
     const deleteEmployeeCustomGroupResult = (await this.rawQuery(
-      `DELETE FROM employee_schedule WHERE employee_id_fk IN (?) AND date_format(date_from, '%Y-%m-%d') = ? and date_format(date_to, '%Y-%m-%d') = ? AND schedule_id_fk = ?;`,
-      [employeeIdsArray, dateFrom, dateTo, scheduleId]
+      `DELETE FROM employee_schedule WHERE employee_id_fk IN (?) AND date_format(date_from, '%Y-%m-%d') = ? and date_format(date_to, '%Y-%m-%d') = ? AND schedule_id_fk = ? AND custom_group_id_fk = ?;`,
+      [employeeIdsArray, dateFrom, dateTo, scheduleId, customGroupId]
     )) as { affectedRows: number };
 
     console.log('affected: ', deleteEmployeeCustomGroupResult.affectedRows);
@@ -185,5 +176,25 @@ export class ScheduleService extends CrudHelper<Schedule> {
     console.log(deleteEmployeeCustomGroupResult.affectedRows);
     if (deleteEmployeeCustomGroupResult.affectedRows > 0) return groupSchedule;
     else throw new InternalServerErrorException();
+  }
+
+  async hasDtrByScheduleId(scheduleId: string) {
+    const hasDtr = (
+      await this.rawQuery(`SELECT IF(count(dtr.schedule_id_fk) > 0, true, false) hasDtr FROM daily_time_record dtr WHERE dtr.schedule_id_fk = ?;`, [
+        scheduleId,
+      ])
+    )[0].hasDtr;
+
+    if (hasDtr === '0') return false;
+    return true;
+  }
+
+  async hasEmployeeScheduleByScheduleId(scheduleId: string) {
+    const hasEmployeeSchedule = (
+      await this.rawQuery(`SELECT IF(count(schedule_id_fk)>0, true, false) hasEmployeeSchedule FROM employee_schedule WHERE schedule_id_fk = ?;`, [
+        scheduleId,
+      ])
+    )[0].hasEmployeeSchedule;
+    if (hasEmployeeSchedule === '0') return false;
   }
 }

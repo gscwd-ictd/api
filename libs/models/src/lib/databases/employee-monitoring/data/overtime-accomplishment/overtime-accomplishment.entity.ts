@@ -20,11 +20,11 @@ export class OvertimeAccomplishment extends DatabaseEntity implements IEntity {
   @Column({ name: 'ivms_time_out', type: 'time', default: null })
   ivmsTimeOut: number;
 
-  @Column({ name: 'encoded_time_in', type: 'time', default: null })
-  encodedTimeIn: number;
+  @Column({ name: 'encoded_time_in', type: 'datetime', default: null })
+  encodedTimeIn: Date;
 
-  @Column({ name: 'encoded_time_out', type: 'time', default: null })
-  encodedTimeOut: number;
+  @Column({ name: 'encoded_time_out', type: 'datetime', default: null })
+  encodedTimeOut: Date;
 
   @Column({ type: 'text', default: null })
   accomplishments: string;
@@ -32,8 +32,8 @@ export class OvertimeAccomplishment extends DatabaseEntity implements IEntity {
   @Column({ name: 'follow_estimated_hrs', type: 'boolean', default: null })
   followEstimatedHrs: boolean;
 
-  @Column({ name: 'approved_hours', type: 'decimal', scale: 2, precision: 4, nullable: true })
-  approvedHours: number;
+  @Column({ name: 'actual_hours', type: 'decimal', precision: 5, scale: 3, nullable: true })
+  actualHrs: number;
 
   @Column({ name: 'remarks', type: 'text', nullable: true })
   remarks: string;

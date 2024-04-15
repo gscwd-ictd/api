@@ -7,7 +7,7 @@ export class LspTraining extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'lsp_training_id' })
   id: string;
 
-  @ManyToOne(() => LspDetails, (lspDetails) => lspDetails.id, { nullable: false })
+  @ManyToOne(() => LspDetails, (lspDetails) => lspDetails.id, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'lsp_details_id_fk' })
   lspDetails: LspDetails;
 

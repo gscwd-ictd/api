@@ -1,3 +1,4 @@
+import { DtrCorrection } from '@gscwd-api/models';
 import { CustomGroupsModule } from '../app/api/custom-groups/core/custom-groups.module';
 import { EmployeeScheduleModule } from '../app/api/daily-time-record/components/employee-schedule/core/employee-schedule.module';
 import { ScheduleModule } from '../app/api/daily-time-record/components/schedule/core/schedule.module';
@@ -15,6 +16,10 @@ import { StatsModule } from '../app/api/stats/core/stats.module';
 import { TravelOrderModule } from '../app/api/travel-order/core/travel-order.module';
 import { UserLogsModule } from '../app/api/user-logs/core/user-logs.module';
 import { UserRolesModule } from '../app/api/user-roles/core/user-roles.module';
+import { DtrCorrectionModule } from '../app/api/dtr-correction/core/dtr-correction.module';
+import { EventsAnnouncementsModule } from '../app/api/events-announcements/core/events-announcements.module';
+import { AppwriteModule } from '../app/api/appwrite/core/appwrite.module';
+import { WorkSuspensionModule } from '../app/api/work-suspension/core/work-suspension.module';
 
 export const appModules = [
   LeaveModule,
@@ -34,4 +39,8 @@ export const appModules = [
   ReportsModule,
   EmsSettingsModule,
   OfficerOfTheDayModule,
+  DtrCorrectionModule,
+  EventsAnnouncementsModule,
+  AppwriteModule,
+  WorkSuspensionModule,
 ];

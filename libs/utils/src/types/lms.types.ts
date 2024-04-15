@@ -1,19 +1,19 @@
 import { NomineeType, TrainingNomineeStatus } from '../enums';
 
-export type LspDetailsRaw = {
-  id: string;
-  name: string;
-  sex: string;
-  contactNumber: string;
-  email: string;
-  tin: string;
-  postalAddress: string;
-  type: string;
-  source: string;
-};
-
 export type EmployeeFullNameRaw = {
   fullName: string;
+};
+
+export type OrganizationRaw = {
+  _id: string;
+  name: string;
+  orgStruct: string;
+  code: string;
+};
+
+export type OrganizationEmployeeRaw = {
+  value: string;
+  label: string;
 };
 
 export type PortalEmployeeDetailsRaw = {
@@ -38,4 +38,27 @@ export type TrainingNomineeRaw = {
 export type NomineeRaw = {
   employeeId: string;
   status: TrainingNomineeStatus;
+};
+
+export type TrainingRequirementsRaw = {
+  document: string;
+};
+
+export type EmployeeParticpantsRaw = {
+  _id: string;
+  name: string;
+  positionTitle: string;
+  assignment: string;
+};
+
+export type SupervisorParticipantsRaw = {
+  _id: string;
+  name: string;
+  positionTitle: string;
+  assignment: string;
+};
+
+export type BenchmarkParticipantsRaw = {
+  employee: EmployeeParticpantsRaw;
+  supervisor: SupervisorParticipantsRaw;
 };

@@ -259,6 +259,15 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             },
             status: PassSlipApprovalStatus.APPROVED,
           },
+          {
+            passSlipId: {
+              employeeId,
+              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              natureOfBusiness: NatureOfBusiness.UNDERTIME,
+              timeIn: IsNull(),
+            },
+            status: PassSlipApprovalStatus.APPROVED,
+          },
         ],
       },
     });
@@ -360,7 +369,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       FROM pass_slip_approval psa 
         INNER JOIN pass_slip ps ON ps.pass_slip_id = psa.pass_slip_id_fk 
       WHERE ps.employee_id_fk = ? AND (status = 'approved' OR status = 'disapproved' OR status = 'for dispute') 
-      ORDER BY status DESC, ps.date_of_application DESC  
+      ORDER BY ps.date_of_application DESC,psa.status ASC;  
     `,
       [employeeId]
     )) as {
@@ -764,4 +773,29 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
   //notes: CREATE MODULE FOR employee sungkit from microservice,
   //create functions under utils;
+
+  async getUsedPassSlipsCountByEmployeeId(employeeId: string) {
+    try {
+      return {
+        passSlipCount: parseInt(
+          (
+            await this.rawQuery(
+              `
+              SELECT count(pass_slip_id) usedPassSlipCount FROM pass_slip ps 
+                INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
+              WHERE ps.time_in IS NOT NULL AND ps.time_out IS NOT NULL 
+              AND year(date_of_application) = year(now()) 
+              AND month(date_of_application) = month(now()) 
+              AND ps.employee_id_fk = ?;
+      `,
+              [employeeId]
+            )
+          )[0].usedPassSlipCount
+        ),
+      };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException();
+    }
+  }
 }

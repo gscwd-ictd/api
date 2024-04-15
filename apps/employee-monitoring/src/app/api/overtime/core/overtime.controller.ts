@@ -1,5 +1,6 @@
 import {
   CreateOvertimeDto,
+  UpdateAllOvertimeAccomplishmentDto,
   UpdateOvertimeAccomplishmentByEmployeeDto,
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
@@ -20,6 +21,7 @@ export class OvertimeController {
   @Get(':overtime_application_id/accomplishments/employees')
   async getOvertimeAccomplishmentsByOvertimeApplicationId(@Param('overtime_application_id') overtimeApplicationId: string) {
     console.log(overtimeApplicationId);
+    return await this.overtimeService.getOvertimeAccomplishmentsByOvertimeApplicationId(overtimeApplicationId);
   }
 
   @Get('immediate-supervisors')
@@ -70,6 +72,11 @@ export class OvertimeController {
   @Patch('/accomplishments/approval')
   async approveOvertimeAccomplishment(@Body() updateOvertimeAccomplishmentDto: UpdateOvertimeAccomplishmentDto) {
     return await this.overtimeService.updateOvertimeAccomplishment(updateOvertimeAccomplishmentDto);
+  }
+
+  @Patch('/accomplishments/approval/all')
+  async approveAllOvertimeAccomplishment(@Body() updateAllOvertimeAccomplishmentDto: UpdateAllOvertimeAccomplishmentDto) {
+    return await this.overtimeService.updateAllOvertimeAccomplishment(updateAllOvertimeAccomplishmentDto);
   }
 
   @Patch(':employee_id/:overtime_application_id')

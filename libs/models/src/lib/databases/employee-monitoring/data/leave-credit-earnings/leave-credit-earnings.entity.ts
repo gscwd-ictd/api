@@ -22,7 +22,7 @@ export class LeaveCreditEarnings extends DatabaseEntity implements IEntity {
   @Column({ name: 'credit_date', type: 'date' })
   creditDate: Date;
 
-  @Column({ name: 'credit_value', type: 'decimal', precision: 5, scale: 3 })
+  @Column({ name: 'credit_value', type: 'decimal', precision: 6, scale: 3 })
   creditValue: number;
 
   @Column({ name: 'remarks', type: 'text', default: null })

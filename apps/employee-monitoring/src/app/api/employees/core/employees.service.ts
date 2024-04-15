@@ -32,6 +32,22 @@ export class EmployeesService {
     return employeeDetails;
   }
 
+  async getEmployeesUnderSupervisor(employeeId: string) {
+    //get_employee_under_supervisor
+    const employees = (await this.client.call<string, string, object>({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_subordinates_with_company_id',
+      onError: (error) => new NotFoundException(error),
+    })) as {
+      companyId: string;
+      fullName: string;
+      employeeId: string;
+    }[];
+
+    return employees;
+  }
+
   async getEmployeeAssignment(employeeId: string) {
     const assignment = (await this.client.call<string, string, object>({
       action: 'send',
@@ -73,12 +89,12 @@ export class EmployeesService {
   }
 
   async getEmployeeSupervisorId(employeeId: string) {
-    return await this.client.call<string, string, string>({
+    return (await this.client.call<string, string, string>({
       action: 'send',
       payload: employeeId,
       pattern: 'get_employee_supervisor_id',
       onError: (error) => new NotFoundException(error),
-    });
+    })) as string;
   }
 
   //get_monthly_hourly_rate_by_employee_id
@@ -164,5 +180,13 @@ export class EmployeesService {
       pattern: 'get_all_assignable_permanent_casual_employees',
       payload: employeeIds,
     })) as { label: string; value: string }[];
+  }
+
+  async getCompanyIdsByOrgId(orgId: string) {
+    return (await this.client.call<string, string, object[]>({
+      action: 'send',
+      pattern: 'get_company_ids_by_org_id',
+      payload: orgId,
+    })) as { companyId: string }[];
   }
 }

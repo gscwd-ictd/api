@@ -8,7 +8,7 @@ export class TrainingRecommendedEmployee extends DatabaseEntity implements IEnti
   @PrimaryGeneratedColumn('uuid', { name: 'training_recommended_employee_id' })
   id: string;
 
-  @ManyToOne(() => TrainingDistribution, (trainingDistribution) => trainingDistribution.id, { nullable: false })
+  @ManyToOne(() => TrainingDistribution, (trainingDistribution) => trainingDistribution.id, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'training_distribution_id_fk' })
   trainingDistribution: TrainingDistribution;
 

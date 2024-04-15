@@ -18,6 +18,12 @@ export class LeaveApplicationDates extends DatabaseEntity implements IEntity {
   @Column({ name: 'status', type: 'enum', enum: LeaveDayStatus })
   status: LeaveDayStatus;
 
-  @Column({ name: 'remarks', type: 'text' })
+  @Column({ name: 'remarks', type: 'text', nullable: true })
   remarks: string;
+
+  @Column({ name: 'for_cancellation_date', type: 'date', nullable: true })
+  forCancellationDate: Date;
+
+  @Column({ name: 'cancelDate', type: 'date', nullable: true })
+  cancelDate: Date;
 }

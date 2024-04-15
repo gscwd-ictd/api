@@ -1,15 +1,15 @@
 import { IsNotEmpty, IsUUID } from 'class-validator';
-import { TrainingDetails } from '../training-details';
-import { LspDetails } from '../lsp-details';
+import { TrainingDetailsDto } from '../training-details';
+import { LspDetailsDto } from '../lsp-details';
 
 export class TrainingLspDetailsDto {
   @IsNotEmpty()
   @IsUUID('4')
-  id: LspDetails;
+  id: LspDetailsDto;
 }
 
 export class CreateTrainingLspDetailsDto extends TrainingLspDetailsDto {
   @IsNotEmpty()
   @IsUUID('4')
-  trainingDetails: TrainingDetails;
+  trainingDetails: TrainingDetailsDto;
 }

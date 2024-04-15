@@ -2,13 +2,21 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveApplicationDto, LeaveApplicationDates, UpdateLeaveApplicationDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveApplication } from '@gscwd-api/models';
-import { LeaveApplicationStatus, LeaveApplicationType, SickLeaveDetails, StudyLeaveDetails, VacationLeaveDetails } from '@gscwd-api/utils';
+import {
+  LeaveApplicationStatus,
+  LeaveApplicationType,
+  LeaveDayStatus,
+  SickLeaveDetails,
+  StudyLeaveDetails,
+  VacationLeaveDetails,
+} from '@gscwd-api/utils';
 import { RpcException } from '@nestjs/microservices';
 import { DataSource, EntityManager } from 'typeorm';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
 import dayjs = require('dayjs');
+import { EmployeesService } from '../../../../employees/core/employees.service';
 
 @Injectable()
 export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
@@ -16,7 +24,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     private readonly crudService: CrudService<LeaveApplication>,
     private readonly dataSource: DataSource,
     private readonly client: MicroserviceClient,
-    private readonly leaveApplicationDatesService: LeaveApplicationDatesService
+    private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
+    private readonly employeesService: EmployeesService
   ) {
     super(crudService);
   }
@@ -124,7 +133,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d') hrdmApprovalDate,
         la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
         la.cancel_reason cancelReason,
-        DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate 
+        la.supervisor_id_fk supervisorId,
+        get_leave_date_cancellation_status(la.leave_application_id) leaveDateStatus,
+        DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate,
+        get_leave_date_cancellation_remarks(la.leave_application_id) leaveDateCancellationRemarks 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
           WHERE la.leave_application_id = ? 
@@ -142,10 +154,32 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           `,
             [leaveApplication.id]
           );
-          return { ...leaveApplication, debitValue, leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)) };
+
+          const supervisorName = (await this.employeesService.getEmployeeDetails(leaveApplication.supervisorId)).employeeFullName;
+
+          const forCancellationLeaveDates = (
+            (await this.leaveApplicationDatesService.getLeaveDatesByLeaveApplicationIdAndStatus(
+              leaveApplication.id,
+              LeaveDayStatus.FOR_CANCELLATION
+            )) as { leaveDate: string }[]
+          ).map((ld) => ld.leaveDate);
+
+          const cancelledLeaveDates = (
+            (await this.leaveApplicationDatesService.getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplication.id, LeaveDayStatus.CANCELLED)) as {
+              leaveDate: string;
+            }[]
+          ).map((ld) => ld.leaveDate);
+
+          return {
+            supervisorName,
+            ...leaveApplication,
+            debitValue,
+            leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
+            forCancellationLeaveDates,
+            cancelledLeaveDates,
+          };
         })
       );
-
       return leaveApplicationsWithDates;
     } catch (error) {
       throw new HttpException(error.message, error.status);
@@ -356,7 +390,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     });
 
     const { leaveName } = leaveApplicationBasicInfo;
-    if (leaveName === 'Vacation Leave' || leaveName === 'Special Privilege Leave') {
+    if (leaveName === 'Vacation Leave' || leaveName === 'Special Privilege Leave' || leaveName === 'Forced Leave') {
       const leaveApplicationDetails = await this.getVacationLeaveDetails(leaveApplicationId);
       return { employeeDetails, leaveApplicationBasicInfo, leaveApplicationDetails };
     } else if (leaveName === 'Sick Leave') {
