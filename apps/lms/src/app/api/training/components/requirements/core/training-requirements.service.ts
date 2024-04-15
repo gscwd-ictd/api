@@ -167,6 +167,7 @@ export class TrainingRequirementsService extends CrudHelper<TrainingRequirements
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
+
   /* delete nominee requirement by nominee id */
   async deleteNomineeRequirements(nomineeId: string, entityManager: EntityManager) {
     try {
