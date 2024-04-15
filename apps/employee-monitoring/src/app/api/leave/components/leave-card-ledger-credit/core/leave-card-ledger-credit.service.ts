@@ -37,7 +37,8 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
        WHERE credit_distribution = 'yearly' AND leave_types = 'recurring';`
     )) as { leaveBenefitsId: LeaveBenefits; accumulatedCredits: string }[];
 
-    const creditDate = dayjs(dayjs().year() + '-01-01').toDate();
+    const monthNow = dayjs().month() + 1;
+    const creditDate = dayjs(dayjs().year() + '-01' + '-01').toDate();
 
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       const credits = await Promise.all(
@@ -232,14 +233,14 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
           FROM employee_monitoring.leave_benefits 
        WHERE credit_distribution = 'monthly' AND leave_types = 'cumulative';`
     )) as { leaveBenefitsId: LeaveBenefits; accumulatedCredits: string }[];
-    const creditDate = dayjs(dayjs().year() + '-01-01').toDate();
+    const creditDate = dayjs(dayjs().year() + '-03-01').toDate();
 
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       const credits = await Promise.all(
         employees.map(async (employee) => {
           const { employeeId } = employee;
           const createdAt = dayjs(
-            dayjs().add(0, 'year').year() + '-01-01 ' + dayjs().add(2, 'hours').hour() + ':' + dayjs().minute() + ':' + dayjs().second()
+            dayjs().add(0, 'year').year() + '-03-01 ' + dayjs().add(2, 'hours').hour() + ':' + dayjs().minute() + ':' + dayjs().second()
           ).toDate();
           const leaveCredits = await Promise.all(
             leaveBenefits.map(async (leaveBenefit) => {
@@ -269,5 +270,53 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
       );
     });
     console.log('Monthly Leave Credit Earnings Addition executed');
+  }
+
+  async creditCumulativeLeavesManually(day: Date) {
+    const employees = await this.employeeService.getAllPermanentEmployeeIds();
+    //select all cumulative and val
+    const leaveBenefits = (await this.rawQuery(
+      `SELECT leave_benefits_id leaveBenefitsId, accumulated_credits accumulatedCredits 
+          FROM employee_monitoring.leave_benefits 
+       WHERE credit_distribution = 'monthly' AND leave_types = 'cumulative';`
+    )) as { leaveBenefitsId: LeaveBenefits; accumulatedCredits: string }[];
+    const creditDate = dayjs(day).toDate();
+
+    const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
+      const credits = await Promise.all(
+        employees.map(async (employee) => {
+          const { employeeId } = employee;
+          //dayjs(day).add(2, 'hours').hour() + ':' + dayjs().minute() + ':' + dayjs().second()
+          const createdAt = dayjs(day).add(2, 'hour').toDate();
+          console.log(createdAt);
+          const leaveCredits = await Promise.all(
+            leaveBenefits.map(async (leaveBenefit) => {
+              const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
+                {
+                  createdAt,
+                  employeeId,
+                  creditDate,
+                  creditValue: parseFloat(leaveBenefit.accumulatedCredits),
+                  leaveBenefitsId: leaveBenefit.leaveBenefitsId,
+                  remarks: '',
+                },
+                entityManager
+              );
+
+              const leaveCardLedgerCredit = await this.crudService.transact<LeaveCardLedgerCredit>(entityManager).create({
+                dto: {
+                  createdAt,
+                  leaveCreditEarningId: leaveCreditEarning,
+                },
+              });
+              return { leaveCreditEarning, leaveCardLedgerCredit };
+            })
+          );
+          return leaveCredits;
+        })
+      );
+    });
+    console.log('Monthly Leave Credit Earnings Addition executed');
+    return 'Monthly Leave Credit Earnings Addition executed';
   }
 }
