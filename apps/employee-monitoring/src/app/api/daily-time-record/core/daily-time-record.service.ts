@@ -283,6 +283,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     try {
       //console.log('Work Suspension: ', workSuspension);
       const dateCurrent = dayjs(data.date).toDate();
+      console.log('dayyyy ', dateCurrent);
       const id = data.companyId.replace('-', '');
 
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
@@ -290,13 +291,16 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
 
       const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
-      const day = dayjs(data.date).format('d');
+      console.log(restDays);
+
+      const day = dayjs(dayjs(data.date).format('YYYY-MM-DD')).format('d');
+
+      console.log('daydayday', day);
 
       const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
-
       let isRestDay: boolean;
 
-      isRestDay = day in restDays ? true : false;
+      isRestDay = restDays.includes(day) ? true : false;
 
       console.log(isRestDay);
 
@@ -364,7 +368,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //1.2 compute undertimes
       const noOfTimesUndertime = latesUndertimesNoAttendance.noOfUndertimes;
       const totalMinutesUndertime = latesUndertimesNoAttendance.minutesUndertime;
-
       //1.3 halfday
       const isHalfDay = latesUndertimesNoAttendance.isHalfDay;
       //1.4 no attendance
@@ -914,7 +917,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       onError: () => new InternalServerErrorException(),
     });
   }
-
   //#endregion
   async updateEmployeeDTR(dailyTimeRecordDto: UpdateDailyTimeRecordDto) {
     const { dtrDate, companyId, ...rest } = dailyTimeRecordDto;

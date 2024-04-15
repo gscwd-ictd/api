@@ -583,6 +583,11 @@ export class OvertimeService {
 
     const { id, ...restOfOvertimeApplication } = overtimeDetails.overtimeEmployeeId.overtimeApplicationId;
 
+    const entries = await this.dailyTimeRecordService.getEntriesTheDayAndTheNext({
+      companyId: employeeDetails.companyId,
+      date: restOfOvertimeApplication.plannedDate,
+    });
+
     let didFaceScan = null;
     let dtr = null;
 
@@ -611,8 +616,6 @@ export class OvertimeService {
       find: {
         select: {
           id: true,
-          ivmsTimeIn: true,
-          ivmsTimeOut: true,
           encodedTimeIn: true,
           encodedTimeOut: true,
           accomplishments: true,
@@ -628,70 +631,22 @@ export class OvertimeService {
     const { overtimeEmployeeId, ...restOfUpdatedOvertime } = updatedOvertimeDetails;
     const estimatedHours = overtimeEmployeeId.overtimeApplicationId.estimatedHours;
 
-    let computedIvmsHours = null;
     let computedEncodedHours = null;
     const plannedDate = updatedOvertimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate;
-
-    if (didFaceScan) {
-      if (dayjs(plannedDate).day() in restDays) {
-        let _timeIn = dtr.schedule.timeIn;
-        if (
-          dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeIn).isAfter(dayjs(plannedDate + ' ' + dtr.schedule.timeIn)) ||
-          dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeIn).isSame(dayjs(plannedDate + ' ' + dtr.schedule.timeIn))
-        ) {
-          _timeIn = updatedOvertimeDetails.ivmsTimeIn;
-        }
-        computedIvmsHours =
-          (Math.round(
-            dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeOut).diff(dayjs(plannedDate + ' ' + _timeIn), 'minute') / 60 + Number.EPSILON
-          ) *
-            100) /
-          100;
-      } else {
-        //get overtime after schedule
-        computedIvmsHours =
-          (Math.round(
-            (dayjs(plannedDate + ' ' + updatedOvertimeDetails.ivmsTimeOut).diff(dayjs(plannedDate + ' ' + dtr.schedule.timeOut), 'minute') / 60 +
-              Number.EPSILON) *
-              100
-          ) +
-            Number.EPSILON) /
-          100;
-      }
-      if (computedIvmsHours >= 4) {
-        computedIvmsHours =
-          dtr.schedule.lunchOut !== null
-            ? (this.getComputedHours(computedIvmsHours) * 100) / 100
-            : (this.getComputedHours(computedIvmsHours) * 100) / 100;
-      }
-    }
 
     if (updatedOvertimeDetails.encodedTimeIn !== null && updatedOvertimeDetails.encodedTimeOut !== null) {
       if (dayjs(plannedDate).day() in restDays) {
         computedEncodedHours =
-          (Math.round(
-            dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeOut).diff(
-              dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn),
-              'minute'
-            ) /
-              60 +
-              Number.EPSILON
-          ) *
-            100) /
+          ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(updatedOvertimeDetails.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
           100;
+        computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
       } else {
         //get overtime after schedule
         computedEncodedHours =
-          (Math.round(
-            dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeOut).diff(
-              dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn),
-              'minute'
-            ) /
-              60 +
-              Number.EPSILON
-          ) *
-            100) /
+          ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(updatedOvertimeDetails.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
           100;
+
+        computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
       }
       if (computedEncodedHours > 4) {
         computedEncodedHours =
@@ -704,8 +659,8 @@ export class OvertimeService {
     return {
       ...restOfUpdatedOvertime,
       ...supervisorEmployeeSignatures,
+      entriesForTheDay: entries,
       plannedDate,
-      computedIvmsHours: computedIvmsHours > 0 ? computedIvmsHours : 0,
       didFaceScan,
       estimatedHours: estimatedHours === null ? null : estimatedHours,
       computedEncodedHours: computedEncodedHours > 0 ? computedEncodedHours : 0,
@@ -754,7 +709,6 @@ export class OvertimeService {
         if (result.affected > 0) return { employeeId, ...restOfOvertimeAccomplishmentDto };
       })
     );
-
     return updatedOvertimeAccomplishments;
   }
 
@@ -1259,12 +1213,8 @@ export class OvertimeService {
 
   private async getComputedHrs(hrsRendered: OvertimeHrsRendered) {
     //
-    const { followEstimatedHrs, computedEncodedHours, computedIvmsHours, estimatedHours } = hrsRendered;
-    if (followEstimatedHrs) return estimatedHours;
-    else {
-      if (computedIvmsHours !== null) return computedIvmsHours;
-      else return computedEncodedHours;
-    }
+    const { computedEncodedHours } = hrsRendered;
+    return computedEncodedHours;
   }
 
   private async isRegularOvertimeDay(employeeId: string, year: number, month: number, day: number) {
