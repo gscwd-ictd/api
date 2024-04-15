@@ -21,9 +21,18 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       /* find all employees with supervisor */
       const employees = await this.hrmsEmployeesService.findAllEmployeesWithSupervisor();
 
-      return {
-        participants: employees,
-      };
+      /* custom return */
+      return await Promise.all(
+        employees.map(async (items) => {
+          return {
+            supervisorName: items.supervisor.name,
+            employeeId: items.employee._id,
+            name: items.employee.name,
+            positionTitle: items.employee.positionTitle,
+            assignment: items.employee.assignment,
+          };
+        })
+      );
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -58,22 +67,15 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       const participantIds = benchmarkParticipants.map((participant) => participant.employeeId);
 
       /* filter employees to remove those with employee ids present in participants */
-      const participants = employees
+      return employees
         .filter((employee) => !participantIds.includes(employee.employee._id))
         .map((employee) => ({
-          employee: {
-            _id: employee.employee._id,
-            name: employee.employee.name,
-          },
-          supervisor: {
-            _id: employee.supervisor._id,
-            name: employee.supervisor.name,
-          },
+          supervisorName: employee.supervisor.name,
+          employeeId: employee.employee._id,
+          name: employee.employee.name,
+          positionTitle: employee.employee.positionTitle,
+          assignment: employee.employee.assignment,
         }));
-
-      return {
-        participants,
-      };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
