@@ -231,11 +231,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
         isHalfDay = true;
-        minutesLate += lateAfternoon;
+        minutesLate += lateAfternoon + 240;
         noOfLates += 2;
       }
 
       if (dtr.timeIn === null && dtr.lunchOut === null && lateAfternoon <= 0) {
+        minutesLate += 240;
         isHalfDay = true;
         noOfLates += 1;
       }
