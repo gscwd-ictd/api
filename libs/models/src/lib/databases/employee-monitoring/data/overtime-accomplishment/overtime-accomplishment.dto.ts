@@ -14,10 +14,10 @@ export class CreateOvertimeAccomplishmentDto {
   ivmsTimeOut?: number;
 
   @IsOptional()
-  encodedTimeIn?: number;
+  encodedTimeIn?: Date;
 
   @IsOptional()
-  encodedTimeOut?: number;
+  encodedTimeOut?: Date;
 
   @IsOptional()
   accomplishments?: string;
