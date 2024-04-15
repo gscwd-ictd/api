@@ -17,36 +17,36 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
       /* find all trainings */
       const trainingDetails = (await this.crudService.findAll({
         find: {
-          relations: {
-            trainingDetails: {
-              trainingDesign: true,
-              source: true,
-            },
-          },
-          select: {
-            id: true,
-            remarks: true,
-            trainingDetails: {
-              createdAt: true,
-              updatedAt: true,
-              deletedAt: true,
-              id: true,
-              courseTitle: true,
-              trainingDesign: {
-                courseTitle: true,
-              },
-              numberOfHours: true,
-              numberOfParticipants: true,
-              location: true,
-              trainingStart: true,
-              trainingEnd: true,
-              source: {
-                name: true,
-              },
-              type: true,
-              status: true,
-            },
-          },
+          // relations: {
+          //   trainingDetails: {
+          //     trainingDesign: true,
+          //     source: true,
+          //   },
+          // },
+          // select: {
+          //   id: true,
+          //   remarks: true,
+          //   trainingDetails: {
+          //     createdAt: true,
+          //     updatedAt: true,
+          //     deletedAt: true,
+          //     id: true,
+          //     courseTitle: true,
+          //     trainingDesign: {
+          //       courseTitle: true,
+          //     },
+          //     numberOfHours: true,
+          //     numberOfParticipants: true,
+          //     location: true,
+          //     trainingStart: true,
+          //     trainingEnd: true,
+          //     source: {
+          //       name: true,
+          //     },
+          //     type: true,
+          //     status: true,
+          //   },
+          // },
           where: {
             trainingDetails: {
               status: MoreThanOrEqual(status),
@@ -63,21 +63,22 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
 
       return await Promise.all(
         trainingDetails.map(async (items) => {
-          const trainingId = items.trainingDetails.id;
-          const trainingStatus = items.trainingDetails.status;
-          const nomineeType = NomineeType.NOMINEE;
-          const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
+          // const trainingId = items.trainingDetails.id;
+          // const trainingStatus = items.trainingDetails.status;
+
+          // const nomineeType = NomineeType.NOMINEE;
+          // const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
 
           /* find all training nominees */
-          const nominees = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
+          //const nominees = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
 
           /* custom returns */
           return {
-            createdAt: items.trainingDetails.createdAt,
-            updatedAt: items.trainingDetails.updatedAt,
-            deletedAt: items.trainingDetails.deletedAt,
-            trainingId: items.trainingDetails.id,
-            courseTitle: items.trainingDetails.courseTitle || items.trainingDetails.trainingDesign.courseTitle,
+            // createdAt: items.trainingDetails.createdAt,
+            // updatedAt: items.trainingDetails.updatedAt,
+            // deletedAt: items.trainingDetails.deletedAt,
+            //trainingId: items.trainingDetails.id,
+            //courseTitle: items.trainingDetails.courseTitle || items.trainingDetails.trainingDesign.courseTitle,
             numberOfParticipants: items.trainingDetails.numberOfParticipants,
             location: items.trainingDetails.location,
             trainingStart: items.trainingDetails.trainingStart,
@@ -85,8 +86,8 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
             source: items.trainingDetails.source.name,
             type: items.trainingDetails.type,
             status: items.trainingDetails.status,
-            remarks: items.remarks,
-            nominees: nominees,
+            //remarks: items.remarks,
+            //nominees: nominees,
           };
         })
       );
