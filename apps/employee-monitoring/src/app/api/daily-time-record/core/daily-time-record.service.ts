@@ -231,11 +231,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
         isHalfDay = true;
-        minutesLate += lateAfternoon;
+        minutesLate += lateAfternoon + 240;
         noOfLates += 2;
       }
 
       if (dtr.timeIn === null && dtr.lunchOut === null && lateAfternoon <= 0) {
+        minutesLate += 240;
         isHalfDay = true;
         noOfLates += 1;
       }
@@ -490,6 +491,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             //baka halfday lang siya
             if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))) {
               _timeIn = time;
+            } else {
+              if (
+                dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
+                dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 2 : suspensionHours, 'hour'))
+              ) {
+                _timeOut = time;
+              }
             }
           }
         } else {
@@ -599,6 +607,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               if (suspensionHours >= 4) _timeOut = time;
               else _lunchOut = time;
             }
+            if (
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
+              dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 2 : suspensionHours, 'hour'))
+            ) {
+              _timeOut = time;
+            }
           }
         } else {
           //baka timeout or lunchout or lunchin
@@ -688,6 +702,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             //baka halfday lang siya
             if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))) {
               _timeIn = time;
+            } else {
+              if (
+                dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
+                dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 2 : suspensionHours, 'hour'))
+              ) {
+                _timeOut = time;
+              }
             }
           }
         } else {
@@ -841,6 +862,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))
             ) {
               _lunchOut = time;
+            }
+
+            if (
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
+              dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 2 : suspensionHours, 'hour'))
+            ) {
+              _timeOut = time;
             }
           }
         } else {
