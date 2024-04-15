@@ -491,6 +491,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             //baka halfday lang siya
             if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))) {
               _timeIn = time;
+            } else {
+              if (
+                dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
+                dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 2 : suspensionHours, 'hour'))
+              ) {
+                _timeOut = time;
+              }
             }
           }
         } else {
@@ -689,6 +696,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             //baka halfday lang siya
             if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))) {
               _timeIn = time;
+            } else {
+              if (
+                dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
+                dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 2 : suspensionHours, 'hour'))
+              ) {
+                _timeOut = time;
+              }
             }
           }
         } else {
@@ -842,6 +856,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))
             ) {
               _lunchOut = time;
+            }
+
+            if (
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
+              dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 2 : suspensionHours, 'hour'))
+            ) {
+              _timeOut = time;
             }
           }
         } else {
