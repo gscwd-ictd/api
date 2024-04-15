@@ -1,5 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ArrayNotEmpty, IsArray, IsBoolean, IsNotEmpty, IsUUID, ValidateNested } from 'class-validator';
 
 export class CreateBenchmarkParticipantRequirementsDto {
   @IsNotEmpty()
@@ -11,4 +12,12 @@ export class UpdateBenchmarkParticipantRequirementsDto extends PartialType(Creat
   @IsNotEmpty()
   @IsBoolean()
   learningApplicationPlan: boolean;
+}
+
+export class BenchmarkParticipantRequirementsDto {
+  @ArrayNotEmpty()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateBenchmarkParticipantRequirementsDto)
+  participants: Array<UpdateBenchmarkParticipantRequirementsDto>;
 }

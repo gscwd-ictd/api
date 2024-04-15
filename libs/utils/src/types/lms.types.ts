@@ -43,3 +43,22 @@ export type NomineeRaw = {
 export type TrainingRequirementsRaw = {
   document: string;
 };
+
+export type EmployeeParticpantsRaw = {
+  _id: string;
+  name: string;
+  positionTitle: string;
+  assignment: string;
+};
+
+export type SupervisorParticipantsRaw = {
+  _id: string;
+  name: string;
+  positionTitle: string;
+  assignment: string;
+};
+
+export type BenchmarkParticipantsRaw = {
+  employee: EmployeeParticpantsRaw;
+  supervisor: SupervisorParticipantsRaw;
+};

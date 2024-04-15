@@ -6,7 +6,6 @@ import {
   Delete,
   Get,
   InternalServerErrorException,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -15,12 +14,13 @@ import {
 } from '@nestjs/common';
 import { BenchmarkService } from './benchmark.service';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { Benchmark, CreateBenchmarkDto } from '@gscwd-api/models';
+import { Benchmark, BenchmarkParticipantRequirementsDto, CreateBenchmarkDto, UpdateBenchmarkDto } from '@gscwd-api/models';
 import { DeleteResult } from 'typeorm';
+import { BenchmarkParticipantsService } from '../components/participants';
 
 @Controller({ version: '1', path: 'benchmark' })
 export class BenchmarkController {
-  constructor(private readonly benchmarkService: BenchmarkService) {}
+  constructor(private readonly benchmarkService: BenchmarkService, private readonly benchmarkParticipantsService: BenchmarkParticipantsService) {}
 
   /* find all benchmark */
   @Get()
@@ -42,23 +42,18 @@ export class BenchmarkController {
 
   /* find a benchmark by id*/
   @Get(':id')
-  async findBenchmarkById(@Param('id') id: string): Promise<Benchmark> {
-    return await this.benchmarkService.crud().findOneBy({
-      findBy: {
-        id: id,
-      },
-      onError: () => new NotFoundException(),
-    });
+  async findBenchmarkById(@Param('id') id: string) {
+    return await this.benchmarkService.findBenchmarkById(id);
   }
 
   /* edit a benchmark */
   @Patch(':id')
-  async updateBenchmark(@Param('id') id: string, @Body() data: CreateBenchmarkDto) {
+  async updateBenchmark(@Param('id') id: string, @Body() data: UpdateBenchmarkDto) {
     return await this.benchmarkService.updateBenchmark(id, data);
   }
 
   /* delete a benchmark */
-  @Delete(':id  ')
+  @Delete(':id')
   async deleteBenchmark(@Param('id') id: string): Promise<DeleteResult> {
     return await this.benchmarkService.crud().delete({
       deleteBy: {
@@ -67,5 +62,29 @@ export class BenchmarkController {
       softDelete: false,
       onError: () => new BadRequestException(),
     });
+  }
+
+  /* find all non participants by benchmark id */
+  @Get('assignable/participant')
+  async findAllAssignableParticipants() {
+    return this.benchmarkParticipantsService.findAllAssignableParticipants();
+  }
+
+  /* find all non participants by benchmark id */
+  @Get(':benchmarkId/assignable/participant')
+  async findAllAssignableParticipantsByBenchmarkId(@Param('benchmarkId') benchmarkId: string) {
+    return await this.benchmarkParticipantsService.findAllAssignableParticipantsByBenchmarkId(benchmarkId);
+  }
+
+  /* find all participants by benchmark id */
+  @Get(':benchmarkId/participant/requirements')
+  async findAllParticipantRequirementsByBenchmarkId(@Param('benchmarkId') benchmarkId: string) {
+    return await this.benchmarkService.findAllParticipantRequirementsByBenchmarkId(benchmarkId);
+  }
+
+  /* update all participants */
+  @Patch(':benchmarkId/participant/requirements')
+  async updateAllParticipantRequirementsByBenchmarkId(@Param('benchmarkId') benchmarkId: string, @Body() data: BenchmarkParticipantRequirementsDto) {
+    return await this.benchmarkService.updateAllParticipantRequirementsByBenchmarkId(benchmarkId, data);
   }
 }
