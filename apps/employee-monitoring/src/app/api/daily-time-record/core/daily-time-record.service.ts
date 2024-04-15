@@ -36,6 +36,15 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     });
   }
 
+  //get_entries_the_day_and_the_next
+  async getEntriesTheDayAndTheNext(entry: { companyId: string; date: Date }) {
+    return (await this.client.call<string, { companyId: string; date: Date }, string>({
+      action: 'send',
+      payload: entry,
+      pattern: 'get_entries_the_day_and_the_next',
+    })) as string;
+  }
+
   async getHasIvms(data: { companyId: string; entryDate: Date }) {
     return (await this.client.call<string, { companyId: string; entryDate: Date }, boolean>({
       action: 'send',

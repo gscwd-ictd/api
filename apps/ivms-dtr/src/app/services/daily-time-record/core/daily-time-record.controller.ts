@@ -27,4 +27,9 @@ export class DailyTimeRecordController {
   async getHasDtr(@Payload() data: { companyId: string; entryDate: Date }) {
     return await this.dailyTimeRecordService.getHasDtr(data);
   }
+
+  @MessagePattern('get_entries_the_day_and_the_next')
+  async getEntriesTheDayAndTheNext(@Payload() entry: { companyId: string; date: Date }) {
+    return await this.dailyTimeRecordService.getEntriesTheDayAndTheNext(entry);
+  }
 }
