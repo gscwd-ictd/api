@@ -625,6 +625,11 @@ export class OvertimeService {
     const { overtimeEmployeeId, ...restOfUpdatedOvertime } = updatedOvertimeDetails;
     const estimatedHours = overtimeEmployeeId.overtimeApplicationId.estimatedHours;
 
+    const entries = await this.dailyTimeRecordService.getEntriesTheDayAndTheNext({
+      companyId: employeeDetails.companyId,
+      date: restOfOvertimeApplication.plannedDate,
+    });
+
     let computedIvmsHours = null;
     let computedEncodedHours = null;
     const plannedDate = updatedOvertimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate;
@@ -702,6 +707,7 @@ export class OvertimeService {
       ...restOfUpdatedOvertime,
       ...supervisorEmployeeSignatures,
       plannedDate,
+      entriesForTheDay: entries,
       computedIvmsHours: computedIvmsHours > 0 ? computedIvmsHours : 0,
       didFaceScan,
       estimatedHours: estimatedHours === null ? null : estimatedHours,
