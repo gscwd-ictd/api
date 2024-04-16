@@ -10,7 +10,7 @@ import {
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
 import { OvertimeHrsRendered, OvertimeStatus, OvertimeSummaryHalf, ScheduleBase } from '@gscwd-api/utils';
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { DataSource, EntityManager, EntityMetadata, TreeLevelColumn } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
@@ -820,115 +820,121 @@ export class OvertimeService {
 
   async getOvertimeAccomplishmentByEmployeeId(employeeId: string) {
     //!TODO refactor this
-    const pendingOvertimes = (await this.overtimeAccomplishmentService.crud().findAll({
-      find: {
-        select: {
-          overtimeEmployeeId: {
+
+    try {
+      const pendingOvertimes = (await this.overtimeAccomplishmentService.crud().findAll({
+        find: {
+          select: {
+            overtimeEmployeeId: {
+              id: true,
+              employeeId: true,
+              overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true, estimatedHours: true },
+            },
+            remarks: true,
+            status: true,
+            accomplishments: true,
+            actualHrs: true,
             id: true,
-            employeeId: true,
-            overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true, estimatedHours: true },
           },
-          remarks: true,
-          status: true,
-          accomplishments: true,
-          actualHrs: true,
-          id: true,
+          where: {
+            overtimeEmployeeId: { employeeId, overtimeApplicationId: { status: OvertimeStatus.APPROVED } },
+            status: OvertimeStatus.PENDING,
+          },
+          relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
+          loadRelationIds: true,
+          loadEagerRelations: true,
+          relationLoadStrategy: 'query',
         },
-        where: {
-          overtimeEmployeeId: { employeeId, overtimeApplicationId: { status: OvertimeStatus.APPROVED } },
-          status: OvertimeStatus.PENDING,
-        },
-        relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
-        loadRelationIds: true,
-        loadEagerRelations: true,
-        relationLoadStrategy: 'query',
-      },
-      onError: () => new NotFoundException(),
-    })) as OvertimeAccomplishment[];
+        onError: () => new NotFoundException(),
+      })) as OvertimeAccomplishment[];
 
-    const pendingResult = await Promise.all(
-      pendingOvertimes.map(async (overtime) => {
-        const { overtimeEmployeeId, remarks, status } = overtime;
+      const pendingResult = await Promise.all(
+        pendingOvertimes.map(async (overtime) => {
+          const { overtimeEmployeeId, remarks, status } = overtime;
 
-        const { overtimeApplicationId, employeeId } = overtimeEmployeeId;
-        const { estimatedHours, plannedDate, purpose } = overtimeApplicationId;
+          const { overtimeApplicationId, employeeId } = overtimeEmployeeId;
+          const { estimatedHours, plannedDate, purpose } = overtimeApplicationId;
 
-        const dateOfOTApproval = dayjs(
-          (await this.overtimeApprovalService.crud().findAll({ find: { select: { dateApproved: true }, where: { overtimeApplicationId } } }))[0]
-            .dateApproved
-        ).format('YYYY-MM-DD');
+          const dateOfOTApproval = dayjs(
+            (await this.overtimeApprovalService.crud().findAll({ find: { select: { dateApproved: true }, where: { overtimeApplicationId } } }))[0]
+              .dateApproved
+          ).format('YYYY-MM-DD');
 
-        const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
+          const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
 
-        return {
-          ...overtimeAccomplishmentDetails,
-          overtimeApplicationId: overtimeApplicationId.id,
-          estimatedHours,
-          dateOfOTApproval,
-          plannedDate,
-          employeeId,
-          purpose,
-          remarks,
-          status,
-        };
-      })
-    );
+          return {
+            ...overtimeAccomplishmentDetails,
+            overtimeApplicationId: overtimeApplicationId.id,
+            estimatedHours,
+            dateOfOTApproval,
+            plannedDate,
+            employeeId,
+            purpose,
+            remarks,
+            status,
+          };
+        })
+      );
 
-    const approvedOvertimes = (await this.overtimeAccomplishmentService.crud().findAll({
-      find: {
-        select: {
-          overtimeEmployeeId: {
+      const approvedOvertimes = (await this.overtimeAccomplishmentService.crud().findAll({
+        find: {
+          select: {
+            overtimeEmployeeId: {
+              id: true,
+              employeeId: true,
+              overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true, estimatedHours: true },
+            },
+            remarks: true,
+            status: true,
+            actualHrs: true,
+            accomplishments: true,
             id: true,
-            employeeId: true,
-            overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true, estimatedHours: true },
           },
-          remarks: true,
-          status: true,
-          actualHrs: true,
-          accomplishments: true,
-          id: true,
+          where: {
+            overtimeEmployeeId: { employeeId, overtimeApplicationId: { status: OvertimeStatus.APPROVED } },
+            status: OvertimeStatus.APPROVED,
+          },
+          relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
+          loadRelationIds: true,
+          loadEagerRelations: true,
+          relationLoadStrategy: 'query',
         },
-        where: {
-          overtimeEmployeeId: { employeeId, overtimeApplicationId: { status: OvertimeStatus.APPROVED } },
-          status: OvertimeStatus.APPROVED,
-        },
-        relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
-        loadRelationIds: true,
-        loadEagerRelations: true,
-        relationLoadStrategy: 'query',
-      },
-      onError: () => new NotFoundException(),
-    })) as OvertimeAccomplishment[];
+        onError: () => new NotFoundException(),
+      })) as OvertimeAccomplishment[];
 
-    const approvedResult = await Promise.all(
-      approvedOvertimes.map(async (overtime) => {
-        const { overtimeEmployeeId, remarks, status } = overtime;
+      const approvedResult = await Promise.all(
+        approvedOvertimes.map(async (overtime) => {
+          const { overtimeEmployeeId, remarks, status } = overtime;
 
-        const { overtimeApplicationId, employeeId } = overtimeEmployeeId;
-        const { estimatedHours, plannedDate, purpose } = overtimeApplicationId;
+          const { overtimeApplicationId, employeeId } = overtimeEmployeeId;
+          const { estimatedHours, plannedDate, purpose } = overtimeApplicationId;
 
-        const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
+          const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
 
-        const dateOfOTApproval = dayjs(
-          (await this.overtimeApprovalService.crud().findAll({ find: { select: { dateApproved: true }, where: { overtimeApplicationId } } }))[0]
-            .dateApproved
-        ).format('YYYY-MM-DD');
+          const dateOfOTApproval = dayjs(
+            (await this.overtimeApprovalService.crud().findAll({ find: { select: { dateApproved: true }, where: { overtimeApplicationId } } }))[0]
+              .dateApproved
+          ).format('YYYY-MM-DD');
 
-        return {
-          ...overtimeAccomplishmentDetails,
-          overtimeApplicationId: overtimeApplicationId.id,
-          estimatedHours,
-          plannedDate,
-          dateOfOTApproval,
-          employeeId,
-          purpose,
-          remarks,
-          status,
-        };
-      })
-    );
+          return {
+            ...overtimeAccomplishmentDetails,
+            overtimeApplicationId: overtimeApplicationId.id,
+            estimatedHours,
+            plannedDate,
+            dateOfOTApproval,
+            employeeId,
+            purpose,
+            remarks,
+            status,
+          };
+        })
+      );
 
-    return { forApproval: pendingResult, completed: approvedResult };
+      return { forApproval: pendingResult, completed: approvedResult };
+    } catch (error) {
+      //Logger.log(error);
+      console.log(error);
+    }
   }
 
   async deleteImmediateSupervisor(id: string) {
