@@ -231,12 +231,32 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
   /* find all participants by benchmark id */
   async findAllParticipantRequirementsByBenchmarkId(benchmarkId: string) {
     try {
+      await this.crudService.findOneBy({
+        findBy: {
+          id: benchmarkId,
+        },
+        onError: () => {
+          throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+        },
+      });
+
       const participants = await this.benchmarkParticipantsService.findAllParticipantsByBenchmarkId(benchmarkId);
 
-      /* custom return */
-      return {
-        participants: participants,
-      };
+      return await Promise.all(
+        participants.map(async (items) => {
+          const requirements = await this.benchmarkParticipantRequirementsService.findParticipantRequirementsByParticipantsId(
+            items.benchmarkParticipants
+          );
+
+          return {
+            benchmarkParticipants: items.benchmarkParticipants,
+            supervisorName: items.supervisorName,
+            employeeId: items.employeeId,
+            name: items.name,
+            learningApplicationPlan: requirements,
+          };
+        })
+      );
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);

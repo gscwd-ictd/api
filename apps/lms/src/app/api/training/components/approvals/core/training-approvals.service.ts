@@ -65,6 +65,7 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
         trainingDetails.map(async (items) => {
           const trainingId = items.trainingDetails.id;
           const trainingStatus = items.trainingDetails.status;
+
           const nomineeType = NomineeType.NOMINEE;
           const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
 
