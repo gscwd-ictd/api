@@ -149,11 +149,10 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
           await Promise.all(
             participants.map(async (items) => {
               /* insert participants */
-              return await this.benchmarkParticipantsService.updateParticipants(
+              return await this.benchmarkParticipantsService.createParticipants(
                 {
                   benchmark: id,
                   employeeId: items.employeeId,
-                  learningApplicationPlan: items.learningApplicationPlan,
                 },
                 entityManager
               );
@@ -176,7 +175,7 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
         }
       });
     } catch (error) {
-      Logger.error({ error });
+      Logger.error(error);
       /* custom error */
       if (error.code === '23505' || error.status === 409) {
         /* Duplicate key violation */
