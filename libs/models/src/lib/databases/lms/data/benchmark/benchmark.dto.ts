@@ -16,11 +16,11 @@ export class BenchmarkDto {
 
   @IsNotEmpty()
   @IsDateString()
-  dateStarted: Date;
+  dateFrom: Date;
 
   @IsNotEmpty()
   @IsDateString()
-  dateEnd: Date;
+  dateTo: Date;
 
   @IsNotEmpty()
   @IsString({ message: 'benchmark location must be a string' })
