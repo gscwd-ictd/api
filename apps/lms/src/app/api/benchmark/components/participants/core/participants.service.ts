@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { BenchmarkParticipants, CreateBenchmarkParticipantsDto, UpdateBenchmarkParticipantsDto } from '@gscwd-api/models';
+import { BenchmarkParticipants, CreateBenchmarkParticipantsDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityManager, QueryFailedError } from 'typeorm';
 import { BenchmarkParticipantRequirementsService } from '../../participants-requirements';
@@ -153,48 +153,6 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       /* custom return */
       return {
         employeeId: participants.employeeId,
-      };
-    } catch (error) {
-      Logger.error(error);
-      if (error.code === '23505' && error instanceof QueryFailedError) {
-        throw new HttpException('Duplicate key violation', HttpStatus.CONFLICT);
-      } else {
-        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
-      }
-    }
-  }
-
-  /*  edit benchmark participants */
-  async updateParticipants(data: UpdateBenchmarkParticipantsDto, entityManager: EntityManager) {
-    try {
-      /* deconstruct data */
-      const { benchmark, employeeId, learningApplicationPlan } = data;
-
-      /* insert participants */
-      const participants = await this.crudService.transact<BenchmarkParticipants>(entityManager).create({
-        dto: {
-          benchmark: {
-            id: benchmark,
-          },
-          employeeId: employeeId,
-        },
-        onError: (error) => {
-          throw error;
-        },
-      });
-
-      /* insert requirements */
-      await this.benchmarkParticipantRequirementsService.createParticipantRequirementsWithRequirements(
-        {
-          benchmarkParticipants: participants.id,
-          learningApplicationPlan: learningApplicationPlan,
-        },
-        entityManager
-      );
-
-      /* custom return */
-      return {
-        affected: 1,
       };
     } catch (error) {
       Logger.error(error);
