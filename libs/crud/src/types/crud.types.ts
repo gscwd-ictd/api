@@ -1,7 +1,8 @@
 import { MyRpcException } from '@gscwd-api/microservices';
 import { HttpException } from '@nestjs/common';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
-import { DeepPartial, EntityMetadata, FindManyOptions, FindOneOptions, FindOptionsWhere, SaveOptions } from 'typeorm';
+import { DeepPartial, EntityMetadata, FindManyOptions, FindOneOptions, FindOptionsWhere, ObjectLiteral, SaveOptions } from 'typeorm';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 export const CRUD_SERVICE = 'CRUD_SERVICE';
 
@@ -36,7 +37,8 @@ export type CrudFindOneOptions<T> = CrudOptions & {
 
 export type CrudUpdateOptions<T> = CrudOptions & {
   updateBy: FindOptionsWhere<T>;
-  dto: DeepPartial<T>;
+  //dto: DeepPartial<T>;
+  dto: QueryDeepPartialEntity<T>;
 };
 
 export type CrudDeleteOptions<T> = CrudOptions & {
