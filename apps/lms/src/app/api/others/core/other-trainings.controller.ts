@@ -8,11 +8,12 @@ import {
   InternalServerErrorException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
 import { OtherTrainingsService } from './other-trainings.service';
-import { CreateOtherTrainingDto, OtherTraining } from '@gscwd-api/models';
+import { CreateOtherTrainingDto, OtherTraining, UpdateOtherTrainingDto } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Controller({ version: '1', path: 'other/trainings' })
@@ -40,6 +41,12 @@ export class OtherTrainingsController {
   @Post()
   async createOtherTrainings(@Body() data: CreateOtherTrainingDto) {
     return await this.otherTrainingsService.createOtherTrainings(data);
+  }
+
+  /* edit a benchmark */
+  @Patch(':id')
+  async updateOtherTrainingById(@Param('id') id: string, @Body() data: UpdateOtherTrainingDto) {
+    return await this.otherTrainingsService.updateOtherTrainingById(id, data);
   }
 
   /* remove other training by id */

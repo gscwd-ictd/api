@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateOtherTrainingDto, OtherTraining } from '@gscwd-api/models';
+import { CreateOtherTrainingDto, OtherTraining, UpdateOtherTrainingDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { OtherTrainingParticipantsService } from '../components/other-training-participants';
@@ -74,6 +74,63 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
           ...otherTraining,
           participants: employees,
         };
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* edit other training by id */
+  async updateOtherTrainingById(id: string, data: UpdateOtherTrainingDto) {
+    try {
+      return await this.dataSource.transaction(async (entityManager) => {
+        /* deconstruct data */
+        const { participants, ...rest } = data;
+
+        /* check if other training id is existing */
+        await this.crudService.transact<OtherTraining>(entityManager).findOneBy({
+          findBy: {
+            id: id,
+          },
+          onError: () => {
+            throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+          },
+        });
+
+        /* remove all participants by other training id */
+        const deleteParticipants = await this.otherTrainingParticipantsService.deleteParticipants(id, entityManager);
+
+        /* validate deleted value */
+        if (deleteParticipants.affected > 0) {
+          /* insert new participants */
+          await Promise.all(
+            participants.map(async (items) => {
+              /* insert participants */
+              return await this.otherTrainingParticipantsService.createParticipants(
+                {
+                  otherTraining: id,
+                  employeeId: items.employeeId,
+                },
+                entityManager
+              );
+            })
+          );
+
+          /* return updated  */
+          return await this.crudService.transact<OtherTraining>(entityManager).update({
+            updateBy: {
+              id: id,
+            },
+            dto: {
+              ...rest,
+            },
+          });
+        } else {
+          return {
+            affected: 0,
+          };
+        }
       });
     } catch (error) {
       Logger.error(error);

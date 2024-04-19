@@ -35,3 +35,5 @@ export class CreateOtherTrainingDto extends PartialType(OtherTrainingDto) {
   @Type(() => OtherTrainingParticipantDto)
   participants: Array<OtherTrainingParticipantDto>;
 }
+
+export class UpdateOtherTrainingDto extends PartialType(CreateOtherTrainingDto) {}

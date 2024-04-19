@@ -80,4 +80,24 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  /* remove participants by other training id */
+  async deleteParticipants(otherTrainingId: string, entityManager: EntityManager) {
+    try {
+      return await this.crudService.transact<OtherTrainingParticipant>(entityManager).delete({
+        deleteBy: {
+          otherTraining: {
+            id: otherTrainingId,
+          },
+        },
+        softDelete: false,
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
 }
