@@ -68,3 +68,18 @@ export enum BenchmarkStatus {
   PENDING = 'pending',
   DONE = 'done',
 }
+
+export enum OtherTrainingCategory {
+  CONFERENCE = 'conference',
+  CONVENTION = 'convention',
+  MEETING = 'meeting',
+  ORIENTATION = 'orientation',
+  SEMINAR = 'seminar',
+  SYMPOSIUM = 'symposium',
+  WORKSHOP = 'workshop',
+}
+
+export enum OtherTrainingStatus {
+  PENDING = 'pending',
+  DONE = 'done',
+}
