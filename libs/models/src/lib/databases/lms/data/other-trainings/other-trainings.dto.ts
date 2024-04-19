@@ -1,6 +1,8 @@
 import { OtherTrainingCategory } from '@gscwd-api/utils';
 import { PartialType } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsNotEmpty, IsString, Length } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsDateString, IsEnum, IsNotEmpty, IsString, Length, ValidateNested } from 'class-validator';
+import { OtherTrainingParticipantDto } from '../other-training-participants';
+import { Type } from 'class-transformer';
 
 export class OtherTrainingDto {
   @IsNotEmpty()
@@ -26,4 +28,10 @@ export class OtherTrainingDto {
   category: OtherTrainingCategory;
 }
 
-export class CreateOtherTrainingDto extends PartialType(OtherTrainingDto) {}
+export class CreateOtherTrainingDto extends PartialType(OtherTrainingDto) {
+  @ArrayNotEmpty()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OtherTrainingParticipantDto)
+  participants: Array<OtherTrainingParticipantDto>;
+}
