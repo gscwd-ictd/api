@@ -10,6 +10,7 @@ import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { error } from 'console';
+import { OfficerOfTheDayService } from '../../officer-of-the-day/core/officer-of-the-day.service';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -19,6 +20,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     private readonly leaveCardLedgerDebitService: LeaveCardLedgerDebitService,
     private readonly client: MicroserviceClient,
     private readonly employeeService: EmployeesService,
+    private readonly officerOfTheDayService: OfficerOfTheDayService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -28,12 +30,19 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const { natureOfBusiness } = passSlipDto;
     const passSlip = await this.dataSource.transaction(async (transactionEntityManager) => {
       const { approval, ...rest } = passSlipDto;
-      const supervisorId = await this.client.call<string, string, string>({
-        action: 'send',
-        payload: rest.employeeId,
-        pattern: 'get_employee_supervisor_id',
-        onError: (error) => new NotFoundException(error),
-      });
+
+      const employeeAssignmentId = (await this.employeeService.getEmployeeDetails(rest.employeeId)).id;
+
+      let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
+
+      if (supervisorId === null) {
+        supervisorId = (await this.client.call<string, string, string>({
+          action: 'send',
+          payload: rest.employeeId,
+          pattern: 'get_employee_supervisor_id',
+          onError: (error) => new NotFoundException(error),
+        })) as string;
+      }
 
       let status = PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL;
       const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save(rest);
