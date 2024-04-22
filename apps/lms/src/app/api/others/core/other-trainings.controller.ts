@@ -15,10 +15,14 @@ import {
 import { OtherTrainingsService } from './other-trainings.service';
 import { CreateOtherTrainingDto, OtherTraining, UpdateOtherTrainingDto } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { OtherTrainingParticipantsService } from '../components/other-training-participants';
 
 @Controller({ version: '1', path: 'other/trainings' })
 export class OtherTrainingsController {
-  constructor(private readonly otherTrainingsService: OtherTrainingsService) {}
+  constructor(
+    private readonly otherTrainingsService: OtherTrainingsService,
+    private readonly otherTrainingParticipantsService: OtherTrainingParticipantsService
+  ) {}
 
   /* find all other trainings */
   @Get()
@@ -59,5 +63,17 @@ export class OtherTrainingsController {
       softDelete: false,
       onError: () => new BadRequestException(),
     });
+  }
+
+  /* find all non participants by other training id */
+  @Get('assignable/participant')
+  async findAllAssignableParticipants() {
+    return this.otherTrainingParticipantsService.findAllAssignableParticipants();
+  }
+
+  /* find all non participants by other training id */
+  @Get(':otherTrainingId/assignable/participant')
+  async findAllAssignableParticipantsByBenchmarkId(@Param('otherTrainingId') otherTrainingId: string) {
+    return await this.otherTrainingParticipantsService.findAllAssignableParticipantsByOtherTrainingId(otherTrainingId);
   }
 }
