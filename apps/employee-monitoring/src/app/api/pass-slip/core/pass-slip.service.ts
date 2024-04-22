@@ -31,9 +31,11 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlip = await this.dataSource.transaction(async (transactionEntityManager) => {
       const { approval, ...rest } = passSlipDto;
 
-      const employeeAssignmentId = (await this.employeeService.getEmployeeDetails(rest.employeeId)).id;
+      const employeeAssignmentId = (await this.employeeService.getEmployeeDetails(rest.employeeId)).assignment.id;
 
       let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
+
+      console.log('supervisor id', supervisorId);
 
       if (supervisorId === null) {
         supervisorId = (await this.client.call<string, string, string>({
