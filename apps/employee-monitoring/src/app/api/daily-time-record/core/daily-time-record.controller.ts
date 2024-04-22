@@ -30,4 +30,9 @@ export class DailyTimeRecordController {
   async getEmployeeIds() {
     return await this.dailyTimeRecordService.addDTRToLedger();
   }
+
+  @Get('/employees/entries/logs/:company_id/:date_now')
+  async getEntriesTheDayAndTheNext(@Param('company_id') companyId: string, @Param('date_now') date: Date) {
+    return await this.dailyTimeRecordService.getEntriesTheDayAndTheNext({ companyId, date });
+  }
 }

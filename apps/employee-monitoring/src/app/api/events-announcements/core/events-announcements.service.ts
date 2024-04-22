@@ -26,7 +26,7 @@ export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> 
         return eventAnnouncement;
       }
     }
-    throw new InternalServerErrorException();
+    //throw new InternalServerErrorException();
   }
 
   async addEventAnnouncementFromFileUrl(eventAnnouncementDto: CreateEventsAnnouncementsDto) {

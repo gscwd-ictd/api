@@ -18,7 +18,7 @@ export class OvertimeApplication extends DatabaseEntity implements IEntity {
   @Column({ name: 'planned_date', type: 'date' })
   plannedDate: Date;
 
-  @Column({ name: 'estimated_hours', type: 'int' })
+  @Column({ name: 'estimated_hours', type: 'decimal', precision: 4, scale: 2 })
   estimatedHours: number;
 
   @Column({ name: 'purpose', type: 'text' })

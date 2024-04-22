@@ -1,5 +1,5 @@
 import { FindEmployeesPatterns, MicroserviceClient } from '@gscwd-api/microservices';
-import { EmployeeFullNameRaw, OrganizationEmployeeRaw, OrganizationRaw } from '@gscwd-api/utils';
+import { BenchmarkParticipantsRaw, EmployeeFullNameRaw, OrganizationEmployeeRaw, OrganizationRaw } from '@gscwd-api/utils';
 import { HttpException, Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -26,6 +26,7 @@ export class HrmsEmployeesService {
     })) as EmployeeFullNameRaw;
   }
 
+  /* find all organization  */
   async findAllOrganization() {
     return (await this.microserviceClient.call({
       action: 'send',
@@ -35,6 +36,7 @@ export class HrmsEmployeesService {
     })) as Array<OrganizationRaw>;
   }
 
+  /* find all employees by organization  */
   async findAllEmployeesByOrganizationId(organizationId: string) {
     return (await this.microserviceClient.call({
       action: 'send',
@@ -42,5 +44,25 @@ export class HrmsEmployeesService {
       payload: organizationId,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     })) as Array<OrganizationEmployeeRaw>;
+  }
+
+  /* find all employees with supervisor */
+  async findAllEmployeesWithSupervisor() {
+    return (await this.microserviceClient.call({
+      action: 'send',
+      pattern: FindEmployeesPatterns.GET_ALL_EMPLOYEES_WITH_SUPERVISOR,
+      payload: '',
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    })) as Array<BenchmarkParticipantsRaw>;
+  }
+
+  /* find employees with supervisor by employee id */
+  async findEmployeesWithSupervisorByEmployeeId(employeeId: string) {
+    return (await this.microserviceClient.call({
+      action: 'send',
+      pattern: FindEmployeesPatterns.GET_EMPLOYEE_WITH_SUPERVISOR,
+      payload: employeeId,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    })) as BenchmarkParticipantsRaw;
   }
 }

@@ -58,7 +58,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           });
 
         /* insert training nominees */
-        return await Promise.all(
+        await Promise.all(
           employees.map(async (items) => {
             return await this.crudService.transact<TrainingNominee>(entityManager).create({
               dto: {
@@ -73,6 +73,8 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             });
           })
         );
+
+        return data;
       });
     } catch (error) {
       Logger.error(error);

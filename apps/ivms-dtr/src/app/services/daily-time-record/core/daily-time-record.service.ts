@@ -27,6 +27,20 @@ export class DailyTimeRecordService extends CrudHelper<IvmsDailyTimeRecord> {
     return dtr;
   }
 
+  async getEntriesTheDayAndTheNext(entry: { companyId: string; date: Date }) {
+    const { companyId, date } = entry;
+    const trimmedCompanyId = companyId.replace('-', '');
+
+    const entries = (await this.rawQuery(
+      `SELECT format([datetime],'MM/dd/yyyy hh:mm:ss tt') "time"
+          FROM [ivmsdb].[dbo].[Atteninfo] WHERE (
+            ID=@0 AND datetime BETWEEN @1 AND DATEADD(day,2,@1) 
+        ) order by datetime ASC;`,
+      [trimmedCompanyId, date]
+    )) as { time: Date }[];
+    return entries.map((entry) => entry.time);
+  }
+
   async getDtrByCompanyId(dtrPayload: DailyTimeRecordPayload) {
     const { companyId, dtrDates } = dtrPayload;
     const queryString = `

@@ -220,6 +220,8 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
       onError: (error) => new NotFoundException(error),
     })) as { fullName: string };
 
+    console.log(employeeName);
+
     const schedule = (
       await this.rawQuery<string, EmployeeScheduleType>(
         `

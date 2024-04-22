@@ -63,3 +63,8 @@ export enum DocumentRequirementsType {
   CERTIFICATE_OF_APPEARANCE = 'Certificate of Appearance',
   PROGRAM = 'Program',
 }
+
+export enum BenchmarkStatus {
+  PENDING = 'pending',
+  DONE = 'done',
+}

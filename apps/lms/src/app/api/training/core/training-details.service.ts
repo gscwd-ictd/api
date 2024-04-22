@@ -229,15 +229,41 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       });
     } catch (error) {
       Logger.error(error);
+      /* custom error */
       if (error.code === '23505') {
         /* Duplicate key violation */
-        throw new HttpException('Duplicate key violation', HttpStatus.CONFLICT);
+        throw new HttpException(
+          {
+            status: HttpStatus.CONFLICT,
+            error: { message: 'Duplicate key violation', step: 1 },
+          },
+          HttpStatus.CONFLICT,
+          {
+            cause: error,
+          }
+        );
       } else if (error.code === '23503') {
         /* Foreign key constraint violation */
-        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: { message: 'Foreign key constraint violation', step: 1 },
+          },
+          HttpStatus.BAD_REQUEST,
+          {
+            cause: error,
+          }
+        );
       } else {
         /* Handle other errors as needed */
-        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: { message: 'Bad request', step: 1 },
+          },
+          HttpStatus.BAD_REQUEST,
+          { cause: error }
+        );
       }
     }
   }
@@ -382,15 +408,41 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       });
     } catch (error) {
       Logger.error(error);
+      /* custom error */
       if (error.code === '23505') {
         /* Duplicate key violation */
-        throw new HttpException('Duplicate key violation', HttpStatus.CONFLICT);
+        throw new HttpException(
+          {
+            status: HttpStatus.CONFLICT,
+            error: { message: 'Duplicate key violation', step: 1 },
+          },
+          HttpStatus.CONFLICT,
+          {
+            cause: error,
+          }
+        );
       } else if (error.code === '23503') {
         /* Foreign key constraint violation */
-        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: { message: 'Foreign key constraint violation', step: 1 },
+          },
+          HttpStatus.BAD_REQUEST,
+          {
+            cause: error,
+          }
+        );
       } else {
         /* Handle other errors as needed */
-        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: { message: 'Bad request', step: 1 },
+          },
+          HttpStatus.BAD_REQUEST,
+          { cause: error }
+        );
       }
     }
   }
@@ -451,15 +503,41 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       });
     } catch (error) {
       Logger.error(error);
+      /* custom error */
       if (error.code === '23505') {
         /* Duplicate key violation */
-        throw new HttpException('Duplicate key violation', HttpStatus.CONFLICT);
+        throw new HttpException(
+          {
+            status: HttpStatus.CONFLICT,
+            error: { message: 'Duplicate key violation', step: 1 },
+          },
+          HttpStatus.CONFLICT,
+          {
+            cause: error,
+          }
+        );
       } else if (error.code === '23503') {
         /* Foreign key constraint violation */
-        throw new HttpException('Foreign key constraint violation', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: { message: 'Foreign key constraint violation', step: 1 },
+          },
+          HttpStatus.BAD_REQUEST,
+          {
+            cause: error,
+          }
+        );
       } else {
         /* Handle other errors as needed */
-        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: { message: 'Bad request', step: 1 },
+          },
+          HttpStatus.BAD_REQUEST,
+          { cause: error }
+        );
       }
     }
   }
@@ -957,6 +1035,22 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         /* update training approvals by training id */
         return await this.trainingApprovalsService.generalManagerApproval(data, entityManager);
       });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* count training approval by training status */
+  async countTrainingApproval(trainingStatus: TrainingStatus) {
+    try {
+      const count = await this.crudService.getRepository().countBy({
+        status: trainingStatus,
+      });
+
+      return {
+        pendingApproval: count,
+      };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);

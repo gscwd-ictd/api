@@ -10,4 +10,9 @@ export class OvertimeMSController {
   async getOvertimeImmediateSupervisorByEmployeeId(@Payload() employeeId: string) {
     return await this.overtimeService.getOvertimeImmediateSupervisorByEmployeeId(employeeId);
   }
+
+  @MessagePattern('get_overtime_approvals_count')
+  async getOvertimeApprovalsCount(@Payload() managerId: string) {
+    return await this.overtimeService.getOvertimeApplicationsForManagerApprovalCount(managerId);
+  }
 }

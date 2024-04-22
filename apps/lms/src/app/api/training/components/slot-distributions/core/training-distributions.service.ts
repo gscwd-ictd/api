@@ -4,7 +4,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityManager, MoreThan } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../recommended-employees';
 import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
-import { TrainingStatus } from '@gscwd-api/utils';
+import { TrainingDistributionStatus, TrainingStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class TrainingDistributionsService extends CrudHelper<TrainingDistribution> {
@@ -173,6 +173,24 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* count pending nomination by supervisor id */
+  async countPendingNominationBySupervisorId(supervisorId: string) {
+    try {
+      const count = await this.crudService.getRepository().countBy({
+        numberOfSlots: MoreThan(0),
+        status: TrainingDistributionStatus.NOMINATION_PENDING,
+        supervisorId: supervisorId,
+      });
+
+      return {
+        nominationPending: count,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 }

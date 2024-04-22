@@ -10,6 +10,7 @@ import { LeaveCreditDeductionsModule } from '../components/leave-credit-deductio
 import { LeaveCreditEarningsModule } from '../components/leave-credit-earnings/core/leave-credit-earnings.module';
 import { LeaveController } from './leave.controller';
 import { LeaveService } from './leave.service';
+import { LeaveMsController } from './leave-ms.controller';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { LeaveService } from './leave.service';
     EmployeesModule,
   ],
   providers: [LeaveService],
-  controllers: [LeaveController],
+  controllers: [LeaveController, LeaveMsController],
   exports: [
     LeaveApplicationModule,
     LeaveApplicationDatesModule,

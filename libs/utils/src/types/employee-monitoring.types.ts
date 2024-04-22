@@ -34,6 +34,7 @@ export type LeaveApplicationType = {
   leaveName: string;
   dateOfFiling: Date;
   status: LeaveApplicationStatus;
+  supervisorId: string;
 };
 
 export type DtrPayload = {
@@ -262,10 +263,7 @@ export type PassSlipForDispute = {
 };
 
 export type OvertimeHrsRendered = {
-  followEstimatedHrs: boolean;
-  estimatedHours: number;
   computedEncodedHours: number;
-  computedIvmsHours: number;
 };
 
 export type User = {

@@ -7,11 +7,13 @@ import { LeaveApplicationDatesModule } from '../../leave-application-dates/core/
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { ScheduleModule } from '@nestjs/schedule';
+import { EmployeesModule } from '../../../../employees/core/employees.module';
 
 @Module({
   imports: [
     CrudModule.register(LeaveApplication),
     LeaveApplicationDatesModule,
+    EmployeesModule,
     ScheduleModule.forRoot(),
     ClientsModule.register([
       {

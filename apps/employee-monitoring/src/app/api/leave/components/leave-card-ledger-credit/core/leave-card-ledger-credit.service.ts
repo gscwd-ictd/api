@@ -37,7 +37,8 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
        WHERE credit_distribution = 'yearly' AND leave_types = 'recurring';`
     )) as { leaveBenefitsId: LeaveBenefits; accumulatedCredits: string }[];
 
-    const creditDate = dayjs(dayjs().year() + '-01-01').toDate();
+    const monthNow = dayjs().month() + 1;
+    const creditDate = dayjs(dayjs().year() + '-01' + '-01').toDate();
 
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       const credits = await Promise.all(
@@ -232,14 +233,14 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
           FROM employee_monitoring.leave_benefits 
        WHERE credit_distribution = 'monthly' AND leave_types = 'cumulative';`
     )) as { leaveBenefitsId: LeaveBenefits; accumulatedCredits: string }[];
-    const creditDate = dayjs(dayjs().year() + '-01-01').toDate();
+    const creditDate = dayjs(dayjs().year() + '-03-01').toDate();
 
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       const credits = await Promise.all(
         employees.map(async (employee) => {
           const { employeeId } = employee;
           const createdAt = dayjs(
-            dayjs().add(0, 'year').year() + '-01-01 ' + dayjs().add(2, 'hours').hour() + ':' + dayjs().minute() + ':' + dayjs().second()
+            dayjs().add(0, 'year').year() + '-03-01 ' + dayjs().add(2, 'hours').hour() + ':' + dayjs().minute() + ':' + dayjs().second()
           ).toDate();
           const leaveCredits = await Promise.all(
             leaveBenefits.map(async (leaveBenefit) => {
