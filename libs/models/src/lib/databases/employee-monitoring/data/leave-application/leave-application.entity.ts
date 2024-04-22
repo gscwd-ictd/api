@@ -63,16 +63,16 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ type: 'datetime', name: 'cancel_date', nullable: true })
   cancelDate: Date;
 
-  @Column({ type: 'date', name: 'hrmo_approval_date', nullable: true })
+  @Column({ type: 'datetime', name: 'hrmo_approval_date', nullable: true })
   hrmoApprovalDate: Date;
 
-  @Column({ type: 'date', name: 'supervisor_approval_date', nullable: true })
+  @Column({ type: 'datetime', name: 'supervisor_approval_date', nullable: true })
   supervisorApprovalDate: Date;
 
   @Column({ type: 'text', name: 'supervisor_disapproval_remarks', nullable: true })
   supervisorDisapprovalRemarks: string;
 
-  @Column({ type: 'date', name: 'hrdm_approval_date', nullable: true })
+  @Column({ type: 'datetime', name: 'hrdm_approval_date', nullable: true })
   hrdmApprovalDate: Date;
 
   @Column({ type: 'text', name: 'hrdm_disapproval_remarks', nullable: true })
