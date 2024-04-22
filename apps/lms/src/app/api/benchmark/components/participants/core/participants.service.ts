@@ -15,7 +15,7 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
     super(crudService);
   }
 
-  /* find all participants*/
+  /* find all participants */
   async findAllAssignableParticipants() {
     try {
       /* find all employees with supervisor */

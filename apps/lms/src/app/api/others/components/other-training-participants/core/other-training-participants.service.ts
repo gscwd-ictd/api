@@ -10,6 +10,73 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
     super(crudService);
   }
 
+  /* find all assignable participants */
+  async findAllAssignableParticipants() {
+    try {
+      /* find all employees with supervisor */
+      const employees = await this.hrmsEmployeesService.findAllEmployeesWithSupervisor();
+
+      /* custom return */
+      return await Promise.all(
+        employees.map(async (items) => {
+          return {
+            supervisorName: items.supervisor.name,
+            employeeId: items.employee._id,
+            name: items.employee.name,
+            positionTitle: items.employee.positionTitle,
+            assignment: items.employee.assignment,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* find all non participants by other training id */
+  async findAllAssignableParticipantsByOtherTrainingId(otherTrainingId: string) {
+    try {
+      /* find all participants by benchmark id */
+      const benchmarkParticipants = (await this.crudService.findAll({
+        find: {
+          select: {
+            id: true,
+            employeeId: true,
+          },
+          where: {
+            otherTraining: {
+              id: otherTrainingId,
+            },
+          },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      })) as Array<OtherTrainingParticipant>;
+
+      /* find all employees with supervisor */
+      const employees = await this.hrmsEmployeesService.findAllEmployeesWithSupervisor();
+
+      /* extract the employee ids from both arrays */
+      const participantIds = benchmarkParticipants.map((participant) => participant.employeeId);
+
+      /* filter employees to remove those with employee ids present in participants */
+      return employees
+        .filter((employee) => !participantIds.includes(employee.employee._id))
+        .map((employee) => ({
+          supervisorName: employee.supervisor.name,
+          employeeId: employee.employee._id,
+          name: employee.employee.name,
+          positionTitle: employee.employee.positionTitle,
+          assignment: employee.employee.assignment,
+        }));
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   /* find all participants by other training id */
   async findAllParticipantsByOtherTrainingsId(otherTrainingId: string) {
     try {
