@@ -135,10 +135,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
         la.status \`status\`,
         lb.maximum_credits maximumCredits,
-        DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d') hrmoApprovalDate,
-        DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d') supervisorApprovalDate,
+        DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d %H:%i%:%s') hrmoApprovalDate,
+        DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d %H:%i%:%s') supervisorApprovalDate,
         la.supervisor_disapproval_remarks supervisorDisapprovalRemarks,
-        DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d') hrdmApprovalDate,
+        DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
         la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
         la.cancel_reason cancelReason,
         la.supervisor_id_fk supervisorId,
@@ -238,7 +238,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
             la.status \`status\`,
             la.cancel_reason cancelReason,
-            DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate 
+            DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
           WHERE la.employee_id_fk = ? AND (la.status = 'disapproved by hrmo' OR la.status = 'disapproved by supervisor' OR la.status = 'disapproved by hrdm')  
@@ -270,15 +270,15 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         `SELECT
             la.leave_application_id id,
             lb.leave_name leaveName,
-            DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
+            DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i%:%s') dateOfFiling,
             la.status \`status\`,
-            DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d') hrmoApprovalDate,
-            DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d') supervisorApprovalDate,
+            DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d %H:%i%:%s') hrmoApprovalDate,
+            DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d %H:%i%:%s') supervisorApprovalDate,
             la.supervisor_disapproval_remarks supervisorDisapprovalRemarks,
-            DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d') hrdmApprovalDate,
+            DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
             la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
             la.cancel_reason cancelReason,
-            DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate 
+            DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
           WHERE la.employee_id_fk = ? AND la.status = ? 
