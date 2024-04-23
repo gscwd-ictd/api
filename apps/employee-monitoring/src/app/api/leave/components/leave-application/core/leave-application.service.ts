@@ -132,7 +132,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         la.leave_application_id id,
         lb.leave_name leaveName,
         lb.leave_types leaveType,
-        DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
+        DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
         la.status \`status\`,
         lb.maximum_credits maximumCredits,
         DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d %H:%i%:%s') hrmoApprovalDate,
@@ -143,7 +143,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         la.cancel_reason cancelReason,
         la.supervisor_id_fk supervisorId,
         get_leave_date_cancellation_status(la.leave_application_id) leaveDateStatus,
-        DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate,
+        DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i:%s') cancelDate,
         get_leave_date_cancellation_remarks(la.leave_application_id) leaveDateCancellationRemarks 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
@@ -200,10 +200,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         `SELECT
             la.leave_application_id id,
             lb.leave_name leaveName,
-            DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
+            DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
             la.status \`status\`,
             la.cancel_reason cancelReason,
-            DATE_FORMAT(la.cancel_date,'%Y-%m-%d') cancelDate 
+            DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
           WHERE la.employee_id_fk = ? AND la.status <> 'approved' AND la.status NOT LIKE '%disapproved%' AND la.status <> 'cancelled' 
@@ -235,7 +235,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         `SELECT
             la.leave_application_id id,
             lb.leave_name leaveName,
-            DATE_FORMAT(la.date_of_filing, '%Y-%m-%d') dateOfFiling,
+            DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
             la.status \`status\`,
             la.cancel_reason cancelReason,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 

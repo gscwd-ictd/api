@@ -366,7 +366,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ps.employee_id_fk employeeId,
         psa.supervisor_id_fk supervisorId, 
         psa.status status,
-        DATE_FORMAT(ps.date_of_application,'%Y-%m-%d') dateOfApplication,
+        DATE_FORMAT(ps.date_of_application,'%Y-%m-%d %H:%i:s') dateOfApplication,
         nature_of_business natureOfBusiness, 
         ob_transportation obTransportation, 
         estimate_hours estimateHours,
