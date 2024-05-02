@@ -814,7 +814,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         },
         relations: { leaveBenefitsId: true },
         where: { supervisorId },
-        order: { dateOfFiling: 'DESC' },
+        order: { status: 'DESC', dateOfFiling: 'DESC' },
       },
     });
     // const approved: LeaveApplication[];

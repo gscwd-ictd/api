@@ -47,7 +47,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       }
 
       let status = PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL;
-      const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save(rest);
+      const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save({ dateOfApplication: dayjs().toDate(), ...rest });
       if (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS) status = PassSlipApprovalStatus.FOR_HRMO_APPROVAL;
 
       const approvalResult = await transactionEntityManager
@@ -187,7 +187,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlips = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, hrmoApprovalDate: true, supervisorApprovalDate: true, hrmoDisapprovalRemarks: true },
         where: { supervisorId },
         order: { passSlipId: { dateOfApplication: 'DESC' } },
       },
@@ -366,9 +366,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ps.employee_id_fk employeeId,
         psa.supervisor_id_fk supervisorId, 
         psa.status status,
-        DATE_FORMAT(ps.date_of_application,'%Y-%m-%d %H:%i:s') dateOfApplication,
+        DATE_FORMAT(ps.date_of_application,'%Y-%m-%d %H:%i:%s') dateOfApplication,
         nature_of_business natureOfBusiness, 
         ob_transportation obTransportation, 
+        DATE_FORMAT(psa.supervisor_approval_date,'%Y-%m-%d %H:%i:%s') supervisorApprovalDate,
         estimate_hours estimateHours,
         purpose_destination purposeDestination,
         time_in timeIn,
@@ -401,6 +402,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       disputeRemarks: string;
       encodedTimeIn: number;
       isCancelled: boolean;
+      supervisorApprovalDate: Date;
     }[];
 
     const approvedDisapproved = await Promise.all(
