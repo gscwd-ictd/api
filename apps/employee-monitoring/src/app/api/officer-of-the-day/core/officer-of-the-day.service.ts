@@ -3,8 +3,6 @@ import { OfficerOfTheDay, OfficerOfTheDayDto } from '@gscwd-api/models';
 import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { OrganizationService } from '../../organization/core/organization.service';
-import { TypeORMError } from 'typeorm';
-import { off } from 'process';
 
 @Injectable()
 export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
@@ -30,26 +28,27 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
   }
 
   async getAssignableOfficerOfTheDay() {
-    const currentlyAssigned = (
-      (await this.rawQuery(
-        `SELECT employee_id_fk employeeId FROM officer_of_the_day now() BETWEEN date_sub(date_from,INTERVAL 1 DAY) AND date_add(date_to, INTERVAL 1 DAY);`
-      )) as {
-        employeeId: string;
-      }[]
-    ).map((emp) => emp.employeeId);
-    console.log(currentlyAssigned);
-
+    // const currentlyAssigned = (
+    //   (await this.rawQuery(
+    //     `SELECT employee_id_fk employeeId FROM officer_of_the_day WHERE now() BETWEEN date_sub(date_from,INTERVAL 1 DAY) AND date_add(date_to, INTERVAL 1 DAY);`
+    //   )) as {
+    //     employeeId: string;
+    //   }[]
+    // ).map((emp) => emp.employeeId);
+    //console.log(currentlyAssigned);
+    const currentlyAssigned = [];
     return await this.employeeService.getAllAssignablePermanentCasualEmployees(currentlyAssigned);
   }
 
   async getAssignableOrgStruct() {
-    const currentlyAssigned = (
-      (await this.rawQuery(
-        `SELECT org_id_fk orgId FROM officer_of_the_day WHERE now() BETWEEN date_sub(date_from,INTERVAL 1 DAY) AND date_add(date_to, INTERVAL 1 DAY);`
-      )) as {
-        orgId: string;
-      }[]
-    ).map((org) => org.orgId);
+    // const currentlyAssigned = (
+    //   (await this.rawQuery(
+    //     `SELECT org_id_fk orgId FROM officer_of_the_day WHERE now() BETWEEN date_sub(date_from,INTERVAL 1 DAY) AND date_add(date_to, INTERVAL 1 DAY);`
+    //   )) as {
+    //     orgId: string;
+    //   }[]
+    // ).map((org) => org.orgId);
+    const currentlyAssigned = [];
     return await this.organizationService.getAllAvailableOrgStructs(currentlyAssigned);
   }
 
@@ -68,6 +67,21 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
     if (result.affected > 0) return id;
   }
 
+  async getEmployeesUnderOfficerOfTheDay(employeeId: string) {
+    const orgs = await this.getOfficerOfTheDayOrgs(employeeId);
+
+    const employeeList = [];
+    const employees = await Promise.all(
+      orgs.map(async (org) => {
+        const { id, name } = org;
+        const res = await this.employeeService.getEmployeesByOrgId(id);
+        employeeList.push(...res);
+      })
+    );
+    console.log('employeeList', employeeList);
+    return employeeList;
+  }
+
   async getOfficerOfTheDayOrgs(employeeId: string) {
     const officerOfTheDay = (await this.rawQuery(
       `
@@ -81,11 +95,11 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
 
     let orgNames = [];
     if (officerOfTheDay.length > 0) {
-      orgNames = await Promise.all(
+      orgNames = (await Promise.all(
         officerOfTheDay.map(async (item) => {
           return { id: item.orgId, name: await this.organizationService.getOrgNameByOrgId(item.orgId) };
         })
-      );
+      )) as { id: string; name: string }[];
     }
     return orgNames;
   }
