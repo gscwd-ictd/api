@@ -77,4 +77,7 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
 
   @Column({ type: 'text', name: 'hrdm_disapproval_remarks', nullable: true })
   hrdmDisapprovalRemarks: string;
+
+  @Column({ type: 'boolean', name: 'is_late_filing', nullable: true })
+  isLateFiling: boolean;
 }
