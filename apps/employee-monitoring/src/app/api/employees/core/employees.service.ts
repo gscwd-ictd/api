@@ -189,4 +189,13 @@ export class EmployeesService {
       payload: orgId,
     })) as { companyId: string }[];
   }
+
+  async getSupervisoryEmployeesForDropdown() {
+    //sg 16 and above;
+    return (await this.client.call<string, object, object[]>({
+      action: 'send',
+      pattern: 'get_all_assignable_supervisory_employees',
+      payload: {},
+    })) as { label: string; value: string }[];
+  }
 }

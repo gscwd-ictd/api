@@ -85,7 +85,7 @@ export class CreateLeaveApplicationDto {
   hrdmDisapprovalRemarks: string;
 
   @IsOptional()
-  isLateFiling: string;
+  isLateFiling: boolean;
 
   leaveApplicationDates: Date[] | { from: Date; to: Date };
 }
