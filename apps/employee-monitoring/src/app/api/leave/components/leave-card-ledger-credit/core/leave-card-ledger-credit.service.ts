@@ -224,7 +224,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
     });
   }
 
-  @Cron('0 0 0 1 * *')
+  //@Cron('0 0 0 1 * *')
   async creditCumulativeLeaves() {
     const employees = await this.employeeService.getAllPermanentEmployeeIds();
     //select all cumulative and val
@@ -233,7 +233,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
           FROM employee_monitoring.leave_benefits 
        WHERE credit_distribution = 'monthly' AND leave_types = 'cumulative';`
     )) as { leaveBenefitsId: LeaveBenefits; accumulatedCredits: string }[];
-    const creditDate = dayjs(dayjs().year() + '-03-01').toDate();
+    const creditDate = dayjs(dayjs().year() + '-01-01').toDate();
 
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       const credits = await Promise.all(

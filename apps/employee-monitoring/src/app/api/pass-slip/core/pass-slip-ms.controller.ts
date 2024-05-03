@@ -10,4 +10,9 @@ export class PassSlipControllerMs {
   async getNumberOfUsedPassSlips(@Payload() employeeId: string) {
     return await this.passSlipService.getUsedPassSlipsCountByEmployeeId(employeeId);
   }
+
+  @MessagePattern('get_assignable_supervisors_for_pass_slip')
+  async getAssignableSupervisorForPassSlip(@Payload() employeeData: { orgId: string; employeeId: string }) {
+    return await this.passSlipService.getAssignableSupervisorForPassSlip(employeeData);
+  }
 }
