@@ -130,6 +130,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       const leaveApplications = await this.rawQuery<string, LeaveApplicationType[]>(
         `SELECT
         la.leave_application_id id,
+        la.is_late_filing isLateFiling,
         lb.leave_name leaveName,
         lb.leave_types leaveType,
         DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
@@ -151,7 +152,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           ORDER BY la.date_of_filing DESC;`,
         [id]
       );
-
       const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue`, [id]))[0];
 
       const leaveApplicationsWithDates = await Promise.all(
@@ -580,6 +580,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           inHospital: true,
           inPhilippines: true,
           isTerminalLeave: true,
+          isLateFiling: true,
           supervisorId: true,
           studyLeaveOther: true,
           outPatient: true,
@@ -804,6 +805,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           supervisorId: true,
           studyLeaveOther: true,
           isTerminalLeave: true,
+          isLateFiling: true,
           outPatient: true,
           cancelDate: true,
           cancelReason: true,

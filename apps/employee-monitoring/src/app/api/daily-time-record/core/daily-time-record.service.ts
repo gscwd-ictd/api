@@ -281,6 +281,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   async getDtrByCompanyIdAndDay(data: { companyId: string; date: Date }) {
     try {
       //console.log('Work Suspension: ', workSuspension);
+      console.log('test test test', data.date);
       const dateCurrent = dayjs(data.date).toDate();
       console.log('dayyyy ', dateCurrent);
       const id = data.companyId.replace('-', '');

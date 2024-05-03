@@ -4,12 +4,11 @@ import { PassSlip, PassSlipApproval, PassSlipDto, UpdatePassSlipTimeRecordDto } 
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { NatureOfBusiness, ObTransportation, PassSlipApprovalStatus, PassSlipForDispute, PassSlipForLedger } from '@gscwd-api/utils';
-import { DataSource, IsNull, Not } from 'typeorm';
+import { Between, DataSource, IsNull, Not } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeesService } from '../../employees/core/employees.service';
-import { error } from 'console';
 import { OfficerOfTheDayService } from '../../officer-of-the-day/core/officer-of-the-day.service';
 
 @Injectable()
@@ -47,7 +46,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       }
 
       let status = PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL;
-      const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save({ dateOfApplication: dayjs().toDate(), ...rest });
+      const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save({ ...rest, dateOfApplication: dayjs().toDate() });
       if (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS) status = PassSlipApprovalStatus.FOR_HRMO_APPROVAL;
 
       const approvalResult = await transactionEntityManager
@@ -246,7 +245,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           {
             passSlipId: {
               employeeId,
-              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              dateOfApplication: Between(
+                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
+                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
+              ),
               natureOfBusiness: NatureOfBusiness.PERSONAL,
               timeIn: IsNull(),
             },
@@ -255,7 +257,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           {
             passSlipId: {
               employeeId,
-              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              dateOfApplication: Between(
+                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
+                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
+              ),
               natureOfBusiness: NatureOfBusiness.OFFICIAL_BUSINESS,
               timeIn: IsNull(),
             },
@@ -264,7 +269,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           {
             passSlipId: {
               employeeId,
-              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              dateOfApplication: Between(
+                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
+                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
+              ),
               timeOut: IsNull(),
               natureOfBusiness: NatureOfBusiness.HALF_DAY,
             },
@@ -273,7 +281,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           {
             passSlipId: {
               employeeId,
-              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              dateOfApplication: Between(
+                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
+                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
+              ),
               natureOfBusiness: NatureOfBusiness.UNDERTIME,
               timeIn: IsNull(),
             },
