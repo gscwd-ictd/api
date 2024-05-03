@@ -822,4 +822,21 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       throw new InternalServerErrorException();
     }
   }
+
+  async getAssignableSupervisorForPassSlip(employeeData: { orgId: string; employeeId: string }) {
+    const officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeData.orgId);
+    let officerOfTheDayName: string;
+    if (officerOfTheDayId) officerOfTheDayName = (await this.employeeService.getEmployeeDetails(officerOfTheDayId)).employeeFullName;
+    const employeeSupervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);
+    const employeeSupervisorName = (await this.employeeService.getEmployeeDetails(employeeSupervisorId)).employeeFullName;
+    const supervisorAndOfficerOfTheDayArray =
+      officerOfTheDayId !== null
+        ? [
+            { label: officerOfTheDayName, value: officerOfTheDayName },
+            { label: employeeSupervisorId, value: employeeSupervisorName },
+          ]
+        : [{ label: employeeSupervisorId, value: employeeSupervisorName }];
+    const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown();
+    return [...supervisorAndOfficerOfTheDayArray, ...supervisoryEmployees];
+  }
 }
