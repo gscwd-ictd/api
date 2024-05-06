@@ -2,6 +2,7 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateLeaveBenefitsDto, LeaveBenefits, UpdateLeaveBenefitsDto } from '@gscwd-api/models';
 import { LeaveTypes } from '@gscwd-api/utils';
+import { Not } from 'typeorm';
 
 @Injectable()
 export class LeaveBenefitsService extends CrudHelper<LeaveBenefits> {
@@ -49,6 +50,7 @@ export class LeaveBenefitsService extends CrudHelper<LeaveBenefits> {
           maximumCredits: true,
         },
         order: { leaveName: 'ASC' },
+        where: { leaveName: Not('monetization') },
       },
     });
   }

@@ -13,11 +13,11 @@ export class Benchmark extends DatabaseEntity implements IEntity {
   @Column({ name: 'partner', type: 'varchar', length: '250', nullable: false })
   partner: string;
 
-  @Column({ name: 'date_started', type: 'date', nullable: false })
-  dateStarted: Date;
+  @Column({ name: 'date_from', type: 'date', nullable: false })
+  dateFrom: Date;
 
-  @Column({ name: 'date_end', type: 'date', nullable: false })
-  dateEnd: Date;
+  @Column({ name: 'date_to', type: 'date', nullable: false })
+  dateTo: Date;
 
   @Column({ name: 'location', type: 'varchar', length: 500, nullable: true })
   location: string;

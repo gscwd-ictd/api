@@ -150,8 +150,8 @@ export class LeaveService {
               dto: { leaveCreditEarningId: leaveCreditEarning },
             });
           }
+          //}
         }
-        //}
       }
       return await this.leaveApplicationService.getLeaveApplicationDetails(id, leaveApplicationId.employeeId);
     }

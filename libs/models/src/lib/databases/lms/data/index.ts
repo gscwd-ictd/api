@@ -34,5 +34,9 @@ export * from './benchmark';
 export * from './benchmark-participants';
 export * from './benchmark-participant-requirements';
 
+/* others */
+export * from './other-trainings';
+export * from './other-training-participants';
+
 /* users */
 export * from './users';

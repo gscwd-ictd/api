@@ -4,12 +4,12 @@ import { PassSlip, PassSlipApproval, PassSlipDto, UpdatePassSlipTimeRecordDto } 
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { NatureOfBusiness, ObTransportation, PassSlipApprovalStatus, PassSlipForDispute, PassSlipForLedger } from '@gscwd-api/utils';
-import { DataSource, IsNull, Not } from 'typeorm';
+import { Between, DataSource, IsNull, Not } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeesService } from '../../employees/core/employees.service';
-import { error } from 'console';
+import { OfficerOfTheDayService } from '../../officer-of-the-day/core/officer-of-the-day.service';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -19,6 +19,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     private readonly leaveCardLedgerDebitService: LeaveCardLedgerDebitService,
     private readonly client: MicroserviceClient,
     private readonly employeeService: EmployeesService,
+    private readonly officerOfTheDayService: OfficerOfTheDayService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -28,15 +29,24 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const { natureOfBusiness } = passSlipDto;
     const passSlip = await this.dataSource.transaction(async (transactionEntityManager) => {
       const { approval, ...rest } = passSlipDto;
-      const supervisorId = await this.client.call<string, string, string>({
-        action: 'send',
-        payload: rest.employeeId,
-        pattern: 'get_employee_supervisor_id',
-        onError: (error) => new NotFoundException(error),
-      });
+
+      const employeeAssignmentId = (await this.employeeService.getEmployeeDetails(rest.employeeId)).assignment.id;
+
+      let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
+
+      console.log('supervisor id', supervisorId);
+
+      if (supervisorId === null) {
+        supervisorId = (await this.client.call<string, string, string>({
+          action: 'send',
+          payload: rest.employeeId,
+          pattern: 'get_employee_supervisor_id',
+          onError: (error) => new NotFoundException(error),
+        })) as string;
+      }
 
       let status = PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL;
-      const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save(rest);
+      const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save({ ...rest, dateOfApplication: dayjs().toDate() });
       if (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS) status = PassSlipApprovalStatus.FOR_HRMO_APPROVAL;
 
       const approvalResult = await transactionEntityManager
@@ -176,7 +186,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlips = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, hrmoApprovalDate: true, supervisorApprovalDate: true, hrmoDisapprovalRemarks: true },
         where: { supervisorId },
         order: { passSlipId: { dateOfApplication: 'DESC' } },
       },
@@ -235,7 +245,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           {
             passSlipId: {
               employeeId,
-              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              dateOfApplication: Between(
+                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
+                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
+              ),
               natureOfBusiness: NatureOfBusiness.PERSONAL,
               timeIn: IsNull(),
             },
@@ -244,7 +257,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           {
             passSlipId: {
               employeeId,
-              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              dateOfApplication: Between(
+                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
+                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
+              ),
               natureOfBusiness: NatureOfBusiness.OFFICIAL_BUSINESS,
               timeIn: IsNull(),
             },
@@ -253,7 +269,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           {
             passSlipId: {
               employeeId,
-              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              dateOfApplication: Between(
+                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
+                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
+              ),
               timeOut: IsNull(),
               natureOfBusiness: NatureOfBusiness.HALF_DAY,
             },
@@ -262,7 +281,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           {
             passSlipId: {
               employeeId,
-              dateOfApplication: dayjs(dayjs().format('YYYY-MM-DD')).toDate(),
+              dateOfApplication: Between(
+                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
+                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
+              ),
               natureOfBusiness: NatureOfBusiness.UNDERTIME,
               timeIn: IsNull(),
             },
@@ -355,9 +377,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ps.employee_id_fk employeeId,
         psa.supervisor_id_fk supervisorId, 
         psa.status status,
-        DATE_FORMAT(ps.date_of_application,'%Y-%m-%d') dateOfApplication,
+        DATE_FORMAT(ps.date_of_application,'%Y-%m-%d %H:%i:%s') dateOfApplication,
         nature_of_business natureOfBusiness, 
         ob_transportation obTransportation, 
+        DATE_FORMAT(psa.supervisor_approval_date,'%Y-%m-%d %H:%i:%s') supervisorApprovalDate,
         estimate_hours estimateHours,
         purpose_destination purposeDestination,
         time_in timeIn,
@@ -390,6 +413,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       disputeRemarks: string;
       encodedTimeIn: number;
       isCancelled: boolean;
+      supervisorApprovalDate: Date;
     }[];
 
     const approvedDisapproved = await Promise.all(

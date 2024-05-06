@@ -11,6 +11,7 @@ import { EmployeeScheduleModule } from '../../daily-time-record/components/emplo
 import { OvertimeMSController } from './overtime-ms.controller';
 import { DailyTimeRecordModule } from '../../daily-time-record/core/daily-time-record.module';
 import { OvertimeReportsController } from './overtime-reports.controller';
+import { OfficerOfTheDayModule } from '../../officer-of-the-day/core/officer-of-the-day.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { OvertimeReportsController } from './overtime-reports.controller';
     EmployeesModule,
     EmployeeScheduleModule,
     DailyTimeRecordModule,
+    OfficerOfTheDayModule,
   ],
   providers: [OvertimeService],
   controllers: [OvertimeController, OvertimeMSController, OvertimeReportsController],

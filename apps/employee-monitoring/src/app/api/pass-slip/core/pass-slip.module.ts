@@ -9,6 +9,7 @@ import { PassSlipApprovalModule } from '../components/approval/core/pass-slip-ap
 import { PassSlipController } from './pass-slip.controller';
 import { PassSlipService } from './pass-slip.service';
 import { PassSlipControllerMs } from './pass-slip-ms.controller';
+import { OfficerOfTheDayModule } from '../../officer-of-the-day/core/officer-of-the-day.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PassSlipControllerMs } from './pass-slip-ms.controller';
     ]),
     LeaveCardLedgerDebitModule,
     EmployeesModule,
+    OfficerOfTheDayModule,
   ],
   providers: [PassSlipService, MicroserviceClient],
   controllers: [PassSlipController, PassSlipControllerMs],

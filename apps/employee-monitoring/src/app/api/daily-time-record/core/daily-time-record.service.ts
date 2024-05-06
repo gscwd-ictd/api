@@ -10,7 +10,6 @@ import { EmployeesService } from '../../employees/core/employees.service';
 import { HolidaysService } from '../../holidays/core/holidays.service';
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
-import { DtrCorrectionService } from '../../dtr-correction/core/dtr-correction.service';
 import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
 
 @Injectable()

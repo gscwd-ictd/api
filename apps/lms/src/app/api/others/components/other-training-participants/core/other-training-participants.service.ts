@@ -1,21 +1,16 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { BenchmarkParticipants, CreateBenchmarkParticipantsDto } from '@gscwd-api/models';
+import { CreateOtherTrainingParticipantsDto, OtherTrainingParticipant } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { EntityManager, QueryFailedError } from 'typeorm';
-import { BenchmarkParticipantRequirementsService } from '../../participants-requirements';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
-export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipants> {
-  constructor(
-    private readonly crudService: CrudService<BenchmarkParticipants>,
-    private readonly hrmsEmployeesService: HrmsEmployeesService,
-    private readonly benchmarkParticipantRequirementsService: BenchmarkParticipantRequirementsService
-  ) {
+export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingParticipant> {
+  constructor(private readonly crudService: CrudService<OtherTrainingParticipant>, private readonly hrmsEmployeesService: HrmsEmployeesService) {
     super(crudService);
   }
 
-  /* find all participants */
+  /* find all assignable participants */
   async findAllAssignableParticipants() {
     try {
       /* find all employees with supervisor */
@@ -39,8 +34,8 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
     }
   }
 
-  /* find all non participants by benchmark id */
-  async findAllAssignableParticipantsByBenchmarkId(benchmarkId: string) {
+  /* find all non participants by other training id */
+  async findAllAssignableParticipantsByOtherTrainingId(otherTrainingId: string) {
     try {
       /* find all participants by benchmark id */
       const benchmarkParticipants = (await this.crudService.findAll({
@@ -50,15 +45,15 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
             employeeId: true,
           },
           where: {
-            benchmark: {
-              id: benchmarkId,
+            otherTraining: {
+              id: otherTrainingId,
             },
           },
         },
         onError: (error) => {
           throw error;
         },
-      })) as Array<BenchmarkParticipants>;
+      })) as Array<OtherTrainingParticipant>;
 
       /* find all employees with supervisor */
       const employees = await this.hrmsEmployeesService.findAllEmployeesWithSupervisor();
@@ -82,36 +77,35 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
     }
   }
 
-  /* find all participants by benchmark id */
-  async findAllParticipantsByBenchmarkId(benchmarkId: string) {
+  /* find all participants by other training id */
+  async findAllParticipantsByOtherTrainingsId(otherTrainingId: string) {
     try {
       /* find all participants */
-      const employees = (await this.crudService.findAll({
+      const participants = (await this.crudService.findAll({
         find: {
           select: {
             id: true,
             employeeId: true,
           },
           where: {
-            benchmark: {
-              id: benchmarkId,
+            otherTraining: {
+              id: otherTrainingId,
             },
           },
         },
         onError: (error) => {
           throw error;
         },
-      })) as Array<BenchmarkParticipants>;
+      })) as Array<OtherTrainingParticipant>;
 
-      /* custom return participants*/
       return await Promise.all(
-        employees.map(async (items) => {
+        participants.map(async (items) => {
           /* find employee with supervisor */
           const employeeDetails = await this.hrmsEmployeesService.findEmployeesWithSupervisorByEmployeeId(items.employeeId);
 
           /* custom return */
           return {
-            benchmarkParticipants: items.id,
+            participantId: items.id,
             supervisorName: employeeDetails.supervisor.name,
             employeeId: items.employeeId,
             name: employeeDetails.employee.name,
@@ -120,21 +114,21 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       );
     } catch (error) {
       Logger.error(error);
-      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  /*  insert benchmark participants */
-  async createParticipants(data: CreateBenchmarkParticipantsDto, entityManager: EntityManager) {
+  /*  insert other training participants */
+  async createParticipants(data: CreateOtherTrainingParticipantsDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
-      const { benchmark, employeeId } = data;
+      const { otherTraining, employeeId } = data;
 
       /* insert participants */
-      const participants = await this.crudService.transact<BenchmarkParticipants>(entityManager).create({
+      const participants = await this.crudService.transact<OtherTrainingParticipant>(entityManager).create({
         dto: {
-          benchmark: {
-            id: benchmark,
+          otherTraining: {
+            id: otherTraining,
           },
           employeeId: employeeId,
         },
@@ -143,35 +137,24 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
         },
       });
 
-      /* insert requirements */
-      await this.benchmarkParticipantRequirementsService.createParticipantRequirements(
-        {
-          benchmarkParticipants: participants.id,
-        },
-        entityManager
-      );
-
       /* custom return */
       return {
+        participantId: participants.id,
         employeeId: participants.employeeId,
       };
     } catch (error) {
       Logger.error(error);
-      if (error.code === '23505' && error instanceof QueryFailedError) {
-        throw new HttpException('Duplicate key violation', HttpStatus.CONFLICT);
-      } else {
-        throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
-      }
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 
-  /* remove participants by benchmark id */
-  async deleteParticipants(benchmarkId: string, entityManager: EntityManager) {
+  /* remove participants by other training id */
+  async deleteParticipants(otherTrainingId: string, entityManager: EntityManager) {
     try {
-      return await this.crudService.transact<BenchmarkParticipants>(entityManager).delete({
+      return await this.crudService.transact<OtherTrainingParticipant>(entityManager).delete({
         deleteBy: {
-          benchmark: {
-            id: benchmarkId,
+          otherTraining: {
+            id: otherTrainingId,
           },
         },
         softDelete: false,
