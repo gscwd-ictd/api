@@ -3,7 +3,6 @@ import { PassSlip, PassSlipApproval, UpdatePassSlipApprovalDto } from '@gscwd-ap
 import { PassSlipApprovalStatus } from '@gscwd-api/utils';
 import { Injectable } from '@nestjs/common';
 import dayjs = require('dayjs');
-import { stat } from 'fs';
 
 @Injectable()
 export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {

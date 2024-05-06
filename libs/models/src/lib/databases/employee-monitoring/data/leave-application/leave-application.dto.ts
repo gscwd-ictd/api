@@ -84,6 +84,9 @@ export class CreateLeaveApplicationDto {
   @IsOptional()
   hrdmDisapprovalRemarks: string;
 
+  @IsOptional()
+  isLateFiling: boolean;
+
   leaveApplicationDates: Date[] | { from: Date; to: Date };
 }
 export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) {}

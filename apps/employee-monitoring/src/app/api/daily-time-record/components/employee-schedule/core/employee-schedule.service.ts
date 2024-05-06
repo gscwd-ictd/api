@@ -129,7 +129,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
   async getEmployeeScheduleByDtrDate(employeeId: string, dtrDate: Date) {
     const currDate = dayjs(dtrDate);
     const currDateString = currDate.toDate().getFullYear() + '-' + (currDate.toDate().getMonth() + 1).toString() + '-' + currDate.toDate().getDate();
-
+    console.log('asd asd asd', currDateString);
     const employeeName = (await this.client.call<string, string, { fullName: string }>({
       action: 'send',
       payload: employeeId,
