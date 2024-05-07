@@ -28,22 +28,22 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   async addPassSlip(passSlipDto: PassSlipDto) {
     const { natureOfBusiness } = passSlipDto;
     const passSlip = await this.dataSource.transaction(async (transactionEntityManager) => {
-      const { approval, ...rest } = passSlipDto;
+      const { approval, supervisorId, ...rest } = passSlipDto;
 
       const employeeAssignmentId = (await this.employeeService.getEmployeeDetails(rest.employeeId)).assignment.id;
 
-      let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
+      //let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
 
-      console.log('supervisor id', supervisorId);
+      //console.log('supervisor id', supervisorId);
 
-      if (supervisorId === null) {
-        supervisorId = (await this.client.call<string, string, string>({
-          action: 'send',
-          payload: rest.employeeId,
-          pattern: 'get_employee_supervisor_id',
-          onError: (error) => new NotFoundException(error),
-        })) as string;
-      }
+      // if (supervisorId === null) {
+      //   supervisorId = (await this.client.call<string, string, string>({
+      //     action: 'send',
+      //     payload: rest.employeeId,
+      //     pattern: 'get_employee_supervisor_id',
+      //     onError: (error) => new NotFoundException(error),
+      //   })) as string;
+      // }
 
       let status = PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL;
       const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save({ ...rest, dateOfApplication: dayjs().toDate() });
@@ -833,9 +833,9 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       officerOfTheDayId !== null
         ? [
             { label: officerOfTheDayName, value: officerOfTheDayName },
-            { label: employeeSupervisorId, value: employeeSupervisorName },
+            { label: employeeSupervisorName, value: employeeSupervisorId },
           ]
-        : [{ label: employeeSupervisorId, value: employeeSupervisorName }];
+        : [{ label: employeeSupervisorName, value: employeeSupervisorId }];
     const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown();
     return [...supervisorAndOfficerOfTheDayArray, ...supervisoryEmployees];
   }
