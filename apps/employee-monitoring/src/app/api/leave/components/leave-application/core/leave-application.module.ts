@@ -8,6 +8,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EmployeesModule } from '../../../../employees/core/employees.module';
+import { OfficerOfTheDayModule } from '../../../../officer-of-the-day/core/officer-of-the-day.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EmployeesModule } from '../../../../employees/core/employees.module';
         },
       },
     ]),
+    OfficerOfTheDayModule,
   ],
   providers: [LeaveApplicationService, MicroserviceClient],
   controllers: [LeaveApplicationController],

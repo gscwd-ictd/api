@@ -124,7 +124,7 @@ export class LeaveService {
 
     if (updateResult.affected > 0) {
       if (status === LeaveApplicationStatus.APPROVED) {
-        //if (leaveApplicationId.leaveBenefitsId.leaveName !== 'Leave Without Pay') {
+        // if (leaveApplicationId.leaveBenefitsId.leaveName !== 'Leave Without Pay') {
         const debitValue = await this.leaveCardLedgerDebitService.getDebitValue(id);
 
         const countLeaveLedgerDebit = await this.leaveCardLedgerDebitService

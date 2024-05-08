@@ -23,4 +23,5 @@ export class UpdateOvertimeApprovalDto extends OmitType(CreateOvertimeApprovalDt
   id: string;
   overtimeApplicationId: string;
   status: OvertimeStatus;
+  approvedBy: string;
 }
