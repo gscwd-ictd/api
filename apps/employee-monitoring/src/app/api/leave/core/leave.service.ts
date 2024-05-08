@@ -123,8 +123,8 @@ export class LeaveService {
     });
 
     if (updateResult.affected > 0) {
-      //if (status === LeaveApplicationStatus.APPROVED) {
-      if (leaveApplicationId.leaveBenefitsId.leaveName !== 'Leave Without Pay') {
+      if (status === LeaveApplicationStatus.APPROVED) {
+        // if (leaveApplicationId.leaveBenefitsId.leaveName !== 'Leave Without Pay') {
         const debitValue = await this.leaveCardLedgerDebitService.getDebitValue(id);
 
         const countLeaveLedgerDebit = await this.leaveCardLedgerDebitService
@@ -150,8 +150,8 @@ export class LeaveService {
               dto: { leaveCreditEarningId: leaveCreditEarning },
             });
           }
+          //}
         }
-        //}
       }
       return await this.leaveApplicationService.getLeaveApplicationDetails(id, leaveApplicationId.employeeId);
     }

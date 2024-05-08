@@ -39,6 +39,7 @@ const whitelist = [
 const redisClientHrms = redis.createClient({
   url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:6479`,
 });
+
 redisClientHrms.connect().catch(console.error);
 
 const redisClientPortal = redis.createClient({

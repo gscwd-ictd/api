@@ -36,6 +36,10 @@ export class PassSlipDto {
   @IsOptional()
   @IsNotEmpty()
   approval?: PassSlipApprovalDto;
+
+  @IsNotEmpty()
+  @IsUUID()
+  supervisorId: string;
 }
 
 export class UpdatePassSlipTimeRecordDto {

@@ -17,6 +17,7 @@ import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
 import dayjs = require('dayjs');
 import { EmployeesService } from '../../../../employees/core/employees.service';
+import { OfficerOfTheDayService } from '../../../../officer-of-the-day/core/officer-of-the-day.service';
 
 @Injectable()
 export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
@@ -25,7 +26,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     private readonly dataSource: DataSource,
     private readonly client: MicroserviceClient,
     private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
-    private readonly employeesService: EmployeesService
+    private readonly employeesService: EmployeesService,
+    private readonly officerOfTheDayService: OfficerOfTheDayService
   ) {
     super(crudService);
   }
@@ -59,12 +61,18 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const result = this.dataSource.transaction(async (transactionEntityManager) => {
       const { leaveApplicationDates, ...rest } = createLeaveApplication;
 
-      const supervisorId = (await this.client.call<string, string, string>({
-        action: 'send',
-        payload: rest.employeeId,
-        pattern: 'get_employee_supervisor_id',
-        onError: (error) => new NotFoundException(error),
-      })) as string;
+      const employeeAssignmentId = (await this.employeesService.getEmployeeDetails(rest.employeeId)).assignment.id;
+
+      let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
+
+      if (supervisorId === null) {
+        supervisorId = (await this.client.call<string, string, string>({
+          action: 'send',
+          payload: rest.employeeId,
+          pattern: 'get_employee_supervisor_id',
+          onError: (error) => new NotFoundException(error),
+        })) as string;
+      }
 
       const leaveApplication = await this.createLeaveApplicationTransaction(transactionEntityManager, {
         ...rest,
@@ -144,7 +152,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           ORDER BY la.date_of_filing DESC;`,
         [id]
       );
-
       const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue`, [id]))[0];
 
       const leaveApplicationsWithDates = await Promise.all(
