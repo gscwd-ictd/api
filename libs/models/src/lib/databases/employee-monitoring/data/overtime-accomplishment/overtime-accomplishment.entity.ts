@@ -41,7 +41,7 @@ export class OvertimeAccomplishment extends DatabaseEntity implements IEntity {
   @Column({ type: 'enum', enum: OvertimeStatus, default: OvertimeStatus.PENDING })
   status: OvertimeStatus;
 
-  @Column({ name: 'approved_by', type: 'string', nullable: true })
+  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
   approvedBy: string;
 
   @Column({ name: 'date_approved', type: 'datetime', nullable: true })

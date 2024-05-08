@@ -42,6 +42,7 @@ export class UpdateOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAcco
 ] as const) {
   employeeId: string;
   overtimeApplicationId: OvertimeApplication;
+  approvedBy?: string;
 }
 
 export class UpdateAllOvertimeAccomplishmentDto extends OmitType(CreateOvertimeAccomplishmentDto, [
@@ -51,6 +52,7 @@ export class UpdateAllOvertimeAccomplishmentDto extends OmitType(CreateOvertimeA
 ] as const) {
   employeeIds: string[];
   overtimeApplicationId: OvertimeApplication;
+  approvedBy: string;
 }
 
 export class UpdateOvertimeAccomplishmentByEmployeeDto extends PickType(CreateOvertimeAccomplishmentDto, [

@@ -20,6 +20,6 @@ export class OvertimeApproval extends DatabaseEntity implements IEntity {
   @Column({ name: 'remarks', type: 'text', nullable: true })
   remarks: string;
 
-  @Column({ name: 'approved_by', type: 'string', nullable: true })
+  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
   approvedBy: string;
 }

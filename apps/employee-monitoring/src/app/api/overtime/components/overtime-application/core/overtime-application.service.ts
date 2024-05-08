@@ -3,10 +3,15 @@ import { CreateOvertimeApplicationDto, OvertimeApplication } from '@gscwd-api/mo
 import { OvertimeStatus } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
+import { EmployeesService } from '../../../../employees/core/employees.service';
 
 @Injectable()
 export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> {
-  constructor(private readonly crudService: CrudService<OvertimeApplication>, private readonly dataSource: DataSource) {
+  constructor(
+    private readonly crudService: CrudService<OvertimeApplication>,
+    private readonly employeeService: EmployeesService,
+    private readonly dataSource: DataSource
+  ) {
     super(crudService);
   }
   async createOvertimeApplication(createOvertimeApplicationDto: CreateOvertimeApplicationDto, entityManager: EntityManager) {
@@ -23,7 +28,7 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
     const overtime = (
       await this.rawQuery(
         `
-        SELECT DISTINCT overtime_application_id overtimeApplicationId, ois.employee_id_fk employeeId, planned_date plannedDate, estimated_hours estimatedHours, purpose, oa.status status,oapp.date_approved dateApproved,oapp.remarks remarks 
+        SELECT DISTINCT overtime_application_id overtimeApplicationId, ois.employee_id_fk employeeId, planned_date plannedDate, estimated_hours estimatedHours, purpose, oa.status status,oapp.approved_by approvedBy,oapp.date_approved dateApproved,oapp.remarks remarks 
           FROM overtime_application oa 
         INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk 
         INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
@@ -40,9 +45,17 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
       estimatedHours: string;
       purpose: string;
       status: string;
+      approvedBy: string;
     };
 
-    return overtime;
+    console.log('OVEerRTIME', overtime);
+
+    const _approvedBy =
+      overtime.approvedBy === null || overtime.approvedBy === ''
+        ? null
+        : (await this.employeeService.getEmployeeDetails(overtime.approvedBy)).employeeFullName;
+
+    return { ...overtime, approvedBy: _approvedBy };
   }
 
   async getOvertimeApplicationsByEmployeeIds(employeeIds: string[]) {
