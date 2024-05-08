@@ -1028,7 +1028,10 @@ export class OvertimeService {
 
   async getOvertimeSummaryRegular(immediateSupervisorEmployeeId: string, year: number, month: number, half: OvertimeSummaryHalf) {
     //
+    console.log('Immediate Supervisor Id', immediateSupervisorEmployeeId);
     const numOfDays = dayjs(year + '-' + month + '-1').daysInMonth();
+
+    const _month = ('0' + month).slice(-2);
 
     let overallTotalRegularOTAmount = 0;
     let overallTotalOffOTAmount = 0;
@@ -1040,15 +1043,17 @@ export class OvertimeService {
       half === OvertimeSummaryHalf.FIRST_HALF ? getDayRange1stHalf() : half === OvertimeSummaryHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
 
     const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
+
     const employees = (await this.overtimeApplicationService.rawQuery(
       `
       SELECT DISTINCT oe.employee_id_fk employeeId FROM overtime_employee oe 
         INNER JOIN overtime_application oa ON oa.overtime_application_id = oe.overtime_application_id_fk 
         INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
-      WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND  date_format(planned_date,'%d') IN (?) AND ois.employee_id_fk = ?
+      WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND date_format(planned_date,'%d') IN (?) AND ois.employee_id_fk = ?
     ;`,
-      [year, month, days, immediateSupervisorEmployeeId]
+      [year, _month, days, immediateSupervisorEmployeeId]
     )) as { employeeId: string }[];
+
     console.log(employees);
     const employeeDetails = await Promise.all(
       employees.map(async (employee) => {
@@ -1058,7 +1063,7 @@ export class OvertimeService {
         let totalOffOTHoursRendered = 0;
         //check if regular employee
         const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(employee.employeeId);
-        if (natureOfAppointment !== 'permanent') return null;
+        if (natureOfAppointment !== 'permanent' && natureOfAppointment !== 'casual') return null;
         const details = await this.employeeService.getEmployeeDetails(employee.employeeId);
         const hourlyMonthlyRate = (await this.employeeService.getMonthlyHourlyRateByEmployeeId(employee.employeeId)) as {
           monthlyRate: number;
@@ -1085,7 +1090,7 @@ export class OvertimeService {
               WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND  date_format(planned_date,'%d') = ? 
               AND oe.employee_id_fk = ? AND oacc.status = 'approved' ORDER BY \`day\` ASC;
               `,
-                [year, month, _day, employee.employeeId]
+                [year, _month, _day, employee.employeeId]
               )) as {
                 day: number;
                 overtimeApplicationId: string;

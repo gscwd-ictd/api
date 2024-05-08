@@ -16,10 +16,7 @@ export class LeaveCardLedgerCreditController {
   async creditCumulative(@Param('date') date: Date) {
     await this.leaveCardLedgerCreditService.creditCumulativeLeavesManually(date);
   }
-<<<<<<< HEAD
-=======
 
->>>>>>> cf7968651052802d193acc58944002ea5ac02092
   @Get('credit-cumulative-2/:date')
   async creditCumulative2(@Param('date') date: Date) {
     await this.leaveCardLedgerCreditService.creditCumulativeLeavesManuallyWithValue(date, 0);
