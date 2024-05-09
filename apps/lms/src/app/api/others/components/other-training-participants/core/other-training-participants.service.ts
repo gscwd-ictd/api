@@ -167,4 +167,50 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  /* find all other training by employee id */
+  async findAllOtherTrainingsByEmployeeId(employeeId: string) {
+    try {
+      const otherTraining = (await this.crudService.findAll({
+        find: {
+          relations: {
+            otherTraining: true,
+          },
+          select: {
+            otherTraining: {
+              id: true,
+              title: true,
+              category: true,
+              location: true,
+              dateFrom: true,
+              dateTo: true,
+              status: true,
+            },
+          },
+          where: {
+            employeeId: employeeId,
+          },
+        },
+      })) as Array<OtherTrainingParticipant>;
+
+      /* custom return */
+      return await Promise.all(
+        otherTraining.map(async (items) => {
+          return {
+            participantId: items.id,
+            otherTrainingId: items.otherTraining.id,
+            title: items.otherTraining.title,
+            category: items.otherTraining.category,
+            location: items.otherTraining.location,
+            dateFrom: items.otherTraining.dateFrom,
+            dateTo: items.otherTraining.dateTo,
+            status: items.otherTraining.status,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
