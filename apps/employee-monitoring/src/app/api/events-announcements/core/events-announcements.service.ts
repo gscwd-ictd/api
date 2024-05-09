@@ -73,12 +73,16 @@ export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> 
   async updateEventAnnouncement(updateEventsAnnouncementsDto: UpdateEventsAnnouncementsDto) {
     const { id, photoUrl, fileName, ...restOfEventsAnnouncements } = updateEventsAnnouncementsDto;
     let photo_url;
-    if (photoUrl !== null) {
+    console.log('test photo', typeof photoUrl);
+    if (typeof photoUrl !== 'undefined') {
       const deleteResult = await this.appwriteService.deleteFile(id);
       const file = await this.appwriteService.createFile(photoUrl, fileName, id);
       photo_url = await this.appwriteService.getFileUrl(file.$id);
+      const updateResult = await this.crudService.update({ dto: { ...restOfEventsAnnouncements, photoUrl: photo_url }, updateBy: { id } });
+      if (updateResult.affected > 0) return { id, ...restOfEventsAnnouncements, photoUrl: photo_url };
+    } else {
+      const updateResult = await this.crudService.update({ dto: { ...restOfEventsAnnouncements }, updateBy: { id } });
+      if (updateResult.affected > 0) return { id, ...restOfEventsAnnouncements };
     }
-    const updateResult = await this.crudService.update({ dto: { ...restOfEventsAnnouncements, photoUrl: photo_url }, updateBy: { id } });
-    if (updateResult.affected > 0) return { id, ...restOfEventsAnnouncements, photoUrl: photo_url };
   }
 }
