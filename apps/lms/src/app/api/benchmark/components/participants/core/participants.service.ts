@@ -184,4 +184,50 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  /* find all benchmark by employee id */
+  async findAllBenchmarkByEmployeeId(employeeId: string) {
+    try {
+      const benchmark = (await this.crudService.findAll({
+        find: {
+          relations: {
+            benchmark: true,
+          },
+          select: {
+            benchmark: {
+              id: true,
+              title: true,
+              partner: true,
+              location: true,
+              dateFrom: true,
+              dateTo: true,
+              status: true,
+            },
+          },
+          where: {
+            employeeId: employeeId,
+          },
+        },
+      })) as Array<BenchmarkParticipants>;
+
+      /* custom return */
+      return await Promise.all(
+        benchmark.map(async (items) => {
+          return {
+            participantId: items.id,
+            benchmarkId: items.benchmark.id,
+            title: items.benchmark.title,
+            partner: items.benchmark.partner,
+            location: items.benchmark.location,
+            dateFrom: items.benchmark.dateFrom,
+            dateTo: items.benchmark.dateTo,
+            status: items.benchmark.status,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

@@ -29,6 +29,7 @@ import { BenchmarkParticipantsModule } from './api/benchmark/components/particip
 import { BenchmarkParticipantRequirementsModule } from './api/benchmark/components/participants-requirements';
 import { OtherTrainingsModule } from './api/others';
 import { OtherTrainingParticipantsModule } from './api/others/components/other-training-participants';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { OtherTrainingParticipantsModule } from './api/others/components/other-t
     /* other trainings */
     OtherTrainingsModule,
     OtherTrainingParticipantsModule,
+    ScheduleModule.forRoot(),
   ],
 })
 export class AppModule {}
