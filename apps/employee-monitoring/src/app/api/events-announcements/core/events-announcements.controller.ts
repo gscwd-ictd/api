@@ -10,7 +10,7 @@ export class EventsAnnouncementsController {
 
   @Get()
   async getEventsAnnouncements() {
-    return await this.eventsAnnounceService.getEventsAnnouncements();
+    return await this.eventsAnnounceService.getEventsAnnouncementsForEms();
   }
 
   @Delete(':event_announcement_id')
@@ -26,8 +26,9 @@ export class EventsAnnouncementsController {
   }
 
   @Put()
-  async updateEventAnnouncement(@Body() updateEventsAnnouncementsDto: UpdateEventsAnnouncementsDto) {
-    return await this.eventsAnnounceService.updateEventAnnouncement(updateEventsAnnouncementsDto);
+  @UseInterceptors(FileInterceptor('file'))
+  async updateEventAnnouncement(@Body() updateEventsAnnouncementsDto: UpdateEventsAnnouncementsDto, @UploadedFile() file: any) {
+    return await this.eventsAnnounceService.updateEventAnnouncement(updateEventsAnnouncementsDto, file);
   }
 
   @Post('upload')
