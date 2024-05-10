@@ -1,7 +1,14 @@
-import { PassSlipDto, UpdatePassSlipApprovalDto, UpdatePassSlipTimeRecordDto } from '@gscwd-api/models';
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  HrUpdatePassSlipTimeRecordDto,
+  PassSlipDto,
+  PassSlipHrCancellationDto,
+  UpdatePassSlipApprovalDto,
+  UpdatePassSlipTimeRecordDto,
+} from '@gscwd-api/models';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { PassSlipService } from './pass-slip.service';
+import { AuthenticatedGuard } from '../../users/guards/authenticated.guard';
 
 @Controller({ version: '1', path: 'pass-slip' })
 export class PassSlipController {
@@ -59,6 +66,18 @@ export class PassSlipController {
   @Patch('time-record/')
   async updatePassSlipTimeRecord(@Body() updatePassSlipTimeRecordDto: UpdatePassSlipTimeRecordDto) {
     return await this.passSlipService.updatePassSlipTimeRecord(updatePassSlipTimeRecordDto);
+  }
+
+  //@UseGuards(AuthenticatedGuard)
+  @Patch('hr/cancel')
+  async cancelPassSlip(@Body() passSlipHrCancellationDto: PassSlipHrCancellationDto) {
+    return await this.passSlipService.cancelPassSlip(passSlipHrCancellationDto);
+  }
+
+  //@UseGuards(AuthenticatedGuard)
+  @Patch('hr/time-record/')
+  async hrUpdatePassSlipTimeLog(@Body() hrUpdatePassSlipTimeRecordDto: HrUpdatePassSlipTimeRecordDto) {
+    return await this.passSlipService.hrUpdatePassSlipTimeLog(hrUpdatePassSlipTimeRecordDto);
   }
 
   @Post('test-cron')
