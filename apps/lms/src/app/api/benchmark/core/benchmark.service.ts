@@ -4,6 +4,8 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { BenchmarkParticipantsService } from '../components/participants';
 import { BenchmarkParticipantRequirementsService } from '../components/participants-requirements';
+import { Cron } from '@nestjs/schedule';
+import { BenchmarkStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class BenchmarkService extends CrudHelper<Benchmark> {
@@ -292,6 +294,28 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* scheduler update other training status  */
+  @Cron('* 59 23 * * *')
+  async updateBenchmarkStatus() {
+    try {
+      const currentDate = new Date();
+
+      Logger.log('------ Update benchmark status to done -----------');
+
+      return await this.crudService.update({
+        updateBy: {
+          dateFrom: currentDate,
+        },
+        dto: {
+          status: BenchmarkStatus.DONE,
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 }

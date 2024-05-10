@@ -3,6 +3,8 @@ import { CreateOtherTrainingDto, OtherTraining, UpdateOtherTrainingDto } from '@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { OtherTrainingParticipantsService } from '../components/other-training-participants';
+import { Cron } from '@nestjs/schedule';
+import { OtherTrainingStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class OtherTrainingsService extends CrudHelper<OtherTraining> {
@@ -131,6 +133,28 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
             affected: 0,
           };
         }
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* scheduler update other training status  */
+  @Cron('* 59 23 * * *')
+  async updateOtherTrainingStatus() {
+    try {
+      const currentDate = new Date();
+
+      Logger.log('------ Update other training status to done -----------');
+
+      return await this.crudService.update({
+        updateBy: {
+          dateFrom: currentDate,
+        },
+        dto: {
+          status: OtherTrainingStatus.DONE,
+        },
       });
     } catch (error) {
       Logger.error(error);
