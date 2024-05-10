@@ -15,6 +15,10 @@ export class PassSlipApprovalDto {
   status?: PassSlipApprovalStatus;
 }
 
+export class PassSlipHrCancellationDto {
+  passSlipId: PassSlip;
+}
+
 export class UpdatePassSlipApprovalDto {
   passSlipId?: PassSlip;
 

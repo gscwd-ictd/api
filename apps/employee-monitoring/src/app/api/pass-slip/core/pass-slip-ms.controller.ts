@@ -12,7 +12,7 @@ export class PassSlipControllerMs {
   }
 
   @MessagePattern('get_assignable_supervisors_for_pass_slip')
-  async getAssignableSupervisorForPassSlip(@Payload() employeeData: { orgId: string; employeeId: string }) {
+  async getAssignableSupervisorForPassSlip(@Payload() employeeData: { employeeId: string; orgId: string }) {
     return await this.passSlipService.getAssignableSupervisorForPassSlip(employeeData);
   }
 }

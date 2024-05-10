@@ -56,7 +56,7 @@ export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> 
   }
 
   async addEventAnnouncementFromFileBuffer(eventAnnouncementDto: CreateEventsAnnouncementsDto, uploaded_file: any) {
-    console.log(uploaded_file);
+    //console.log(uploaded_file);
     const { fileName, ...restOfEventAnnouncements } = eventAnnouncementDto;
     const eventAnnouncement = await this.crudService.create({
       dto: { photoUrl: null, ...restOfEventAnnouncements },

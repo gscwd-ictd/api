@@ -629,19 +629,17 @@ export class OvertimeService {
         companyId: employeeDetails.companyId.replace('-', ''),
         entryDate: rest.overtimeEmployeeId.overtimeApplicationId.plannedDate,
       });
-
       if (didFaceScan) {
         dtr = await this.dailyTimeRecordService.getDtrByCompanyIdAndDay({
           companyId: employeeDetails.companyId,
           date: dayjs(overtimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate).toDate(),
         });
-
-        await this.updateOvertimeAccomplishment({
-          employeeId,
-          overtimeApplicationId: { id, ...restOfOvertimeApplication },
-          ivmsTimeIn: dtr.dtr.timeIn,
-          ivmsTimeOut: dtr.dtr.timeOut,
-        });
+        // await this.updateOvertimeAccomplishment({
+        //   employeeId,
+        //   overtimeApplicationId: { id, ...restOfOvertimeApplication },
+        //   ivmsTimeIn: dtr.dtr.timeIn,
+        //   ivmsTimeOut: dtr.dtr.timeOut,
+        // });
       }
     }
 
