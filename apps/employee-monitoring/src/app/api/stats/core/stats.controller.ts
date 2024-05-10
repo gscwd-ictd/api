@@ -14,4 +14,9 @@ export class StatsController {
   async getLatesPerDepartment() {
     return await this.statsService.getLatesPerDepartment();
   }
+
+  @Get('lates/department2')
+  async getLatesPerDepartmen2() {
+    return await this.statsService.getLatesPerDepartment2();
+  }
 }
