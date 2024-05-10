@@ -1,6 +1,13 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { PassSlip, PassSlipApproval, PassSlipDto, UpdatePassSlipTimeRecordDto } from '@gscwd-api/models';
+import {
+  HrUpdatePassSlipTimeRecordDto,
+  PassSlip,
+  PassSlipApproval,
+  PassSlipDto,
+  PassSlipHrCancellationDto,
+  UpdatePassSlipTimeRecordDto,
+} from '@gscwd-api/models';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { NatureOfBusiness, ObTransportation, PassSlipApprovalStatus, PassSlipForDispute, PassSlipForLedger } from '@gscwd-api/utils';
@@ -611,6 +618,23 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     if (updateResult.affected > 0) return updatePassSlipTimeRecordDto;
   }
 
+  async cancelPassSlip(passSlipHrCancellationDto: PassSlipHrCancellationDto) {
+    const { passSlipId } = passSlipHrCancellationDto;
+    const result = await this.passSlipApprovalService
+      .crud()
+      .update({ dto: { status: PassSlipApprovalStatus.CANCELLED }, updateBy: { passSlipId }, onError: () => new InternalServerErrorException() });
+    if (result.affected > 0) return { ...passSlipHrCancellationDto, status: PassSlipApprovalStatus.CANCELLED };
+  }
+
+  async hrUpdatePassSlipTimeLog(hrUpdatePassSlipTimeRecordDto: HrUpdatePassSlipTimeRecordDto) {
+    const { id, timeIn, timeOut } = hrUpdatePassSlipTimeRecordDto;
+    const result = await this.crud().update({
+      dto: { timeIn, timeOut },
+      updateBy: { id },
+    });
+    if (result.affected > 0) return hrUpdatePassSlipTimeRecordDto;
+  }
+
   @Cron('0 57 23 * * 0-6')
   async updatePassSlipStatusCron() {
     //1. fetch approved pass slips from yesterday (Personal Business Only)
@@ -836,7 +860,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             { label: employeeSupervisorName, value: employeeSupervisorId },
           ]
         : [{ label: employeeSupervisorName, value: employeeSupervisorId }];
-    const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown();
-    return [...supervisorAndOfficerOfTheDayArray, ...supervisoryEmployees];
+    const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown(employeeData.employeeId);
+    const result = [...supervisorAndOfficerOfTheDayArray, ...supervisoryEmployees];
+    return result.filter((value, index, self) => index === self.findIndex((item) => item.label === value.label && item.value === value.value));
   }
 }

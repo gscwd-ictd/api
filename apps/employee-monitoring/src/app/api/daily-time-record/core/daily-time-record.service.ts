@@ -509,7 +509,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           }
           if (
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
-            dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 2 : suspensionHours, 'hour'))
+            dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 5 : suspensionHours, 'hour'))
           ) {
             _timeOut = time;
           }
@@ -721,7 +721,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
           if (
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
-            dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 2 : suspensionHours, 'hour'))
+            dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 5 : suspensionHours, 'hour'))
           ) {
             _timeOut = time;
           }

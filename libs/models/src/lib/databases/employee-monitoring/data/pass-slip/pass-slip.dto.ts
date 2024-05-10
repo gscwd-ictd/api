@@ -48,3 +48,12 @@ export class UpdatePassSlipTimeRecordDto {
   @IsString()
   action: 'time in' | 'time out';
 }
+
+export class HrUpdatePassSlipTimeRecordDto {
+  @IsUUID()
+  id: string;
+
+  timeIn: number;
+
+  timeOut: number;
+}

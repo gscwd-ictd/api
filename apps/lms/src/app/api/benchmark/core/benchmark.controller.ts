@@ -87,4 +87,9 @@ export class BenchmarkController {
   async updateAllParticipantRequirementsByBenchmarkId(@Param('benchmarkId') benchmarkId: string, @Body() data: BenchmarkParticipantRequirementsDto) {
     return await this.benchmarkService.updateAllParticipantRequirementsByBenchmarkId(benchmarkId, data);
   }
+
+  @Get('employee/:employeeId')
+  async findAllBenchmarkByEmployeeId(@Param('employeeId') employeeId: string) {
+    return await this.benchmarkParticipantsService.findAllBenchmarkByEmployeeId(employeeId);
+  }
 }

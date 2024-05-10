@@ -76,4 +76,9 @@ export class OtherTrainingsController {
   async findAllAssignableParticipantsByBenchmarkId(@Param('otherTrainingId') otherTrainingId: string) {
     return await this.otherTrainingParticipantsService.findAllAssignableParticipantsByOtherTrainingId(otherTrainingId);
   }
+
+  @Get('employee/:employeeId')
+  async findAllOtherTrainingsByEmployeeId(@Param('employeeId') employeeId: string) {
+    return await this.otherTrainingParticipantsService.findAllOtherTrainingsByEmployeeId(employeeId);
+  }
 }
