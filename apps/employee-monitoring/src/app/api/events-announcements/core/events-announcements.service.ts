@@ -16,6 +16,12 @@ export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> 
     });
   }
 
+  async getEventsAnnouncementsForEms() {
+    return await this.crudService.findAll({
+      find: { order: { eventAnnouncementDate: 'DESC' } },
+    });
+  }
+
   async deleteEventAnnouncement(id: string) {
     const eventAnnouncement = await this.crudService.findOne({ find: { where: { id } }, onError: () => new NotFoundException() });
     if (eventAnnouncement) {
@@ -70,15 +76,23 @@ export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> 
     };
   }
 
-  async updateEventAnnouncement(updateEventsAnnouncementsDto: UpdateEventsAnnouncementsDto) {
-    const { id, photoUrl, fileName, ...restOfEventsAnnouncements } = updateEventsAnnouncementsDto;
-    let photo_url;
-    if (photoUrl !== null) {
+  async updateEventAnnouncement(updateEventsAnnouncementsDto: UpdateEventsAnnouncementsDto, uploaded_file: any) {
+    const { id, fileName, ...restOfEventsAnnouncements } = updateEventsAnnouncementsDto;
+    //console.log(updateEventsAnnouncementsDto);
+    //console.log('UPLOOOOADED FILE', uploaded_file);
+
+    if (typeof uploaded_file !== 'undefined') {
       const deleteResult = await this.appwriteService.deleteFile(id);
-      const file = await this.appwriteService.createFile(photoUrl, fileName, id);
-      photo_url = await this.appwriteService.getFileUrl(file.$id);
+      console.log('DELETETEETETEE', deleteResult);
+      const file = await this.appwriteService.createFileFromBuffer(uploaded_file, id);
+      console.log('uploadedfile:::::', file);
+      const photo_url = await this.appwriteService.getFileUrl(file.$id);
+      console.log(photo_url);
+      const updateResult = await this.crudService.update({ dto: { ...restOfEventsAnnouncements, photoUrl: photo_url }, updateBy: { id } });
+      if (updateResult.affected > 0) return { id, ...restOfEventsAnnouncements, photoUrl: photo_url };
+    } else {
+      const updateResult = await this.crudService.update({ dto: { ...restOfEventsAnnouncements }, updateBy: { id } });
+      if (updateResult.affected > 0) return { id, ...restOfEventsAnnouncements };
     }
-    const updateResult = await this.crudService.update({ dto: { ...restOfEventsAnnouncements, photoUrl: photo_url }, updateBy: { id } });
-    if (updateResult.affected > 0) return { id, ...restOfEventsAnnouncements, photoUrl: photo_url };
   }
 }
