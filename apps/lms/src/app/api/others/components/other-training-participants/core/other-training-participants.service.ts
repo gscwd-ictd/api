@@ -3,6 +3,7 @@ import { CreateOtherTrainingParticipantsDto, OtherTrainingParticipant } from '@g
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { EntityManager } from 'typeorm';
+import { OtherTrainingStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingParticipant> {
@@ -211,6 +212,25 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* count pending other training by employee id */
+  async countPendingOtherTrainingByEmployeeId(employeeId: string) {
+    try {
+      const count = await this.crudService.getRepository().countBy({
+        otherTraining: {
+          status: OtherTrainingStatus.PENDING,
+        },
+        employeeId: employeeId,
+      });
+
+      return {
+        pending: count,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 }
