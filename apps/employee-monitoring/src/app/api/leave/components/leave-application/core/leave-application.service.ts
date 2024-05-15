@@ -78,7 +78,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         ...rest,
         supervisorId,
         dateOfFiling: new Date(now),
-        status: LeaveApplicationStatus.FOR_HRMO_APPROVAL,
+        status: LeaveApplicationStatus.FOR_HRMO_CREDIT_CERTIFICATION,
         forMonetization: false,
         leaveApplicationDates,
       });
@@ -136,7 +136,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
         la.status \`status\`,
         lb.maximum_credits maximumCredits,
+        la.hrmo_approved_by hrmoApprovedBy,
+        la.hrdm_approved_by hrdmApprovedBy,
         DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d %H:%i%:%s') hrmoApprovalDate,
+        DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
         DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d %H:%i%:%s') supervisorApprovalDate,
         la.supervisor_disapproval_remarks supervisorDisapprovalRemarks,
         DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
@@ -583,6 +586,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           isLateFiling: true,
           supervisorId: true,
           studyLeaveOther: true,
+          hrdmApprovedBy: true,
+          hrmoApprovedBy: true,
           outPatient: true,
           cancelDate: true,
           cancelReason: true,
@@ -599,7 +604,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
-        const { employeeId, supervisorId, leaveBenefitsId, ...rest } = leave;
+        const { employeeId, supervisorId, hrmoApprovedBy, hrmoApprovalDate, hrdmApprovedBy, hrdmApprovalDate, leaveBenefitsId, ...rest } = leave;
         const employeeSupervisorNames = (await this.client.call<
           string,
           { employeeId: string; supervisorId: string },
@@ -610,6 +615,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           pattern: 'get_employee_supervisor_names',
           onError: (error) => new NotFoundException(error),
         })) as { employeeName: string; supervisorName: string };
+
+        const _hrmoApprovedBy = (await this.employeesService.getEmployeeDetails(hrmoApprovedBy)).employeeFullName;
 
         const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
           find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
@@ -625,6 +632,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           ...rest,
           leaveBenefitsId: leaveBenefitsId.id,
           leaveName: leaveBenefitsId.leaveName,
+          hrmoApprovedBy: _hrmoApprovedBy,
+          hrmoApprovalDate,
           employee: { employeeId, employeeName },
           supervisor: { supervisorId, supervisorName },
           //leaveName: leaveBenefitsId.leaveName,
