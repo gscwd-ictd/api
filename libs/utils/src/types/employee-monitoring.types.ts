@@ -15,6 +15,7 @@ export enum LeaveApplicationStatus {
   APPROVED = 'approved',
   ONGOING = 'ongoing',
   FOR_HRMO_CERTIFICATION = 'for hrmo certification',
+  FOR_HRMO_CREDIT_CERTIFICATION = 'for hrmo credit certification',
   FOR_HRMO_APPROVAL = 'for hrmo approval',
   FOR_SUPERVISOR_APPROVAL = 'for supervisor approval',
   FOR_HRDM_APPROVAL = 'for hrdm approval',

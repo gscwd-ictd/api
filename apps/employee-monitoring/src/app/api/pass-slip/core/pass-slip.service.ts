@@ -466,16 +466,12 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       },
     });
 
-    console.log(passSlips);
-
     const passSlipDetails = await Promise.all(
       passSlips.map(async (passSlip) => {
-        //console.log('passSlip: ', passSlip);
         const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
-        console.log('names: ', names);
         const assignment = await this.getEmployeeAssignment(passSlip.passSlipId.employeeId);
-        //console.log('assignment: ', assignment);
-        const avatarUrl = (await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId)).photoUrl;
+        const employeeDetails = await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId);
+
         const { passSlipId, ...restOfPassSlip } = passSlip;
         const { dateOfApplication, ...restOfPassSlipId } = passSlipId;
         return {
@@ -483,13 +479,12 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           dateOfApplication: dayjs(dateOfApplication).format('YYYY-MM-DD'),
           ...restOfPassSlipId,
           ...names,
-          avatarUrl,
-          assignmentName: assignment.assignment.name,
+          avatarUrl: employeeDetails.photoUrl,
+          assignmentName: employeeDetails.assignment.name,
         };
       })
     );
 
-    console.log(passSlipDetails);
     return passSlipDetails;
   }
 

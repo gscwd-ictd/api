@@ -10,6 +10,7 @@
   },
   "private": true,
   "dependencies": {
+    "@nestjs/cache-manager": "^2.2.2",
     "@nestjs/common": "10.0.4",
     "@nestjs/config": "^2.2.0",
     "@nestjs/core": "10.0.4",
@@ -20,6 +21,7 @@
     "@nestjs/typeorm": "^10.0.0",
     "argon2": "^0.30.3",
     "axios": "1.6.7",
+    "cache-manager": "^5.5.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "connect-redis": "^7.1.0",
@@ -71,4 +73,3 @@
     "typescript": "5.4.5"
   }
 }
-

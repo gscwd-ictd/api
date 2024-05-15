@@ -19,3 +19,11 @@ export type RegistrationDetails = {
   credentials: Credentials;
   details: Employee;
 };
+
+export type AuthenticatedUser = {
+  _id: string;
+  email: string;
+  photoUrl: string;
+  fullName: string;
+  userAccess: Array<{ I: string; this: string }>;
+};

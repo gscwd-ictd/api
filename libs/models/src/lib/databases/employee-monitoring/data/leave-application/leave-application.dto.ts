@@ -93,6 +93,7 @@ export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicatio
 
 export class UpdateLeaveApplicationHrmoStatusDto extends PickType(CreateLeaveApplicationDto, ['status', 'hrmoApprovalDate']) {
   id: string;
+  hrmoApprovedBy?: string;
 }
 
 export class UpdateLeaveApplicationHrdmStatusDto extends PickType(CreateLeaveApplicationDto, [
@@ -101,6 +102,7 @@ export class UpdateLeaveApplicationHrdmStatusDto extends PickType(CreateLeaveApp
   'hrdmDisapprovalRemarks',
 ]) {
   id: string;
+  hrdmApprovedBy: string;
 }
 
 export class UpdateLeaveApplicationSupervisorStatusDto extends PickType(CreateLeaveApplicationDto, [
