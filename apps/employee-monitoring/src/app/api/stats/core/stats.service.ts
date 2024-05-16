@@ -113,4 +113,13 @@ export class StatsService {
       console.log(error);
     }
   }
+
+  async getDashBoardCount() {
+    return (
+      await this.passSlipService
+        .rawQuery(`SELECT (SELECT COUNT(leave_application_id) FROM leave_application WHERE status = 'for hrmo credit certification') pendingLeaveApplications,
+      (SELECT COUNT(overtime_application_id) FROM overtime_application) overtimeApplications, (SELECT COUNT(pass_slip_approval_id) FROM pass_slip_approval WHERE status='for hrmo approval') pendingPassSlips;      
+      `)
+    )[0];
+  }
 }
