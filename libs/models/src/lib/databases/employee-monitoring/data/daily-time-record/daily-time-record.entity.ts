@@ -28,4 +28,7 @@ export class DailyTimeRecord extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'schedule_id_fk' })
   @ManyToOne(() => Schedule, (schedule) => schedule.id)
   scheduleId: Schedule;
+
+  @Column({ name: 'has_correction', type: 'boolean', nullable: true })
+  hasCorrection: boolean;
 }
