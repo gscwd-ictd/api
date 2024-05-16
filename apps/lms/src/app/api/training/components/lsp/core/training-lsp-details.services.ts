@@ -3,10 +3,15 @@ import { CreateTrainingLspDetailsDto, TrainingLspDetails } from '@gscwd-api/mode
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { LspDetailsService } from '../../../../lsp-details';
+import { LspRatingService } from '../../../../lsp-rating';
 
 @Injectable()
 export class TrainingLspDetailsService extends CrudHelper<TrainingLspDetails> {
-  constructor(private readonly crudService: CrudService<TrainingLspDetails>, private readonly lspDetailsService: LspDetailsService) {
+  constructor(
+    private readonly crudService: CrudService<TrainingLspDetails>,
+    private readonly lspDetailsService: LspDetailsService,
+    private readonly lspRatingService: LspRatingService
+  ) {
     super(crudService);
   }
 
@@ -58,6 +63,16 @@ export class TrainingLspDetailsService extends CrudHelper<TrainingLspDetails> {
   async createLspDetails(data: CreateTrainingLspDetailsDto, entityManager: EntityManager) {
     try {
       const { id, ...rest } = data;
+
+      /* insert the initial learning service provider rating */
+      await this.lspRatingService.createLearningServiceProviderRating(
+        {
+          lspDetails: id,
+          trainingDetails: data.trainingDetails,
+        },
+        entityManager
+      );
+
       return await this.crudService.transact<TrainingLspDetails>(entityManager).create({
         dto: {
           ...rest,
