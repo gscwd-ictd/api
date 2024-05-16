@@ -280,7 +280,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
                 dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
                 dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
               ),
-              timeOut: IsNull(),
               natureOfBusiness: NatureOfBusiness.HALF_DAY,
             },
             status: PassSlipApprovalStatus.APPROVED,
@@ -293,7 +292,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
                 dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
               ),
               natureOfBusiness: NatureOfBusiness.UNDERTIME,
-              timeIn: IsNull(),
+              timeOut: IsNull(),
             },
             status: PassSlipApprovalStatus.APPROVED,
           },
@@ -463,6 +462,14 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true },
         order: { createdAt: 'DESC', status: 'ASC' },
+        where: {
+          passSlipId: {
+            dateOfApplication: Between(
+              dayjs(dayjs().format('YYYY-MM-DD')).subtract(4, 'day').toDate(),
+              dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
+            ),
+          },
+        },
       },
     });
 
@@ -679,7 +686,12 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
         //2.2  if time in is not null and time out is null check if not undertime
         if (timeOut !== null && timeIn === null) {
-          if (natureOfBusiness === 'Undertime' || natureOfBusiness === 'Half Day' || natureOfBusiness === 'Personal Business') {
+          if (
+            natureOfBusiness === 'Undertime' ||
+            natureOfBusiness === 'Half Day' ||
+            natureOfBusiness === 'Personal Business' ||
+            natureOfBusiness === 'Official Business'
+          ) {
             //2.2.1 set time out to scheduled time out;
             //get employee current schedule schedule from dtr
             const employeeAssignment = await this.getEmployeeAssignment(employeeId);

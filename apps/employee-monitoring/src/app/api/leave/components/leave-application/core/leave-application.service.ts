@@ -634,6 +634,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           leaveName: leaveBenefitsId.leaveName,
           hrmoApprovedBy: _hrmoApprovedBy,
           hrmoApprovalDate,
+          hrdmApprovedBy,
+          hrdmApprovalDate,
           employee: { employeeId, employeeName },
           supervisor: { supervisorId, supervisorName },
           //leaveName: leaveBenefitsId.leaveName,
