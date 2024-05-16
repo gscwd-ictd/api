@@ -103,7 +103,7 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
         const { dtrId, lunchIn, lunchOut, timeIn, timeOut } = correctedDtr;
         const dtrUpdateResult = await this.dailyTimeRecordService
           .crud()
-          .update({ dto: { timeIn, timeOut, lunchIn, lunchOut }, updateBy: { id: dtrId.id } });
+          .update({ dto: { timeIn, timeOut, lunchIn, lunchOut, hasCorrection: true }, updateBy: { id: dtrId.id } });
         if (dtrUpdateResult.affected > 0) return approveDtrCorrectionDto;
       }
       return approveDtrCorrectionDto;

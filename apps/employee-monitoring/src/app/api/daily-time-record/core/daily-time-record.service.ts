@@ -333,7 +333,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       } else {
         if (schedule.id !== currEmployeeDtr.scheduleId)
           await this.crud().update({ dto: { scheduleId: { id: schedule.id } }, updateBy: { id: currEmployeeDtr.id } });
-        await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
+        if (currEmployeeDtr.hasCorrection !== true) await this.updateDtr(currEmployeeDtr, employeeIvmsDtr, schedule);
         hasPendingDtrCorrection = await this.hasPendingDtrCorrection(currEmployeeDtr.id);
         dtrCorrection = await this.getDtrCorrection(currEmployeeDtr.id);
       }
