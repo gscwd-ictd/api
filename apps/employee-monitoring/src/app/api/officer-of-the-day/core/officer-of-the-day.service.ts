@@ -111,7 +111,12 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
        AND now() BETWEEN date_sub(date_from,INTERVAL 1 DAY) AND date_add(date_to, INTERVAL 1 DAY);`,
       [orgId]
     )) as { employeeId: string }[];
-
     return officerOfTheDay.length > 0 ? officerOfTheDay[0].employeeId : null;
+  }
+
+  async getIteratedHigherOfficerOfTheDayByOrgId(orgId: string) {
+    //if walang makita,get higher orgstruct
+
+    return orgId;
   }
 }

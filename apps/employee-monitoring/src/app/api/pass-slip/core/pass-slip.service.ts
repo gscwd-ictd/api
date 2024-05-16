@@ -293,7 +293,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
                 dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
               ),
               natureOfBusiness: NatureOfBusiness.UNDERTIME,
-              timeIn: IsNull(),
+              timeOut: IsNull(),
             },
             status: PassSlipApprovalStatus.APPROVED,
           },
@@ -466,16 +466,12 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       },
     });
 
-    console.log(passSlips);
-
     const passSlipDetails = await Promise.all(
       passSlips.map(async (passSlip) => {
-        //console.log('passSlip: ', passSlip);
         const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
-        console.log('names: ', names);
         const assignment = await this.getEmployeeAssignment(passSlip.passSlipId.employeeId);
-        //console.log('assignment: ', assignment);
-        const avatarUrl = (await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId)).photoUrl;
+        const employeeDetails = await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId);
+
         const { passSlipId, ...restOfPassSlip } = passSlip;
         const { dateOfApplication, ...restOfPassSlipId } = passSlipId;
         return {
@@ -483,13 +479,12 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           dateOfApplication: dayjs(dateOfApplication).format('YYYY-MM-DD'),
           ...restOfPassSlipId,
           ...names,
-          avatarUrl,
-          assignmentName: assignment.assignment.name,
+          avatarUrl: employeeDetails.photoUrl,
+          assignmentName: employeeDetails.assignment.name,
         };
       })
     );
 
-    console.log(passSlipDetails);
     return passSlipDetails;
   }
 
@@ -684,7 +679,12 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
         //2.2  if time in is not null and time out is null check if not undertime
         if (timeOut !== null && timeIn === null) {
-          if (natureOfBusiness === 'Undertime' || natureOfBusiness === 'Half Day' || natureOfBusiness === 'Personal Business') {
+          if (
+            natureOfBusiness === 'Undertime' ||
+            natureOfBusiness === 'Half Day' ||
+            natureOfBusiness === 'Personal Business' ||
+            natureOfBusiness === 'Official Business'
+          ) {
             //2.2.1 set time out to scheduled time out;
             //get employee current schedule schedule from dtr
             const employeeAssignment = await this.getEmployeeAssignment(employeeId);
@@ -848,7 +848,14 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
 
   async getAssignableSupervisorForPassSlip(employeeData: { orgId: string; employeeId: string }) {
-    const officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeData.orgId);
+    let officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeData.orgId);
+    const userRole = (await this.employeeService.getEmployeeDetails(employeeData.employeeId)).userRole;
+    if (userRole === 'division_manager' || userRole === 'department_manager' || userRole === 'assistant_general_manager') {
+      const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);
+      const supervisorOrgId = (await this.employeeService.getEmployeeDetails(supervisorId)).assignment.id;
+      officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(supervisorOrgId);
+    }
+
     let officerOfTheDayName: string;
     if (officerOfTheDayId) officerOfTheDayName = (await this.employeeService.getEmployeeDetails(officerOfTheDayId)).employeeFullName;
     const employeeSupervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);
@@ -856,7 +863,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const supervisorAndOfficerOfTheDayArray =
       officerOfTheDayId !== null
         ? [
-            { label: officerOfTheDayName, value: officerOfTheDayName },
+            { label: officerOfTheDayName, value: officerOfTheDayId },
             { label: employeeSupervisorName, value: employeeSupervisorId },
           ]
         : [{ label: employeeSupervisorName, value: employeeSupervisorId }];
