@@ -4,6 +4,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityManager, QueryFailedError } from 'typeorm';
 import { BenchmarkParticipantRequirementsService } from '../../participants-requirements';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
+import { BenchmarkStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipants> {
@@ -228,6 +229,25 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* count pending benchmark by employee id */
+  async countPendingBenchmarkByEmployeeId(employeeId: string) {
+    try {
+      const count = await this.crudService.getRepository().countBy({
+        benchmark: {
+          status: BenchmarkStatus.PENDING,
+        },
+        employeeId: employeeId,
+      });
+
+      return {
+        pending: count,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 }

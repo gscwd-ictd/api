@@ -150,7 +150,7 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
 
       return await this.crudService.update({
         updateBy: {
-          dateFrom: currentDate,
+          dateTo: currentDate,
         },
         dto: {
           status: OtherTrainingStatus.DONE,
