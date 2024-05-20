@@ -14,4 +14,14 @@ export class StatsController {
   async countAcceptedNominees() {
     return await this.statsService.countAcceptedNominees();
   }
+
+  @Get('count/all')
+  async countAllDoneStatus() {
+    return await this.statsService.countAllDoneStatus();
+  }
+
+  @Get('count/participants')
+  async coutAllParticipants() {
+    return await this.statsService.coutAllParticipants();
+  }
 }

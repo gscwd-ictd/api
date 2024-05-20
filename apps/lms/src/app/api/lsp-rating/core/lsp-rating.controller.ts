@@ -34,6 +34,7 @@ export class LspRatingController {
             trainingDesign: true,
             source: true,
           },
+          lspDetails: true,
         },
         where: {
           lspDetails: {
