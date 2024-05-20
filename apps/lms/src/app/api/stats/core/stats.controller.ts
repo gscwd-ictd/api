@@ -19,4 +19,9 @@ export class StatsController {
   async countAllDoneStatus() {
     return await this.statsService.countAllDoneStatus();
   }
+
+  @Get('count/participants')
+  async coutAllParticipants() {
+    return await this.statsService.coutAllParticipants();
+  }
 }

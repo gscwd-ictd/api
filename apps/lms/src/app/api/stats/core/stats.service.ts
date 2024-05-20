@@ -6,6 +6,8 @@ import { Raw } from 'typeorm';
 import { HrmsEmployeesService } from '../../../services/hrms';
 import { BenchmarkService } from '../../benchmark';
 import { OtherTrainingsService } from '../../others';
+import { BenchmarkParticipantsService } from '../../benchmark/components/participants';
+import { OtherTrainingParticipantsService } from '../../others/components/other-training-participants';
 
 @Injectable()
 export class StatsService {
@@ -14,7 +16,9 @@ export class StatsService {
     private readonly trainingNomineesService: TrainingNomineesService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
     private readonly benchmarkService: BenchmarkService,
-    private readonly otherTrainingsService: OtherTrainingsService
+    private readonly benchmarkParticipantsService: BenchmarkParticipantsService,
+    private readonly otherTrainingsService: OtherTrainingsService,
+    private readonly otherTrainingsParticipantsService: OtherTrainingParticipantsService
   ) {}
 
   async countTrainingStatus() {
@@ -117,6 +121,51 @@ export class StatsService {
         training: training,
         benchmark: benchmark,
         otherTraining: otherTraining,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* count all accepted and declined participants */
+  async coutAllParticipants() {
+    try {
+      const currentYear = new Date().getFullYear();
+
+      const trainingAccepted = await this.trainingNomineesService
+        .crud()
+        .getRepository()
+        .countBy({
+          status: TrainingNomineeStatus.ACCEPTED,
+          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
+        });
+
+      const trainingDeclined = await this.trainingNomineesService
+        .crud()
+        .getRepository()
+        .countBy({
+          status: TrainingNomineeStatus.DECLINED,
+          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
+        });
+
+      const benchmarkAccepted = await this.benchmarkParticipantsService
+        .crud()
+        .getRepository()
+        .countBy({
+          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
+        });
+
+      const otherTrainingAccepted = await this.otherTrainingsParticipantsService
+        .crud()
+        .getRepository()
+        .countBy({
+          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
+        });
+
+      return {
+        accepted: trainingAccepted + benchmarkAccepted + otherTrainingAccepted,
+        declined: trainingDeclined,
       };
     } catch (error) {
       Logger.error(error);
