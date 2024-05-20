@@ -3,17 +3,18 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nes
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Observable, map } from 'rxjs';
 import { TrainingTagsService } from '../../../training/components/tags';
+import { LspDetailsService } from '../../../lsp-details';
 
 @Injectable()
 export class FindAllLspRatingInterceptor implements NestInterceptor {
-  constructor(private readonly trainingTagsService: TrainingTagsService) {}
+  constructor(private readonly trainingTagsService: TrainingTagsService, private readonly lspDetailsService: LspDetailsService) {}
   intercept(context: ExecutionContext, next: CallHandler<unknown>): Observable<unknown> | Promise<Observable<unknown>> {
     return next.handle().pipe(
       map(async (result: Pagination<LspRating>) => {
         const items = await Promise.all(
           result.items.map(async (items) => {
             const trainingTags = await this.trainingTagsService.findAllTagsByTrainingId(items.trainingDetails.id);
-
+            const lspName = (await this.lspDetailsService.findLspDetailsById(items.lspDetails.id)).name;
             return {
               createdAt: items.createdAt,
               updatedAt: items.updatedAt,
@@ -29,7 +30,7 @@ export class FindAllLspRatingInterceptor implements NestInterceptor {
               source: items.trainingDetails.source.name,
               type: items.trainingDetails.type,
               status: items.trainingDetails.status,
-              lspDetails: items.lspDetails.fullName || items.lspDetails.organizationName,
+              lspDetails: lspName,
               trainingTags: trainingTags,
               rating: items.rating,
             };
