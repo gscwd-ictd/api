@@ -46,4 +46,18 @@ export class LspRatingService extends CrudHelper<LspRating> {
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  /* find average learning service provider by lsp id */
+  async findLspAverageRatingById(lspId: string) {
+    try {
+      const average = await this.crudService.getRepository().average('rating', { lspDetails: { id: lspId } });
+
+      return {
+        average: average,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
 }
