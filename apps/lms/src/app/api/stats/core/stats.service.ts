@@ -1,16 +1,20 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { TrainingDetailsService } from '../../training';
-import { TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
+import { BenchmarkStatus, OtherTrainingStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../../training/components/nominees';
 import { Raw } from 'typeorm';
 import { HrmsEmployeesService } from '../../../services/hrms';
+import { BenchmarkService } from '../../benchmark';
+import { OtherTrainingsService } from '../../others';
 
 @Injectable()
 export class StatsService {
   constructor(
     private readonly trainingDetailsService: TrainingDetailsService,
     private readonly trainingNomineesService: TrainingNomineesService,
-    private readonly hrmsEmployeesService: HrmsEmployeesService
+    private readonly hrmsEmployeesService: HrmsEmployeesService,
+    private readonly benchmarkService: BenchmarkService,
+    private readonly otherTrainingsService: OtherTrainingsService
   ) {}
 
   async countTrainingStatus() {
@@ -77,6 +81,46 @@ export class StatsService {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* count all done training */
+  async countAllDoneStatus() {
+    try {
+      const currentYear = new Date().getFullYear();
+
+      const training = await this.trainingDetailsService
+        .crud()
+        .getRepository()
+        .countBy({
+          status: TrainingStatus.COMPLETED,
+          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
+        });
+
+      const benchmark = await this.benchmarkService
+        .crud()
+        .getRepository()
+        .countBy({
+          status: BenchmarkStatus.DONE,
+          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
+        });
+
+      const otherTraining = await this.otherTrainingsService
+        .crud()
+        .getRepository()
+        .countBy({
+          status: OtherTrainingStatus.DONE,
+          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
+        });
+
+      return {
+        training: training,
+        benchmark: benchmark,
+        otherTraining: otherTraining,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 }
