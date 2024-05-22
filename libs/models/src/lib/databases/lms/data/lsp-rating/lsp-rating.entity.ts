@@ -1,9 +1,10 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { LspDetails } from '../lsp-details';
 import { TrainingDetails } from '../training-details';
 
 @Entity({ name: 'lsp_rating' })
+@Unique(['lspDetails', 'trainingDetails'])
 export class LspRating extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'lsp_rating_id' })
   id: string;

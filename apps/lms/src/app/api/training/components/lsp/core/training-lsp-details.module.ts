@@ -3,10 +3,9 @@ import { TrainingLspDetails } from '@gscwd-api/models';
 import { Module } from '@nestjs/common';
 import { TrainingLspDetailsService } from './training-lsp-details.services';
 import { LspDetailsModule } from '../../../../lsp-details';
-import { LspRatingModule } from '../../../../lsp-rating';
 
 @Module({
-  imports: [CrudModule.register(TrainingLspDetails), LspDetailsModule, LspRatingModule],
+  imports: [CrudModule.register(TrainingLspDetails), LspDetailsModule],
   controllers: [],
   providers: [TrainingLspDetailsService],
   exports: [TrainingLspDetailsService],
