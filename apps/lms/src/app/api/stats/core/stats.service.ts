@@ -8,10 +8,13 @@ import { BenchmarkService } from '../../benchmark';
 import { OtherTrainingsService } from '../../others';
 import { BenchmarkParticipantsService } from '../../benchmark/components/participants';
 import { OtherTrainingParticipantsService } from '../../others/components/other-training-participants';
+import { LspRankView } from '@gscwd-api/models';
+import { CrudService } from '@gscwd-api/crud';
 
 @Injectable()
 export class StatsService {
   constructor(
+    private readonly crudService: CrudService<LspRankView>,
     private readonly trainingDetailsService: TrainingDetailsService,
     private readonly trainingNomineesService: TrainingNomineesService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
@@ -129,7 +132,7 @@ export class StatsService {
   }
 
   /* count all accepted and declined participants */
-  async coutAllParticipants() {
+  async countAllParticipants() {
     try {
       const currentYear = new Date().getFullYear();
 
@@ -170,6 +173,14 @@ export class StatsService {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async findAllLspAverageRating(page: number, limit: number) {
+    try {
+      return await this.crudService.findAll({ pagination: { page, limit } });
+    } catch (error) {
+      Logger.error(error);
     }
   }
 }
