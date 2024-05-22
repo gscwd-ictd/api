@@ -47,6 +47,11 @@ export class LspRatingController {
     });
   }
 
+  @Get(':lspId/rating/average')
+  async findLspAverageRatingById(@Param('lspId') lspId: string) {
+    return await this.lspRatingService.findLspAverageRatingById(lspId);
+  }
+
   /* update learning service provider rating by id */
   @Patch('rating')
   async updateLspRatingById(@Body() data: UpdateLspRatingDto) {
