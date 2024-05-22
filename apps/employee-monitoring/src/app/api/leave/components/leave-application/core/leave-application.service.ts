@@ -129,6 +129,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     try {
       const leaveApplications = await this.rawQuery<string, LeaveApplicationType[]>(
         `SELECT
+        la.employee_id_fk employeeId,
         la.leave_application_id id,
         la.is_late_filing isLateFiling,
         lb.leave_name leaveName,
@@ -159,6 +160,20 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
       const leaveApplicationsWithDates = await Promise.all(
         leaveApplications.map(async (leaveApplication) => {
+          const {
+            hrdmApprovedBy,
+            hrmoApprovedBy,
+            hrdmApprovalDate,
+            hrmoApprovalDate,
+            employeeId,
+            supervisorApprovalDate,
+            ...restOfLeaveApplication
+          } = leaveApplication;
+
+          const hrdmDetails = hrdmApprovedBy === null ? null : await this.employeesService.getEmployeeDetailsWithSignature(hrdmApprovedBy);
+          //const hrdmSignature = hrdmApprovedBy ===
+          const hrmoDetails = hrmoApprovedBy === null ? null : await this.employeesService.getEmployeeDetailsWithSignature(hrmoApprovedBy);
+
           const leaveDates = await this.rawQuery<string, { leaveDate: string }[]>(
             `
               SELECT DATE_FORMAT(leave_date,'%Y-%m-%d') leaveDate FROM leave_application_dates WHERE leave_application_id_fk = ? ORDER BY leave_date ASC; 
@@ -166,7 +181,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             [leaveApplication.id]
           );
 
-          const supervisorName = (await this.employeesService.getEmployeeDetails(leaveApplication.supervisorId)).employeeFullName;
+          const employeeDetails = await this.employeesService.getEmployeeDetailsWithSignature(employeeId);
+
+          const supervisorDetails = await this.employeesService.getEmployeeDetailsWithSignature(leaveApplication.supervisorId);
 
           const forCancellationLeaveDates = (
             (await this.leaveApplicationDatesService.getLeaveDatesByLeaveApplicationIdAndStatus(
@@ -182,8 +199,18 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           ).map((ld) => ld.leaveDate);
 
           return {
-            supervisorName,
-            ...leaveApplication,
+            employeeName: employeeDetails.employeeFullName,
+            employeeSignature: employeeDetails.signatureUrl,
+            hrdmApprovedByName: hrdmApprovedBy !== null ? hrdmDetails.employeeFullName : null,
+            hrdmSignature: hrdmApprovedBy !== null ? hrdmDetails.signatureUrl : null,
+            hrdmApprovalDate,
+            hrmoApprovalDate,
+            hrmoApprovedByName: hrmoApprovedBy !== null ? hrmoDetails.employeeFullName : null,
+            hrmoSignature: hrmoApprovedBy !== null ? hrmoDetails.signatureUrl : null,
+            supervisorName: supervisorDetails.employeeFullName,
+            supervisorApprovalDate,
+            supervisorSignature: supervisorDetails.signatureUrl,
+            ...restOfLeaveApplication,
             debitValue,
             leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
             forCancellationLeaveDates,
@@ -618,6 +645,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
         const _hrmoApprovedBy = (await this.employeesService.getEmployeeDetails(hrmoApprovedBy)).employeeFullName;
 
+        const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
+
         const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
           find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
         })) as LeaveApplicationDates[];
@@ -636,7 +665,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           hrmoApprovalDate,
           hrdmApprovedBy,
           hrdmApprovalDate,
-          employee: { employeeId, employeeName },
+          employee: { employeeId, employeeName, companyId: employeeDetails.companyId },
           supervisor: { supervisorId, supervisorName },
           //leaveName: leaveBenefitsId.leaveName,
           leaveDates: _leaveDates,
@@ -838,6 +867,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
         const { employeeId, leaveBenefitsId, ...rest } = leave;
+        const companyId = (await this.employeesService.getEmployeeDetails(employeeId)).companyId;
         const employeeSupervisorNames = (await this.client.call<
           string,
           { employeeId: string; supervisorId: string },
@@ -862,7 +892,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           leaveBenefitsId: leaveBenefitsId.id,
           leaveName: leaveBenefitsId.leaveName,
           leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
-          employee: { employeeId, employeeName },
+          employee: { employeeId, companyId, employeeName },
           supervisor: { supervisorId, supervisorName },
         };
 
