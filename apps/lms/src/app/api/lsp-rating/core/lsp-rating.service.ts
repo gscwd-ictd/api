@@ -1,7 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspRatingDto, LspRating, UpdateLspRatingDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class LspRatingService extends CrudHelper<LspRating> {
@@ -10,9 +9,9 @@ export class LspRatingService extends CrudHelper<LspRating> {
   }
 
   /* insert initial rating for the learning service provider */
-  async createLearningServiceProviderRating(data: CreateLspRatingDto, entityManager: EntityManager) {
+  async createLearningServiceProviderRating(data: CreateLspRatingDto) {
     try {
-      return await this.crudService.transact<LspRating>(entityManager).create({
+      return await this.crudService.create({
         dto: data,
         onError: (error) => {
           throw error;
