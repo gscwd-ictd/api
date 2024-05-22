@@ -624,7 +624,11 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           status: true,
         },
         relations: { leaveBenefitsId: true },
-        where: [{ status: LeaveApplicationStatus.FOR_HRDM_APPROVAL }, { status: LeaveApplicationStatus.APPROVED }],
+        where: [
+          { status: LeaveApplicationStatus.FOR_HRDM_APPROVAL },
+          { status: LeaveApplicationStatus.APPROVED },
+          { status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM },
+        ],
         order: { dateOfFiling: 'DESC' },
       },
     });
