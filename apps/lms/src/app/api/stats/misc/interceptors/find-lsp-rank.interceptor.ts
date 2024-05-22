@@ -18,7 +18,7 @@ export class FindLspRankInterceptor implements NestInterceptor {
               name: lspDetails.name,
               type: lspDetails.type,
               source: lspDetails.source,
-              average: items.average,
+              average: parseFloat(items.average.toString()),
             };
           })
         );

@@ -176,11 +176,13 @@ export class StatsService {
     }
   }
 
+  /* find learning service provider rating rank */
   async findAllLspAverageRating(page: number, limit: number) {
     try {
       return await this.crudService.findAll({ pagination: { page, limit } });
     } catch (error) {
       Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
