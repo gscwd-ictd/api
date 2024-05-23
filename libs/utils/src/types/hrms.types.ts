@@ -33,5 +33,6 @@ export type EmployeeDetails = {
   positionTitle: string;
   assignment: { id: string; name: string; positionId: string; positionTitle: string };
   photoUrl: string;
+  signatureUrl?: string;
   userRole: string;
 };

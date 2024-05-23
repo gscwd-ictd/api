@@ -515,12 +515,24 @@ export class OvertimeService {
       const result = await Promise.all(
         overtimes.map(async (overtime) => {
           const { overtimeImmediateSupervisorId, ...rest } = overtime;
+          const overtimeId = rest.id;
+
+          const overtimeApproval = (
+            await this.overtimeApplicationService.rawQuery(
+              `SELECT approved_by approvedBy, DATE_FORMAT(date_approved, '%Y-%m-%d %H:%i:%s') dateApproved 
+              FROM overtime_approval WHERE overtime_application_id_fk = ?;`,
+              [rest.id]
+            )
+          )[0] as { approvedBy: string; dateApproved: Date };
+          const { approvedBy, dateApproved } = overtimeApproval;
           const employees = (await this.overtimeEmployeeService.crud().findAll({
             find: {
               select: { employeeId: true },
-              where: { overtimeApplicationId: { id: overtime.id } },
+              where: { overtimeApplicationId: { id: rest.id } },
             },
           })) as { employeeId: string }[];
+
+          const _approvedBy = approvedBy === null ? null : (await this.employeeService.getEmployeeDetails(approvedBy)).employeeFullName;
 
           const immediateSupervisorName = await this.employeeService.getEmployeeName(overtimeImmediateSupervisorId.employeeId);
 
@@ -561,7 +573,7 @@ export class OvertimeService {
             })
           )) as unknown[];
 
-          return { ...rest, immediateSupervisorName, employees: _employeesDetails };
+          return { ...rest, approvedBy: _approvedBy, dateApproved, immediateSupervisorName, employees: _employeesDetails };
         })
       );
       return result;
@@ -1334,7 +1346,6 @@ export class OvertimeService {
         return { ...rest, employeeDetails };
       })
     );
-
     return overtimesWithEmployees;
   }
 
