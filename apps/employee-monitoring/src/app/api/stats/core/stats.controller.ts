@@ -2,7 +2,6 @@ import { Controller, Get, Param, UseGuards, UseInterceptors } from '@nestjs/comm
 import { StatsService } from './stats.service';
 import dayjs = require('dayjs');
 import { CacheInterceptor } from '@nestjs/cache-manager';
-import { AuthenticatedGuard } from '../../users/guards/authenticated.guard';
 
 @Controller({ version: '1', path: 'stats' })
 export class StatsController {
@@ -23,10 +22,5 @@ export class StatsController {
   @Get('lates/department')
   async getLatesPerDepartment() {
     return await this.statsService.getLatesPerDepartment();
-  }
-
-  @Get('lates/department2')
-  async getLatesPerDepartmen2() {
-    return await this.statsService.getLatesPerDepartment2();
   }
 }

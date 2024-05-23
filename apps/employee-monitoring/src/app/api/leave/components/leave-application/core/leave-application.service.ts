@@ -616,7 +616,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           onError: (error) => new NotFoundException(error),
         })) as { employeeName: string; supervisorName: string };
 
-        const _hrmoApprovedBy = (await this.employeesService.getEmployeeDetails(hrmoApprovedBy)).employeeFullName;
+        const _hrmoApprovedBy = hrmoApprovedBy === null ? null : (await this.employeesService.getEmployeeDetails(hrmoApprovedBy)).employeeFullName;
 
         const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
           find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
