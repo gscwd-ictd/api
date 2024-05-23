@@ -11,6 +11,7 @@ import { HolidaysService } from '../../holidays/core/holidays.service';
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
 import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
+import { Console } from 'console';
 
 @Injectable()
 export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
@@ -273,16 +274,29 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             if no attendance in the morning and not late in the afternoon count as halfday and add in noOfLates 
         */
 
+        //MORNING HALFDAY LATE AFTERNOON
         if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
           isHalfDay = true;
           minutesLate += lateAfternoon + 240;
           noOfLates += 2;
         }
 
-        if (dtr.timeIn === null && dtr.lunchOut === null && lateAfternoon <= 0) {
+        if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon <= 0) {
           minutesLate += 240;
           isHalfDay = true;
           noOfLates += 1;
+        }
+
+        if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning > 0 && dtr.lunchIn === null && dtr.timeOut === null) {
+          minutesLate += lateAfternoon;
+          isHalfDay = true;
+          noOfLates += 1;
+        }
+
+        if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning <= 0 && dtr.lunchIn === null && dtr.timeOut === null) {
+          //minutesLate += lateAfternoon;
+          isHalfDay = true;
+          //noOfLates += 1;
         }
       }
 
