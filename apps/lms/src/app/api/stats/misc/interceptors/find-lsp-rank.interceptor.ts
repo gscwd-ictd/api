@@ -11,7 +11,7 @@ export class FindLspRankInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map(async (result: Pagination<LspRankView>) => {
         const items = await Promise.all(
-          result.items.map(async (items) => {
+          result.items.map(async (items, index) => {
             const lspDetails = await this.lspDetailsService.findLspDetailsById(items.lspId);
             return {
               lspId: items.lspId,
@@ -19,6 +19,7 @@ export class FindLspRankInterceptor implements NestInterceptor {
               type: lspDetails.type,
               source: lspDetails.source,
               photoUrl: lspDetails.photoUrl,
+              rank: index + 1,
               average: parseFloat(items.average.toString()),
             };
           })
