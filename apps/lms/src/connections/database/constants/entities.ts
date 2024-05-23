@@ -9,6 +9,8 @@ import {
   LspDetails,
   LspEducation,
   LspProject,
+  LspRankView,
+  LspRating,
   LspTraining,
   OtherTraining,
   OtherTrainingParticipant,
@@ -37,6 +39,7 @@ export const DB_ENTITIES = [
   LspEducation,
   LspProject,
   LspTraining,
+  LspRating,
 
   /* tag */
   Tag,
@@ -61,4 +64,6 @@ export const DB_ENTITIES = [
   /* other trainings */
   OtherTraining,
   OtherTrainingParticipant,
+
+  LspRankView,
 ];

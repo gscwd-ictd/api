@@ -68,10 +68,8 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
           dtrc.\`status\` \`status\`,
           dtrc.remarks remarks
         FROM dtr_correction dtrc 
-        INNER JOIN daily_time_record dtr ON dtr.daily_time_record_id = dtrc.daily_time_record_id_fk
-        WHERE dtr.company_id_fk IN (?)
-        ;
-        
+        INNER JOIN daily_time_record dtr ON dtr.daily_time_record_id = dtrc.daily_time_record_id_fk 
+        WHERE dtr.company_id_fk IN (?) ORDER BY dtrc.status ASC, DATE_FORMAT(dtr.dtr_date,'%Y-%m-%d') DESC;
     `,
       [companyIds]
     )) as DtrCorrectionsType[];

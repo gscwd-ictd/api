@@ -11,6 +11,7 @@ import { TrainingNomineesModule } from '../components/nominees';
 import { TrainingRecommendedEmployeesModule } from '../components/recommended-employees';
 import { TrainingApprovalsModule } from '../components/approvals';
 import { TrainingRequirementsModule } from '../components/requirements';
+import { LspRatingModule } from '../../lsp-rating';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { TrainingRequirementsModule } from '../components/requirements';
     TrainingNomineesModule,
     TrainingApprovalsModule,
     TrainingRequirementsModule,
+    LspRatingModule,
   ],
   controllers: [TrainingDetailsController, TrainingDetailsMicroserviceController],
   providers: [TrainingDetailsService],

@@ -307,7 +307,7 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
 
       return await this.crudService.update({
         updateBy: {
-          dateFrom: currentDate,
+          dateTo: currentDate,
         },
         dto: {
           status: BenchmarkStatus.DONE,

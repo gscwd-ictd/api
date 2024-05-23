@@ -36,7 +36,13 @@ export type LeaveApplicationType = {
   leaveName: string;
   dateOfFiling: Date;
   status: LeaveApplicationStatus;
+  employeeId: string;
   supervisorId: string;
+  hrmoApprovedBy: string;
+  hrdmApprovedBy: string;
+  hrdmApprovalDate: Date;
+  hrmoApprovalDate: Date;
+  supervisorApprovalDate: Date;
 };
 
 export type DtrPayload = {

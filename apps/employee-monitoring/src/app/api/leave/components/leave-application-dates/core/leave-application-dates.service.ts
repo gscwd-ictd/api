@@ -30,7 +30,7 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
 
   async cancelLeaveDateTransaction(transactionEntityManager: EntityManager, leaveDateCancellationDto: LeaveDateCancellationDto) {
     const { leaveApplicationId, leaveDates, status, remarks } = leaveDateCancellationDto;
-
+    const _leaveApplicationId = leaveApplicationId.toString();
     const leaveType = (
       await this.rawQuery(
         `SELECT lb.leave_types leaveType 
@@ -55,13 +55,14 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
               2. if slb dont add back, else add back
               3. if leave dates are all cancelled, the leave status should be cancelled as well 
             */
+
             const leaveDatesCancelled = await this.crudService
               .transact<LeaveApplicationDates>(transactionEntityManager)
               .update({ dto: { status, remarks, cancelDate: dayjs().toDate() }, updateBy: { leaveApplicationId, leaveDate } });
-            console.log(leaveType);
+            //console.log(leaveType);
 
             //add back;
-            const leaveApplicationDatesId = await this.getRepository().findOne({
+            const leaveApplicationDatesId = (await this.getRepository().findOne({
               select: {
                 id: true,
                 createdAt: true,
@@ -69,14 +70,14 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
                 leaveApplicationId: { id: true },
                 leaveDate: true,
                 status: true,
+                cancelDate: true,
+                forCancellationDate: true,
+                remarks: true,
                 updatedAt: true,
               },
-              where: { leaveApplicationId: { id: leaveApplicationId.id }, leaveDate },
+              where: { leaveApplicationId: { id: _leaveApplicationId }, leaveDate },
               relations: { leaveApplicationId: true },
-            });
-
-            //const leaveApplicationDatesId = await this.raw
-            console.log(leaveApplicationDatesId);
+            })) as LeaveApplicationDates;
 
             const leaveAddBackId = await this.leaveAddBackService.addLeaveAddBackTransaction(
               {
@@ -87,12 +88,13 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
               transactionEntityManager
             );
 
-            await this.leaveCardLedgerCreditService.addLeaveCardLedgerCreditTransaction(
+            const leaveCardLedgerItem = await this.leaveCardLedgerCreditService.addLeaveCardLedgerCreditTransaction(
               {
                 leaveAddBackId,
               },
               transactionEntityManager
             );
+            console.log(leaveCardLedgerItem);
           } else if (status === 'for cancellation') {
             const leaveDatesCancelled = await this.crudService
               .transact<LeaveApplicationDates>(transactionEntityManager)

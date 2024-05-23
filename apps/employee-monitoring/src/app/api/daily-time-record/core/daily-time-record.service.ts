@@ -11,6 +11,7 @@ import { HolidaysService } from '../../holidays/core/holidays.service';
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
 import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
+import { Console } from 'console';
 
 @Injectable()
 export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
@@ -152,10 +153,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let totalMinutesLate = 0;
     let noOfTimesUndertime = 0;
     let totalMinutesUndertime = 0;
-    let noAttendance = [];
+    const noAttendance = [];
     let noOfTimesHalfDay = 0;
     const lateDates: number[] = [];
     const undertimeDates: number[] = [];
+    const halfdayDates: number[] = [];
+
     const summaryResult = await Promise.all(
       dtrDays.map(async (dtrDay: MonthlyDtrItemType) => {
         const { summary, dtr, day, holidayType, schedule } = dtrDay;
@@ -172,7 +175,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
 
         if (summary.isHalfDay) {
+          const day = dayjs(dtr.dtrDate).date();
           noOfTimesHalfDay += 1;
+          halfdayDates.push(day);
         }
 
         noOfTimesUndertime += summary.noOfTimesUndertime;
@@ -184,7 +189,17 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-    return { noOfTimesLate, totalMinutesLate, lateDates, noOfTimesHalfDay, noOfTimesUndertime, totalMinutesUndertime, undertimeDates, noAttendance };
+    return {
+      noOfTimesLate,
+      totalMinutesLate,
+      lateDates,
+      noOfTimesHalfDay,
+      noOfTimesUndertime,
+      totalMinutesUndertime,
+      undertimeDates,
+      noAttendance,
+      halfdayDates,
+    };
   }
 
   //#region lates,undertimes,halfday functionalities
@@ -195,83 +210,147 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let noOfUndertimes = 0;
     let minutesUndertime = 0;
     let isHalfDay = false;
-
-    if (schedule.shift === 'day') {
-      const lateMorning = dayjs(dayjs('2023-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
-        dayjs('2023-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
-        'm'
-      );
-
-      const lateAfternoon = dayjs(dayjs('2023-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
-        dayjs('2023-01-01' + schedule.lunchIn)
-          .add(29, 'minute')
-          .format('YYYY-MM-DD HH:mm'),
-        'm'
-      );
-
-      if (lateMorning > 0) {
-        minutesLate += lateMorning;
-        noOfLates += 1;
-      }
-
-      if (dtr.timeIn !== null && dtr.lunchOut !== null && dtr.lunchIn !== null && lateAfternoon > 0) {
-        minutesLate += lateAfternoon;
-        noOfLates += 1;
-      }
-
-      /*
-          if no attendance morning and late in the afternoon in, therefore count minutes late and at the same time no of lates
-          
-
-          if no attendance in the morning and not late in the afternoon count as halfday and add in noOfLates 
-          
-          
-      */
-
-      if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
-        isHalfDay = true;
-        minutesLate += lateAfternoon + 240;
-        noOfLates += 2;
-      }
-
-      if (dtr.timeIn === null && dtr.lunchOut === null && lateAfternoon <= 0) {
-        minutesLate += 240;
-        isHalfDay = true;
-        noOfLates += 1;
-      }
-    }
-
     let noAttendance = 0;
 
-    if (dtr.lunchIn === null && dtr.lunchOut === null && dtr.timeIn === null && dtr.timeOut === null && schedule.scheduleName !== null) {
-      noAttendance = 1;
-    }
+    //schedule.restDaysNumbers
+    const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
+    const day = dayjs(dayjs(dtr.dtrDate).format('YYYY-MM-DD')).format('d');
+    const isRestDay = restDays.includes(day);
+    const isHoliday = await this.holidayService.isHoliday(dtr.dtrDate);
 
-    const undertime = (await this.rawQuery(
-      `
-      SELECT DATE_FORMAT(date_of_application,'%Y-%m-%d') dateOfApplication,ps.time_out undertimeOut FROM pass_slip ps 
-        INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
-      WHERE psa.status = 'used' 
-      AND ps.employee_id_fk = ? 
-      AND date_of_application = ?;
+    const isWithLunch = schedule.lunchOut !== null && schedule.lunchIn !== null ? true : false;
+
+    const restHourStart = dayjs('2023-01-01 ' + schedule.timeIn).add(4, 'h');
+    const restHourEnd = dayjs('2023-01-01 ' + schedule.timeIn).add(5, 'h');
+
+    const overtimeApplicationCount = (
+      await this.rawQuery(
+        `
+        SELECT COUNT(DISTINCT oa.overtime_application_id) countOvertime
+          FROM overtime_application oa 
+        INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id
+        WHERE oe.employee_id_fk = ? AND DATE_FORMAT(oa.planned_date,'%Y-%m-%d') = ?;
     `,
-      [employeeId, dayjs(dtr.dtrDate).format('YYYY-MM-DD')]
-    )) as { dateOfApplication: Date; undertimeOut: Date }[];
+        [employeeId, dtr.dtrDate]
+      )
+    )[0].countOvertime;
 
-    if (undertime.length > 0) {
-      //do the math
-      const { dateOfApplication, undertimeOut } = undertime[0];
-      noOfUndertimes = 1;
-      minutesUndertime = dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
-        dayjs('2023-01-01 ' + undertimeOut).format('YYYY-MM-DD HH:mm'),
-        'm'
-      );
+    const timeOutWithinRestHours =
+      dayjs('2023-01-01 ' + dtr.timeOut).isSame(restHourStart) ||
+      (dayjs('2023-01-01 ' + dtr.timeOut).isAfter(restHourStart) && dayjs('2023-01-01 ' + dtr.timeOut).isBefore(restHourEnd)) ||
+      dayjs('2023-01-01 ' + dtr.timeOut).isSame(restHourEnd);
+
+    if (overtimeApplicationCount === '0' && !isHoliday && !isRestDay) {
+      console.log('lunchrest:', dayjs(restHourStart).format('YYYY-MM-DD HH:mm'), '-', restHourEnd.format('YYYY-MM-DD HH:mm'));
+
+      if (schedule.shift === 'day') {
+        const lateMorning = dayjs(dayjs('2023-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
+          dayjs('2023-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
+          'm'
+        );
+
+        const lateAfternoon = isWithLunch
+          ? dayjs(dayjs('2023-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
+              dayjs('2023-01-01' + schedule.lunchIn)
+                .add(29, 'minute')
+                .format('YYYY-MM-DD HH:mm'),
+              'm'
+            )
+          : 0;
+
+        if (lateMorning > 0) {
+          minutesLate += lateMorning;
+          noOfLates += 1;
+        }
+
+        if (isWithLunch && dtr.timeIn !== null && dtr.lunchOut !== null && dtr.lunchIn !== null && lateAfternoon > 0) {
+          minutesLate += lateAfternoon;
+          noOfLates += 1;
+        }
+
+        /*
+            if no attendance morning and late in the afternoon in, therefore count minutes late and at the same time no of lates
+            
+            if no attendance in the morning and not late in the afternoon count as halfday and add in noOfLates 
+        */
+
+        //MORNING HALFDAY LATE AFTERNOON
+        if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
+          isHalfDay = true;
+          minutesLate += lateAfternoon + 240;
+          noOfLates += 2;
+        }
+
+        if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon <= 0) {
+          minutesLate += 240;
+          isHalfDay = true;
+          noOfLates += 1;
+        }
+
+        if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning > 0 && dtr.lunchIn === null && dtr.timeOut === null) {
+          minutesLate += lateAfternoon;
+          isHalfDay = true;
+          noOfLates += 1;
+        }
+
+        if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning <= 0 && dtr.lunchIn === null && dtr.timeOut === null) {
+          //minutesLate += lateAfternoon;
+          isHalfDay = true;
+          //noOfLates += 1;
+        }
+      }
+
+      if (dtr.lunchIn === null && dtr.lunchOut === null && dtr.timeIn === null && dtr.timeOut === null && schedule.scheduleName !== null) {
+        noAttendance = 1;
+      }
+
+      minutesUndertime = !timeOutWithinRestHours
+        ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+            dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+            'm'
+          )
+        : 0;
+
+      if (timeOutWithinRestHours) {
+        isHalfDay = true;
+        noOfLates += 1;
+      }
+
+      if (minutesUndertime > 0) {
+        noOfUndertimes = 1;
+      }
+
+      //change undertime logic
+
+      //if(dtr.timeOut)
+
+      /* const undertime = (await this.rawQuery(
+        `
+        SELECT DATE_FORMAT(date_of_application,'%Y-%m-%d') dateOfApplication,ps.time_out undertimeOut FROM pass_slip ps 
+          INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
+        WHERE psa.status = 'used' 
+        AND ps.employee_id_fk = ? 
+        AND date_of_application = ?;
+      `,
+        [employeeId, dayjs(dtr.dtrDate).format('YYYY-MM-DD')]
+      )) as { dateOfApplication: Date; undertimeOut: Date }[];
+      
+      if (undertime.length > 0) {
+        //do the math
+        const { dateOfApplication, undertimeOut } = undertime[0];
+        noOfUndertimes = 1;
+        minutesUndertime = dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+          dayjs('2023-01-01 ' + undertimeOut).format('YYYY-MM-DD HH:mm'),
+          'm'
+        );
+      }*/
     }
+
     return {
       minutesLate,
       noOfLates,
       noOfUndertimes,
-      minutesUndertime,
+      minutesUndertime: minutesUndertime > 0 ? minutesUndertime : 0,
       noAttendance,
       isHalfDay,
     };
@@ -298,9 +377,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       console.log('daydayday', day);
 
       const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
-      let isRestDay: boolean;
 
-      isRestDay = restDays.includes(day) ? true : false;
+      const isRestDay: boolean = restDays.includes(day) ? true : false;
 
       console.log(isRestDay);
 
@@ -338,6 +416,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         dtrCorrection = await this.getDtrCorrection(currEmployeeDtr.id);
       }
       const dtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
+      //
       const latesUndertimesNoAttendance = await this.getLatesUndertimesNoAttendancePerDay(dtr, schedule, employeeDetails.userId);
       //const undertimes = await this.getUndertimesPerDay(dtr, schedule);
 
@@ -630,6 +709,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           }
 
           if (
+            idx !== ivmsEntry.length - 1 &&
             (dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + lunchIn)) ||
               dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + lunchIn))) &&
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))
@@ -886,6 +966,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             else _lunchOut = time;
           }
           if (
+            idx !== ivmsEntry.length - 1 &&
             (dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + lunchIn)) ||
               dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + lunchIn))) &&
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))
