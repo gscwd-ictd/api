@@ -1,15 +1,19 @@
 import { ViewColumn, ViewEntity } from 'typeorm';
-import { LspRating } from '../data';
+import { LspDetails, LspRating } from '../data';
+import { LspSource, LspType } from '@gscwd-api/utils';
 
 @ViewEntity({
   name: 'lsp_rank_view',
   expression: (datasource) =>
     datasource
       .createQueryBuilder()
-      .select('lr.lsp_details_id_fk', 'lspId')
+      .select('ld.lsp_details_id', 'lspId')
       .addSelect('round(avg(lr.rating),2)', 'average')
+      .addSelect('ld.lsp_type', 'type')
+      .addSelect('ld.lsp_source', 'source')
       .from(LspRating, 'lr')
-      .groupBy('lr.lsp_details_id_fk')
+      .innerJoin(LspDetails, 'ld', 'ld.lsp_details_id = lr.lsp_details_id_fk')
+      .groupBy('ld.lsp_details_id')
       .orderBy('average', 'DESC'),
 })
 export class LspRankView {
@@ -18,4 +22,10 @@ export class LspRankView {
 
   @ViewColumn()
   average: number;
+
+  @ViewColumn()
+  source: LspSource;
+
+  @ViewColumn()
+  type: LspType;
 }

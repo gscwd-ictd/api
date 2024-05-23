@@ -1,6 +1,7 @@
 import { Controller, DefaultValuePipe, Get, ParseIntPipe, Query, UseInterceptors } from '@nestjs/common';
 import { StatsService } from './stats.service';
 import { FindLspRankInterceptor } from '../misc/interceptors';
+import { LspSource, LspType } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'stats' })
 export class StatsController {
@@ -30,8 +31,10 @@ export class StatsController {
   @Get('lsp/rating')
   async findAllLspRating(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('type') type: LspType,
+    @Query('source') source: LspSource
   ) {
-    return await this.statsService.findAllLspAverageRating(page, limit);
+    return await this.statsService.findAllLspAverageRating(type, source, page, limit);
   }
 }
