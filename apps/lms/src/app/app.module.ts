@@ -30,6 +30,7 @@ import { BenchmarkParticipantRequirementsModule } from './api/benchmark/componen
 import { OtherTrainingsModule } from './api/others';
 import { OtherTrainingParticipantsModule } from './api/others/components/other-training-participants';
 import { ScheduleModule } from '@nestjs/schedule';
+import { LspRatingModule } from './api/lsp-rating/core/lsp-rating.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     LspEducationsModule,
     LspProjectsModule,
     LspTrainingsModule,
+    LspRatingModule,
 
     /* tag */
     TagsModule,
@@ -84,6 +86,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     /* other trainings */
     OtherTrainingsModule,
     OtherTrainingParticipantsModule,
+
+    /* cron job */
     ScheduleModule.forRoot(),
   ],
 })

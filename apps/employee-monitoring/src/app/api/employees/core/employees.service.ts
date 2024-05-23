@@ -75,6 +75,18 @@ export class EmployeesService {
     return employeeDetails;
   }
 
+  async getEmployeeDetailsWithSignature(employeeId: string) {
+    //find_employee_details
+    const employeeDetails = (await this.client.call({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_employee_details_with_signature',
+      onError: (error) => new NotFoundException(error),
+    })) as EmployeeDetails;
+
+    return employeeDetails;
+  }
+
   // async getEmployeesUnderOrganizationId(orgId: string){
 
   // }

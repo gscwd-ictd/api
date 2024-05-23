@@ -10,6 +10,7 @@ export * from './lsp-coachings';
 export * from './lsp-educations';
 export * from './lsp-projects';
 export * from './lsp-trainings';
+export * from './lsp-rating';
 
 /* tags */
 export * from './tags';

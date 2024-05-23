@@ -20,6 +20,7 @@ import { TrainingDistributionsService } from '../components/slot-distributions';
 import { DocumentRequirementsType, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
 import { TrainingNomineesService } from '../components/nominees';
+import { LspRatingService } from '../../lsp-rating';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -30,6 +31,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly trainingApprovalsService: TrainingApprovalsService,
     private readonly trainingNomineesService: TrainingNomineesService,
+    private readonly lspRatingService: LspRatingService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -787,6 +789,37 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   async updateTrainingStatus(data: UpdateTrainingStatusDto) {
     try {
       const { trainingId, status } = data;
+
+      if (status === TrainingStatus.COMPLETED) {
+        const lspDetails = await this.trainingLspDetailsService.findAllLspDetailsByTrainingId(trainingId);
+
+        await Promise.all(
+          lspDetails.map(async (items) => {
+            /* insert the initial learning service provider rating */
+            await this.lspRatingService.createLearningServiceProviderRating({
+              lspDetails: {
+                id: items.id,
+              },
+              trainingDetails: {
+                id: trainingId,
+              },
+            });
+          })
+        );
+
+        return await this.crudService.update({
+          updateBy: {
+            id: trainingId,
+          },
+          dto: {
+            status: status,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+      }
+
       return await this.crudService.update({
         updateBy: {
           id: trainingId,
