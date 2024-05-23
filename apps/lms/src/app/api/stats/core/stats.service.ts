@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { TrainingDetailsService } from '../../training';
-import { BenchmarkStatus, OtherTrainingStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
+import { BenchmarkStatus, LspSource, LspType, OtherTrainingStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../../training/components/nominees';
 import { Raw } from 'typeorm';
 import { HrmsEmployeesService } from '../../../services/hrms';
@@ -177,9 +177,20 @@ export class StatsService {
   }
 
   /* find learning service provider rating rank */
-  async findAllLspAverageRating(page: number, limit: number) {
+  async findAllLspAverageRating(type: LspType, source: LspSource, page: number, limit: number) {
     try {
-      return await this.crudService.findAll({ pagination: { page, limit } });
+      return await this.crudService.findAll({
+        find: {
+          where: {
+            type: type,
+            source: source,
+          },
+        },
+        pagination: {
+          page,
+          limit,
+        },
+      });
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
