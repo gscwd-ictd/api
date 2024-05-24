@@ -313,7 +313,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       if (timeOutWithinRestHours) {
         isHalfDay = true;
-        noOfLates += 1;
+        //noOfLates += 1;
       }
 
       if (minutesUndertime > 0) {
