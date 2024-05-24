@@ -1,6 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { Report, LoginUser, User } from '@gscwd-api/utils';
+import { stringify } from 'querystring';
 
 @Controller({ version: '1', path: 'reports' })
 export class ReportsController {
@@ -11,9 +12,15 @@ export class ReportsController {
     @Query('report') report: Report,
     @Query('month_year') monthYear: string,
     @Query('date_from') dateFrom: Date,
-    @Query('date_to') dateTo: Date,
-    @LoginUser() user: User
+    @Query('date_to') dateTo: Date
+    //@LoginUser() user: User
   ) {
-    return await this.reportsService.generateReport(user, report, dateFrom, dateTo, monthYear);
+    return await this.reportsService.generateReport(
+      { employeeId: '42d5dcf9-60f2-11ee-96a6-005056b6c8f5', name: 'Baldo ManCalvs' },
+      report,
+      dateFrom,
+      dateTo,
+      monthYear
+    );
   }
 }
