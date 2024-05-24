@@ -288,15 +288,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
 
         if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning > 0 && dtr.lunchIn === null && dtr.timeOut === null) {
-          minutesLate += lateAfternoon;
+          minutesLate += isNaN(lateAfternoon) ? 0 : lateAfternoon;
           isHalfDay = true;
-          noOfLates += 1;
         }
 
         if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning <= 0 && dtr.lunchIn === null && dtr.timeOut === null) {
-          //minutesLate += lateAfternoon;
           isHalfDay = true;
-          //noOfLates += 1;
         }
       }
 
@@ -304,12 +301,28 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         noAttendance = 1;
       }
 
-      minutesUndertime = !timeOutWithinRestHours
-        ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
-            dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
-            'm'
-          )
-        : 0;
+      const passSlipsNatureOfBusiness = (await this.rawQuery(
+        `
+      SELECT nature_of_business natureOfBusiness  FROM pass_slip ps 
+        INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk
+      WHERE ps.employee_id_fk = ? 
+      AND DATE_FORMAT(ps.date_of_application,'%Y-%m-%d') = ?
+      AND psa.status = 'approved';
+      `,
+        [employeeId, dtr.dtrDate]
+      )) as { natureOfBusiness: string }[];
+
+      let passSlipNatureOfBusiness: string = null;
+      if (passSlipsNatureOfBusiness.length > 0)
+        passSlipNatureOfBusiness = passSlipsNatureOfBusiness[passSlipsNatureOfBusiness.length - 1].natureOfBusiness;
+
+      minutesUndertime =
+        !timeOutWithinRestHours && passSlipNatureOfBusiness !== 'Half Day' && passSlipNatureOfBusiness != null
+          ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+              dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+              'm'
+            )
+          : 0;
 
       if (timeOutWithinRestHours) {
         isHalfDay = true;
@@ -359,10 +372,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   async getDtrByCompanyIdAndDay(data: { companyId: string; date: Date }) {
     try {
-      //console.log('Work Suspension: ', workSuspension);
-      console.log('test test test', data.date);
       const dateCurrent = dayjs(data.date).toDate();
-      console.log('dayyyy ', dateCurrent);
+
       const id = data.companyId.replace('-', '');
 
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
@@ -370,17 +381,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
 
       const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
-      console.log(restDays);
 
       const day = dayjs(dayjs(data.date).format('YYYY-MM-DD')).format('d');
-
-      console.log('daydayday', day);
 
       const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
 
       const isRestDay: boolean = restDays.includes(day) ? true : false;
-
-      console.log(isRestDay);
 
       const employeeIvmsDtr = (await this.client.call<string, { companyId: string; date: Date }, IvmsEntry[]>({
         action: 'send',
@@ -395,6 +401,20 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       let hasPendingDtrCorrection = false;
       let dtrCorrection: DtrCorrection;
 
+      const overtimeApplication = (
+        await this.rawQuery(
+          `
+      SELECT COUNT(DISTINCT oa.overtime_application_id) otCount FROM overtime_application oa 
+        INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
+      WHERE oe.employee_id_fk = ?
+      AND oa.status = 'approved' AND DATE_FORMAT(oa.planned_date,'%Y-%m-%d') = ?;
+      `,
+          [employeeDetails.userId, data.date]
+        )
+      )[0].otCount;
+
+      const isOt = overtimeApplication === '0' ? false : true;
+
       const isHoliday = await this.holidayService.isHoliday(data.date);
       //1. check if employee is in dtr table in the current date;
       const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
@@ -406,7 +426,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       if (currEmployeeDtr === null) {
         //if schedule is regular
         await this.saveDtr(data.companyId, employeeIvmsDtr, schedule);
-        console.log('dtr log:', currEmployeeDtr);
         //if schedule is night shift tabok2
       } else {
         if (schedule.id !== currEmployeeDtr.scheduleId)
@@ -466,6 +485,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         leaveDateStatus,
         isHoliday,
         isRestDay,
+        isOt,
         hasPendingDtrCorrection,
         dtrCorrection,
         dtr: { ...dtr, remarks },
@@ -475,14 +495,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const dateCurrent = dayjs(data.date).toDate();
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
-      console.log(schedule);
-      //const cancelledLeaveStatus = false;
+
       const restDays = schedule.restDaysNumbers.split(', ');
       const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
-
-      console.log(leaveDateStatus);
-
-      console.log('rest', restDays);
 
       const day = dayjs(data.date).format('d');
 
@@ -491,11 +506,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const { remarks } = (
         await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')])
       )[0];
-      console.log('remarks', remarks);
+
       const isHoliday = await this.holidayService.isHoliday(data.date);
       let noAttendance = 1;
       if ((remarks !== null && remarks !== '') || dayjs(dateCurrent).isAfter(dayjs())) {
-        console.log('here here here');
         noAttendance = 0;
       }
       return {
