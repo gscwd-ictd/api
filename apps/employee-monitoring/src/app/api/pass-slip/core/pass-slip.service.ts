@@ -666,6 +666,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
     //2. check time in and time out
     console.log(passSlips);
+
     const passSlipsToLedger = await Promise.all(
       passSlips.map(async (passSlip) => {
         console.log(passSlip);
@@ -767,6 +768,24 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           await this.rawQuery(`SELECT count(*) passSlipCount FROM employee_monitoring.leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [id])
         )[0];
 
+        const employeeCompanyId = (await this.employeeService.getEmployeeDetails(employeeId)).companyId;
+        const restDays = await this.rawQuery(
+          `
+          SELECT addtime(s.time_in, "04:00:00") restHourStart, addtime(s.time_in, "05:00:00") restHourEnd
+            FROM daily_time_record dtr 
+          INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
+          WHERE DATE_FORMAT(dtr_date,'%Y-%m-%d') = ?  
+          AND company_id_fk = ?;`,
+          [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
+        );
+        //SELECT (TIMESTAMPDIFF(MINUTE,CONCAT('2023-01-01 ',timeOut(11:23)),CONCAT('2023-01-01 ',timeIn(12:30))))/480 INTO debitValue;
+        const restHourStart = restDays[0].restHourStart;
+        const restHourEnd = restDays[0].restHourEnd;
+
+        let timeInDebitValue = 0;
+        let timeOutDebitValue = 0;
+        //
+
         if (passSlipCount === '0') {
           if (timeIn === null && timeOut === null && status === PassSlipApprovalStatus.APPROVED) {
             await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.UNUSED }, updateBy: { passSlipId: { id } } });
@@ -793,6 +812,21 @@ export class PassSlipService extends CrudHelper<PassSlip> {
               await this.crud().update({ dto: { timeIn: scheduleTimeOut }, updateBy: { id } });
             }
           }
+          /*
+          1. timeout 11:34   timein 12:30
+
+
+          2. timeout 12:02   timein 12:45
+          
+
+          3. timeout 11:34   timein 1:40
+          
+
+          4. timeout 12:30   timein 1:40
+          
+
+          */
+
           //2.2. INSERT TO LEDGER
           const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [passSlip.id]))[0];
 
