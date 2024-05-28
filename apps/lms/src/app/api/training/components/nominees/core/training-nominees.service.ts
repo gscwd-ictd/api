@@ -315,7 +315,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         },
       })) as Array<TrainingNominee>;
 
-      return await Promise.all(
+      const nominees = await Promise.all(
         distribution.map(async (items) => {
           /* find employee name by employee id */
           const employeeName = await this.hrmsEmployeesService.findEmployeesById(items.employeeId);
@@ -338,6 +338,8 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           };
         })
       );
+
+      return nominees.sort((a, b) => (a.name > b.name ? 1 : -1));
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
