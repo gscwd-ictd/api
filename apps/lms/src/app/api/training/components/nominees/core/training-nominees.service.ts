@@ -1,5 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import {
+  CreateStandInNomineeDto,
   CreateTrainingNomineeDto,
   RequirementsDto,
   TrainingBatchDto,
@@ -78,6 +79,43 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* create standin nominee */
+  async createStandinNominee(data: CreateStandInNomineeDto) {
+    try {
+      const { nomineeId, standinId } = data;
+
+      const nominee = await this.crudService.update({
+        updateBy: {
+          id: nomineeId,
+        },
+        dto: {
+          isReplaceBy: standinId,
+        },
+        onError: () => {
+          throw new HttpException('Error on updating nominee.', HttpStatus.BAD_REQUEST);
+        },
+      });
+
+      if (nominee.affected > 0) {
+        return await this.crudService.update({
+          updateBy: {
+            id: standinId,
+          },
+          dto: {
+            nomineeType: NomineeType.NOMINEE,
+            status: TrainingNomineeStatus.ACCEPTED,
+          },
+        });
+      } else {
+        throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+      }
+    } catch (error) {
+      Logger.error(error);
+      if (error instanceof HttpException) throw error;
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -258,6 +296,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             employeeId: true,
             status: true,
             nomineeType: true,
+            isReplaceBy: true,
             remarks: true,
           },
           where: {
@@ -276,7 +315,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         },
       })) as Array<TrainingNominee>;
 
-      return await Promise.all(
+      const nominees = await Promise.all(
         distribution.map(async (items) => {
           /* find employee name by employee id */
           const employeeName = await this.hrmsEmployeesService.findEmployeesById(items.employeeId);
@@ -290,6 +329,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             name: employeeName.fullName,
             status: items.status,
             remarks: items.remarks,
+            isReplacedBy: items.isReplaceBy !== null ? true : false,
             supervisor: {
               distributionId: items.trainingDistribution.id,
               supervisorId: items.trainingDistribution.supervisorId,
@@ -298,6 +338,8 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           };
         })
       );
+
+      return nominees.sort((a, b) => (a.name > b.name ? 1 : -1));
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);

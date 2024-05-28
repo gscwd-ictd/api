@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import {
   BatchRequirementsDto,
+  CreateStandInNomineeDto,
   CreateTrainingBatchDto,
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
@@ -333,5 +334,10 @@ export class TrainingDetailsController {
   @Get('distributions/:distributionId/standin')
   async findStandInNomineeByDistributionId(@Param('distributionId') distributionId: string) {
     return await this.trainingNomineesService.findStandInNomineeByDistributionId(distributionId);
+  }
+
+  @Post('distributions/standin')
+  async createStandinNominee(@Body() data: CreateStandInNomineeDto) {
+    return await this.trainingNomineesService.createStandinNominee(data);
   }
 }

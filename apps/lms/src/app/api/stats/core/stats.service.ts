@@ -19,9 +19,7 @@ export class StatsService {
     private readonly trainingNomineesService: TrainingNomineesService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
     private readonly benchmarkService: BenchmarkService,
-    private readonly benchmarkParticipantsService: BenchmarkParticipantsService,
-    private readonly otherTrainingsService: OtherTrainingsService,
-    private readonly otherTrainingsParticipantsService: OtherTrainingParticipantsService
+    private readonly otherTrainingsService: OtherTrainingsService
   ) {}
 
   async countTrainingStatus() {
@@ -152,22 +150,8 @@ export class StatsService {
           updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
         });
 
-      const benchmarkAccepted = await this.benchmarkParticipantsService
-        .crud()
-        .getRepository()
-        .countBy({
-          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
-        });
-
-      const otherTrainingAccepted = await this.otherTrainingsParticipantsService
-        .crud()
-        .getRepository()
-        .countBy({
-          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
-        });
-
       return {
-        accepted: trainingAccepted + benchmarkAccepted + otherTrainingAccepted,
+        accepted: trainingAccepted,
         declined: trainingDeclined,
       };
     } catch (error) {
