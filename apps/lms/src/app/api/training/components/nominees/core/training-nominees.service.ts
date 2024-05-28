@@ -26,6 +26,61 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     super(crudService);
   }
 
+  /* find all standin nominee by distribution id */
+  async findStandInNomineeByDistributionId(distributionId: string) {
+    try {
+      const slot = await this.crudService
+        .getRepository()
+        .createQueryBuilder('tn')
+        .select('td.no_of_slots', 'slots')
+        .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'availableSlots')
+        .innerJoin('training_distributions', 'td', 'tn.training_distribution_id_fk = td.training_distribution_id')
+        .where('td.training_distribution_id = :distributionId', { distributionId: distributionId })
+        .groupBy('td.training_distribution_id')
+        .getRawOne();
+
+      const nominees = (await this.crudService.findAll({
+        find: {
+          relations: {
+            trainingDistribution: true,
+          },
+          select: {
+            id: true,
+            employeeId: true,
+          },
+          where: {
+            nomineeType: NomineeType.STAND_IN,
+            trainingDistribution: {
+              id: distributionId,
+            },
+          },
+        },
+      })) as Array<TrainingNominee>;
+
+      const standin = await Promise.all(
+        nominees.map(async (items) => {
+          /* find employee name by employee id */
+          const employeeName = (await this.hrmsEmployeesService.findEmployeesById(items.employeeId)).fullName;
+
+          return {
+            nomineeId: items.id,
+            employeeId: items.employeeId,
+            name: employeeName,
+          };
+        })
+      );
+
+      return {
+        slots: slot.slots,
+        availableSlots: parseInt(slot.availableSlots),
+        standin: standin,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
   /* microservices for employees portal */
 
   /* insert training nominees */
@@ -138,6 +193,48 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     }
   }
 
+  /* count nominee by training id */
+  async countNomineeByTrainingId(trainingId: string) {
+    try {
+      return await this.crudService
+        .getRepository()
+        .createQueryBuilder('tn')
+        .select(`count(case when tn.status = 'pending' and tn.nominee_type = 'nominee' then 1 end)`, 'pending')
+        .addSelect(`count(case when tn.status = 'accepted' and tn.nominee_type = 'nominee' then 1 end)`, 'accepted')
+        .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'declined')
+        .innerJoin('training_distributions', 'td', 'tn.training_distribution_id_fk = td.training_distribution_id')
+        .where(`tn.status in ('pending', 'accepted', 'declined') and td.training_details_id_fk = :trainingId`, { trainingId: trainingId })
+        .getRawOne();
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* find and count nominee by training id */
+  async findAndCountNomineeByTrainingId(trainingId: string) {
+    try {
+      const count = await this.countNomineeByTrainingId(trainingId);
+
+      const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
+      const nomineeType = NomineeType.NOMINEE;
+      const nomineeStatus = null;
+
+      const nominees = await this.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
+      return {
+        countStatus: {
+          pending: parseInt(count.pending),
+          accepted: parseInt(count.accepted),
+          declined: parseInt(count.declined),
+        },
+        nominees: nominees,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   /* find all training nominee by training id */
   async findAllNomineeByTrainingId(
     trainingId: string,
@@ -194,6 +291,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             status: items.status,
             remarks: items.remarks,
             supervisor: {
+              distributionId: items.trainingDistribution.id,
               supervisorId: items.trainingDistribution.supervisorId,
               name: supervisorName.fullName,
             },
