@@ -157,7 +157,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let noOfTimesHalfDay = 0;
     const lateDates: number[] = [];
     const undertimeDates: number[] = [];
-    const halfdayDates: number[] = [];
+    const halfDayDates: number[] = [];
 
     const summaryResult = await Promise.all(
       dtrDays.map(async (dtrDay: MonthlyDtrItemType) => {
@@ -177,7 +177,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         if (summary.isHalfDay) {
           const day = dayjs(dtr.dtrDate).date();
           noOfTimesHalfDay += 1;
-          halfdayDates.push(day);
+          halfDayDates.push(day);
         }
 
         noOfTimesUndertime += summary.noOfTimesUndertime;
@@ -198,7 +198,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       totalMinutesUndertime,
       undertimeDates,
       noAttendance,
-      halfdayDates,
+      halfDayDates,
     };
   }
 
@@ -315,14 +315,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       let passSlipNatureOfBusiness: string = null;
       if (passSlipsNatureOfBusiness.length > 0)
         passSlipNatureOfBusiness = passSlipsNatureOfBusiness[passSlipsNatureOfBusiness.length - 1].natureOfBusiness;
-
-      minutesUndertime =
-        !timeOutWithinRestHours && passSlipNatureOfBusiness !== 'Half Day' && passSlipNatureOfBusiness != null
-          ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
-              dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
-              'm'
-            )
-          : 0;
+      //&& passSlipNatureOfBusiness !== 'Half Day' && passSlipNatureOfBusiness != null
+      minutesUndertime = !timeOutWithinRestHours
+        ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+            dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+            'm'
+          )
+        : 0;
 
       if (timeOutWithinRestHours) {
         isHalfDay = true;
