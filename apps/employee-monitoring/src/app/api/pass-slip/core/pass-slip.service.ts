@@ -465,7 +465,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         where: {
           passSlipId: {
             dateOfApplication: Between(
-              dayjs(dayjs().format('YYYY-MM-DD')).subtract(4, 'day').toDate(),
+              dayjs(dayjs().format('YYYY-MM-DD')).subtract(15, 'day').toDate(),
               dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
             ),
           },
@@ -773,6 +773,17 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         const { passSlipCount } = (
           await this.rawQuery(`SELECT count(*) passSlipCount FROM employee_monitoring.leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [id])
         )[0];
+
+        const employeeCompanyId = (await this.employeeService.getEmployeeDetails(employeeId)).companyId;
+        const restDays = await this.rawQuery(
+          `
+        SELECT addtime(s.time_in, "04:00:00") restHourStart, addtime(s.time_in, "05:00:00") restHourEnd
+          FROM daily_time_record dtr 
+        INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
+        WHERE DATE_FORMAT(dtr_date,'%Y-%m-%d') = ?  
+        AND company_id_fk = ?;`,
+          [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
+        );
 
         if (passSlipCount === '0') {
           if (timeIn === null && timeOut === null && status === PassSlipApprovalStatus.APPROVED) {
