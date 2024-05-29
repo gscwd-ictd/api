@@ -38,4 +38,7 @@ export class TrainingNominee extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'status', type: 'enum', enum: TrainingNomineeStatus, default: TrainingNomineeStatus.PENDING })
   status: TrainingNomineeStatus;
+
+  @Column({ name: 'is_replaced_by', type: 'uuid', nullable: true })
+  isReplaceBy: string;
 }

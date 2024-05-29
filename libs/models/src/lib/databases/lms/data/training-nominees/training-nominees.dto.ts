@@ -42,3 +42,13 @@ export class UpdateTrainingNomineeStatusDto {
   @IsString({ message: 'training nominee remarks must be string' })
   remarks: string;
 }
+
+export class CreateStandInNomineeDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  nomineeId: string;
+
+  @IsNotEmpty()
+  @IsUUID('4')
+  standinId: string;
+}

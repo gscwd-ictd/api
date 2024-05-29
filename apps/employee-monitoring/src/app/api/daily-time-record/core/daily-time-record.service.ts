@@ -157,7 +157,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let noOfTimesHalfDay = 0;
     const lateDates: number[] = [];
     const undertimeDates: number[] = [];
-    const halfdayDates: number[] = [];
+    const halfDayDates: number[] = [];
 
     const summaryResult = await Promise.all(
       dtrDays.map(async (dtrDay: MonthlyDtrItemType) => {
@@ -177,7 +177,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         if (summary.isHalfDay) {
           const day = dayjs(dtr.dtrDate).date();
           noOfTimesHalfDay += 1;
-          halfdayDates.push(day);
+          halfDayDates.push(day);
         }
 
         noOfTimesUndertime += summary.noOfTimesUndertime;
@@ -198,7 +198,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       totalMinutesUndertime,
       undertimeDates,
       noAttendance,
-      halfdayDates,
+      halfDayDates,
     };
   }
 

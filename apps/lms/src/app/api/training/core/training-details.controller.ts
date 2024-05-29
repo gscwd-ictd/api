@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import {
   BatchRequirementsDto,
+  CreateStandInNomineeDto,
   CreateTrainingBatchDto,
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
@@ -279,10 +280,7 @@ export class TrainingDetailsController {
   /* find all nominees by training id */
   @Get(':id/nominees')
   async findAllNomineesByTrainingId(@Param('id') id: string) {
-    const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
-    const nomineeType = NomineeType.NOMINEE;
-    const nomineeStatus = null;
-    return await this.trainingNomineesService.findAllNomineeByTrainingId(id, trainingStatus, nomineeType, nomineeStatus);
+    return await this.trainingNomineesService.findAndCountNomineeByTrainingId(id);
   }
 
   /* send approvals to the personnel development committee */
@@ -331,5 +329,15 @@ export class TrainingDetailsController {
   @Put('requirements')
   async updateNomineeRequirements(@Body() data: BatchRequirementsDto) {
     return await this.trainingRequirementsService.updateNomineeRequirements(data);
+  }
+
+  @Get('distributions/:distributionId/standin')
+  async findStandInNomineeByDistributionId(@Param('distributionId') distributionId: string) {
+    return await this.trainingNomineesService.findStandInNomineeByDistributionId(distributionId);
+  }
+
+  @Post('distributions/standin')
+  async createStandinNominee(@Body() data: CreateStandInNomineeDto) {
+    return await this.trainingNomineesService.createStandinNominee(data);
   }
 }

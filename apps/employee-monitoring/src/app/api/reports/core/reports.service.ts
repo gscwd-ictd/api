@@ -43,6 +43,47 @@ export class ReportsService {
     return _employeePassSlips;
   }
 
+  async generateReportOnSummaryOfSickLeave(dateFrom: Date, dateTo: Date, employeeId?: string) {
+    let leaveApplications;
+    if (typeof employeeId !== 'undefined' || employeeId !== '') {
+      leaveApplications = await this.dtrService.rawQuery(
+        `
+      SELECT 
+        employee_id_fk employeeId,
+        GROUP_CONCAT(lad.leave_date ORDER BY lad.leave_date ASC SEPARATOR ', ') leaveDates, 
+        COALESCE(in_hospital, out_patient) reason FROM leave_application la 
+          INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+            INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
+        WHERE la.status = 'approved' AND lad.status <> 'cancelled' AND lb.leave_name = 'Sick Leave' 
+        AND la.date_of_filing BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?, INTERVAL 1 DAY)
+        GROUP BY leave_application_id;
+      `,
+        [dateFrom, dateTo]
+      );
+    } else {
+      leaveApplications = await this.dtrService.rawQuery(
+        `
+      SELECT 
+        employee_id_fk employeeId,
+        GROUP_CONCAT(lad.leave_date ORDER BY lad.leave_date ASC SEPARATOR ', ') leaveDates, 
+        COALESCE(in_hospital, out_patient) reason FROM leave_application la 
+          INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+            INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
+        WHERE la.status = 'approved' AND lad.status <> 'cancelled' AND lb.leave_name = 'Sick Leave' 
+        AND la.date_of_filing BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?, INTERVAL 1 DAY) AND employee_id_fk = ?
+        GROUP BY leave_application_id;
+      `,
+        [dateFrom, dateTo, employeeId]
+      );
+    }
+
+    const leaveDetails = await Promise.all(
+      leaveApplications.map(async (leaveApplication) => {
+        const { employeeId, restOfLeaveApplication } = leaveApplication;
+      })
+    );
+  }
+
   async generateReportOnOfficialBusinessPassSlip(dateFrom: Date, dateTo: Date) {
     const employees = await this.employeesService.getAllPermanentCasualEmployees2();
 
@@ -267,7 +308,7 @@ export class ReportsService {
     return _employeesLWOP;
   }
 
-  async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string) {
+  async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string, employeeId?: string) {
     if (user === null) throw new ForbiddenException();
     let reportDetails: object;
     switch (report) {
@@ -286,6 +327,9 @@ export class ReportsService {
         break;
       case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
         reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo);
+        break;
+      case decodeURI(Report.REPORT_ON_SUMMARY_OF_SICK_LEAVE):
+        reportDetails = {};
         break;
       //#endregion Report About Pass Slips
       //#region Report About Leaves

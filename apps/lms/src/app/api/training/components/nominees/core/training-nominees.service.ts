@@ -1,5 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import {
+  CreateStandInNomineeDto,
   CreateTrainingNomineeDto,
   RequirementsDto,
   TrainingBatchDto,
@@ -24,6 +25,98 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     private readonly datasource: DataSource
   ) {
     super(crudService);
+  }
+
+  /* find all standin nominee by distribution id */
+  async findStandInNomineeByDistributionId(distributionId: string) {
+    try {
+      const slot = await this.crudService
+        .getRepository()
+        .createQueryBuilder('tn')
+        .select('td.no_of_slots', 'slots')
+        .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'availableSlots')
+        .innerJoin('training_distributions', 'td', 'tn.training_distribution_id_fk = td.training_distribution_id')
+        .where('td.training_distribution_id = :distributionId', { distributionId: distributionId })
+        .groupBy('td.training_distribution_id')
+        .getRawOne();
+
+      const nominees = (await this.crudService.findAll({
+        find: {
+          relations: {
+            trainingDistribution: true,
+          },
+          select: {
+            id: true,
+            employeeId: true,
+          },
+          where: {
+            nomineeType: NomineeType.STAND_IN,
+            trainingDistribution: {
+              id: distributionId,
+            },
+          },
+        },
+      })) as Array<TrainingNominee>;
+
+      const standin = await Promise.all(
+        nominees.map(async (items) => {
+          /* find employee name by employee id */
+          const employeeName = (await this.hrmsEmployeesService.findEmployeesById(items.employeeId)).fullName;
+
+          return {
+            nomineeId: items.id,
+            employeeId: items.employeeId,
+            name: employeeName,
+          };
+        })
+      );
+
+      return {
+        slots: slot.slots,
+        availableSlots: parseInt(slot.availableSlots),
+        standin: standin,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* create standin nominee */
+  async createStandinNominee(data: CreateStandInNomineeDto) {
+    try {
+      const { nomineeId, standinId } = data;
+
+      const nominee = await this.crudService.update({
+        updateBy: {
+          id: nomineeId,
+        },
+        dto: {
+          isReplaceBy: standinId,
+        },
+        onError: () => {
+          throw new HttpException('Error on updating nominee.', HttpStatus.BAD_REQUEST);
+        },
+      });
+
+      if (nominee.affected > 0) {
+        return await this.crudService.update({
+          updateBy: {
+            id: standinId,
+          },
+          dto: {
+            nomineeType: NomineeType.NOMINEE,
+            status: TrainingNomineeStatus.ACCEPTED,
+          },
+        });
+      } else {
+        throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+      }
+    } catch (error) {
+      Logger.error(error);
+      if (error instanceof HttpException) throw error;
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
   }
 
   /* microservices for employees portal */
@@ -138,6 +231,48 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     }
   }
 
+  /* count nominee by training id */
+  async countNomineeByTrainingId(trainingId: string) {
+    try {
+      return await this.crudService
+        .getRepository()
+        .createQueryBuilder('tn')
+        .select(`count(case when tn.status = 'pending' and tn.nominee_type = 'nominee' then 1 end)`, 'pending')
+        .addSelect(`count(case when tn.status = 'accepted' and tn.nominee_type = 'nominee' then 1 end)`, 'accepted')
+        .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'declined')
+        .innerJoin('training_distributions', 'td', 'tn.training_distribution_id_fk = td.training_distribution_id')
+        .where(`tn.status in ('pending', 'accepted', 'declined') and td.training_details_id_fk = :trainingId`, { trainingId: trainingId })
+        .getRawOne();
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* find and count nominee by training id */
+  async findAndCountNomineeByTrainingId(trainingId: string) {
+    try {
+      const count = await this.countNomineeByTrainingId(trainingId);
+
+      const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
+      const nomineeType = NomineeType.NOMINEE;
+      const nomineeStatus = null;
+
+      const nominees = await this.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
+      return {
+        countStatus: {
+          pending: parseInt(count.pending),
+          accepted: parseInt(count.accepted),
+          declined: parseInt(count.declined),
+        },
+        nominees: nominees,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   /* find all training nominee by training id */
   async findAllNomineeByTrainingId(
     trainingId: string,
@@ -161,6 +296,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             employeeId: true,
             status: true,
             nomineeType: true,
+            isReplaceBy: true,
             remarks: true,
           },
           where: {
@@ -179,7 +315,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         },
       })) as Array<TrainingNominee>;
 
-      return await Promise.all(
+      const nominees = await Promise.all(
         distribution.map(async (items) => {
           /* find employee name by employee id */
           const employeeName = await this.hrmsEmployeesService.findEmployeesById(items.employeeId);
@@ -193,13 +329,17 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             name: employeeName.fullName,
             status: items.status,
             remarks: items.remarks,
+            isReplacedBy: items.isReplaceBy !== null ? true : false,
             supervisor: {
+              distributionId: items.trainingDistribution.id,
               supervisorId: items.trainingDistribution.supervisorId,
               name: supervisorName.fullName,
             },
           };
         })
       );
+
+      return nominees.sort((a, b) => (a.name > b.name ? 1 : -1));
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
