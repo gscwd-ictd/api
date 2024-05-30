@@ -33,12 +33,15 @@ export class TrainingNominee extends DatabaseEntity implements IEntity {
   @Column({ name: 'training_end', type: 'timestamp', nullable: true })
   trainingEnd: Date;
 
-  @Column({ name: 'remarks', length: 200, nullable: true })
+  @Column({ name: 'remarks', type: 'text', nullable: true })
   remarks: string;
 
   @Column({ name: 'status', type: 'enum', enum: TrainingNomineeStatus, default: TrainingNomineeStatus.PENDING })
   status: TrainingNomineeStatus;
 
   @Column({ name: 'is_replaced_by', type: 'uuid', nullable: true })
-  isReplaceBy: string;
+  isReplacedBy: string;
+
+  @Column({ name: 'is_proxy_by', type: 'uuid', nullable: true })
+  isProxyBy: string;
 }

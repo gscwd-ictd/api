@@ -7,7 +7,7 @@ export class OtherTraining extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'other_training_id' })
   id: string;
 
-  @Column({ name: 'title', type: 'varchar', length: '300', nullable: false })
+  @Column({ name: 'title', type: 'text', nullable: false })
   title: string;
 
   @Column({ name: 'date_from', type: 'date', nullable: false })
@@ -16,7 +16,7 @@ export class OtherTraining extends DatabaseEntity implements IEntity {
   @Column({ name: 'date_to', type: 'date', nullable: false })
   dateTo: Date;
 
-  @Column({ name: 'location', type: 'varchar', length: 500, nullable: true })
+  @Column({ name: 'location', type: 'text', nullable: true })
   location: string;
 
   @Column({ name: 'category', type: 'enum', enum: OtherTrainingCategory, nullable: false })

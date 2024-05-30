@@ -6,8 +6,6 @@ import { Raw } from 'typeorm';
 import { HrmsEmployeesService } from '../../../services/hrms';
 import { BenchmarkService } from '../../benchmark';
 import { OtherTrainingsService } from '../../others';
-import { BenchmarkParticipantsService } from '../../benchmark/components/participants';
-import { OtherTrainingParticipantsService } from '../../others/components/other-training-participants';
 import { LspRankView } from '@gscwd-api/models';
 import { CrudService } from '@gscwd-api/crud';
 
