@@ -157,7 +157,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let noOfTimesHalfDay = 0;
     const lateDates: number[] = [];
     const undertimeDates: number[] = [];
-    const halfdayDates: number[] = [];
+    const halfDayDates: number[] = [];
 
     const summaryResult = await Promise.all(
       dtrDays.map(async (dtrDay: MonthlyDtrItemType) => {
@@ -177,7 +177,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         if (summary.isHalfDay) {
           const day = dayjs(dtr.dtrDate).date();
           noOfTimesHalfDay += 1;
-          halfdayDates.push(day);
+          halfDayDates.push(day);
         }
 
         noOfTimesUndertime += summary.noOfTimesUndertime;
@@ -198,7 +198,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       totalMinutesUndertime,
       undertimeDates,
       noAttendance,
-      halfdayDates,
+      halfDayDates,
     };
   }
 
@@ -220,8 +220,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const isWithLunch = schedule.lunchOut !== null && schedule.lunchIn !== null ? true : false;
 
-    const restHourStart = dayjs('2023-01-01 ' + schedule.timeIn).add(4, 'h');
-    const restHourEnd = dayjs('2023-01-01 ' + schedule.timeIn).add(5, 'h');
+    const restHourStart = dayjs('2024-01-01 ' + schedule.timeIn).add(4, 'h');
+    const restHourEnd = dayjs('2024-01-01 ' + schedule.timeIn).add(5, 'h');
 
     const overtimeApplicationCount = (
       await this.rawQuery(
@@ -236,22 +236,22 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     )[0].countOvertime;
 
     const timeOutWithinRestHours =
-      dayjs('2023-01-01 ' + dtr.timeOut).isSame(restHourStart) ||
-      (dayjs('2023-01-01 ' + dtr.timeOut).isAfter(restHourStart) && dayjs('2023-01-01 ' + dtr.timeOut).isBefore(restHourEnd)) ||
-      dayjs('2023-01-01 ' + dtr.timeOut).isSame(restHourEnd);
+      dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart) ||
+      (dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart) && dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd)) ||
+      dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd);
 
     if (overtimeApplicationCount === '0' && !isHoliday && !isRestDay) {
       console.log('lunchrest:', dayjs(restHourStart).format('YYYY-MM-DD HH:mm'), '-', restHourEnd.format('YYYY-MM-DD HH:mm'));
 
       if (schedule.shift === 'day') {
-        const lateMorning = dayjs(dayjs('2023-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
-          dayjs('2023-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
+        const lateMorning = dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
+          dayjs('2024-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
           'm'
         );
 
         const lateAfternoon = isWithLunch
-          ? dayjs(dayjs('2023-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
-              dayjs('2023-01-01' + schedule.lunchIn)
+          ? dayjs(dayjs('2024-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
+              dayjs('2024-01-01' + schedule.lunchIn)
                 .add(29, 'minute')
                 .format('YYYY-MM-DD HH:mm'),
               'm'
@@ -295,6 +295,17 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning <= 0 && dtr.lunchIn === null && dtr.timeOut === null) {
           isHalfDay = true;
         }
+
+        console.log(dtr.dtrDate, ' ', isWithLunch);
+
+        if (
+          isWithLunch === false &&
+          (dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourStart) || dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourStart)) &&
+          (dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourEnd))
+        ) {
+          isHalfDay = true;
+          minutesLate = 240;
+        }
       }
 
       if (dtr.lunchIn === null && dtr.lunchOut === null && dtr.timeIn === null && dtr.timeOut === null && schedule.scheduleName !== null) {
@@ -315,14 +326,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       let passSlipNatureOfBusiness: string = null;
       if (passSlipsNatureOfBusiness.length > 0)
         passSlipNatureOfBusiness = passSlipsNatureOfBusiness[passSlipsNatureOfBusiness.length - 1].natureOfBusiness;
-
-      minutesUndertime =
-        !timeOutWithinRestHours && passSlipNatureOfBusiness !== 'Half Day' && passSlipNatureOfBusiness != null
-          ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
-              dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
-              'm'
-            )
-          : 0;
+      //&& passSlipNatureOfBusiness !== 'Half Day' && passSlipNatureOfBusiness != null
+      minutesUndertime = !timeOutWithinRestHours
+        ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+            dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+            'm'
+          )
+        : 0;
 
       if (timeOutWithinRestHours) {
         isHalfDay = true;

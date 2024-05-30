@@ -12,7 +12,8 @@ export class ReportsController {
     @Query('report') report: Report,
     @Query('month_year') monthYear: string,
     @Query('date_from') dateFrom: Date,
-    @Query('date_to') dateTo: Date
+    @Query('date_to') dateTo: Date,
+    @Query('employee') employeeId: string
     //@LoginUser() user: User
   ) {
     return await this.reportsService.generateReport(
@@ -20,7 +21,8 @@ export class ReportsController {
       report,
       dateFrom,
       dateTo,
-      monthYear
+      monthYear,
+      employeeId
     );
   }
 }
