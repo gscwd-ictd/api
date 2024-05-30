@@ -34,10 +34,13 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         .getRepository()
         .createQueryBuilder('tn')
         .select('td.no_of_slots', 'slots')
-        .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'availableSlots')
+        .addSelect(
+          `(td.no_of_slots - count(case when tn.status in ('accepted', 'pending') and tn.nominee_type = 'nominee' then 1 end))`,
+          'availableSlots'
+        )
         .innerJoin('training_distributions', 'td', 'tn.training_distribution_id_fk = td.training_distribution_id')
         .where('td.training_distribution_id = :distributionId', { distributionId: distributionId })
-        .groupBy('td.training_distribution_id')
+        .groupBy('td.no_of_slots')
         .getRawOne();
 
       const nominees = (await this.crudService.findAll({
@@ -92,7 +95,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           id: nomineeId,
         },
         dto: {
-          isReplaceBy: standinId,
+          isReplacedBy: standinId,
         },
         onError: () => {
           throw new HttpException('Error on updating nominee.', HttpStatus.BAD_REQUEST);
@@ -107,6 +110,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           dto: {
             nomineeType: NomineeType.NOMINEE,
             status: TrainingNomineeStatus.ACCEPTED,
+            isProxyBy: nomineeId,
           },
         });
       } else {
@@ -296,7 +300,8 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             employeeId: true,
             status: true,
             nomineeType: true,
-            isReplaceBy: true,
+            isReplacedBy: true,
+            isProxyBy: true,
             remarks: true,
           },
           where: {
@@ -323,13 +328,15 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           /* find supervisor name by employee id */
           const supervisorName = await this.hrmsEmployeesService.findEmployeesById(items.trainingDistribution.supervisorId);
 
+          const remarks = items.isProxyBy !== null ? 'Replaced ' + (await this.findNomineeDetailsByNomineeId(items.isProxyBy)).name : items.remarks;
+
           return {
             nomineeId: items.id,
             employeeId: items.employeeId,
             name: employeeName.fullName,
             status: items.status,
-            remarks: items.remarks,
-            isReplacedBy: items.isReplaceBy !== null ? true : false,
+            remarks: remarks,
+            isReplacedBy: items.isReplacedBy !== null ? true : false,
             supervisor: {
               distributionId: items.trainingDistribution.id,
               supervisorId: items.trainingDistribution.supervisorId,
@@ -732,6 +739,28 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* find nominee details by nominee id */
+  async findNomineeDetailsByNomineeId(nomineeId: string) {
+    try {
+      const nominee = await this.crudService.findOneBy({
+        findBy: {
+          id: nomineeId,
+        },
+      });
+
+      const name = (await this.hrmsEmployeesService.findEmployeesById(nominee.employeeId)).fullName;
+
+      return {
+        nomineeId: nominee.id,
+        employeeId: nominee.employeeId,
+        name: name,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     }
   }
 }
