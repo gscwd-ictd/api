@@ -106,6 +106,7 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
         })
       );
     }
+
     //cancellation of dates
     return leaveDateCancellationDto;
   }
