@@ -17,15 +17,17 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
   }
 
   async addDtrCorrection(createDtrCorrectionDto: CreateDtrCorrectionDto) {
-    const { lunchIn, lunchOut, timeIn, timeOut, ...restOfDtrCorrection } = createDtrCorrectionDto;
-    return await this.crudService.create({
-      dto: {
-        lunchIn: lunchIn.toString() !== '' ? lunchIn : null,
+    /*
+     lunchIn: lunchIn.toString() !== '' ? lunchIn : null,
         lunchOut: lunchOut.toString() !== '' ? lunchOut : null,
         timeIn: timeIn.toString() !== '' ? timeIn : null,
         timeOut: timeOut.toString() !== '' ? timeOut : null,
         ...restOfDtrCorrection,
-      },
+    
+    */
+    const { lunchIn, lunchOut, timeIn, timeOut, ...restOfDtrCorrection } = createDtrCorrectionDto;
+    return await this.crudService.create({
+      dto: createDtrCorrectionDto,
       onError: (error: any) => {
         if (error.error.driverError.code === 'ER_DUP_ENTRY') throw new HttpException('Time log correction already exists.', 406);
         throw new InternalServerErrorException();
@@ -106,8 +108,6 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
             relations: { dtrId: true },
           },
         });
-
-        console.log('CORRECTED: ', correctedDtr);
 
         const { dtrId, lunchIn, lunchOut, timeIn, timeOut } = correctedDtr;
         const dtrUpdateResult = await this.dailyTimeRecordService
