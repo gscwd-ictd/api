@@ -183,8 +183,8 @@ export class OvertimeService {
     const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
     //console.log(managerOrgId);
     //check if officer of the day
-    const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
-
+    //const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
+    const officerOfTheDayOrgs = [];
     //console.log('officer of the day', officerOfTheDayOrgs.length);
 
     const employeesUnderOrgId =

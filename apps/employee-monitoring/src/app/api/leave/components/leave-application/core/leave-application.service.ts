@@ -63,8 +63,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
       const employeeAssignmentId = (await this.employeesService.getEmployeeDetails(rest.employeeId)).assignment.id;
 
-      let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
-
+      //let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
+      let supervisorId = null;
       if (supervisorId === null) {
         supervisorId = (await this.client.call<string, string, string>({
           action: 'send',

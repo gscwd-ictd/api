@@ -281,6 +281,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
                 dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
               ),
               natureOfBusiness: NatureOfBusiness.HALF_DAY,
+              timeIn: IsNull(),
             },
             status: PassSlipApprovalStatus.APPROVED,
           },

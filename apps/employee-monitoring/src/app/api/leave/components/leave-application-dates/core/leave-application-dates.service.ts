@@ -157,7 +157,7 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
       `SELECT DISTINCT leave_application_id leaveApplicationId,DATE_FORMAT(date_of_filing,'%Y-%m-%d %H:%i:%s') dateOfFiling 
        FROM leave_application la 
        INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id 
-       WHERE la.status = 'approved' AND (lad.status='cancelled' OR lad.status = 'for cancellation') ORDER BY DATE_FORMAT(date_of_filing,'%Y-%m-%d %H:%i:%s') DESC;`
+       WHERE (la.status = 'approved' OR la.status= 'cancelled') AND (lad.status='cancelled' OR lad.status = 'for cancellation') ORDER BY DATE_FORMAT(date_of_filing,'%Y-%m-%d %H:%i:%s') DESC;`
     )) as { leaveApplicationId: string; dateOfFiling: Date }[];
   }
 
