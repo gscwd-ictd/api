@@ -4,6 +4,7 @@ import { DtrCorrectionsType } from '@gscwd-api/utils';
 import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
+import { timeout } from 'rxjs';
 
 @Injectable()
 export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
@@ -16,8 +17,15 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
   }
 
   async addDtrCorrection(createDtrCorrectionDto: CreateDtrCorrectionDto) {
+    const { lunchIn, lunchOut, timeIn, timeOut, ...restOfDtrCorrection } = createDtrCorrectionDto;
     return await this.crudService.create({
-      dto: createDtrCorrectionDto,
+      dto: {
+        lunchIn: lunchIn.toString() !== '' ? lunchIn : null,
+        lunchOut: lunchOut.toString() !== '' ? lunchOut : null,
+        timeIn: timeIn.toString() !== '' ? timeIn : null,
+        timeOut: timeOut.toString() !== '' ? timeOut : null,
+        ...restOfDtrCorrection,
+      },
       onError: (error: any) => {
         if (error.error.driverError.code === 'ER_DUP_ENTRY') throw new HttpException('Time log correction already exists.', 406);
         throw new InternalServerErrorException();
@@ -98,6 +106,9 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
             relations: { dtrId: true },
           },
         });
+
+        console.log('CORRECTED: ', correctedDtr);
+
         const { dtrId, lunchIn, lunchOut, timeIn, timeOut } = correctedDtr;
         const dtrUpdateResult = await this.dailyTimeRecordService
           .crud()
