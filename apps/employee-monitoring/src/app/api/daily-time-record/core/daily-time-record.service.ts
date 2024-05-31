@@ -419,7 +419,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       WHERE oe.employee_id_fk = ?
       AND oa.status = 'approved' AND DATE_FORMAT(oa.planned_date,'%Y-%m-%d') = ?;
       `,
-          [employeeDetails.userId, data.date]
+          [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')]
         )
       )[0].otCount;
 
