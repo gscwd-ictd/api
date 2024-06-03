@@ -504,6 +504,7 @@ export class OvertimeService {
               status: true,
               overtimeImmediateSupervisorId: { employeeId: true },
             },
+            order: { plannedDate: 'DESC', status: 'DESC' },
             relations: { overtimeImmediateSupervisorId: true },
           },
         })) as OvertimeApplication[]

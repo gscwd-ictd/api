@@ -84,7 +84,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         const holidayType = await this.holidayService.getHolidayTypeByDate(currDate);
 
         try {
-          const dtr = await this.getDtrByCompanyIdAndDay({ companyId, date: currDate });
+          const dtr = await this.getDtrByCompanyIdAndDay({ companyId, date: dayjs(dayjs(currDate).format('YYYY-MM-DD')).toDate() });
 
           return { day: dayjs(currDate).format('YYYY-MM-DD'), holidayType, ...dtr };
         } catch {
@@ -392,11 +392,15 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
 
-      const day = dayjs(dayjs(data.date).format('YYYY-MM-DD')).format('d');
+      const day = dayjs(dayjs(dateCurrent).format('YYYY-MM-DD')).format('d');
+      console.log('day of week: ', dateCurrent, day);
 
       const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
 
       const isRestDay: boolean = restDays.includes(day) ? true : false;
+
+      console.log(isRestDay);
+      console.log(restDays);
 
       const employeeIvmsDtr = (await this.client.call<string, { companyId: string; date: Date }, IvmsEntry[]>({
         action: 'send',
@@ -502,6 +506,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         summary,
       };
     } catch (error) {
+      console.log();
       const dateCurrent = dayjs(data.date).toDate();
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
@@ -511,7 +516,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       const day = dayjs(data.date).format('d');
 
-      const isRestDay: boolean = day in restDays ? true : false;
+      const isRestDay: boolean = restDays.includes(day) ? true : false;
 
       const { remarks } = (
         await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')])
