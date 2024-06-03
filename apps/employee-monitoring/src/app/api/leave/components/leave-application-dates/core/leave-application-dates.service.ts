@@ -105,8 +105,21 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
           return leaveDate;
         })
       );
+      const shouldCancelWhole = (
+        await this.rawQuery(
+          `
+      SELECT IF(countCancelled = countTotal, true, false) shouldCancelWhole FROM (SELECT 
+        (SELECT count(leave_application_date_id) FROM leave_application_dates WHERE leave_application_id_fk = ? AND status='cancelled') countCancelled, 
+          (SELECT count(leave_application_date_id) FROM leave_application_dates WHERE leave_application_id_fk = ?) countTotal) leaveApplicationDates;
+      `,
+          [_leaveApplicationId, _leaveApplicationId]
+        )
+      )[0].shouldCancelWhole;
+      console.log(shouldCancelWhole);
+      if (shouldCancelWhole === '1') {
+        await this.rawQuery(`UPDATE leave_application SET status='cancelled' WHERE leave_application_id=?`, [_leaveApplicationId]);
+      }
     }
-    //cancellation of dates
     return leaveDateCancellationDto;
   }
 
@@ -144,7 +157,7 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
       `SELECT DISTINCT leave_application_id leaveApplicationId,DATE_FORMAT(date_of_filing,'%Y-%m-%d %H:%i:%s') dateOfFiling 
        FROM leave_application la 
        INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id 
-       WHERE la.status = 'approved' AND (lad.status='cancelled' OR lad.status = 'for cancellation') ORDER BY DATE_FORMAT(date_of_filing,'%Y-%m-%d %H:%i:%s') DESC;`
+       WHERE (la.status = 'approved' OR la.status= 'cancelled') AND (lad.status='cancelled' OR lad.status = 'for cancellation') ORDER BY DATE_FORMAT(date_of_filing,'%Y-%m-%d %H:%i:%s') DESC;`
     )) as { leaveApplicationId: string; dateOfFiling: Date }[];
   }
 
