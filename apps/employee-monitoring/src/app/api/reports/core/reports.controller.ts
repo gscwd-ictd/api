@@ -13,16 +13,9 @@ export class ReportsController {
     @Query('month_year') monthYear: string,
     @Query('date_from') dateFrom: Date,
     @Query('date_to') dateTo: Date,
-    @Query('employee') employeeId: string
-    //@LoginUser() user: User
+    @Query('employee') employeeId: string,
+    @LoginUser() user: User
   ) {
-    return await this.reportsService.generateReport(
-      { employeeId: '42d5dcf9-60f2-11ee-96a6-005056b6c8f5', name: 'Baldo ManCalvs' },
-      report,
-      dateFrom,
-      dateTo,
-      monthYear,
-      employeeId
-    );
+    return await this.reportsService.generateReport(user, report, dateFrom, dateTo, monthYear, employeeId);
   }
 }
