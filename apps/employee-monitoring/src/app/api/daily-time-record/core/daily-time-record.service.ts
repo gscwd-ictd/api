@@ -92,7 +92,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           // #region rework get only id by company_id;
           const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(companyId);
           // #endregion
-          const { remarks } = (await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, currDate]))[0];
+          const { remarks } = (
+            await this.rawQuery(`SELECT get_dtr_remarks(?,?,?) remarks;`, [employeeDetails.userId, currDate, employeeDetails.companyId])
+          )[0];
 
           return {
             day: dayjs(currDate).format('YYYY-MM-DD'),
@@ -433,7 +435,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //1. check if employee is in dtr table in the current date;
       const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
       const { remarks } = (
-        await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')])
+        await this.rawQuery(`SELECT get_dtr_remarks(?,?,?) remarks;`, [
+          employeeDetails.userId,
+          dayjs(dateCurrent).format('YYYY-MM-DD'),
+          employeeDetails.companyId,
+        ])
       )[0];
 
       //1.2 if not in current mysql daily_time_record save data fetched from ivms
@@ -519,7 +525,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const isRestDay: boolean = restDays.includes(day) ? true : false;
 
       const { remarks } = (
-        await this.rawQuery(`SELECT get_dtr_remarks(?,?) remarks;`, [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')])
+        await this.rawQuery(`SELECT get_dtr_remarks(?,?,?) remarks;`, [
+          employeeDetails.userId,
+          dayjs(dateCurrent).format('YYYY-MM-DD'),
+          employeeDetails.companyId,
+        ])
       )[0];
 
       const isHoliday = await this.holidayService.isHoliday(data.date);
