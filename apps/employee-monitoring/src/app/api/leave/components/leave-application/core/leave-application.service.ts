@@ -34,8 +34,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
   async createLeaveApplicationTransaction(transactionEntityManager: EntityManager, createLeaveApplicationDto: CreateLeaveApplicationDto) {
     const { leaveApplicationDates, ...rest } = createLeaveApplicationDto;
+    const referenceNo = (await this.rawQuery(`SELECT generate_leave_application_reference_number() referenceNo;`))[0].referenceNo;
     return await this.crudService.transact<LeaveApplication>(transactionEntityManager).create({
-      dto: rest,
+      dto: { ...rest, referenceNo },
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
@@ -61,9 +62,13 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const result = this.dataSource.transaction(async (transactionEntityManager) => {
       const { leaveApplicationDates, ...rest } = createLeaveApplication;
 
+      let supervisorId = null;
+
+      /* UNCOMMENT IF rules change again regarding officer of the day approval
       const employeeAssignmentId = (await this.employeesService.getEmployeeDetails(rest.employeeId)).assignment.id;
 
-      let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
+      supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
+      */
 
       if (supervisorId === null) {
         supervisorId = (await this.client.call<string, string, string>({
@@ -134,6 +139,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         la.is_late_filing isLateFiling,
         lb.leave_name leaveName,
         lb.leave_types leaveType,
+        la.reference_no referenceNo,
         DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
         la.status \`status\`,
         lb.maximum_credits maximumCredits,
@@ -491,6 +497,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           inPhilippines: true,
           supervisorId: true,
           studyLeaveOther: true,
+          referenceNo: true,
           isTerminalLeave: true,
           outPatient: true,
           cancelDate: true,
@@ -618,6 +625,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           outPatient: true,
           cancelDate: true,
           cancelReason: true,
+          referenceNo: true,
           requestedCommutation: true,
           splWomen: true,
           leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
@@ -700,6 +708,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             isTerminalLeave: true,
             isLateFiling: true,
             supervisorId: true,
+            referenceNo: true,
             studyLeaveOther: true,
             outPatient: true,
             cancelDate: true,
@@ -774,6 +783,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           forMonetization: true,
           hrdmApprovalDate: true,
           hrdmDisapprovalRemarks: true,
+          referenceNo: true,
           hrmoApprovalDate: true,
           supervisorApprovalDate: true,
           supervisorDisapprovalRemarks: true,
@@ -931,6 +941,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           studyLeaveOther: true,
           isTerminalLeave: true,
           isLateFiling: true,
+          referenceNo: true,
           outPatient: true,
           cancelDate: true,
           cancelReason: true,
@@ -1040,6 +1051,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           inHospital: true,
           inPhilippines: true,
           isTerminalLeave: true,
+          referenceNo: true,
           isLateFiling: true,
           outPatient: true,
           requestedCommutation: true,
