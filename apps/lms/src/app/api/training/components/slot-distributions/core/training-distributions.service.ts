@@ -63,6 +63,45 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     }
   }
 
+  /* find all supervisor distribution by training id */
+  async findAllSupervisorDistributionByTrainingId(trainingId: string) {
+    try {
+      const distribution = await this.crudService
+        .getRepository()
+        .createQueryBuilder('td')
+        .select('td.employee_id_fk', 'employeeId')
+        .addSelect('td.no_of_slots', 'slot')
+        .addSelect(`count(case when tn.status = 'pending' and tn.nominee_type = 'nominee' then 1 end)`, 'pending')
+        .addSelect(`count(case when tn.status = 'accepted' and tn.nominee_type = 'nominee' then 1 end)`, 'accepted')
+        .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'declined')
+        .addSelect('td.status', 'status')
+        .leftJoin('training_nominees', 'tn', 'td.training_distribution_id = tn.training_distribution_id_fk')
+        .where('td.training_details_id_fk = :trainingId', { trainingId: trainingId })
+        .groupBy('td.employee_id_fk ')
+        .addGroupBy('td.no_of_slots')
+        .addGroupBy('td.status')
+        .getRawMany();
+
+      return Promise.all(
+        distribution.map(async (items) => {
+          const name = (await this.hrmsEmployeesService.findEmployeesById(items.employeeId)).fullName;
+          return {
+            employeeId: items.employeeId,
+            name: name,
+            slot: items.slot,
+            pending: parseInt(items.pending),
+            accepted: parseInt(items.accepted),
+            declined: parseInt(items.declined),
+            status: items.status,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   /* insert training slot distributions */
   async createSlotDistributions(data: CreateTrainingDistributionDto, entityManager: EntityManager) {
     try {
