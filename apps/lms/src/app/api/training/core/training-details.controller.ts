@@ -338,6 +338,18 @@ export class TrainingDetailsController {
     return await this.trainingDistributionsService.findAllSupervisorDistributionByTrainingId(trainingId);
   }
 
+  /* find all available supervisors by training id */
+  @Get(':trainingId/distributions/supervisors')
+  async findAllSupervisors(@Param('trainingId') trainingId: string) {
+    return await this.trainingDetailsService.findAllSupervisorsByTrainingId(trainingId);
+  }
+
+  /* find assignable employee under supervisor by training id */
+  /* @Get(':trainingId/distributions/supervisors/:supervisorId')
+  async findAllAssignableEmployeeUnderSupervisor(@Param('trainingId') trainingId: string, @Param('supervisorId') supervisorId: string) {
+    return await this.trainingDetailsService.findAllAssignableEmployeeUnderSupervisor(trainingId, supervisorId);
+  }
+ */
   /* find stand in by distribution id */
   @Get('distributions/:distributionId/standin')
   async findStandInNomineeByDistributionId(@Param('distributionId') distributionId: string) {
