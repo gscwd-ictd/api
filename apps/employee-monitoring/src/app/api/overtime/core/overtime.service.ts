@@ -182,9 +182,9 @@ export class OvertimeService {
     //1. get manager organization id
     const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
     //console.log(managerOrgId);
-    //check if officer of the day
-    const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
-
+    //check if officer of the day/uncomment below if rules change again for officer of the day approval;
+    //const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
+    const officerOfTheDayOrgs = [];
     //console.log('officer of the day', officerOfTheDayOrgs.length);
 
     const employeesUnderOrgId =
@@ -504,6 +504,7 @@ export class OvertimeService {
               status: true,
               overtimeImmediateSupervisorId: { employeeId: true },
             },
+            order: { plannedDate: 'DESC', status: 'DESC' },
             relations: { overtimeImmediateSupervisorId: true },
           },
         })) as OvertimeApplication[]

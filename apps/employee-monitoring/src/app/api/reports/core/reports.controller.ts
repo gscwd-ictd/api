@@ -13,11 +13,11 @@ export class ReportsController {
     @Query('month_year') monthYear: string,
     @Query('date_from') dateFrom: Date,
     @Query('date_to') dateTo: Date,
-    @Query('employee') employeeId: string
+    @Query('employee_id') employeeId: string
     //@LoginUser() user: User
   ) {
     return await this.reportsService.generateReport(
-      { employeeId: '42d5dcf9-60f2-11ee-96a6-005056b6c8f5', name: 'Baldo ManCalvs' },
+      { employeeId: '42d5dcf9-60f2-11ee-96a6-005056b6c8f5', name: 'Berto Sandoval' },
       report,
       dateFrom,
       dateTo,

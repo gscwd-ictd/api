@@ -86,4 +86,7 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
 
   @Column({ type: 'boolean', name: 'is_late_filing', nullable: true })
   isLateFiling: boolean;
+
+  @Column({ type: 'varchar', name: 'reference_no', nullable: true })
+  referenceNo: string;
 }
