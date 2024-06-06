@@ -62,3 +62,8 @@ export type BenchmarkParticipantsRaw = {
   employee: EmployeeParticpantsRaw;
   supervisor: SupervisorParticipantsRaw;
 };
+
+export type SupervisorRaw = {
+  employeeId: string;
+  fullName: string;
+};

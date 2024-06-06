@@ -21,6 +21,7 @@ import { DocumentRequirementsType, TrainingRequirementsRaw, TrainingStatus } fro
 import { TrainingApprovalsService } from '../components/approvals';
 import { TrainingNomineesService } from '../components/nominees';
 import { LspRatingService } from '../../lsp-rating';
+import { HrmsEmployeesService } from '../../../services/hrms';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -32,6 +33,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly trainingApprovalsService: TrainingApprovalsService,
     private readonly trainingNomineesService: TrainingNomineesService,
     private readonly lspRatingService: LspRatingService,
+    private readonly hrmsEmployeesService: HrmsEmployeesService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -987,6 +989,50 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  /* count number of participants and available slot with list of supervisors */
+  async findAllSupervisorsByTrainingId(trainingId: string) {
+    try {
+      const { numberOfParticipants, availableSlot } = await this.crudService
+        .getRepository()
+        .createQueryBuilder('tdd')
+        .select('tdd.number_of_participants', 'numberOfParticipants')
+        .addSelect(
+          `tdd.number_of_participants - sum( case when tn.status in ('pending', 'accepted') and tn.nominee_type = 'nominee' then 1 end)`,
+          'availableSlot'
+        )
+        .innerJoin('training_distributions', 'td', 'tdd.training_details_id = td.training_details_id_fk')
+        .innerJoin('training_nominees', 'tn', 'td.training_distribution_id = tn.training_distribution_id_fk')
+        .where('tdd.training_details_id = :trainingId', { trainingId: trainingId })
+        .groupBy('tdd.number_of_participants')
+        .addGroupBy('tdd.training_details_id')
+        .getRawOne();
+
+      const supervisors = await this.hrmsEmployeesService.findAllSupervisors();
+
+      return {
+        numberOfParticipants: numberOfParticipants,
+        availableSlot: parseInt(availableSlot),
+        supervisors,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /*  find assignable employee under supervisor */
+  /*  async findAllAssignableEmployeeUnderSupervisor(trainingId: string, employeeId: string) {
+    try {
+      const nominees = await this.
+      const assignableEmployee = await this.hrmsEmployeesService.findAllEmployeeUnderSupervisor(employeeId);
+
+      return assignableEmployee;
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }  */
 
   /* microservices */
 

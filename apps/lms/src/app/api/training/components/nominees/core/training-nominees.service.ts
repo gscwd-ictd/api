@@ -244,8 +244,11 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         .select(`count(case when tn.status = 'pending' and tn.nominee_type = 'nominee' then 1 end)`, 'pending')
         .addSelect(`count(case when tn.status = 'accepted' and tn.nominee_type = 'nominee' then 1 end)`, 'accepted')
         .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'declined')
+        .addSelect('tdd.number_of_participants', 'numberOfParticipants')
         .innerJoin('training_distributions', 'td', 'tn.training_distribution_id_fk = td.training_distribution_id')
-        .where(`tn.status in ('pending', 'accepted', 'declined') and td.training_details_id_fk = :trainingId`, { trainingId: trainingId })
+        .innerJoin('training_details', 'tdd', 'td.training_details_id_fk = tdd.training_details_id')
+        .where('td.training_details_id_fk = :trainingId', { trainingId: trainingId })
+        .groupBy('tdd.number_of_participants')
         .getRawOne();
     } catch (error) {
       Logger.error(error);
@@ -264,6 +267,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
 
       const nominees = await this.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
       return {
+        numberOfParticipants: count.numberOfParticipants,
         countStatus: {
           pending: parseInt(count.pending),
           accepted: parseInt(count.accepted),
