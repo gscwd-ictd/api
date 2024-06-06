@@ -36,8 +36,8 @@ export enum TrainingStatus {
 
 export enum TrainingDistributionStatus {
   NOMINATION_PENDING = 'nomination pending',
-  NOMINATION_INELIGIBLE = 'nomination ineligible',
-  NOMINATION_COMPLETED = 'nomination completed',
+  NOMINATION_INELIGIBLE = 'nomination ineligible', //nomination skipped
+  NOMINATION_COMPLETED = 'nomination completed', //nomination submitted
 }
 
 export enum TrainingNomineeStatus {
