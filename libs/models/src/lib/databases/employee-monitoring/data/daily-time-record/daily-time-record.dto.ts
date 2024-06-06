@@ -17,3 +17,9 @@ export class UpdateDailyTimeRecordDto extends PickType(DailyTimeRecordDto, ['com
   lunchIn?: number;
   timeOut?: number;
 }
+
+export class CreateDtrRemarksDto extends PickType(DailyTimeRecordDto, ['companyId']) {
+  companyId: string;
+  dtrDates: Date[];
+  remarks: string;
+}

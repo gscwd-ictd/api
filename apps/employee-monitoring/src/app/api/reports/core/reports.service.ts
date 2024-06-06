@@ -368,7 +368,7 @@ export class ReportsService {
         leave_application_id leaveApplicationId,
         count(distinct leave_application_id) leaveCount,
         GROUP_CONCAT(distinct get_leave_date_range(leave_application_id,true) ORDER BY lad.leave_date ASC SEPARATOR ', ') leaveDates, 
-        DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') dateOfFiling 
+        GROUP_CONCAT(DISTINCT DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') ORDER BY la.date_of_filing ASC SEPARATOR ', ') dateOfFiling 
       FROM leave_application la 
                 INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
                 INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
@@ -387,7 +387,7 @@ export class ReportsService {
         leave_application_id leaveApplicationId,
         count(distinct leave_application_id) leaveCount,
         GROUP_CONCAT(distinct get_leave_date_range(leave_application_id,true) ORDER BY lad.leave_date ASC SEPARATOR ', ') leaveDates, 
-        DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') dateOfFiling 
+        GROUP_CONCAT(DISTINCT DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') ORDER BY la.date_of_filing ASC SEPARATOR ', ') dateOfFiling 
       FROM leave_application la 
                 INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
                 INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id

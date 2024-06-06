@@ -239,6 +239,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             lb.leave_name leaveName,
             la.reference_no referenceNo,
             DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
+            la.is_late_filing isLateFiling,
             la.status \`status\`,
             la.cancel_reason cancelReason,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i:%s') cancelDate 
@@ -277,6 +278,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             la.status \`status\`,
             la.cancel_reason cancelReason,
             la.reference_no referenceNo,
+            la.is_late_filing isLateFiling,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
@@ -318,6 +320,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
             la.cancel_reason cancelReason,
             la.reference_no referenceNo,
+            la.is_late_filing isLateFiling,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
@@ -798,6 +801,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           isTerminalLeave: true,
           outPatient: true,
           requestedCommutation: true,
+          isLateFiling: true,
           cancelDate: true,
           cancelReason: true,
           splWomen: true,
