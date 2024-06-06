@@ -142,6 +142,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         la.reference_no referenceNo,
         DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
         la.status \`status\`,
+        la.reference_no referenceNo,
         lb.maximum_credits maximumCredits,
         la.hrmo_approved_by hrmoApprovedBy,
         la.hrdm_approved_by hrdmApprovedBy,
@@ -236,6 +237,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         `SELECT
             la.leave_application_id id,
             lb.leave_name leaveName,
+            la.reference_no referenceNo,
             DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
             la.status \`status\`,
             la.cancel_reason cancelReason,
@@ -274,6 +276,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
             la.status \`status\`,
             la.cancel_reason cancelReason,
+            la.reference_no referenceNo,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
@@ -314,6 +317,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
             la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
             la.cancel_reason cancelReason,
+            la.reference_no referenceNo,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
@@ -860,6 +864,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           supervisorId: true,
           studyLeaveOther: true,
           isTerminalLeave: true,
+          referenceNo: true,
           isLateFiling: true,
           outPatient: true,
           cancelDate: true,
