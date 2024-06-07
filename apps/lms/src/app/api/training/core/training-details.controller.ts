@@ -345,11 +345,11 @@ export class TrainingDetailsController {
   }
 
   /* find assignable employee under supervisor by training id */
-  /* @Get(':trainingId/distributions/supervisors/:supervisorId')
+  @Get(':trainingId/distributions/supervisors/:supervisorId')
   async findAllAssignableEmployeeUnderSupervisor(@Param('trainingId') trainingId: string, @Param('supervisorId') supervisorId: string) {
     return await this.trainingDetailsService.findAllAssignableEmployeeUnderSupervisor(trainingId, supervisorId);
   }
- */
+
   /* find stand in by distribution id */
   @Get('distributions/:distributionId/standin')
   async findStandInNomineeByDistributionId(@Param('distributionId') distributionId: string) {
