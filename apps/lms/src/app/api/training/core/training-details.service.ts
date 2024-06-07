@@ -17,11 +17,11 @@ import { DataSource, EntityManager } from 'typeorm';
 import { TrainingTagsService } from '../components/tags';
 import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
-import { DocumentRequirementsType, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
+import { DocumentRequirementsType, NomineeType, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
 import { TrainingNomineesService } from '../components/nominees';
 import { LspRatingService } from '../../lsp-rating';
-import { HrmsEmployeesService } from '../../../services/hrms';
+import { HrmsEmployeeTagsService, HrmsEmployeesService } from '../../../services/hrms';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -34,6 +34,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly trainingNomineesService: TrainingNomineesService,
     private readonly lspRatingService: LspRatingService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
+    private readonly hrmsEmployeeTagsService: HrmsEmployeeTagsService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -1022,17 +1023,49 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   }
 
   /*  find assignable employee under supervisor */
-  /*  async findAllAssignableEmployeeUnderSupervisor(trainingId: string, employeeId: string) {
+  async findAllAssignableEmployeeUnderSupervisor(trainingId: string, employeeId: string) {
     try {
-      const nominees = await this.
-      const assignableEmployee = await this.hrmsEmployeesService.findAllEmployeeUnderSupervisor(employeeId);
+      const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
+      const nomineeType = NomineeType.NOMINEE;
+      const nomineeStatus = null;
 
-      return assignableEmployee;
+      const nomineesId = (await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus)).map(
+        (items) => items.employeeId
+      );
+
+      const tags = (await this.findTrainingDetailsById(trainingId)).trainingTags.map((items) => items.id);
+
+      const employees = await this.hrmsEmployeesService.findAllEmployeeUnderSupervisor(employeeId);
+
+      const assignable = await Promise.all(
+        employees
+          .filter(async (items) => !nomineesId.includes(items.value))
+          .map(async (items) => {
+            const isTagged = await this.hrmsEmployeeTagsService.checkEmployeeTags(items.value, tags);
+            return {
+              value: {
+                employeeId: items.value,
+                name: items.label,
+                isTagged: isTagged === '1' ? true : false,
+              },
+              label: items.label,
+            };
+          })
+      );
+
+      return assignable.sort((a, b) => {
+        // First, compare based on isTagged property
+        if (a.value.isTagged !== b.value.isTagged) {
+          return a.value.isTagged ? -1 : 1; // 'true' comes before 'false'
+        }
+        // If both are tagged or untagged, then sort alphabetically by name
+        return a.value.name.localeCompare(b.value.name);
+      });
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  }  */
+  }
 
   /* microservices */
 
