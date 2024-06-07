@@ -67,3 +67,8 @@ export type SupervisorRaw = {
   employeeId: string;
   fullName: string;
 };
+
+export type EmployeeListsRaw = {
+  value: string;
+  label: string;
+};

@@ -1,5 +1,12 @@
 import { FindEmployeesPatterns, MicroserviceClient } from '@gscwd-api/microservices';
-import { BenchmarkParticipantsRaw, EmployeeFullNameRaw, OrganizationEmployeeRaw, OrganizationRaw, SupervisorRaw } from '@gscwd-api/utils';
+import {
+  BenchmarkParticipantsRaw,
+  EmployeeFullNameRaw,
+  EmployeeListsRaw,
+  OrganizationEmployeeRaw,
+  OrganizationRaw,
+  SupervisorRaw,
+} from '@gscwd-api/utils';
 import { HttpException, Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -77,11 +84,11 @@ export class HrmsEmployeesService {
   }
 
   async findAllEmployeeUnderSupervisor(supervisorId: string) {
-    return await this.microserviceClient.call({
+    return (await this.microserviceClient.call({
       action: 'send',
       pattern: 'get_employees_under_manager',
       payload: supervisorId,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+    })) as Array<EmployeeListsRaw>;
   }
 }

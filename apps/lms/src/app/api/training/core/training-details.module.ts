@@ -12,7 +12,7 @@ import { TrainingRecommendedEmployeesModule } from '../components/recommended-em
 import { TrainingApprovalsModule } from '../components/approvals';
 import { TrainingRequirementsModule } from '../components/requirements';
 import { LspRatingModule } from '../../lsp-rating';
-import { HrmsEmployeesModule } from '../../../services/hrms';
+import { HrmsEmployeeTagsModule, HrmsEmployeesModule } from '../../../services/hrms';
 
 @Module({
   imports: [
@@ -26,6 +26,7 @@ import { HrmsEmployeesModule } from '../../../services/hrms';
     TrainingRequirementsModule,
     LspRatingModule,
     HrmsEmployeesModule,
+    HrmsEmployeeTagsModule,
   ],
   controllers: [TrainingDetailsController, TrainingDetailsMicroserviceController],
   providers: [TrainingDetailsService],
