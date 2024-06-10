@@ -167,7 +167,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
             },
             supervisorId: supervisorId,
             numberOfSlots: slot,
-            status: TrainingDistributionStatus.NOMINATION_COMPLETED,
+            status: TrainingDistributionStatus.NOMINATION_SUBMITTED,
           },
           onError: () => {
             throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
@@ -213,7 +213,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
         const countEmployees = employees.length;
 
         /* set training distribution status complete or ineligible */
-        const status = countEmployees === 0 ? TrainingDistributionStatus.NOMINATION_INELIGIBLE : TrainingDistributionStatus.NOMINATION_COMPLETED;
+        const status = countEmployees === 0 ? TrainingDistributionStatus.NOMINATION_SKIPPED : TrainingDistributionStatus.NOMINATION_SUBMITTED;
 
         /* edit training distribution status by id */
         await this.crudService.transact<TrainingDistribution>(entityManager).update({
