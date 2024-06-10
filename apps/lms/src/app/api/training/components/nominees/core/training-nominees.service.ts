@@ -136,7 +136,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         const countEmployees = employees.length;
 
         /* set training distribution status complete or ineligible */
-        const status = countEmployees === 0 ? TrainingDistributionStatus.NOMINATION_INELIGIBLE : TrainingDistributionStatus.NOMINATION_COMPLETED;
+        const status = countEmployees === 0 ? TrainingDistributionStatus.NOMINATION_SKIPPED : TrainingDistributionStatus.NOMINATION_SUBMITTED;
 
         /* edit training distribution status by id */
         await this.trainingDistributionsService
