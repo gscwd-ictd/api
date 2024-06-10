@@ -465,7 +465,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       FROM 
       ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
         INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
-        WHERE la.employee_id_fk = ? AND (la.status = 'approved' OR la.status='for hrmo approval' OR la.status='for hrdm approval' or la.status='for supervisor approval'))
+        WHERE la.employee_id_fk = ? AND (la.status = 'approved' OR la.status='for hrmo credit certification' OR la.status='for hrdm approval' or la.status='for supervisor approval'))
       UNION 
       (SELECT DATE_FORMAT(holiday_date, '%Y-%m-%d') unavailableDate,'Holiday' AS type FROM holidays 
       WHERE holiday_date BETWEEN DATE_SUB(DATE_SUB(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY) AND DATE_ADD(DATE_ADD(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY))) AS unavailableDates 

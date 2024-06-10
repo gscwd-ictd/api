@@ -15,13 +15,14 @@ export class OvertimeReportsController {
   }
 
   @Get(':immediate_supervisor_employee_id/:year/:month/')
-  async getOvertimeSummary(
+  async getOvertimeSummaryRegular(
     @Param('immediate_supervisor_employee_id') immediateSupervisorEmployeeId: string,
     @Param('year') year: number,
     @Param('month') month: number,
-    @Query('half') half: OvertimeSummaryHalf
+    @Query('half') half: OvertimeSummaryHalf,
+    @Query('nature_of_appointment') natureOfAppointment: string
   ) {
-    return await this.overtimeService.getOvertimeSummaryRegular(immediateSupervisorEmployeeId, year, month, half);
+    return await this.overtimeService.getOvertimeSummaryRegular(immediateSupervisorEmployeeId, year, month, half, natureOfAppointment);
   }
 
   @Get('/accomplishment/individual/:overtime_application_id/:employee_id/')

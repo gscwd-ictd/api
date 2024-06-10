@@ -1115,6 +1115,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   async addDtrRemarksPerEmployee(createDtrRemarksDto: CreateDtrRemarksDto) {
     const { companyId, dtrDates, remarks } = createDtrRemarksDto;
+    console.log('dtr dates', createDtrRemarksDto);
     const dtrRemarks = await Promise.all(
       dtrDates.map(async (dtrDate) => {
         return await this.crudService.create({ dto: { companyId, dtrDate, remarks } });
