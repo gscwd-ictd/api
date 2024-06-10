@@ -137,53 +137,6 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         onError: (error) => {
           throw error;
         },
-  /* insert training nominees */
-  async createNominees(data: CreateTrainingNomineeDto) {
-    try {
-      return await this.datasource.transaction(async (entityManager) => {
-        /* deconstruct data */
-        const { employees, trainingDistribution } = data;
-
-        /* count the number of employees nominated */
-        const countEmployees = employees.length;
-
-        /* set training distribution status complete or ineligible */
-        const status = countEmployees === 0 ? TrainingDistributionStatus.NOMINATION_SKIPPED : TrainingDistributionStatus.NOMINATION_SUBMITTED;
-
-        /* edit training distribution status by id */
-        await this.trainingDistributionsService
-          .crud()
-          .transact<TrainingDistribution>(entityManager)
-          .update({
-            updateBy: {
-              id: trainingDistribution,
-            },
-            dto: {
-              status: status,
-            },
-            onError: (error) => {
-              throw error;
-            },
-          });
-
-        /* insert training nominees */
-        await Promise.all(
-          employees.map(async (items) => {
-            return await this.crudService.transact<TrainingNominee>(entityManager).create({
-              dto: {
-                ...items,
-                trainingDistribution: {
-                  id: trainingDistribution,
-                },
-              },
-              onError: (error) => {
-                throw error;
-              },
-            });
-          })
-        );
-
-        return data;
       });
     } catch (error) {
       Logger.error(error);
