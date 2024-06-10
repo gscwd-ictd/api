@@ -1063,7 +1063,44 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       });
     } catch (error) {
       Logger.error(error);
-      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* count nominee by training id */
+  async findAndCountNomineeByTrainingId(trainingId: string) {
+    try {
+      const count = await this.crudService
+        .getRepository()
+        .createQueryBuilder('tdd')
+        .select(`count(case when tn.status = 'pending' and tn.nominee_type = 'nominee' then 1 end)`, 'pending')
+        .addSelect(`count(case when tn.status = 'accepted' and tn.nominee_type = 'nominee' then 1 end)`, 'accepted')
+        .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'declined')
+        .addSelect('tdd.number_of_participants', 'numberOfParticipants')
+        .leftJoin('training_distributions', 'td', 'tdd.training_details_id = td.training_details_id_fk')
+        .leftJoin('training_nominees', 'tn', 'td.training_distribution_id = tn.training_distribution_id_fk')
+        .where('td.training_details_id_fk = :trainingId', { trainingId: trainingId })
+        .groupBy('tdd.number_of_participants')
+        .getRawOne();
+
+      const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
+      const nomineeType = NomineeType.NOMINEE;
+      const nomineeStatus = null;
+
+      const nominees = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
+
+      return {
+        numberOfParticipants: count.numberOfParticipants,
+        countStatus: {
+          pending: parseInt(count.pending),
+          accepted: parseInt(count.accepted),
+          declined: parseInt(count.declined),
+        },
+        nominees: nominees,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 

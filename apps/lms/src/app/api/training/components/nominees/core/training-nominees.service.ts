@@ -1,28 +1,25 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import {
+  CreateAdditionalNomineeDto,
+  CreateNomineeDto,
   CreateStandInNomineeDto,
-  CreateTrainingNomineeDto,
   RequirementsDto,
   TrainingBatchDto,
-  TrainingDistribution,
   TrainingNominee,
   UpdateTrainingNomineeStatusDto,
 } from '@gscwd-api/models';
-import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
+import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
-import { DataSource, EntityManager, IsNull, MoreThanOrEqual, Not } from 'typeorm';
-import { TrainingDistributionsService } from '../../slot-distributions';
+import { EntityManager, IsNull, MoreThanOrEqual, Not } from 'typeorm';
 import { TrainingRequirementsService } from '../../requirements';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   constructor(
     private readonly crudService: CrudService<TrainingNominee>,
-    private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
-    private readonly trainingRequirementsService: TrainingRequirementsService,
-    private readonly datasource: DataSource
+    private readonly trainingRequirementsService: TrainingRequirementsService
   ) {
     super(crudService);
   }
@@ -125,53 +122,21 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
 
   /* microservices for employees portal */
 
-  /* insert training nominees */
-  async createNominees(data: CreateTrainingNomineeDto) {
+  /* create nominee */
+  async createNominee(data: CreateNomineeDto, entityManager: EntityManager) {
     try {
-      return await this.datasource.transaction(async (entityManager) => {
-        /* deconstruct data */
-        const { employees, trainingDistribution } = data;
-
-        /* count the number of employees nominated */
-        const countEmployees = employees.length;
-
-        /* set training distribution status complete or ineligible */
-        const status = countEmployees === 0 ? TrainingDistributionStatus.NOMINATION_INELIGIBLE : TrainingDistributionStatus.NOMINATION_COMPLETED;
-
-        /* edit training distribution status by id */
-        await this.trainingDistributionsService
-          .crud()
-          .transact<TrainingDistribution>(entityManager)
-          .update({
-            updateBy: {
-              id: trainingDistribution,
-            },
-            dto: {
-              status: status,
-            },
-            onError: (error) => {
-              throw error;
-            },
-          });
-
-        /* insert training nominees */
-        await Promise.all(
-          employees.map(async (items) => {
-            return await this.crudService.transact<TrainingNominee>(entityManager).create({
-              dto: {
-                ...items,
-                trainingDistribution: {
-                  id: trainingDistribution,
-                },
-              },
-              onError: (error) => {
-                throw error;
-              },
-            });
-          })
-        );
-
-        return data;
+      const { trainingDistribution, employeeId, nomineeType } = data;
+      return await this.crudService.transact<TrainingNominee>(entityManager).create({
+        dto: {
+          trainingDistribution: {
+            id: trainingDistribution,
+          },
+          employeeId: employeeId,
+          nomineeType: nomineeType,
+        },
+        onError: (error) => {
+          throw error;
+        },
       });
     } catch (error) {
       Logger.error(error);
@@ -229,52 +194,6 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           };
         })
       );
-    } catch (error) {
-      Logger.error(error);
-      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  /* count nominee by training id */
-  async countNomineeByTrainingId(trainingId: string) {
-    try {
-      return await this.crudService
-        .getRepository()
-        .createQueryBuilder('tn')
-        .select(`count(case when tn.status = 'pending' and tn.nominee_type = 'nominee' then 1 end)`, 'pending')
-        .addSelect(`count(case when tn.status = 'accepted' and tn.nominee_type = 'nominee' then 1 end)`, 'accepted')
-        .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'declined')
-        .addSelect('tdd.number_of_participants', 'numberOfParticipants')
-        .innerJoin('training_distributions', 'td', 'tn.training_distribution_id_fk = td.training_distribution_id')
-        .innerJoin('training_details', 'tdd', 'td.training_details_id_fk = tdd.training_details_id')
-        .where('td.training_details_id_fk = :trainingId', { trainingId: trainingId })
-        .groupBy('tdd.number_of_participants')
-        .getRawOne();
-    } catch (error) {
-      Logger.error(error);
-      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
-    }
-  }
-
-  /* find and count nominee by training id */
-  async findAndCountNomineeByTrainingId(trainingId: string) {
-    try {
-      const count = await this.countNomineeByTrainingId(trainingId);
-
-      const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
-      const nomineeType = NomineeType.NOMINEE;
-      const nomineeStatus = null;
-
-      const nominees = await this.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
-      return {
-        numberOfParticipants: count.numberOfParticipants,
-        countStatus: {
-          pending: parseInt(count.pending),
-          accepted: parseInt(count.accepted),
-          declined: parseInt(count.declined),
-        },
-        nominees: nominees,
-      };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -765,6 +684,37 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* create additional nominee */
+  async createAdditionalNominee(data: CreateAdditionalNomineeDto, entityManager: EntityManager) {
+    try {
+      const { trainingDistributionId, employeeId } = data;
+
+      const nominee = await this.crudService.transact<TrainingNominee>(entityManager).create({
+        dto: {
+          trainingDistribution: {
+            id: trainingDistributionId,
+          },
+          employeeId: employeeId,
+          nomineeType: NomineeType.NOMINEE,
+          status: TrainingNomineeStatus.ACCEPTED,
+        },
+        onError: () => {
+          throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+        },
+      });
+
+      return {
+        nomineeId: nominee.id,
+        employeeId: nominee.employeeId,
+        status: nominee.status,
+      };
+    } catch (error) {
+      Logger.error(error);
+      if (error instanceof HttpException) throw error;
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
 }
