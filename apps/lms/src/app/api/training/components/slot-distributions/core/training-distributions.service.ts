@@ -1,17 +1,20 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingDistributionDto, TrainingDistribution } from '@gscwd-api/models';
+import { CreateAdditionalNomineesDto, CreateTrainingDistributionDto, CreateTrainingNomineeDto, TrainingDistribution } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { EntityManager, MoreThan } from 'typeorm';
+import { DataSource, EntityManager, MoreThan } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../recommended-employees';
 import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
 import { TrainingDistributionStatus, TrainingStatus } from '@gscwd-api/utils';
+import { TrainingNomineesService } from '../../nominees';
 
 @Injectable()
 export class TrainingDistributionsService extends CrudHelper<TrainingDistribution> {
   constructor(
     private readonly crudService: CrudService<TrainingDistribution>,
     private readonly trainingRecommendedEmployeesService: TrainingRecommendedEmployeeService,
-    private readonly hrmsEmployeesService: HrmsEmployeesService
+    private readonly trainingNomineesService: TrainingNomineesService,
+    private readonly hrmsEmployeesService: HrmsEmployeesService,
+    private readonly datasource: DataSource
   ) {
     super(crudService);
   }
@@ -149,7 +152,103 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     }
   }
 
+  /* create additional nominees */
+  async createAdditionalNominees(data: CreateAdditionalNomineesDto) {
+    try {
+      return await this.datasource.transaction(async (entityManager) => {
+        const { trainingId, supervisorId, employees } = data;
+
+        const slot = employees.length;
+
+        const trainingDistribution = await this.crudService.transact<TrainingDistribution>(entityManager).create({
+          dto: {
+            trainingDetails: {
+              id: trainingId,
+            },
+            supervisorId: supervisorId,
+            numberOfSlots: slot,
+            status: TrainingDistributionStatus.NOMINATION_COMPLETED,
+          },
+          onError: () => {
+            throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+          },
+        });
+
+        const trainingNominees = await Promise.all(
+          employees.map(async (items) => {
+            return await this.trainingNomineesService.createAdditionalNominee(
+              {
+                trainingDistributionId: trainingDistribution.id,
+                employeeId: items.employeeId,
+              },
+              entityManager
+            );
+          })
+        );
+
+        return {
+          trainingId: trainingDistribution.trainingDetails.id,
+          distributionId: trainingDistribution.id,
+          supervisorId: trainingDistribution.supervisorId,
+          employees: trainingNominees,
+        };
+      });
+    } catch (error) {
+      Logger.error(error);
+      if (error instanceof HttpException) throw error;
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   /* microservices for employees portal */
+
+  /* insert training nominees */
+  async createNominees(data: CreateTrainingNomineeDto) {
+    try {
+      return await this.datasource.transaction(async (entityManager) => {
+        /* deconstruct data */
+        const { employees, trainingDistribution } = data;
+
+        /* count the number of employees nominated */
+        const countEmployees = employees.length;
+
+        /* set training distribution status complete or ineligible */
+        const status = countEmployees === 0 ? TrainingDistributionStatus.NOMINATION_INELIGIBLE : TrainingDistributionStatus.NOMINATION_COMPLETED;
+
+        /* edit training distribution status by id */
+        await this.crudService.transact<TrainingDistribution>(entityManager).update({
+          updateBy: {
+            id: trainingDistribution,
+          },
+          dto: {
+            status: status,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+
+        /* insert training nominees */
+        await Promise.all(
+          employees.map(async (items) => {
+            return await this.trainingNomineesService.createNominee(
+              {
+                trainingDistribution: trainingDistribution,
+                employeeId: items.employeeId,
+                nomineeType: items.nomineeType,
+              },
+              entityManager
+            );
+          })
+        );
+
+        return data;
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
 
   /* find all distributed training by supervisor id */
   async findAllDistributionBySupervisorId(supervisorId: string) {
