@@ -119,6 +119,7 @@ export enum Report {
   REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE_WITH_MONEY = 'report on employee leave credit balance with money',
   REPORT_ON_SUMMARY_OF_LEAVE_WITHOUT_PAY = 'report on summary of leave without pay',
   REPORT_ON_SUMMARY_OF_SICK_LEAVE = 'report on summary of sick leave',
+  REPORT_ON_REHABILITATION_LEAVE = 'report on summary of rehabilitation leave',
 }
 
 export type VacationLeaveDetails = {

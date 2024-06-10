@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto } from '@gscwd-api/models';
+import { CreateDtrRemarksDto, DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto, UpdateDtrRemarksDto } from '@gscwd-api/models';
 import { DtrPayload, IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
@@ -225,6 +225,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     const restHourStart = dayjs('2024-01-01 ' + schedule.timeIn).add(4, 'h');
     const restHourEnd = dayjs('2024-01-01 ' + schedule.timeIn).add(5, 'h');
 
+    const dtrRemarks = (
+      await this.rawQuery(`SELECT remarks FROM daily_time_record WHERE company_id_fk = ? AND dtr_date=?`, [dtr.companyId, dtr.dtrDate])
+    )[0].remarks;
+
     const overtimeApplicationCount = (
       await this.rawQuery(
         `
@@ -310,7 +314,16 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       }
 
-      if (dtr.lunchIn === null && dtr.lunchOut === null && dtr.timeIn === null && dtr.timeOut === null && schedule.scheduleName !== null) {
+      //console.log('DTR REMARKS: ', dtrRemarks);
+
+      if (
+        dtr.lunchIn === null &&
+        dtr.lunchOut === null &&
+        dtr.timeIn === null &&
+        dtr.timeOut === null &&
+        schedule.scheduleName !== null &&
+        dtrRemarks.length === 0
+      ) {
         noAttendance = 1;
       }
 
@@ -1098,5 +1111,21 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       )
     )[0] as DtrCorrection;
     return dtrCorrection;
+  }
+
+  async addDtrRemarksPerEmployee(createDtrRemarksDto: CreateDtrRemarksDto) {
+    const { companyId, dtrDates, remarks } = createDtrRemarksDto;
+    console.log('dtr dates', createDtrRemarksDto);
+    const dtrRemarks = await Promise.all(
+      dtrDates.map(async (dtrDate) => {
+        return await this.crudService.create({ dto: { companyId, dtrDate, remarks } });
+      })
+    );
+    return dtrRemarks;
+  }
+
+  async updateDtrRemarksPerEmployeePerDay(updateDtrRemarksDto: UpdateDtrRemarksDto) {
+    const dtrRemarksResult = await this.crud().update({ dto: { remarks: updateDtrRemarksDto.remarks }, updateBy: { id: updateDtrRemarksDto.dtrId } });
+    if (dtrRemarksResult.affected > 0) return updateDtrRemarksDto;
   }
 }

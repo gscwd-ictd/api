@@ -614,12 +614,14 @@ export class OvertimeService {
     const restDays = employeeSchedules !== null ? employeeSchedules[0].restDays : null;
     const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
 
+    console.log('OVERTIMEAPPLICATION ', overtimeApplicationId);
     const overtimeDetails = (await this.overtimeAccomplishmentService.crud().findOne({
       find: {
         where: { overtimeEmployeeId: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } },
         relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
       },
     })) as OvertimeAccomplishment;
+    console.log('overtimedetails ', overtimeDetails);
 
     const supervisorId = (await this.employeeService.getEmployeeSupervisorId(employeeId)).toString();
 
@@ -631,6 +633,8 @@ export class OvertimeService {
 
     let didFaceScan = null;
     let dtr = null;
+
+    console.log('PLANNED DATE', overtimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate);
 
     dtr = await this.dailyTimeRecordService.getDtrByCompanyIdAndDay({
       companyId: employeeDetails.companyId,
@@ -877,8 +881,10 @@ export class OvertimeService {
 
   async getOvertimeAccomplishmentByEmployeeId(employeeId: string) {
     //!TODO refactor this
+
     try {
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
+
       const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
 
       const pendingOvertimes = (await this.overtimeAccomplishmentService.crud().findAll({
@@ -1074,7 +1080,13 @@ export class OvertimeService {
     return { ...overtimeApplication, employees, signatories: { ...supervisorAndManagerNames, supervisorPosition } };
   }
 
-  async getOvertimeSummaryRegular(immediateSupervisorEmployeeId: string, year: number, month: number, half: OvertimeSummaryHalf) {
+  async getOvertimeSummaryRegular(
+    immediateSupervisorEmployeeId: string,
+    year: number,
+    month: number,
+    half: OvertimeSummaryHalf,
+    _natureOfAppointment: string
+  ) {
     //
     console.log('Immediate Supervisor Id', immediateSupervisorEmployeeId);
     const numOfDays = dayjs(year + '-' + month + '-1').daysInMonth();
@@ -1093,24 +1105,38 @@ export class OvertimeService {
     const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
     const employees = (await this.overtimeApplicationService.rawQuery(
       `
-      SELECT DISTINCT oe.employee_id_fk employeeId FROM overtime_employee oe 
+      SELECT DISTINCT oe.employee_id_fk employeeId, oe.salary_grade_amount salaryGradeAmount,oe.daily_rate dailyRate FROM overtime_employee oe 
         INNER JOIN overtime_application oa ON oa.overtime_application_id = oe.overtime_application_id_fk 
         INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
-      WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND date_format(planned_date,'%d') IN (?) AND ois.employee_id_fk = ?
+        INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id 
+      WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND date_format(planned_date,'%d') IN (?) 
+      AND ois.employee_id_fk = ? 
+      AND oacc.status = 'approved'
     ;`,
       [year, _month, days, immediateSupervisorEmployeeId]
-    )) as { employeeId: string }[];
+    )) as { employeeId: string; salaryGradeAmount: number; dailyRate: number }[];
     const employeeDetails = await Promise.all(
       employees.map(async (employee) => {
         let totalRegularOTHoursRendered = 0;
         let totalOffOTHoursRendered = 0;
         //check if regular employee
         const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(employee.employeeId);
-        if (natureOfAppointment !== 'permanent' && natureOfAppointment !== 'casual') return null;
+        if (
+          natureOfAppointment !== _natureOfAppointment
+          //&& natureOfAppointment !== 'casual'
+        )
+          return null;
         const details = await this.employeeService.getEmployeeDetails(employee.employeeId);
-        const hourlyMonthlyRate = (await this.employeeService.getMonthlyHourlyRateByEmployeeId(employee.employeeId)) as {
-          monthlyRate: number;
-          hourlyRate: number;
+        //revise hourlyMonthlyRate get from overtime employee
+        // const hourlyMonthlyRate = (await this.employeeService.getMonthlyHourlyRateByEmployeeId(employee.employeeId)) as {
+        //   monthlyRate: number;
+        //   hourlyRate: number;
+        // };
+        const hourlyMonthlyRate = {
+          hourlyRate:
+            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount / 22 / 8 : employee.dailyRate / 8,
+          monthlyRate:
+            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate * 22,
         };
 
         const { employeeFullName, userId, assignment } = details;
@@ -1119,7 +1145,6 @@ export class OvertimeService {
           days.map(async (_day) => {
             const empSched = await this.isRegularOvertimeDay(employee.employeeId, year, month, _day);
             //!TODO get every overtime of the employee on specific year and month on specified days in the half chosen
-
             try {
               const overtime = (await this.overtimeApplicationService.rawQuery(
                 `
@@ -1140,6 +1165,7 @@ export class OvertimeService {
               const overtimeDetails = await Promise.all(
                 overtime.map(async (overtimeDetail) => {
                   const { overtimeApplicationId } = overtimeDetail;
+
                   return { day: _day, ...(await this.getOvertimeDetails(employee.employeeId, overtimeApplicationId)) };
                 })
               );
@@ -1186,8 +1212,12 @@ export class OvertimeService {
           })
         );
         const { hourlyRate } = hourlyMonthlyRate;
-        const regularOTAmount = Math.round((hourlyRate * totalRegularOTHoursRendered * 1.25 + Number.EPSILON) * 100) / 100;
-        const offOTAmount = Math.round((hourlyRate * totalOffOTHoursRendered * 1.5 + Number.EPSILON) * 100) / 100;
+
+        const regularMultiplier = natureOfAppointment === 'permanent' || natureOfAppointment === 'casual' ? 1.25 : 1;
+        const offMultiplier = natureOfAppointment === 'permanent' || natureOfAppointment === 'casual' ? 1.5 : 1;
+
+        const regularOTAmount = Math.round((hourlyRate * totalRegularOTHoursRendered * regularMultiplier + Number.EPSILON) * 100) / 100;
+        const offOTAmount = Math.round((hourlyRate * totalOffOTHoursRendered * offMultiplier + Number.EPSILON) * 100) / 100;
         const totalOTHoursRendered = totalRegularOTHoursRendered + totalOffOTHoursRendered;
         const substituteDutyOTHours = 0;
         const substituteAmount = 0;
@@ -1301,8 +1331,10 @@ export class OvertimeService {
         [year, month, day]
       )
     )[0].isHoliday;
-    const dayOfWeek = dayjs(year + '-' + month + '-' + day).day();
-    if (dayOfWeek in restDays || isHoliday === '1') return false;
+    const dayOfWeek = dayjs(year + '-' + month + '-' + day)
+      .day()
+      .toString();
+    if (restDays.includes(dayOfWeek) || isHoliday === '1') return false;
     return true;
   }
 

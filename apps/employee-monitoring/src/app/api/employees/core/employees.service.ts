@@ -69,7 +69,10 @@ export class EmployeesService {
       action: 'send',
       payload: employeeId,
       pattern: 'get_employee_details',
-      onError: (error) => new NotFoundException(error),
+      onError: (error) => {
+        console.log('asdzxc', error);
+        throw new NotFoundException(error);
+      },
     })) as EmployeeDetails;
 
     return employeeDetails;
@@ -208,5 +211,14 @@ export class EmployeesService {
       pattern: 'get_all_assignable_supervisory_employees_by_id',
       payload: employeeId,
     })) as { label: string; value: string }[];
+  }
+
+  //get_salary_grade_or_daily_rate_by_employee_id
+  async getSalaryGradeOrDailyRateByEmployeeId(employeeId) {
+    return (await this.client.call<string, string, object>({
+      action: 'send',
+      pattern: 'get_salary_grade_or_daily_rate_by_employee_id',
+      payload: employeeId,
+    })) as { salaryGradeAmount: number; amount: number; dailyRate: number };
   }
 }
