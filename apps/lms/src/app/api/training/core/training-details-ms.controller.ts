@@ -43,7 +43,7 @@ export class TrainingDetailsMicroserviceController {
   @MessagePattern(TrainingPatterns.ADD_NOMINEES_BY_TRAINING_DISTRIBUTION_ID)
   async createNominees(@Payload() data: CreateTrainingNomineeDto) {
     try {
-      return await this.trainingNomineesService.createNominees(data);
+      return await this.trainingDistributionsService.createNominees(data);
     } catch (error) {
       throw new RpcException(error);
     }
@@ -235,7 +235,7 @@ export class TrainingDetailsMicroserviceController {
   /* insert training nominees by training distribution id */
   @Post('training/distributions/nominees')
   async createTrainingNominees(@Body() data: CreateTrainingNomineeDto) {
-    return await this.trainingNomineesService.createNominees(data);
+    return await this.trainingDistributionsService.createNominees(data);
   }
 
   /* find all training nominees by distribution id */

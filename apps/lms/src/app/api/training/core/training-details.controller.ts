@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import {
   BatchRequirementsDto,
+  CreateAdditionalNomineesDto,
   CreateStandInNomineeDto,
   CreateTrainingBatchDto,
   CreateTrainingExternalDto,
@@ -282,7 +283,7 @@ export class TrainingDetailsController {
   /* find all nominees by training id */
   @Get(':id/nominees')
   async findAllNomineesByTrainingId(@Param('id') id: string) {
-    return await this.trainingNomineesService.findAndCountNomineeByTrainingId(id);
+    return await this.trainingDetailsService.findAndCountNomineeByTrainingId(id);
   }
 
   /* send approvals to the personnel development committee */
@@ -360,5 +361,11 @@ export class TrainingDetailsController {
   @Post('distributions/standin')
   async createStandinNominee(@Body() data: CreateStandInNomineeDto) {
     return await this.trainingNomineesService.createStandinNominee(data);
+  }
+
+  /* create additional trainees */
+  @Post('additional-trainees')
+  async createAdditionalTrainees(@Body() data: CreateAdditionalNomineesDto) {
+    return await this.trainingDistributionsService.createAdditionalNominees(data);
   }
 }

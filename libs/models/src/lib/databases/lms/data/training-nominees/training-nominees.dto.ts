@@ -18,6 +18,12 @@ export class NomineeDto {
   nomineeType: NomineeType;
 }
 
+export class CreateNomineeDto extends NomineeDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  trainingDistribution: string;
+}
+
 export class CreateTrainingNomineeDto {
   @IsNotEmpty()
   @IsUUID('4')
@@ -51,4 +57,16 @@ export class CreateStandInNomineeDto {
   @IsNotEmpty()
   @IsUUID('4')
   standinId: string;
+}
+
+export class AdditionalNomineeDto {
+  @IsNotEmpty()
+  @IsUUID('all')
+  employeeId: string;
+}
+
+export class CreateAdditionalNomineeDto extends AdditionalNomineeDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  trainingDistributionId: string;
 }
