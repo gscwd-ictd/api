@@ -1,4 +1,4 @@
-import { CreateDtrRemarksDto, UpdateDailyTimeRecordDto } from '@gscwd-api/models';
+import { CreateDtrRemarksDto, UpdateDailyTimeRecordDto, UpdateDtrRemarksDto } from '@gscwd-api/models';
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { DailyTimeRecordService } from './daily-time-record.service';
 
@@ -39,5 +39,10 @@ export class DailyTimeRecordController {
   @Post('remarks')
   async addDtrRemarksPerEmployee(@Body() createDtrRemarksDto: CreateDtrRemarksDto) {
     return await this.dailyTimeRecordService.addDtrRemarksPerEmployee(createDtrRemarksDto);
+  }
+
+  @Patch('remarks')
+  async updateDtrRemarksPerEmployeePerDay(@Body() updateDtrRemarksDto: UpdateDtrRemarksDto) {
+    return await this.dailyTimeRecordService.updateDtrRemarksPerEmployeePerDay(updateDtrRemarksDto);
   }
 }

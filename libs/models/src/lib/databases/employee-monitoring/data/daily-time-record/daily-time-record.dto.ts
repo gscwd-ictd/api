@@ -23,3 +23,8 @@ export class CreateDtrRemarksDto extends PickType(DailyTimeRecordDto, ['companyI
   dtrDates: Date[];
   remarks: string;
 }
+
+export class UpdateDtrRemarksDto {
+  dtrId: string;
+  remarks: string;
+}
