@@ -8,7 +8,7 @@ import {
   TrainingNominee,
   UpdateTrainingNomineeStatusDto,
 } from '@gscwd-api/models';
-import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
+import { NomineeType, TrainingNomineeRaw, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { EntityManager, IsNull, MoreThanOrEqual, Not } from 'typeorm';
@@ -145,8 +145,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   }
 
   /* find all training nominee by distribution id (nominee type = nominee or stand-in) */
-  async findAllNomineesByDistributionId(distributionId: string, nomineeType: NomineeType) {
+  async findAllNomineesByDistributionId(data: TrainingNomineeRaw) {
     try {
+      const { trainingId, supervisorId, nomineeType } = data;
       /* find all training training nominee */
       const distribution = (await this.crudService.findAll({
         find: {
@@ -167,8 +168,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           where: {
             nomineeType: nomineeType,
             trainingDistribution: {
-              id: distributionId,
+              supervisorId: supervisorId,
               trainingDetails: {
+                id: trainingId,
                 status: MoreThanOrEqual(TrainingStatus.PENDING),
               },
             },

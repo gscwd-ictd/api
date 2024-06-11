@@ -50,11 +50,10 @@ export class TrainingDetailsMicroserviceController {
   }
 
   /* find all training nominees (type = nominee or stand-in) by distribution id */
-  @MessagePattern(TrainingPatterns.FIND_TRAINING_NOMINEES_BY_DISTRIBUTION_ID)
+  @MessagePattern(TrainingPatterns.FIND_TRAINING_NOMINEES_BY_SUPERVISOR_ID)
   async findAllNomineesByDistributionId(@Payload() data: TrainingNomineeRaw) {
     try {
-      const { distributionId, nomineeType } = data;
-      return await this.trainingNomineesService.findAllNomineesByDistributionId(distributionId, nomineeType);
+      return await this.trainingNomineesService.findAllNomineesByDistributionId(data);
     } catch (error) {
       throw new RpcException(error);
     }
@@ -239,10 +238,10 @@ export class TrainingDetailsMicroserviceController {
   }
 
   /* find all training nominees by distribution id */
-  @Get('training/distributions/:id/nominees')
-  async findAllTrainingNomineesByDistributionId(@Param('id') distributionId: string) {
+  @Get('training/:trainingId/distributions/supervisors/:supervisorId/nominees')
+  async findAllTrainingNomineesByDistributionId(@Param('trainingId') trainingId: string, @Param('supervisorId') supervisorId: string) {
     const nomineeType = null;
-    return await this.trainingNomineesService.findAllNomineesByDistributionId(distributionId, nomineeType);
+    return await this.trainingNomineesService.findAllNomineesByDistributionId({ trainingId, supervisorId, nomineeType });
   }
 
   /* find all training details assigned to employees by employee id. */

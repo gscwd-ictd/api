@@ -20,4 +20,7 @@ export class TrainingDistribution extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'status', type: 'enum', enum: TrainingDistributionStatus, default: TrainingDistributionStatus.NOMINATION_PENDING })
   status: TrainingDistributionStatus;
+
+  @Column({ name: 'remarks', type: 'text', nullable: true })
+  remarks: string;
 }

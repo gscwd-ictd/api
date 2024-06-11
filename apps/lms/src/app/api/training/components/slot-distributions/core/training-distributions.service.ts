@@ -78,11 +78,13 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
         .addSelect(`count(case when tn.status = 'accepted' and tn.nominee_type = 'nominee' then 1 end)`, 'accepted')
         .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'declined')
         .addSelect('td.status', 'status')
+        .addSelect('td.remarks', 'remarks')
         .leftJoin('training_nominees', 'tn', 'td.training_distribution_id = tn.training_distribution_id_fk')
         .where('td.training_details_id_fk = :trainingId', { trainingId: trainingId })
         .groupBy('td.employee_id_fk ')
         .addGroupBy('td.no_of_slots')
         .addGroupBy('td.status')
+        .addGroupBy('td.remarks')
         .getRawMany();
 
       return Promise.all(
@@ -96,6 +98,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
             accepted: parseInt(items.accepted),
             declined: parseInt(items.declined),
             status: items.status,
+            remarks: items.remarks,
           };
         })
       );
@@ -207,7 +210,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
     try {
       return await this.datasource.transaction(async (entityManager) => {
         /* deconstruct data */
-        const { employees, trainingDistribution } = data;
+        const { employees, trainingDistribution, remarks } = data;
 
         /* count the number of employees nominated */
         const countEmployees = employees.length;
@@ -222,6 +225,7 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
           },
           dto: {
             status: status,
+            remarks: remarks,
           },
           onError: (error) => {
             throw error;
