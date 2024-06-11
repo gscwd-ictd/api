@@ -33,6 +33,10 @@ export class CreateTrainingNomineeDto {
   @ValidateNested({ each: true })
   @Type(() => NomineeDto)
   employees: Array<NomineeDto>;
+
+  @IsOptional()
+  @IsString({ message: 'remarks must be string' })
+  remarks: string;
 }
 
 export class UpdateTrainingNomineeStatusDto {
