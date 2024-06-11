@@ -1039,7 +1039,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       const assignable = await Promise.all(
         employees
-          .filter(async (items) => !nomineesId.includes(items.value))
+          .filter((items) => !nomineesId.includes(items.value))
           .map(async (items) => {
             const isTagged = await this.hrmsEmployeeTagsService.checkEmployeeTags(items.value, tags);
             return {
@@ -1053,14 +1053,16 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
       );
 
-      return assignable.sort((a, b) => {
+      return assignable;
+
+      /* return assignable.sort((a, b) => {
         // First, compare based on isTagged property
         if (a.value.isTagged !== b.value.isTagged) {
           return a.value.isTagged ? -1 : 1; // 'true' comes before 'false'
         }
         // If both are tagged or untagged, then sort alphabetically by name
         return a.value.name.localeCompare(b.value.name);
-      });
+      }); */
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
