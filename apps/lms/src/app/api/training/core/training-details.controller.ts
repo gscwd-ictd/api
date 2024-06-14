@@ -34,13 +34,15 @@ import { FindAllTrainingInterceptor } from '../misc/interceptors';
 import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../components/nominees';
 import { TrainingRequirementsService } from '../components/requirements';
+import { TrainingDistributionsService } from '../components/slot-distributions';
 
 @Controller({ version: '1', path: 'training' })
 export class TrainingDetailsController {
   constructor(
     private readonly trainingDetailsService: TrainingDetailsService,
     private readonly trainingNomineesService: TrainingNomineesService,
-    private readonly trainingRequirementsService: TrainingRequirementsService
+    private readonly trainingRequirementsService: TrainingRequirementsService,
+    private readonly trainingDistributionsService: TrainingDistributionsService
   ) {}
 
   /* find all training */
@@ -331,11 +333,18 @@ export class TrainingDetailsController {
     return await this.trainingRequirementsService.updateNomineeRequirements(data);
   }
 
+  @Get(':trainingId/distributions')
+  async findAllSupervisorDistributionByTrainingId(@Param('trainingId') trainingId: string) {
+    return await this.trainingDistributionsService.findAllSupervisorDistributionByTrainingId(trainingId);
+  }
+
+  /* find stand in by distribution id */
   @Get('distributions/:distributionId/standin')
   async findStandInNomineeByDistributionId(@Param('distributionId') distributionId: string) {
     return await this.trainingNomineesService.findStandInNomineeByDistributionId(distributionId);
   }
 
+  /* create stand in nominee */
   @Post('distributions/standin')
   async createStandinNominee(@Body() data: CreateStandInNomineeDto) {
     return await this.trainingNomineesService.createStandinNominee(data);

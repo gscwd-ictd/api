@@ -43,6 +43,7 @@ export type LeaveApplicationType = {
   hrdmApprovalDate: Date;
   hrmoApprovalDate: Date;
   supervisorApprovalDate: Date;
+  referenceNo: string;
 };
 
 export type DtrPayload = {

@@ -133,9 +133,13 @@ export class ReportsService {
     return _employeePassSlips;
   }
 
-  async generateReportOnOfficialBusinessPassSlipDetailed(dateFrom: Date, dateTo: Date) {
-    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
-
+  async generateReportOnOfficialBusinessPassSlipDetailed(dateFrom: Date, dateTo: Date, employeeId: string) {
+    let employees;
+    if (employeeId !== '') {
+      const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
+      employees = [{ label: employeeDetails.employeeFullName, value: employeeId }];
+    } else employees = await this.employeesService.getAllPermanentCasualEmployees2();
+    console.log(employees);
     const _employeePassSlips = [];
 
     const employeePassSlips = await Promise.all(
@@ -326,7 +330,7 @@ export class ReportsService {
         reportDetails = await this.generateReportOnPersonalPassSlipDetailed(dateFrom, dateTo);
         break;
       case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
-        reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo);
+        reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo, employeeId);
         break;
       case decodeURI(Report.REPORT_ON_SUMMARY_OF_SICK_LEAVE):
         reportDetails = {};

@@ -182,7 +182,7 @@ export class OvertimeService {
     //1. get manager organization id
     const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
     //console.log(managerOrgId);
-    //check if officer of the day
+    //check if officer of the day/uncomment below if rules change again for officer of the day approval;
     //const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
     const officerOfTheDayOrgs = [];
     //console.log('officer of the day', officerOfTheDayOrgs.length);
@@ -504,6 +504,7 @@ export class OvertimeService {
               status: true,
               overtimeImmediateSupervisorId: { employeeId: true },
             },
+            order: { plannedDate: 'DESC', status: 'DESC' },
             relations: { overtimeImmediateSupervisorId: true },
           },
         })) as OvertimeApplication[]
@@ -879,7 +880,7 @@ export class OvertimeService {
     try {
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
       const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
-
+      console.log(supervisorName);
       const pendingOvertimes = (await this.overtimeAccomplishmentService.crud().findAll({
         find: {
           select: {
@@ -1301,8 +1302,10 @@ export class OvertimeService {
         [year, month, day]
       )
     )[0].isHoliday;
-    const dayOfWeek = dayjs(year + '-' + month + '-' + day).day();
-    if (dayOfWeek in restDays || isHoliday === '1') return false;
+    const dayOfWeek = dayjs(year + '-' + month + '-' + day)
+      .day()
+      .toString();
+    if (restDays.includes(dayOfWeek) || isHoliday === '1') return false;
     return true;
   }
 
