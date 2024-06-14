@@ -73,7 +73,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       //supervisorId of hrd manager for gm leave application;
       const employeePosition = (await this.employeesService.getEmployeeDetails(rest.employeeId)).assignment.positionTitle;
 
-      //console.log('Employee Leave Application',employeePosition);
       if (employeePosition === 'OIC-General Manager' || employeePosition === 'General Manager A')
         supervisorId = await this.employeesService.getHrdManagerId();
 
