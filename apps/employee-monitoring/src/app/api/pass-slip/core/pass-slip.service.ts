@@ -383,6 +383,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ps.pass_slip_id id,
         ps.employee_id_fk employeeId,
         psa.supervisor_id_fk supervisorId, 
+        ps.is_medical isMedical,
         psa.status status,
         DATE_FORMAT(ps.date_of_application,'%Y-%m-%d %H:%i:%s') dateOfApplication,
         nature_of_business natureOfBusiness, 
@@ -418,6 +419,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       timeOut: number;
       isDisputeApproved: boolean;
       disputeRemarks: string;
+      isMedical: boolean;
       encodedTimeIn: number;
       isCancelled: boolean;
       supervisorApprovalDate: Date;

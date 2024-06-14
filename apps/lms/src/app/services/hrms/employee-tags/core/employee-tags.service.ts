@@ -72,4 +72,13 @@ export class HrmsEmployeeTagsService {
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     });
   }
+
+  async checkEmployeeTags(employeeId: string, tagsId: Array<string>) {
+    return await this.microserviceClient.call({
+      action: 'send',
+      pattern: 'check_employee_tags',
+      payload: { employeeId, tagsId },
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    });
+  }
 }

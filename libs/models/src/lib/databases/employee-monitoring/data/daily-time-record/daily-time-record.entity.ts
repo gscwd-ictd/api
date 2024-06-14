@@ -31,4 +31,7 @@ export class DailyTimeRecord extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'has_correction', type: 'boolean', nullable: true })
   hasCorrection: boolean;
+
+  @Column({ name: 'remarks', type: 'text', nullable: true })
+  remarks: string;
 }

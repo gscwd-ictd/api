@@ -272,9 +272,10 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
     console.log('Monthly Leave Credit Earnings Addition executed');
   }
 
-  @Cron('0 0 0 1 * *')
+  @Cron('0 57 23 28-31 * *')
   async creditCumulativeLeavesManuallyCron() {
-    return await this.creditCumulativeLeavesManually(dayjs().toDate());
+    if (dayjs().format('YYYY-MM-DD') === dayjs().endOf('month').format('YYYY-MM-DD'))
+      return await this.creditCumulativeLeavesManually(dayjs().toDate());
   }
 
   async creditCumulativeLeavesManually(day: Date) {

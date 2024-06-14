@@ -3,6 +3,7 @@ import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-
 import { EmployeesService } from '../../employees/core/employees.service';
 import { Report, User } from '@gscwd-api/utils';
 import dayjs = require('dayjs');
+import { last } from 'rxjs';
 
 @Injectable()
 export class ReportsService {
@@ -44,44 +45,88 @@ export class ReportsService {
   }
 
   async generateReportOnSummaryOfSickLeave(dateFrom: Date, dateTo: Date, employeeId?: string) {
+    console.log('asd');
     let leaveApplications;
-    if (typeof employeeId !== 'undefined' || employeeId !== '') {
+    if (typeof employeeId === 'undefined' || employeeId === '') {
+      console.log('here here here');
       leaveApplications = await this.dtrService.rawQuery(
         `
-      SELECT 
+        SELECT 
         employee_id_fk employeeId,
+        leave_application_id leaveApplicationId,
         GROUP_CONCAT(lad.leave_date ORDER BY lad.leave_date ASC SEPARATOR ', ') leaveDates, 
-        COALESCE(in_hospital, out_patient) reason FROM leave_application la 
-          INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
-            INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
-        WHERE la.status = 'approved' AND lad.status <> 'cancelled' AND lb.leave_name = 'Sick Leave' 
-        AND la.date_of_filing BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?, INTERVAL 1 DAY)
-        GROUP BY leave_application_id;
+        DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') dateOfFiling,
+          COALESCE(in_hospital, out_patient) reason FROM leave_application la 
+              INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+              INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
+              INNER JOIN leave_card_ledger_debit lcld ON  lcld.leave_application_id_fk = la.leave_application_id
+          WHERE la.status = 'approved' AND lad.status = 'approved' AND lb.leave_name = 'Sick Leave' 
+          AND la.date_of_filing BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?,INTERVAL 1 DAY) 
+          GROUP BY leave_application_id ORDER BY DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') ASC; 
       `,
         [dateFrom, dateTo]
       );
     } else {
       leaveApplications = await this.dtrService.rawQuery(
         `
-      SELECT 
+        SELECT 
         employee_id_fk employeeId,
+        leave_application_id leaveApplicationId,
         GROUP_CONCAT(lad.leave_date ORDER BY lad.leave_date ASC SEPARATOR ', ') leaveDates, 
+        DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') dateOfFiling,
         COALESCE(in_hospital, out_patient) reason FROM leave_application la 
-          INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
-            INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
-        WHERE la.status = 'approved' AND lad.status <> 'cancelled' AND lb.leave_name = 'Sick Leave' 
-        AND la.date_of_filing BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?, INTERVAL 1 DAY) AND employee_id_fk = ?
-        GROUP BY leave_application_id;
+              INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+              INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
+              INNER JOIN leave_card_ledger_debit lcld ON  lcld.leave_application_id_fk = la.leave_application_id
+          WHERE la.status = 'approved' AND lad.status = 'approved' AND lb.leave_name = 'Sick Leave' 
+          AND la.date_of_filing BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?,INTERVAL 1 DAY) AND employee_id_fk = ?
+          GROUP BY leave_application_id ORDER BY DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') ASC;
       `,
         [dateFrom, dateTo, employeeId]
       );
     }
 
+    console.log(leaveApplications);
     const leaveDetails = await Promise.all(
       leaveApplications.map(async (leaveApplication) => {
-        const { employeeId, restOfLeaveApplication } = leaveApplication;
+        const { employeeId } = leaveApplication;
+        const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
+        const employeeName = await this.employeesService.getEmployeeName(employeeId);
+        const period = (
+          await this.dtrService.rawQuery(
+            `SELECT 
+              DISTINCT DATE_FORMAT(COALESCE(la.hrmo_approval_date, la.supervisor_approval_date, la.hrdm_approval_date, lcld.created_at),'%Y-%m-%d') period 
+                FROM leave_card_ledger_debit lcld 
+              INNER JOIN leave_application la ON la.leave_application_id = lcld.leave_application_id_fk 
+            WHERE lcld.leave_application_id_fk = ?;`,
+            [leaveApplication.leaveApplicationId]
+          )
+        )[0].period;
+
+        console.log('PERIOD ', period);
+
+        const sickLeaveBalance = (
+          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_range(?,?,?,?);`, [
+            employeeId,
+            employeeDetails.companyId,
+            period,
+            period,
+          ])
+        )[0];
+
+        console.log(sickLeaveBalance);
+
+        return {
+          companyId: employeeDetails.companyId,
+          name: employeeName,
+          sickLeaveBalance: sickLeaveBalance[sickLeaveBalance.length - 1].sickLeaveBalance,
+          dateOfFiling: leaveApplication.dateOfFiling,
+          dates: leaveApplication.leaveDates,
+          reason: leaveApplication.reason,
+        };
       })
     );
+    return leaveDetails.sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
   }
 
   async generateReportOnOfficialBusinessPassSlip(dateFrom: Date, dateTo: Date) {
@@ -312,6 +357,62 @@ export class ReportsService {
     return _employeesLWOP;
   }
 
+  async generateReportOnRehabilitationLeave(dateFrom: Date, dateTo: Date, employeeId?: string) {
+    let leaveApplications;
+    if (typeof employeeId === 'undefined' || employeeId === '') {
+      console.log('here here here');
+      leaveApplications = await this.dtrService.rawQuery(
+        `
+        SELECT 
+        employee_id_fk employeeId,
+        leave_application_id leaveApplicationId,
+        count(distinct leave_application_id) leaveCount,
+        GROUP_CONCAT(distinct get_leave_date_range(leave_application_id,true) ORDER BY lad.leave_date ASC SEPARATOR ', ') leaveDates, 
+        GROUP_CONCAT(DISTINCT DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') ORDER BY la.date_of_filing ASC SEPARATOR ', ') dateOfFiling 
+      FROM leave_application la 
+                INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+                INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
+                INNER JOIN leave_card_ledger_debit lcld ON  lcld.leave_application_id_fk = la.leave_application_id
+            WHERE la.status = 'approved' AND lad.status = 'approved' AND lb.leave_name = 'Rehabilitation Leave' 
+            AND la.date_of_filing BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?,INTERVAL 1 DAY) 
+            GROUP BY leave_application_id ORDER BY DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') ASC; 
+      `,
+        [dateFrom, dateTo]
+      );
+    } else {
+      leaveApplications = await this.dtrService.rawQuery(
+        `
+        SELECT 
+        employee_id_fk employeeId,
+        leave_application_id leaveApplicationId,
+        count(distinct leave_application_id) leaveCount,
+        GROUP_CONCAT(distinct get_leave_date_range(leave_application_id,true) ORDER BY lad.leave_date ASC SEPARATOR ', ') leaveDates, 
+        GROUP_CONCAT(DISTINCT DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') ORDER BY la.date_of_filing ASC SEPARATOR ', ') dateOfFiling 
+      FROM leave_application la 
+                INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+                INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
+                INNER JOIN leave_card_ledger_debit lcld ON  lcld.leave_application_id_fk = la.leave_application_id
+            WHERE la.status = 'approved' AND lad.status = 'approved' AND lb.leave_name = 'Rehabilitation Leave' 
+            AND la.date_of_filing BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?,INTERVAL 1 DAY)  AND employee_id_fk = ? 
+            GROUP BY leave_application_id ORDER BY DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') ASC; 
+      `,
+        [dateFrom, dateTo, employeeId]
+      );
+    }
+
+    const leaveDetails = await Promise.all(
+      leaveApplications.map(async (leaveApplication) => {
+        const { employeeId, leaveCount, leaveDates, dateOfFiling } = leaveApplication;
+        //const {} = leaveApplication;
+        const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
+        const employeeName = await this.employeesService.getEmployeeName(employeeId);
+        return { name: employeeName, leaveCount, leaveDates, dateOfFiling };
+      })
+    );
+
+    return leaveDetails.sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
+  }
+
   async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string, employeeId?: string) {
     if (user === null) throw new ForbiddenException();
     let reportDetails: object;
@@ -333,7 +434,10 @@ export class ReportsService {
         reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo, employeeId);
         break;
       case decodeURI(Report.REPORT_ON_SUMMARY_OF_SICK_LEAVE):
-        reportDetails = {};
+        reportDetails = await this.generateReportOnSummaryOfSickLeave(dateFrom, dateTo, employeeId);
+        break;
+      case decodeURI(Report.REPORT_ON_REHABILITATION_LEAVE):
+        reportDetails = await this.generateReportOnRehabilitationLeave(dateFrom, dateTo, employeeId);
         break;
       //#endregion Report About Pass Slips
       //#region Report About Leaves

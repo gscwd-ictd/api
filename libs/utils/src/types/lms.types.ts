@@ -31,7 +31,8 @@ export type PortalEmployeeDetailsRaw = {
 };
 
 export type TrainingNomineeRaw = {
-  distributionId: string;
+  trainingId: string;
+  supervisorId: string;
   nomineeType: NomineeType;
 };
 
@@ -61,4 +62,14 @@ export type SupervisorParticipantsRaw = {
 export type BenchmarkParticipantsRaw = {
   employee: EmployeeParticpantsRaw;
   supervisor: SupervisorParticipantsRaw;
+};
+
+export type SupervisorRaw = {
+  employeeId: string;
+  fullName: string;
+};
+
+export type EmployeeListsRaw = {
+  value: string;
+  label: string;
 };

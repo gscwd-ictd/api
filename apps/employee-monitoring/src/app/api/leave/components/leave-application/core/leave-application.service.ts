@@ -70,6 +70,12 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
       */
 
+      //supervisorId of hrd manager for gm leave application;
+      const employeePosition = (await this.employeesService.getEmployeeDetails(rest.employeeId)).assignment.positionTitle;
+
+      if (employeePosition === 'OIC-General Manager' || employeePosition === 'General Manager A')
+        supervisorId = await this.employeesService.getHrdManagerId();
+
       if (supervisorId === null) {
         supervisorId = (await this.client.call<string, string, string>({
           action: 'send',
@@ -134,28 +140,29 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     try {
       const leaveApplications = await this.rawQuery<string, LeaveApplicationType[]>(
         `SELECT
-        la.employee_id_fk employeeId,
-        la.leave_application_id id,
-        la.is_late_filing isLateFiling,
-        lb.leave_name leaveName,
-        lb.leave_types leaveType,
-        la.reference_no referenceNo,
-        DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
-        la.status \`status\`,
-        lb.maximum_credits maximumCredits,
-        la.hrmo_approved_by hrmoApprovedBy,
-        la.hrdm_approved_by hrdmApprovedBy,
-        DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d %H:%i%:%s') hrmoApprovalDate,
-        DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
-        DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d %H:%i%:%s') supervisorApprovalDate,
-        la.supervisor_disapproval_remarks supervisorDisapprovalRemarks,
-        DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
-        la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
-        la.cancel_reason cancelReason,
-        la.supervisor_id_fk supervisorId,
-        get_leave_date_cancellation_status(la.leave_application_id) leaveDateStatus,
-        DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i:%s') cancelDate,
-        get_leave_date_cancellation_remarks(la.leave_application_id) leaveDateCancellationRemarks 
+                la.employee_id_fk employeeId,
+                la.leave_application_id id,
+                la.is_late_filing isLateFiling,
+                lb.leave_name leaveName,
+                lb.leave_types leaveType,
+                la.reference_no referenceNo,
+                DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
+                la.status \`status\`,
+                la.reference_no referenceNo,
+                lb.maximum_credits maximumCredits,
+                la.hrmo_approved_by hrmoApprovedBy,
+                la.hrdm_approved_by hrdmApprovedBy,
+                DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d %H:%i%:%s') hrmoApprovalDate,
+                DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
+                DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d %H:%i%:%s') supervisorApprovalDate,
+                la.supervisor_disapproval_remarks supervisorDisapprovalRemarks,
+                DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
+                la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
+                la.cancel_reason cancelReason,
+                la.supervisor_id_fk supervisorId,
+                get_leave_date_cancellation_status(la.leave_application_id) leaveDateStatus,
+                DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i:%s') cancelDate,
+                get_leave_date_cancellation_remarks(la.leave_application_id) leaveDateCancellationRemarks 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
           WHERE la.leave_application_id = ? 
@@ -236,7 +243,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         `SELECT
             la.leave_application_id id,
             lb.leave_name leaveName,
+            la.reference_no referenceNo,
             DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
+            la.is_late_filing isLateFiling,
             la.status \`status\`,
             la.cancel_reason cancelReason,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i:%s') cancelDate 
@@ -274,6 +283,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
             la.status \`status\`,
             la.cancel_reason cancelReason,
+            la.reference_no referenceNo,
+            la.is_late_filing isLateFiling,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
@@ -314,6 +325,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
             la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
             la.cancel_reason cancelReason,
+            la.reference_no referenceNo,
+            la.is_late_filing isLateFiling,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
@@ -458,7 +471,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       FROM 
       ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
         INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
-        WHERE la.employee_id_fk = ? AND (la.status = 'approved' OR la.status='for hrmo approval' OR la.status='for hrdm approval' or la.status='for supervisor approval'))
+        WHERE la.employee_id_fk = ? AND (la.status = 'approved' OR la.status='for hrmo credit certification' OR la.status='for hrdm approval' or la.status='for supervisor approval'))
       UNION 
       (SELECT DATE_FORMAT(holiday_date, '%Y-%m-%d') unavailableDate,'Holiday' AS type FROM holidays 
       WHERE holiday_date BETWEEN DATE_SUB(DATE_SUB(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY) AND DATE_ADD(DATE_ADD(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY))) AS unavailableDates 
@@ -794,6 +807,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           isTerminalLeave: true,
           outPatient: true,
           requestedCommutation: true,
+          isLateFiling: true,
           cancelDate: true,
           cancelReason: true,
           splWomen: true,
@@ -860,6 +874,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           supervisorId: true,
           studyLeaveOther: true,
           isTerminalLeave: true,
+          referenceNo: true,
           isLateFiling: true,
           outPatient: true,
           cancelDate: true,

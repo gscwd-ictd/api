@@ -17,10 +17,11 @@ import { DataSource, EntityManager } from 'typeorm';
 import { TrainingTagsService } from '../components/tags';
 import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
-import { DocumentRequirementsType, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
+import { DocumentRequirementsType, NomineeType, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
 import { TrainingNomineesService } from '../components/nominees';
 import { LspRatingService } from '../../lsp-rating';
+import { HrmsEmployeeTagsService, HrmsEmployeesService } from '../../../services/hrms';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -32,6 +33,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly trainingApprovalsService: TrainingApprovalsService,
     private readonly trainingNomineesService: TrainingNomineesService,
     private readonly lspRatingService: LspRatingService,
+    private readonly hrmsEmployeesService: HrmsEmployeesService,
+    private readonly hrmsEmployeeTagsService: HrmsEmployeeTagsService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -982,6 +985,121 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           isSelected: program,
         },
       ];
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* count number of participants and available slot with list of supervisors */
+  async findAllSupervisorsByTrainingId(trainingId: string) {
+    try {
+      const { numberOfParticipants, availableSlot } = await this.crudService
+        .getRepository()
+        .createQueryBuilder('tdd')
+        .select('tdd.number_of_participants', 'numberOfParticipants')
+        .addSelect(
+          `tdd.number_of_participants - sum( case when tn.status in ('pending', 'accepted') and tn.nominee_type = 'nominee' then 1 end)`,
+          'availableSlot'
+        )
+        .innerJoin('training_distributions', 'td', 'tdd.training_details_id = td.training_details_id_fk')
+        .innerJoin('training_nominees', 'tn', 'td.training_distribution_id = tn.training_distribution_id_fk')
+        .where('tdd.training_details_id = :trainingId', { trainingId: trainingId })
+        .groupBy('tdd.number_of_participants')
+        .addGroupBy('tdd.training_details_id')
+        .getRawOne();
+
+      const supervisors = await this.hrmsEmployeesService.findAllSupervisors();
+
+      return {
+        numberOfParticipants: numberOfParticipants,
+        availableSlot: parseInt(availableSlot),
+        supervisors,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /*  find assignable employee under supervisor */
+  async findAllAssignableEmployeeUnderSupervisor(trainingId: string, employeeId: string) {
+    try {
+      const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
+      const nomineeType = NomineeType.NOMINEE;
+      const nomineeStatus = null;
+
+      const nomineesId = (await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus)).map(
+        (items) => items.employeeId
+      );
+
+      const tags = (await this.findTrainingDetailsById(trainingId)).trainingTags.map((items) => items.id);
+
+      const employees = await this.hrmsEmployeesService.findAllEmployeeUnderSupervisor(employeeId);
+
+      const assignable = await Promise.all(
+        employees
+          .filter((items) => !nomineesId.includes(items.value))
+          .map(async (items) => {
+            const isTagged = await this.hrmsEmployeeTagsService.checkEmployeeTags(items.value, tags);
+            return {
+              value: {
+                employeeId: items.value,
+                name: items.label,
+                isTagged: isTagged === '1' ? true : false,
+              },
+              label: items.label,
+            };
+          })
+      );
+
+      return assignable;
+
+      /* return assignable.sort((a, b) => {
+        // First, compare based on isTagged property
+        if (a.value.isTagged !== b.value.isTagged) {
+          return a.value.isTagged ? -1 : 1; // 'true' comes before 'false'
+        }
+        // If both are tagged or untagged, then sort alphabetically by name
+        return a.value.name.localeCompare(b.value.name);
+      }); */
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* count nominee by training id */
+  async findAndCountNomineeByTrainingId(trainingId: string) {
+    try {
+      const count = await this.crudService
+        .getRepository()
+        .createQueryBuilder('tdd')
+        .select(`count(case when tn.status = 'pending' and tn.nominee_type = 'nominee' then 1 end)`, 'pending')
+        .addSelect(`count(case when tn.status = 'accepted' and tn.nominee_type = 'nominee' then 1 end)`, 'accepted')
+        .addSelect(`count(case when tn.status = 'declined' and tn.nominee_type = 'nominee' then 1 end)`, 'declined')
+        .addSelect('tdd.number_of_participants', 'numberOfParticipants')
+        .leftJoin('training_distributions', 'td', 'tdd.training_details_id = td.training_details_id_fk')
+        .leftJoin('training_nominees', 'tn', 'td.training_distribution_id = tn.training_distribution_id_fk')
+        .where('td.training_details_id_fk = :trainingId', { trainingId: trainingId })
+        .groupBy('tdd.number_of_participants')
+        .getRawOne();
+
+      const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
+      const nomineeType = NomineeType.NOMINEE;
+      const nomineeStatus = null;
+
+      const nominees = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
+
+      return {
+        numberOfParticipants: count.numberOfParticipants,
+        countStatus: {
+          pending: parseInt(count.pending),
+          accepted: parseInt(count.accepted),
+          declined: parseInt(count.declined),
+        },
+        nominees: nominees,
+      };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
