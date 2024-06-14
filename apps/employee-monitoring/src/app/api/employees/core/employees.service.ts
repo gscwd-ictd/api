@@ -221,4 +221,13 @@ export class EmployeesService {
       payload: employeeId,
     })) as { salaryGradeAmount: number; amount: number; dailyRate: number };
   }
+
+  //get_hrd_manager
+  async getHrdManagerId() {
+    return (await this.client.call<string, object, string>({
+      action: 'send',
+      pattern: 'get_hrd_manager',
+      payload: {},
+    })) as string;
+  }
 }
