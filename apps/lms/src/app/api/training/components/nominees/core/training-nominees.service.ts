@@ -702,6 +702,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           employeeId: employeeId,
           nomineeType: NomineeType.NOMINEE,
           status: TrainingNomineeStatus.ACCEPTED,
+          remarks: 'Additional Trainee',
         },
         onError: () => {
           throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
