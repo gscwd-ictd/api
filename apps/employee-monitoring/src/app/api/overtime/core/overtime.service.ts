@@ -812,7 +812,6 @@ export class OvertimeService {
   }
 
   async approveOvertime(updateOvertimeApprovalDto: UpdateOvertimeApprovalDto) {
-    console.log('OT APPPPPPROOOOVAALLLLL', updateOvertimeApprovalDto);
     const { overtimeApplicationId, status, ...restOfOvertimeApprovalDto } = updateOvertimeApprovalDto;
     const overtimeApplication = await this.overtimeApplicationService.crud().update({
       dto: { status },
