@@ -781,12 +781,22 @@ export class OvertimeService {
   }
 
   async getEmployeeListBySupervisorId(employeeId: string) {
-    const employeeSupervisor = await this.overtimeImmediateSupervisorService
-      .crud()
-      .findOne({ find: { select: { orgId: true }, where: { employeeId } } });
-    if (employeeSupervisor) {
-      return await this.employeeService.getEmployeesByOrgId(employeeSupervisor.orgId);
-    }
+    const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
+    const orgId = employeeDetails.assignment.id;
+
+    const employeeSupervisor = await this.overtimeImmediateSupervisorService.crud().findOneOrNull({
+      find: { select: { orgId: true }, where: { employeeId } },
+    });
+
+    if (
+      employeeSupervisor !== null ||
+      employeeDetails.userRole === 'department_manager' ||
+      employeeDetails.userRole === 'division_manager' ||
+      employeeDetails.userRole === 'assistant_general_manager' ||
+      employeeDetails.userRole === 'general_manager'
+    )
+      return await this.employeeService.getEmployeesByOrgId(orgId);
+    else throw new HttpException('You are not an immediate supervisor or a manager.', HttpStatus.FORBIDDEN);
   }
 
   async getOvertimeImmediateSupervisorByEmployeeId(employeeId: string) {
