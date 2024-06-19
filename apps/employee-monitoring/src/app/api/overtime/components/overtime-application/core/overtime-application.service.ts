@@ -28,11 +28,11 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
     const overtime = (
       await this.rawQuery(
         `
-        SELECT DISTINCT overtime_application_id overtimeApplicationId, ois.employee_id_fk employeeId, planned_date plannedDate, estimated_hours estimatedHours, purpose, oa.status status,oapp.approved_by approvedBy,oapp.date_approved dateApproved,oapp.remarks remarks 
+        SELECT DISTINCT overtime_application_id overtimeApplicationId, COALESCE(ois.employee_id_fk, oa.manager_id_fk) employeeId, planned_date plannedDate, estimated_hours estimatedHours, purpose, oa.status status,oapp.approved_by approvedBy,oapp.date_approved dateApproved,oapp.remarks remarks 
           FROM overtime_application oa 
         INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk 
         INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
-        INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
+        LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
         WHERE oe.employee_id_fk IN (?) AND overtime_application_id = ?;
     `,
         [employeeIds, overtimeApplicationId]
@@ -48,8 +48,6 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
       approvedBy: string;
     };
 
-    console.log('OVEerRTIME', overtime);
-
     const _approvedBy =
       overtime.approvedBy === null || overtime.approvedBy === ''
         ? null
@@ -60,14 +58,14 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
 
   async getOvertimeApplicationsByEmployeeIds(employeeIds: string[]) {
     //!TODO INVESTIGATE LATER
-
+    //RIGHT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
     const employees = (await this.rawQuery(
       `
-        SELECT DISTINCT overtime_application_id overtimeApplicationId, ois.employee_id_fk employeeId, planned_date plannedDate, estimated_hours estimatedHours, purpose, oa.status status,oapp.date_approved dateApproved,oapp.remarks remarks 
+        SELECT DISTINCT overtime_application_id overtimeApplicationId, COALESCE(ois.employee_id_fk, oa.manager_id_fk) employeeId, planned_date plannedDate, estimated_hours estimatedHours, purpose, oa.status status,oapp.date_approved dateApproved,oapp.remarks remarks 
           FROM overtime_application oa 
         INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk 
         INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
-        INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
+        LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
         WHERE oe.employee_id_fk IN (?) ORDER BY planned_date DESC;
     `,
       [employeeIds]

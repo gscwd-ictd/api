@@ -31,7 +31,9 @@ export class CreateOvertimeDto extends PickType(CreateOvertimeApplicationDto, [
   'plannedDate',
   'purpose',
   'status',
+  'managerId',
 ]) {
+  employeeId: string;
   employees: string[];
 }
 

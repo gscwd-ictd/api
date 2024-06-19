@@ -399,7 +399,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         is_cancelled isCancelled
       FROM pass_slip_approval psa 
         INNER JOIN pass_slip ps ON ps.pass_slip_id = psa.pass_slip_id_fk 
-      WHERE ps.employee_id_fk = ? AND (status = 'approved' OR status = 'disapproved' OR status = 'for dispute') 
+      WHERE ps.employee_id_fk = ? AND (status = 'approved' OR status = 'disapproved' OR status = 'for dispute' OR status = 'cancelled') 
       ORDER BY ps.date_of_application DESC,psa.status ASC;  
     `,
       [employeeId]
