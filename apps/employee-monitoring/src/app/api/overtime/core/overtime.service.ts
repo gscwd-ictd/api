@@ -43,13 +43,36 @@ export class OvertimeService {
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       try {
         const { employees, ...overtimeApplication } = createOverTimeDto;
-
+        //const { overtimeImmediateSupervisorId } = overtimeApplication;
+        //let approval;
+        let application;
+        const { overtimeImmediateSupervisorId, employeeId, ...restOfOvertimeApplication } = overtimeApplication;
+        const dmanagerId = await this.employeeService.getEmployeeSupervisorId(employeeId);
+        if (overtimeImmediateSupervisorId !== null) {
+          application = await this.overtimeApplicationService.createOvertimeApplication(
+            { overtimeImmediateSupervisorId, ...restOfOvertimeApplication },
+            entityManager
+          );
+          // approval = await this.overtimeApprovalService.createOvertimeApproval(
+          //   {
+          //     overtimeApplicationId: application,
+          //   },
+          //   entityManager
+          // );
+        } else {
+          //manager
+          application = await this.overtimeApplicationService.createOvertimeApplication(
+            { managerId: employeeId, ...restOfOvertimeApplication },
+            entityManager
+          );
+          //2. insert to overtime approval (default status)
+        }
         //1. insert to overtime application
-        const application = await this.overtimeApplicationService.createOvertimeApplication(overtimeApplication, entityManager);
-        //2. insert to overtime approval (default status)
+
         const approval = await this.overtimeApprovalService.createOvertimeApproval(
           {
             overtimeApplicationId: application,
+            managerId: dmanagerId,
           },
           entityManager
         );
@@ -87,12 +110,9 @@ export class OvertimeService {
     //1. get manager organization id
     const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
     //2. get employeeIds from organization id
-
     //INJECT HERE
     const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
-
     //console.log('officer of the day', officerOfTheDayOrgs.length);
-
     const employeesUnderOrgId =
       officerOfTheDayOrgs.length > 0
         ? await this.officerOfTheDayService.getEmployeesUnderOfficerOfTheDay(managerId)
@@ -181,6 +201,7 @@ export class OvertimeService {
     //
     //1. get manager organization id
     const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
+    //console.log('test test test', await this.employeeService.getEmployeesByOrgId(managerOrgId));
     //console.log(managerOrgId);
     //check if officer of the day/uncomment below if rules change again for officer of the day approval;
     //const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
@@ -191,6 +212,8 @@ export class OvertimeService {
       officerOfTheDayOrgs.length > 0
         ? await this.officerOfTheDayService.getEmployeesUnderOfficerOfTheDay(managerId)
         : await this.employeeService.getEmployeesByOrgId(managerOrgId);
+
+    //console.log('test test test', await this.employeeService.getEmployeesByOrgId(managerOrgId));
 
     //2. get employeeIds from organization id
 
@@ -204,6 +227,8 @@ export class OvertimeService {
 
     //3. get overtime employee ids for approval
     const overtimeApplications = await this.overtimeApplicationService.getOvertimeApplicationsByEmployeeIds(employeeIds);
+
+    console.log(overtimeApplications);
 
     const overtimeApplicationsWithSupervisorName = await Promise.all(
       overtimeApplications.map(async (overtimeApplication) => {
@@ -373,6 +398,43 @@ export class OvertimeService {
     };
   }
 
+  async getOvertimeApplicationsByManagerIdAndStatus(id: string, status: OvertimeStatus) {
+    const overtimeApplication = (await this.overtimeApplicationService.crud().findAll({
+      find: {
+        select: {
+          id: true,
+          plannedDate: true,
+          estimatedHours: true,
+          purpose: true,
+          status: true,
+          overtimeImmediateSupervisorId: { employeeId: true },
+        },
+        where: { managerId: id, status },
+        relations: { overtimeImmediateSupervisorId: true },
+        order: { plannedDate: 'DESC' },
+      },
+    })) as OvertimeApplication[];
+
+    const overtimeApplicationsWithApprovals = await Promise.all(
+      overtimeApplication.map(async (otApplication) => {
+        const { id } = otApplication;
+
+        const { dateApproved, remarks, approvedBy } = (
+          await this.overtimeApprovalService.rawQuery(
+            `SELECT date_approved dateApproved, approved_by approvedBy, remarks FROM overtime_approval WHERE overtime_application_id_fk = ?`,
+            [id]
+          )
+        )[0];
+
+        const _approvedBy = approvedBy !== null ? (await this.employeeService.getEmployeeDetails(approvedBy)).employeeFullName : null;
+
+        return { ...otApplication, dateApproved, approvedBy: _approvedBy, remarks };
+      })
+    );
+
+    return overtimeApplicationsWithApprovals;
+  }
+
   async getOvertimeApplicationsBySupervisorIdAndStatus(id: string, status: OvertimeStatus) {
     const overtimeApplication = (await this.overtimeApplicationService.crud().findAll({
       find: {
@@ -465,7 +527,13 @@ export class OvertimeService {
 
   async getOvertimeApplicationsByImmediateSupervisorId(id: string) {
     console.log('approved');
-    const employeeId = await this.overtimeImmediateSupervisorService.crud().findOne({ find: { select: { employeeId: true }, where: { id } } });
+    let employeeId;
+    employeeId = await this.overtimeImmediateSupervisorService.crud().findOne({ find: { select: { employeeId: true }, where: { id } } });
+
+    // if(employeeId === null){
+    //   employeeId = await this.
+    // }
+
     const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId.employeeId);
     const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
 
@@ -493,6 +561,19 @@ export class OvertimeService {
 
   async getOvertimeApplications() {
     try {
+      /*
+      
+      SELECT 
+      overtime_application_id id, 
+      planned_date plannedDate, 
+      estimated_hours estimatedHours, 
+      purpose, 
+      `status`, 
+      overtime_immediate_supervisor_id_fk overtimeImmediateSupervisorId, 
+      manager_id_fk managerId 
+      FROM employee_monitoring.overtime_application ORDER BY planned_date DESC, status DESC;
+
+      */
       const overtimes = (
         (await this.overtimeApplicationService.crud().findAll({
           find: {
@@ -503,6 +584,7 @@ export class OvertimeService {
               purpose: true,
               status: true,
               overtimeImmediateSupervisorId: { employeeId: true },
+              managerId: true,
             },
             order: { plannedDate: 'DESC', status: 'DESC' },
             relations: { overtimeImmediateSupervisorId: true },
@@ -514,7 +596,7 @@ export class OvertimeService {
       });
 
       const result = await Promise.all(
-        overtimes.map(async (overtime) => {
+        overtimes.map(async (overtime, idx) => {
           const { overtimeImmediateSupervisorId, ...rest } = overtime;
           const overtimeId = rest.id;
 
@@ -535,18 +617,19 @@ export class OvertimeService {
 
           const _approvedBy = approvedBy === null ? null : (await this.employeeService.getEmployeeDetails(approvedBy)).employeeFullName;
 
-          const immediateSupervisorName = await this.employeeService.getEmployeeName(overtimeImmediateSupervisorId.employeeId);
-
+          const _immediateSupervisorId = overtimeImmediateSupervisorId === null ? overtime.managerId : overtimeImmediateSupervisorId.employeeId;
+          //console.log(idx);
+          const immediateSupervisorName = await this.employeeService.getEmployeeName(_immediateSupervisorId);
+          if (idx === 0) console.log('SUPERVISOR: ', { _immediateSupervisorId, immediateSupervisorName });
           const _employeesDetails = (await Promise.all(
             employees.map(async (employee) => {
               const { employeeId } = employee;
-              //console.log(employeeId);
+
               const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
 
               const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
 
               const scheduleBase = employeeSchedules !== null && employeeSchedules.length > 0 ? employeeSchedules[0].scheduleBase : null;
-              //console.log(employeeDetails.employeeFullName, ' | ', employeeSchedules[0].scheduleName, ' | ', scheduleBase);
 
               const { companyId, employeeFullName, positionTitle, assignment, photoUrl } = employeeDetails;
               const { isAccomplishmentSubmitted, status } = (
@@ -579,6 +662,7 @@ export class OvertimeService {
       );
       return result;
     } catch (error) {
+      console.log(error);
       throw new HttpException(error.message, error.status);
     }
   }
@@ -783,7 +867,7 @@ export class OvertimeService {
   async getEmployeeListBySupervisorId(employeeId: string) {
     const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
     const orgId = employeeDetails.assignment.id;
-
+    console.log(employeeDetails.userRole);
     const employeeSupervisor = await this.overtimeImmediateSupervisorService.crud().findOneOrNull({
       find: { select: { orgId: true }, where: { employeeId } },
     });
@@ -791,8 +875,12 @@ export class OvertimeService {
     if (
       employeeSupervisor !== null ||
       employeeDetails.userRole === 'department_manager' ||
+      employeeDetails.userRole === 'oic_department_manager' ||
       employeeDetails.userRole === 'division_manager' ||
+      employeeDetails.userRole === 'oic_division_manager' ||
       employeeDetails.userRole === 'assistant_general_manager' ||
+      employeeDetails.userRole === 'oic_assistant_general_manager' ||
+      employeeDetails.userRole === 'oic_general_manager' ||
       employeeDetails.userRole === 'general_manager'
     )
       return await this.employeeService.getEmployeesByOrgId(orgId);
