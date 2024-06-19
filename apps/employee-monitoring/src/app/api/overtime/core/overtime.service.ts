@@ -791,8 +791,12 @@ export class OvertimeService {
     if (
       employeeSupervisor !== null ||
       employeeDetails.userRole === 'department_manager' ||
+      employeeDetails.userRole === 'oic_department_manager' ||
       employeeDetails.userRole === 'division_manager' ||
+      employeeDetails.userRole === 'oic_division_manager' ||
       employeeDetails.userRole === 'assistant_general_manager' ||
+      employeeDetails.userRole === 'oic_assistant_general_manager' ||
+      employeeDetails.userRole === 'oic_general_manager' ||
       employeeDetails.userRole === 'general_manager'
     )
       return await this.employeeService.getEmployeesByOrgId(orgId);
