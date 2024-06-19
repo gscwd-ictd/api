@@ -111,12 +111,13 @@ export class OvertimeService {
     const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
     //2. get employeeIds from organization id
     //INJECT HERE
-    const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
+    //const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
     //console.log('officer of the day', officerOfTheDayOrgs.length);
-    const employeesUnderOrgId =
-      officerOfTheDayOrgs.length > 0
-        ? await this.officerOfTheDayService.getEmployeesUnderOfficerOfTheDay(managerId)
-        : await this.employeeService.getEmployeesByOrgId(managerOrgId);
+    // const employeesUnderOrgId =
+    //   officerOfTheDayOrgs.length > 0
+    //     ? await this.officerOfTheDayService.getEmployeesUnderOfficerOfTheDay(managerId)
+    //     : await this.employeeService.getEmployeesByOrgId(managerOrgId);
+    const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
     const employeeIds = await Promise.all(
       employeesUnderOrgId.map(async (employee) => {
         return employee.value;
@@ -142,7 +143,7 @@ export class OvertimeService {
         const employeeDetail = await this.employeeService.getEmployeeDetails(employeeId);
         const { assignment, employeeFullName, companyId, photoUrl } = employeeDetail;
 
-        const { isAccomplishmentSubmitted, status, overtimeAccomplishmentId, approvedBy, dateApproved } = (
+        const overtime = (
           await this.employeeScheduleService.rawQuery(
             `
             SELECT 
@@ -157,6 +158,10 @@ export class OvertimeService {
             [employeeId, overtimeApplication.overtimeApplicationId]
           )
         )[0];
+        console.log(overtime);
+
+        const { isAccomplishmentSubmitted, status, overtimeAccomplishmentId, approvedBy, dateApproved } = overtime;
+        console.log('asd asd', approvedBy);
 
         const _approvedBy =
           approvedBy === null || approvedBy === '' ? null : (await this.employeeService.getEmployeeDetails(approvedBy)).employeeFullName;
@@ -208,16 +213,16 @@ export class OvertimeService {
     const officerOfTheDayOrgs = [];
     //console.log('officer of the day', officerOfTheDayOrgs.length);
 
-    const employeesUnderOrgId =
+    /*const employeesUnderOrgId = 
       officerOfTheDayOrgs.length > 0
         ? await this.officerOfTheDayService.getEmployeesUnderOfficerOfTheDay(managerId)
-        : await this.employeeService.getEmployeesByOrgId(managerOrgId);
+        : await this.employeeService.getEmployeesByOrgId(managerOrgId);*/
 
     //console.log('test test test', await this.employeeService.getEmployeesByOrgId(managerOrgId));
 
     //2. get employeeIds from organization id
 
-    //const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
+    const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
 
     const employeeIds = await Promise.all(
       employeesUnderOrgId.map(async (employee) => {
