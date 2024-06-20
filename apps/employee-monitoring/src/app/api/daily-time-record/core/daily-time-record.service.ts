@@ -2,7 +2,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { CreateDtrRemarksDto, DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto, UpdateDtrRemarksDto } from '@gscwd-api/models';
-import { DtrPayload, IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType } from '@gscwd-api/utils';
+import { DtrPayload, IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType, DtrDeductionType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
@@ -473,14 +473,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //const undertimes = await this.getUndertimesPerDay(dtr, schedule);
 
       //1.1 compute late by the day
-      const noOfLates = latesUndertimesNoAttendance.noOfLates;
-      if (noOfLates > 0) {
-        //insert to leave card ledger debit;
-        //insert only if permanent or casual;
-        if (employeeDetails.userRole !== 'job_order') {
+      const { noOfLates, noOfUndertimes } = latesUndertimesNoAttendance;
+      if (employeeDetails.userRole !== 'job_order') {
+        if (noOfLates > 0) {
+          //insert to leave card ledger debit;
+          //insert only if permanent or casual;
           const leaveCardItem = await this.leaveCardLedgerDebitService
             .crud()
-            .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id } } } });
+            .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
           let debitValue = 0;
 
           if (!leaveCardItem) {
@@ -490,7 +490,65 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               dailyTimeRecordId: dtr,
               debitValue,
               createdAt: dtr.dtrDate,
+              dtrDeductionType: DtrDeductionType.TARDINESS,
             });
+          }
+          //1.2 compute undertime by the day
+        }
+
+        if (noOfUndertimes > 0) {
+          const leaveCardItem = await this.leaveCardLedgerDebitService
+            .crud()
+            .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.UNDERTIME } } });
+          let debitValue = 0;
+          const passSlipCount = (
+            await this.rawQuery(
+              `SELECT COUNT(pass_slip_id) passSlipCount FROM pass_slip ps 
+                  INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
+                WHERE psa.status = 'approved' AND ps.nature_of_business = 'Undertime' AND DATE_FORMAT(ps.date_of_application, '%Y-%m-%d')  = ?  
+                AND ps.employee_id_fk = ? AND ps.time_out IS NOT NULL;`,
+              [dtr.dtrDate, employeeDetails.userId]
+            )
+          )[0].passSlipCount;
+
+          if (passSlipCount === '0') {
+            if (!leaveCardItem) {
+              debitValue = (await this.rawQuery(`SELECT get_undertime_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+              await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+                dailyTimeRecordId: dtr,
+                debitValue,
+                createdAt: dtr.dtrDate,
+                dtrDeductionType: DtrDeductionType.UNDERTIME,
+              });
+            }
+          }
+        }
+
+        if (latesUndertimesNoAttendance.isHalfDay) {
+          const leaveCardItem = await this.leaveCardLedgerDebitService
+            .crud()
+            .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.HALFDAY } } });
+          let debitValue = 0;
+          const passSlipCount = (
+            await this.rawQuery(
+              `SELECT COUNT(pass_slip_id) passSlipCount FROM pass_slip ps
+                  INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id
+                WHERE psa.status = 'approved' AND ps.nature_of_business = 'Half Day' 
+                AND DATE_FORMAT(ps.date_of_application, '%Y-%m-%d')  = ? 
+                AND ps.employee_id_fk = ? AND ps.time_out IS NOT NULL;`,
+              [dtr.dtrDate, employeeDetails.userId]
+            )
+          )[0].passSlipCount;
+
+          if (passSlipCount === '0') {
+            if (!leaveCardItem) {
+              await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+                dailyTimeRecordId: dtr,
+                debitValue: 0.5,
+                createdAt: dtr.dtrDate,
+                dtrDeductionType: DtrDeductionType.HALFDAY,
+              });
+            }
           }
         }
       }

@@ -24,7 +24,7 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
         return { id, employeeName, orgName, dateFrom, dateTo };
       })
     );
-    return officersOfTheDay;
+    return officersOfTheDay.sort((a, b) => (a.dateFrom > b.dateFrom ? -1 : a.dateFrom < b.dateFrom ? 1 : 0));
   }
 
   async getAssignableOfficerOfTheDay() {

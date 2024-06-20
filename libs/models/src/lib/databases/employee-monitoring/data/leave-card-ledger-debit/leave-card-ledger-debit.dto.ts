@@ -1,4 +1,5 @@
 import { DailyTimeRecord, LeaveApplication, LeaveCreditDeductions, PassSlip } from '@gscwd-api/models';
+import { DtrCorrectionsType, DtrDeductionType } from '@gscwd-api/utils';
 import { IsNumber, IsOptional } from 'class-validator';
 
 export class CreateLeaveCardLedgerDebitDto {
@@ -19,4 +20,7 @@ export class CreateLeaveCardLedgerDebitDto {
 
   @IsNumber()
   debitValue: number;
+
+  @IsOptional()
+  dtrDeductionType?: DtrDeductionType;
 }
