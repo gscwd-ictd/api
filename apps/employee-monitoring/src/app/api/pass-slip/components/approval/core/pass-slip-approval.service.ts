@@ -22,9 +22,25 @@ export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {
           dto: { status, hrmoApprovalDate: dayjs().toDate(), hrmoDisapprovalRemarks },
           updateBy: { passSlipId },
         });
-    } else if (status === PassSlipApprovalStatus.APPROVED || status === PassSlipApprovalStatus.DISAPPROVED)
-      updateResult = await this.crudService.update({ dto: { status, supervisorApprovalDate: dayjs().toDate() }, updateBy: { passSlipId } });
-    else if (status === PassSlipApprovalStatus.FOR_DISPUTE) {
+    } else if (
+      status === PassSlipApprovalStatus.APPROVED ||
+      status === PassSlipApprovalStatus.APPROVED_WITHOUT_MEDICAL_CERTIFICATE ||
+      status === PassSlipApprovalStatus.APPROVED_WITH_MEDICAL_CERTIFICATE ||
+      status === PassSlipApprovalStatus.DISAPPROVED
+    ) {
+      console.log('NAA DRE');
+      updateResult = await this.crudService.update({
+        dto: {
+          status,
+          supervisorApprovalDate:
+            status === PassSlipApprovalStatus.APPROVED_WITHOUT_MEDICAL_CERTIFICATE ||
+            status === PassSlipApprovalStatus.APPROVED_WITH_MEDICAL_CERTIFICATE
+              ? null
+              : dayjs().toDate(),
+        },
+        updateBy: { passSlipId },
+      });
+    } else if (status === PassSlipApprovalStatus.FOR_DISPUTE) {
       updateResult = await this.crudService.update({ dto: { status }, updateBy: { passSlipId } });
       await this.rawQuery(`UPDATE pass_slip SET encoded_time_in = ?, dispute_remarks = ? WHERE pass_slip_id = ?`, [
         encodedTimeIn,

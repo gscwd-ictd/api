@@ -10,7 +10,14 @@ import {
 } from '@gscwd-api/models';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { NatureOfBusiness, ObTransportation, PassSlipApprovalStatus, PassSlipForDispute, PassSlipForLedger } from '@gscwd-api/utils';
+import {
+  DtrDeductionType,
+  NatureOfBusiness,
+  ObTransportation,
+  PassSlipApprovalStatus,
+  PassSlipForDispute,
+  PassSlipForLedger,
+} from '@gscwd-api/utils';
 import { Between, DataSource, IsNull, Not } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
@@ -35,7 +42,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   async addPassSlip(passSlipDto: PassSlipDto) {
     const { natureOfBusiness } = passSlipDto;
     const passSlip = await this.dataSource.transaction(async (transactionEntityManager) => {
-      const { approval, supervisorId, ...rest } = passSlipDto;
+      const { approval, supervisorId, isMedical, ...rest } = passSlipDto;
 
       const employeeAssignmentId = (await this.employeeService.getEmployeeDetails(rest.employeeId)).assignment.id;
 
@@ -53,12 +60,15 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       // }
 
       let status = PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL;
-      const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save({ ...rest, dateOfApplication: dayjs().toDate() });
+      const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save({ ...rest, isMedical, dateOfApplication: dayjs().toDate() });
       if (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS) status = PassSlipApprovalStatus.FOR_HRMO_APPROVAL;
 
-      const approvalResult = await transactionEntityManager
-        .getRepository(PassSlipApproval)
-        .save({ passSlipId: passSlipResult, supervisorId, ...approval, status });
+      const approvalResult = await transactionEntityManager.getRepository(PassSlipApproval).save({
+        passSlipId: passSlipResult,
+        supervisorId,
+        ...approval,
+        status,
+      });
       return { passSlipResult, approvalResult };
     });
     return passSlip;
@@ -260,6 +270,18 @@ export class PassSlipService extends CrudHelper<PassSlip> {
               timeIn: IsNull(),
             },
             status: PassSlipApprovalStatus.APPROVED,
+          },
+          {
+            passSlipId: {
+              employeeId,
+              dateOfApplication: Between(
+                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
+                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
+              ),
+              natureOfBusiness: NatureOfBusiness.PERSONAL,
+              timeIn: IsNull(),
+            },
+            status: PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE,
           },
           {
             passSlipId: {
@@ -471,7 +493,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipDetails = await Promise.all(
       passSlips.map(async (passSlip) => {
         const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
-        const assignment = await this.getEmployeeAssignment(passSlip.passSlipId.employeeId);
+        //const assignment = await this.getEmployeeAssignment(passSlip.passSlipId.employeeId);
         const employeeDetails = await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId);
 
         const { passSlipId, ...restOfPassSlip } = passSlip;
@@ -717,30 +739,33 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   async addPassSlipsToLedger() {
     //1. fetch approved pass slips from 2 days ago (Personal Business Only/Undertime/HalfDay)
     const passSlips = (await this.rawQuery(`
-        SELECT 
-            ps.pass_slip_id id, 
-            employee_id_fk employeeId, 
-            date_of_application dateOfApplication, 
-            nature_of_business natureOfBusiness,
-            time_in timeIn,
-            time_out timeOut,
-            ps.is_medical isMedical,
-            encoded_time_in encodedTimeIn,
-            encoded_time_out encodedTimeOut,
-            ps.ob_transportation obTransportation,
-            ps.estimate_hours estimateHours,
-            ps.purpose_destination purposeDestination,
-            ps.is_cancelled isCancelled,
-            ps.dispute_remarks disputeRemarks,
-            ps.created_at createdAt,
-            psa.status status,
-            ps.updated_at updatedAt,
-            ps.deleted_at deletedAt,
-            ps.is_dispute_approved disputeApproved
-          FROM pass_slip ps 
-          INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
-        WHERE get_date_after_num_of_working_days(date_of_application, 2) = DATE_FORMAT(now(),'%Y-%m-%d') AND psa.status = 'approved' 
-        AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
+    SELECT 
+    ps.pass_slip_id id, 
+    employee_id_fk employeeId, 
+    date_of_application dateOfApplication, 
+    nature_of_business natureOfBusiness,
+    time_in timeIn,
+    time_out timeOut,
+    ps.is_medical isMedical,
+    encoded_time_in encodedTimeIn,
+    encoded_time_out encodedTimeOut,
+    ps.ob_transportation obTransportation,
+    ps.estimate_hours estimateHours,
+    ps.purpose_destination purposeDestination,
+    ps.is_cancelled isCancelled,
+    ps.dispute_remarks disputeRemarks,
+    ps.created_at createdAt,
+    psa.status status,
+    ps.updated_at updatedAt,
+    ps.deleted_at deletedAt,
+    ps.is_dispute_approved disputeApproved
+  FROM pass_slip ps 
+  INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
+WHERE get_date_after_num_of_working_days(date_of_application, 2) = DATE_FORMAT(now(),'%Y-%m-%d') AND (
+psa.status = 'approved' 
+OR psa.status = 'approved with medical certificate'
+OR psa.status = 'approved without medical certificate') 
+AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
     `)) as PassSlipForLedger[];
     //2. check time in and time out
     console.log('pass slip here', passSlips);
