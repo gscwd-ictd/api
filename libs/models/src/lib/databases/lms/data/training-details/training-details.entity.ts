@@ -50,6 +50,6 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'status', type: 'enum', enum: TrainingStatus, default: TrainingStatus.PENDING })
   status: TrainingStatus;
 
-  @Column({ name: 'prepared_by', type: 'uuid', nullable: true })
+  @Column({ name: 'prepared_by', type: 'uuid', nullable: false })
   preparedBy: string;
 }
