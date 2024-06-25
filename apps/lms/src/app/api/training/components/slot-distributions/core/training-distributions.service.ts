@@ -289,6 +289,11 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
             supervisorId: supervisorId,
             trainingDetails: { status: MoreThan(TrainingStatus.PENDING) },
           },
+          order: {
+            trainingDetails: {
+              updatedAt: 'DESC',
+            },
+          },
         },
         onError: (error) => {
           throw error;

@@ -1,6 +1,7 @@
 import { FindEmployeesPatterns, MicroserviceClient } from '@gscwd-api/microservices';
 import {
   BenchmarkParticipantsRaw,
+  EmployeeDetailsRaw,
   EmployeeFullNameRaw,
   EmployeeListsRaw,
   OrganizationEmployeeRaw,
@@ -90,5 +91,15 @@ export class HrmsEmployeesService {
       payload: supervisorId,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     })) as Array<EmployeeListsRaw>;
+  }
+
+  /* find employee details by employee id */
+  async findEmployeeDetailsByEmployeeId(employeeId: string) {
+    return (await this.microserviceClient.call({
+      action: 'send',
+      pattern: 'get_employee_details',
+      payload: employeeId,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    })) as EmployeeDetailsRaw;
   }
 }
