@@ -172,6 +172,23 @@ export class LeaveService {
   async cancelLeave(updateLeaveApplicationEmployeeStatus: UpdateLeaveApplicationEmployeeStatus) {
     //
     //
+    /*
+
+    const shouldCancelWhole = (
+        await this.rawQuery(
+          `
+      SELECT IF(countCancelled = countTotal, true, false) shouldCancelWhole FROM (SELECT 
+        (SELECT count(leave_application_date_id) FROM leave_application_dates WHERE leave_application_id_fk = ? AND status='cancelled') countCancelled, 
+          (SELECT count(leave_application_date_id) FROM leave_application_dates WHERE leave_application_id_fk = ?) countTotal) leaveApplicationDates;
+      `,
+          [_leaveApplicationId, _leaveApplicationId]
+        )
+      )[0].shouldCancelWhole;
+      console.log(shouldCancelWhole);
+      if (shouldCancelWhole === '1') {
+        await this.rawQuery(`UPDATE leave_application SET status='cancelled' WHERE leave_application_id=?`, [_leaveApplicationId]);
+      }
+    */
     const { id, ...rest } = updateLeaveApplicationEmployeeStatus;
 
     const leaveApplication = await this.leaveApplicationService.crud().findOne({ find: { select: { id: true, status: true }, where: { id } } });
