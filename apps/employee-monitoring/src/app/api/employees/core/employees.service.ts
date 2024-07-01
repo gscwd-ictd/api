@@ -74,7 +74,6 @@ export class EmployeesService {
         throw new NotFoundException(error);
       },
     })) as EmployeeDetails;
-
     return employeeDetails;
   }
 

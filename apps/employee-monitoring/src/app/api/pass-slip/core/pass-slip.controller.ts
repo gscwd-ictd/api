@@ -59,6 +59,7 @@ export class PassSlipController {
 
   @Patch()
   async updatePassSlipStatus(@Body() updatePassSlipApprovalDto: UpdatePassSlipApprovalDto) {
+    console.log(updatePassSlipApprovalDto);
     return await this.passSlipApprovalService.updatePassSlipStatus(updatePassSlipApprovalDto);
   }
 
@@ -79,10 +80,10 @@ export class PassSlipController {
     return await this.passSlipService.hrUpdatePassSlipTimeLog(hrUpdatePassSlipTimeRecordDto);
   }
 
-  // @Post('test-cron')
-  // async testCron() {
-  //   return await this.passSlipService.addPassSlipsToLedger();
-  // }
+  @Post('test-cron')
+  async testCron() {
+    return await this.passSlipService.addPassSlipsToLedger();
+  }
 
   // @Post('test-cron2')
   // async testCron2() {

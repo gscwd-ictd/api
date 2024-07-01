@@ -66,6 +66,9 @@ export enum ObTransportation {
 
 export enum PassSlipApprovalStatus {
   APPROVED = 'approved',
+  AWAITING_MEDICAL_CERTIFICATE = 'awaiting medical certificate',
+  APPROVED_WITH_MEDICAL_CERTIFICATE = 'approved with medical certificate',
+  APPROVED_WITHOUT_MEDICAL_CERTIFICATE = 'approved without medical certificate',
   ONGOING = 'ongoing',
   DISAPPROVED_BY_HRMO = 'disapproved by hrmo',
   DISAPPROVED = 'disapproved',
