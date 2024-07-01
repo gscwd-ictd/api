@@ -273,48 +273,67 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           minutesLate += lateAfternoon;
           noOfLates += 1;
         }
-
         /*
             if no attendance morning and late in the afternoon in, therefore count minutes late and at the same time no of lates
             
             if no attendance in the morning and not late in the afternoon count as halfday and add in noOfLates 
         */
-
         //MORNING HALFDAY LATE AFTERNOON
         if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
           isHalfDay = true;
-          minutesLate += lateAfternoon + 240;
+          minutesLate += lateAfternoon; //+ 240;
           noOfLates += 2;
         }
 
         if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon <= 0) {
-          minutesLate += 240;
+          //minutesLate += 240;
           isHalfDay = true;
           noOfLates += 1;
         }
 
+        //
         if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning > 0 && dtr.lunchIn === null && dtr.timeOut === null) {
           minutesLate += isNaN(lateAfternoon) ? 0 : lateAfternoon;
           isHalfDay = true;
+          noOfUndertimes = 1;
         }
 
         if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning <= 0 && dtr.lunchIn === null && dtr.timeOut === null) {
           isHalfDay = true;
+          noOfUndertimes = 1;
         }
 
         console.log(dtr.dtrDate, ' ', isWithLunch);
 
+        //half day - pm time in
         if (
           isWithLunch === false &&
           (dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourStart) || dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourStart)) &&
           (dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourEnd))
         ) {
           isHalfDay = true;
-          minutesLate = 240;
+          minutesLate = lateAfternoon; //+ 240;
+          noOfLates += 1;
+        }
+
+        //halfday -am time in
+        if (
+          (isWithLunch === false &&
+            dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourStart) &&
+            dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart)) ||
+          (dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourStart) &&
+            dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart) &&
+            dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart) &&
+            (dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd)))
+        ) {
+          isHalfDay = true;
+          noOfUndertimes = 1;
         }
       }
 
+      //
       //console.log('DTR REMARKS: ', dtrRemarks);
+      //
 
       if (
         dtr.lunchIn === null &&
@@ -405,7 +424,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
 
-      const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
+      const restDays =
+        typeof schedule === 'undefined' ? [] : typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
+
+      console.log('Rest Days', restDays);
 
       const day = dayjs(dayjs(dateCurrent).format('YYYY-MM-DD')).format('d');
       console.log('day of week: ', dateCurrent, day);
@@ -475,7 +497,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //1.1 compute late by the day
       const { noOfLates, noOfUndertimes } = latesUndertimesNoAttendance;
       if (employeeDetails.userRole !== 'job_order') {
-        if (noOfLates > 0) {
+        if (noOfLates > 0 && !latesUndertimesNoAttendance.isHalfDay) {
           //insert to leave card ledger debit;
           //insert only if permanent or casual;
           const leaveCardItem = await this.leaveCardLedgerDebitService

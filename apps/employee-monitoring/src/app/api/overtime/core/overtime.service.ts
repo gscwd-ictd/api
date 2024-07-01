@@ -699,6 +699,7 @@ export class OvertimeService {
     console.log(employeeId);
     const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
 
+    console.log('employee schedules:', employeeSchedules);
     const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
     const restDays = employeeSchedules !== null ? employeeSchedules[0].restDays : null;
     const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
@@ -729,6 +730,8 @@ export class OvertimeService {
       companyId: employeeDetails.companyId,
       date: dayjs(overtimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate).toDate(),
     });
+
+    console.log('asdasd asd', dtr);
 
     if (scheduleBase === ScheduleBase.OFFICE) {
       didFaceScan = await this.dailyTimeRecordService.getHasIvms({
@@ -1109,6 +1112,7 @@ export class OvertimeService {
       return { forApproval: pendingResult, completed: approvedResult };
     } catch (error) {
       console.log('ABCD', error);
+      throw new HttpException(error, error.message);
     }
   }
 

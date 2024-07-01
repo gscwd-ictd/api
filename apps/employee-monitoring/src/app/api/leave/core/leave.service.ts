@@ -19,6 +19,7 @@ import { LeaveCreditDeductionsService } from '../components/leave-credit-deducti
 import { LeaveCreditEarningsService } from '../components/leave-credit-earnings/core/leave-credit-earnings.service';
 import { LeaveAdjustmentDto } from '../data/leave-adjustment.dto';
 import { LeaveApplicationDatesService } from '../components/leave-application-dates/core/leave-application-dates.service';
+import { LeaveBenefitsService } from '../components/leave-benefits/core/leave-benefits.service';
 
 @Injectable()
 export class LeaveService {
@@ -30,6 +31,7 @@ export class LeaveService {
     private readonly leaveCreditDeductionsService: LeaveCreditDeductionsService,
     private readonly employeesService: EmployeesService,
     private readonly leaveAddBackService: LeaveAddBackService,
+    private readonly leaveBenefitsService: LeaveBenefitsService,
     private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
     private readonly dataSource: DataSource
   ) {}
@@ -127,6 +129,8 @@ export class LeaveService {
         // if (leaveApplicationId.leaveBenefitsId.leaveName !== 'Leave Without Pay') {
         const debitValue = await this.leaveCardLedgerDebitService.getDebitValue(id);
 
+        const { leaveName } = leaveApplicationId.leaveBenefitsId;
+
         const countLeaveLedgerDebit = await this.leaveCardLedgerDebitService
           .crud()
           .findOneOrNull({ find: { where: { leaveApplicationId: { id: leaveApplicationId.id } } } });
@@ -136,6 +140,15 @@ export class LeaveService {
             leaveApplicationId,
             debitValue,
           });
+
+          if (leaveName === 'Forced Leave') {
+            //
+            const leaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
+            const leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
+              dto: { debitValue, leaveBenefitsId, remarks: 'Deduction from Forced Leave', employeeId: leaveApplicationId.employeeId },
+            });
+            const leaveCardLedgerDebit = await this.leaveCardLedgerDebitService.crud().create({ dto: { leaveCreditDeductionsId, debitValue } });
+          }
 
           if (leaveApplicationId.leaveBenefitsId.leaveType === 'special leave benefit') {
             const leaveCreditEarning = await this.leaveCreditEarningsService.addLeaveCreditEarnings({
@@ -159,6 +172,23 @@ export class LeaveService {
   async cancelLeave(updateLeaveApplicationEmployeeStatus: UpdateLeaveApplicationEmployeeStatus) {
     //
     //
+    /*
+
+    const shouldCancelWhole = (
+        await this.rawQuery(
+          `
+      SELECT IF(countCancelled = countTotal, true, false) shouldCancelWhole FROM (SELECT 
+        (SELECT count(leave_application_date_id) FROM leave_application_dates WHERE leave_application_id_fk = ? AND status='cancelled') countCancelled, 
+          (SELECT count(leave_application_date_id) FROM leave_application_dates WHERE leave_application_id_fk = ?) countTotal) leaveApplicationDates;
+      `,
+          [_leaveApplicationId, _leaveApplicationId]
+        )
+      )[0].shouldCancelWhole;
+      console.log(shouldCancelWhole);
+      if (shouldCancelWhole === '1') {
+        await this.rawQuery(`UPDATE leave_application SET status='cancelled' WHERE leave_application_id=?`, [_leaveApplicationId]);
+      }
+    */
     const { id, ...rest } = updateLeaveApplicationEmployeeStatus;
 
     const leaveApplication = await this.leaveApplicationService.crud().findOne({ find: { select: { id: true, status: true }, where: { id } } });
