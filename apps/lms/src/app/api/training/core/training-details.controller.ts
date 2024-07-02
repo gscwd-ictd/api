@@ -12,6 +12,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import {
@@ -36,6 +37,7 @@ import { LoginUser, NomineeType, TrainingNomineeStatus, TrainingStatus, User } f
 import { TrainingNomineesService } from '../components/nominees';
 import { TrainingRequirementsService } from '../components/requirements';
 import { TrainingDistributionsService } from '../components/slot-distributions';
+import { AuthGuard } from '../../../../guards';
 
 @Controller({ version: '1', path: 'training' })
 export class TrainingDetailsController {
@@ -226,12 +228,14 @@ export class TrainingDetailsController {
   }
 
   /* insert training (source = internal) */
+  @UseGuards(AuthGuard)
   @Post('internal')
   async createTrainingInternal(@Body() data: CreateTrainingInternalDto, @LoginUser() user: User) {
     return await this.trainingDetailsService.createTrainingInternal(data, user.employeeId);
   }
 
   /* insert training (source = external) */
+  @UseGuards(AuthGuard)
   @Post('external')
   async createTrainingExternal(@Body() data: CreateTrainingExternalDto, @LoginUser() user: User) {
     return await this.trainingDetailsService.createTrainingExternal(data, user.employeeId);
@@ -260,12 +264,14 @@ export class TrainingDetailsController {
   }
 
   /* send a training notice to the manager to nominate (source = internal) */
+  @UseGuards(AuthGuard)
   @Patch('notices/internal')
   async sendNoticeToManagersInternal(@Body() data: SendTrainingNoticeInternalDto, @LoginUser() user: User) {
     return await this.trainingDetailsService.sendNoticeToManagersInternal(data, user.employeeId);
   }
 
   /* send a training notice to the manager to nominate (source = external) */
+  @UseGuards(AuthGuard)
   @Patch('notices/external')
   async sendNoticeToManagersExternal(@Body() data: SendTrainingNoticeExternalDto, @LoginUser() user: User) {
     return await this.trainingDetailsService.sendNoticeToManagersExternal(data, user.employeeId);
