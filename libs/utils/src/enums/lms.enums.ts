@@ -73,7 +73,7 @@ export enum OtherTrainingCategory {
   CONFERENCE = 'conference',
   CONVENTION = 'convention',
   MEETING = 'meeting',
-  ORIENTATION = 'orientation',
+  ORIENTATION = 'orientation/talakayan',
   SEMINAR = 'seminar',
   SYMPOSIUM = 'symposium',
   WORKSHOP = 'workshop',
