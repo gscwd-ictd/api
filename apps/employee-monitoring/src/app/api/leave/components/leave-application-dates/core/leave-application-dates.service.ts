@@ -123,15 +123,29 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
     return leaveDateCancellationDto;
   }
 
+  async getLeaveCancelledAndForCancellation(leaveApplicationId: string) {
+    return (await this.rawQuery(
+      `
+    SELECT
+       DATE_FORMAT(lad.leave_date,'%Y-%m-%d') leaveDate
+     FROM leave_application la 
+       INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+       INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
+     WHERE la.leave_application_id=?  AND (lad.status ='for cancellation' OR lad.status='cancelled'); 
+    `,
+      [leaveApplicationId]
+    )) as {
+      leaveDate: string;
+    }[];
+  }
+
   async getForApprovalLeaveDates() {
     const leaveApplications = await this.getAllLeaveApplicationIdsFromLeaveDates();
     const leaveApplicationDateDetails = await Promise.all(
       leaveApplications.map(async (leaveApplication) => {
         const { dateOfFiling, leaveApplicationId } = leaveApplication;
         const leaveDates = (await this.getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId, null)).map((ld) => ld.leaveDate);
-        const forCancellationLeaveDates = (
-          await this.getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId, LeaveDayStatus.FOR_CANCELLATION)
-        ).map((ld) => ld.leaveDate);
+        const forCancellationLeaveDates = (await this.getLeaveCancelledAndForCancellation(leaveApplicationId)).map((ld) => ld.leaveDate);
         const statusAndRemarks = await this.getLeaveDateStatusAndRemarksByLeaveApplicationId(leaveApplicationId);
         const { remarks, status } = statusAndRemarks;
         const leaveDatesDetails = await this.getLeaveDatesDetailsByLeaveApplicationId(leaveApplicationId);

@@ -465,17 +465,33 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
   }
 
   async getUnavailableDates(employeeId: string) {
+    /*
+     return await this.rawQuery(
+      `
+      SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type 
+      FROM 
+      ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
+        INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
+        WHERE la.employee_id_fk = ? AND (la.status = 'approved' OR la.status='for hrmo credit certification' OR la.status='for hrdm approval' or la.status='for supervisor approval'
+        ))
+      UNION 
+      (SELECT DATE_FORMAT(holiday_date, '%Y-%m-%d') unavailableDate,'Holiday' AS type FROM holidays 
+      WHERE holiday_date BETWEEN DATE_SUB(DATE_SUB(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY) AND DATE_ADD(DATE_ADD(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY))) AS unavailableDates 
+      ORDER BY unavailableDates.unavailableDate ASC`,
+      [employeeId]
+    );
+    */
     return await this.rawQuery(
       `
       SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type 
       FROM 
       ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
         INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
-        WHERE la.employee_id_fk = ? AND (la.status = 'approved' OR la.status='for hrmo credit certification' OR la.status='for hrdm approval' or la.status='for supervisor approval'))
+        WHERE la.employee_id_fk = ? AND ( (la.status = 'approved' AND lad.status = 'approved') OR (la.status = 'approved' AND lad.status = 'for cancellation') OR la.status='for hrmo credit certification' OR la.status='for hrdm approval' or la.status='for supervisor approval'))
       UNION 
       (SELECT DATE_FORMAT(holiday_date, '%Y-%m-%d') unavailableDate,'Holiday' AS type FROM holidays 
       WHERE holiday_date BETWEEN DATE_SUB(DATE_SUB(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY) AND DATE_ADD(DATE_ADD(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY))) AS unavailableDates 
-      ORDER BY unavailableDates.unavailableDate ASC`,
+      ORDER BY unavailableDates.unavailableDate ASC;`,
       [employeeId]
     );
   }
