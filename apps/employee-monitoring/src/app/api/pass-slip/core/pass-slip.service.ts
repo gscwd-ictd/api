@@ -350,7 +350,12 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true },
 
-        where: { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED },
+        where: [
+          { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED },
+          { passSlipId: { employeeId }, status: PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE },
+          { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED_WITH_MEDICAL_CERTIFICATE },
+          { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED_WITHOUT_MEDICAL_CERTIFICATE },
+        ],
       },
     });
 
@@ -421,7 +426,18 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         is_cancelled isCancelled
       FROM pass_slip_approval psa 
         INNER JOIN pass_slip ps ON ps.pass_slip_id = psa.pass_slip_id_fk 
-      WHERE ps.employee_id_fk = ? AND (status = 'approved' OR status = 'disapproved' OR status = 'for dispute' OR status = 'cancelled') 
+      WHERE ps.employee_id_fk = ? AND 
+      (
+        status = 'approved' 
+        OR status = 'disapproved' 
+        OR status = 'for dispute' 
+        OR status = 'cancelled' 
+        OR status = 'awaiting medical certificate' 
+        OR status = 'approved with medical certificate' 
+        OR status = 'approved without medical certificate'
+        OR status = 'disapproved by hrmo' 
+        OR status = 'disapproved'
+      ) 
       ORDER BY ps.date_of_application DESC,psa.status ASC;  
     `,
       [employeeId]
