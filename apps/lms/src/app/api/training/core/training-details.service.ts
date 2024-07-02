@@ -92,6 +92,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       /* find all training learning service provider by training id */
       const trainingLspDetails = await this.trainingLspDetailsService.findAllLspDetailsByTrainingId(id);
 
+      const lspSource = trainingLspDetails.find((lsp) => lsp.source);
+
       /* find all training tag by training id */
       const trainingTags = await this.trainingTagsService.findAllTagsByTrainingId(id);
 
@@ -126,6 +128,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         },
         type: trainingDetails.type,
         status: trainingDetails.status,
+        lspSource: lspSource.source,
         trainingLspDetails: trainingLspDetails,
         trainingTags: trainingTags,
         slotDistribution: slotDistribution,
@@ -162,6 +165,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       /* find all training learning service provider by training id */
       const trainingLspDetails = await this.trainingLspDetailsService.findAllLspDetailsByTrainingId(id);
 
+      const lspSource = trainingLspDetails.find((lsp) => lsp.source);
+
       /* find all training tag by training id */
       const trainingTags = await this.trainingTagsService.findAllTagsByTrainingId(id);
 
@@ -191,6 +196,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         },
         type: trainingDetails.type,
         status: trainingDetails.status,
+        lspSource: lspSource.source,
         trainingLspDetails: trainingLspDetails,
         trainingTags: trainingTags,
         slotDistribution: slotDistribution,
@@ -247,7 +253,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
-        return trainingDetails;
+        return this.findTrainingDetailsById(trainingDetails.id);
       });
     } catch (error) {
       Logger.error(error);
@@ -331,7 +337,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
-        return trainingDetails;
+        return this.findTrainingDetailsById(trainingDetails.id);
       });
     } catch (error) {
       Logger.error(error);
