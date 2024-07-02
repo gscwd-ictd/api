@@ -31,6 +31,7 @@ import { OtherTrainingsModule } from './api/others';
 import { OtherTrainingParticipantsModule } from './api/others/components/other-training-participants';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LspRatingModule } from './api/lsp-rating/core/lsp-rating.module';
+import { DocumentsModule } from './api/training/components/documents';
 
 @Module({
   imports: [
@@ -86,6 +87,9 @@ import { LspRatingModule } from './api/lsp-rating/core/lsp-rating.module';
     /* other trainings */
     OtherTrainingsModule,
     OtherTrainingParticipantsModule,
+
+    /* reports */
+    DocumentsModule,
 
     /* cron job */
     ScheduleModule.forRoot(),

@@ -98,6 +98,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       /* find all slot distribution by training id */
       const slotDistribution = await this.trainingDistributionsService.findAllDistributionByTrainingId(id);
 
+      /* find prepared name by employee id */
+      const preparedBy = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(trainingDetails.preparedBy);
+
       /* custom return */
       return {
         createdAt: trainingDetails.createdAt,
@@ -126,6 +129,11 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         trainingLspDetails: trainingLspDetails,
         trainingTags: trainingTags,
         slotDistribution: slotDistribution,
+        preparedBy: {
+          employeeId: trainingDetails.preparedBy,
+          name: preparedBy.employeeFullName,
+          positionTitle: preparedBy.assignment.positionTitle,
+        },
       };
     } catch (error) {
       Logger.log(error);
@@ -160,6 +168,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       /* find all slot distribution by training id */
       const slotDistribution = await this.trainingDistributionsService.findAllDistributionByTrainingId(id);
 
+      /* find prepared name by employee id */
+      const preparedBy = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(trainingDetails.preparedBy);
+
       return {
         createdAt: trainingDetails.createdAt,
         updatedAt: trainingDetails.updatedAt,
@@ -183,6 +194,11 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         trainingLspDetails: trainingLspDetails,
         trainingTags: trainingTags,
         slotDistribution: slotDistribution,
+        preparedBy: {
+          employeeId: trainingDetails.preparedBy,
+          name: preparedBy.employeeFullName,
+          positionTitle: preparedBy.assignment.positionTitle,
+        },
       };
     } catch (error) {
       Logger.log(error);
@@ -191,7 +207,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   }
 
   /* insert training (source = internal) */
-  async createTrainingInternal(data: CreateTrainingInternalDto) {
+  async createTrainingInternal(data: CreateTrainingInternalDto, preparedBy: string) {
     try {
       return await this.dataSource.transaction(async (entityManager) => {
         /* deconstruct data */
@@ -203,6 +219,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             ...rest,
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
+            preparedBy: preparedBy,
           },
           onError: (error) => {
             throw error;
@@ -274,7 +291,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   }
 
   /* insert training (source = external) */
-  async createTrainingExternal(data: CreateTrainingExternalDto) {
+  async createTrainingExternal(data: CreateTrainingExternalDto, preparedBy: string) {
     try {
       return this.dataSource.transaction(async (entityManager) => {
         /* deconstruct data */
@@ -286,6 +303,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             ...rest,
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
+            preparedBy: preparedBy,
           },
           onError: (error) => {
             throw error;
@@ -562,7 +580,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   }
 
   /* send a training notice to the manager to nominate (source = internal) */
-  async sendNoticeToManagersInternal(data: UpdateTrainingInternalDto) {
+  async sendNoticeToManagersInternal(data: UpdateTrainingInternalDto, preparedBy: string) {
     try {
       return await this.dataSource.transaction(async (entityManager) => {
         /* deconstruct data */
@@ -584,6 +602,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
             status: TrainingStatus.ON_GOING_NOMINATION,
+            preparedBy: preparedBy,
           },
           onError: (error) => {
             throw error;
@@ -632,7 +651,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   }
 
   /* send a training notice to the manager to nominate (source = external) */
-  async sendNoticeToManagersExternal(data: UpdateTrainingExternalDto) {
+  async sendNoticeToManagersExternal(data: UpdateTrainingExternalDto, preparedBy: string) {
     try {
       return this.dataSource.transaction(async (entityManager) => {
         /* deconstruct data */
@@ -654,6 +673,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             courseContent: JSON.stringify(courseContent),
             trainingRequirements: JSON.stringify(trainingRequirements),
             status: TrainingStatus.ON_GOING_NOMINATION,
+            preparedBy: preparedBy,
           },
           onError: (error) => {
             throw error;

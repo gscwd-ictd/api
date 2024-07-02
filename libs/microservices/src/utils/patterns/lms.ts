@@ -7,7 +7,7 @@ export enum FindEmployeesPatterns {
   GET_EMPLOYEES_BY_ID = 'get_employee_name',
   GET_EMPLOYEES_DETAILS_BY_ID = 'get_lsp_pds_details',
   GET_ALL_ORGANIZATION = 'get_all_departments_and_ogm',
-  GET_EMPLOYEES_BY_ORGANIZATION_ID = 'get_employees_by_org_id',
+  GET_EMPLOYEES_BY_ORGANIZATION_ID = 'get_employees_with_managers_by_org_id',
   GET_ALL_EMPLOYEES_WITH_SUPERVISOR = 'get_all_employees_with_supervisor',
   GET_EMPLOYEE_WITH_SUPERVISOR = 'get_employee_with_supervisor',
 }

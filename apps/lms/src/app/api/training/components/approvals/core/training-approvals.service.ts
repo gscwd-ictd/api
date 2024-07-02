@@ -4,10 +4,15 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../../nominees';
 import { EntityManager, MoreThanOrEqual } from 'typeorm';
+import { HrmsEmployeesService } from '../../../../../services/hrms';
 
 @Injectable()
 export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
-  constructor(private readonly crudService: CrudService<TrainingApproval>, private readonly trainingNomineesService: TrainingNomineesService) {
+  constructor(
+    private readonly crudService: CrudService<TrainingApproval>,
+    private readonly trainingNomineesService: TrainingNomineesService,
+    private readonly hrmsEmployeesService: HrmsEmployeesService
+  ) {
     super(crudService);
   }
 
@@ -198,6 +203,47 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* find approval details */
+  async findApprovalDetailsByTrainingId(trainingId: string) {
+    try {
+      const approvalDetails = await this.crudService.findOneBy({
+        findBy: {
+          trainingDetails: {
+            id: trainingId,
+          },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+
+      const pdcSecretariat = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.pdcSecretariat);
+      const pdcChairman = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.pdcChairman);
+      const generalManager = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.generalManager);
+
+      return {
+        pdcSecretariat: {
+          employeeId: approvalDetails.pdcSecretariat,
+          name: pdcSecretariat.employeeFullName,
+          positionTitle: pdcSecretariat.assignment.positionTitle,
+        },
+        pdcChairman: {
+          employeeId: approvalDetails.pdcSecretariat,
+          name: pdcChairman.employeeFullName,
+          positionTitle: pdcChairman.assignment.positionTitle,
+        },
+        generalManager: {
+          employeeId: approvalDetails.generalManager,
+          name: generalManager.employeeFullName,
+          positionTitle: generalManager.assignment.positionTitle,
+        },
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found approval details.', HttpStatus.NOT_FOUND);
     }
   }
 }

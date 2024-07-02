@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { PassSlip, PassSlipApproval, UpdatePassSlipApprovalDto } from '@gscwd-api/models';
+import { PassSlipApproval, UpdatePassSlipApprovalDto } from '@gscwd-api/models';
 import { PassSlipApprovalStatus } from '@gscwd-api/utils';
 import { Injectable } from '@nestjs/common';
 import dayjs = require('dayjs');
@@ -26,9 +26,9 @@ export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {
       status === PassSlipApprovalStatus.APPROVED ||
       status === PassSlipApprovalStatus.APPROVED_WITHOUT_MEDICAL_CERTIFICATE ||
       status === PassSlipApprovalStatus.APPROVED_WITH_MEDICAL_CERTIFICATE ||
+      status === PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE ||
       status === PassSlipApprovalStatus.DISAPPROVED
     ) {
-      console.log('NAA DRE');
       updateResult = await this.crudService.update({
         dto: {
           status,
