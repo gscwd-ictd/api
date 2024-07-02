@@ -32,7 +32,7 @@ import {
 import { TrainingDetailsService } from './training-details.service';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { FindAllTrainingInterceptor } from '../misc/interceptors';
-import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
+import { LoginUser, NomineeType, TrainingNomineeStatus, TrainingStatus, User } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../components/nominees';
 import { TrainingRequirementsService } from '../components/requirements';
 import { TrainingDistributionsService } from '../components/slot-distributions';
@@ -227,14 +227,14 @@ export class TrainingDetailsController {
 
   /* insert training (source = internal) */
   @Post('internal')
-  async createTrainingInternal(@Body() data: CreateTrainingInternalDto) {
-    return await this.trainingDetailsService.createTrainingInternal(data);
+  async createTrainingInternal(@Body() data: CreateTrainingInternalDto, @LoginUser() user: User) {
+    return await this.trainingDetailsService.createTrainingInternal(data, user.employeeId);
   }
 
   /* insert training (source = external) */
   @Post('external')
-  async createTrainingExternal(@Body() data: CreateTrainingExternalDto) {
-    return await this.trainingDetailsService.createTrainingExternal(data);
+  async createTrainingExternal(@Body() data: CreateTrainingExternalDto, @LoginUser() user: User) {
+    return await this.trainingDetailsService.createTrainingExternal(data, user.employeeId);
   }
 
   /* edit training by id (source = internal) */
@@ -261,14 +261,14 @@ export class TrainingDetailsController {
 
   /* send a training notice to the manager to nominate (source = internal) */
   @Patch('notices/internal')
-  async sendNoticeToManagersInternal(@Body() data: SendTrainingNoticeInternalDto) {
-    return await this.trainingDetailsService.sendNoticeToManagersInternal(data);
+  async sendNoticeToManagersInternal(@Body() data: SendTrainingNoticeInternalDto, @LoginUser() user: User) {
+    return await this.trainingDetailsService.sendNoticeToManagersInternal(data, user.employeeId);
   }
 
   /* send a training notice to the manager to nominate (source = external) */
   @Patch('notices/external')
-  async sendNoticeToManagersExternal(@Body() data: SendTrainingNoticeExternalDto) {
-    return await this.trainingDetailsService.sendNoticeToManagersExternal(data);
+  async sendNoticeToManagersExternal(@Body() data: SendTrainingNoticeExternalDto, @LoginUser() user: User) {
+    return await this.trainingDetailsService.sendNoticeToManagersExternal(data, user.employeeId);
   }
 
   /* find all accepted nominees by training id */

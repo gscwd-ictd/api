@@ -73,3 +73,13 @@ export type EmployeeListsRaw = {
   value: string;
   label: string;
 };
+
+export type EmployeeDetailsRaw = {
+  employeeFullName: string;
+  assignment: {
+    id: string;
+    name: string;
+    positionId: string;
+    positionTitle: string;
+  };
+};
