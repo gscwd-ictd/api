@@ -1,5 +1,5 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { OtherTrainingCategory, OtherTrainingStatus } from '@gscwd-api/utils';
+import { OtherTrainingCategory, OtherTrainingStatus, TrainingType } from '@gscwd-api/utils';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'other_trainings' })
@@ -9,6 +9,9 @@ export class OtherTraining extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'title', type: 'text', nullable: false })
   title: string;
+
+  @Column({ name: 'title', type: 'text', nullable: false })
+  description: string;
 
   @Column({ name: 'date_from', type: 'date', nullable: false })
   dateFrom: Date;
@@ -21,6 +24,9 @@ export class OtherTraining extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'category', type: 'enum', enum: OtherTrainingCategory, nullable: false })
   category: OtherTrainingCategory;
+
+  @Column({ name: 'training_type', type: 'enum', enum: TrainingType, nullable: false })
+  type: TrainingType;
 
   @Column({ name: 'status', type: 'enum', enum: OtherTrainingStatus, nullable: false, default: OtherTrainingStatus.PENDING })
   status: OtherTrainingStatus;
