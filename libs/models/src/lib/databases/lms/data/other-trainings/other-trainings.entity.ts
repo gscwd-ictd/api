@@ -25,7 +25,7 @@ export class OtherTraining extends DatabaseEntity implements IEntity {
   @Column({ name: 'category', type: 'enum', enum: OtherTrainingCategory, nullable: false })
   category: OtherTrainingCategory;
 
-  @Column({ name: 'training_type', type: 'enum', enum: TrainingType, nullable: false })
+  @Column({ name: 'training_type', type: 'enum', enum: TrainingType, nullable: true })
   type: TrainingType;
 
   @Column({ name: 'status', type: 'enum', enum: OtherTrainingStatus, nullable: false, default: OtherTrainingStatus.PENDING })
