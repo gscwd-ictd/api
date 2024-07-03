@@ -288,7 +288,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon <= 0) {
           //minutesLate += 240;
           isHalfDay = true;
-          noOfLates += 1;
+          noOfLates = 1;
         }
 
         //
@@ -1135,25 +1135,46 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   //#endregion
   async updateEmployeeDTR(dailyTimeRecordDto: UpdateDailyTimeRecordDto) {
     const { dtrDate, companyId, ...rest } = dailyTimeRecordDto;
+    console.log(dailyTimeRecordDto);
     const employeeId = (await this.employeeService.getEmployeeDetailsByCompanyId(companyId)).userId;
     const schedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dtrDate);
 
-    if (schedule.schedule.withLunch === 'true') {
-      if (rest.lunchIn === null || rest.lunchOut === null || rest.timeIn === null || rest.timeOut === null) {
+    if (schedule.schedule.withLunch === 'true' || schedule.schedule.withLunch === true) {
+      if (rest.lunchIn === null && rest.lunchOut === null && rest.timeIn === null && rest.timeOut === null) {
         throw new HttpException('Please fill out time scans completely', 406);
       }
     }
-    const updateResult = await this.crud().update({
-      dto: rest,
-      updateBy: { companyId, dtrDate },
-      onError: (error) => {
-        console.log(error);
-        return new InternalServerErrorException();
-      },
-    });
 
-    if (updateResult.affected > 0) return dailyTimeRecordDto;
-    else throw new HttpException('No attendance found on this date', HttpStatus.NOT_ACCEPTABLE);
+    const countDtrRecord = (
+      await this.rawQuery(`SELECT count(daily_time_record_id) countDtrRecord FROM daily_time_record WHERE company_id_fk = ? AND dtr_date = ?`, [
+        companyId,
+        dtrDate,
+      ])
+    )[0].countDtrRecord;
+
+    if (countDtrRecord !== '0') {
+      const updateResult = await this.crud().update({
+        dto: rest,
+        updateBy: { companyId, dtrDate },
+        onError: (error) => {
+          console.log(error);
+          return new InternalServerErrorException();
+        },
+      });
+      if (updateResult.affected > 0) return dailyTimeRecordDto;
+      else {
+        throw new HttpException('No attendance found on this date', HttpStatus.NOT_ACCEPTABLE);
+      }
+    } else {
+      return await this.crud().create({
+        dto: dailyTimeRecordDto,
+        onError: (error) => {
+          console.log('nandito');
+          console.log(error);
+          return new InternalServerErrorException();
+        },
+      });
+    }
   }
 
   @Cron('0 59 23 * * 0-6')
