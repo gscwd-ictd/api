@@ -55,7 +55,10 @@ export class LeaveController {
   //!todo hrdm guard
   @Patch('hrdm/')
   async updateHrmdLeaveStatus(@Body() updateLeaveApplicationStatus: UpdateLeaveApplicationHrdmStatusDto) {
-    return await this.leaveService.updateLeaveStatus({ ...updateLeaveApplicationStatus, hrdmApprovalDate: dayjs().toDate() });
+    return await this.leaveService.updateLeaveStatus({
+      ...updateLeaveApplicationStatus,
+      hrdmApprovalDate: dayjs().toDate(),
+    });
   }
 
   //TODO: guard check if logged in is employee status is set for cancellation, if logged in is manager status is set to cancelled
