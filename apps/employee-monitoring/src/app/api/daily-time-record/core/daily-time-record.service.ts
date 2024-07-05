@@ -313,7 +313,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         ) {
           isHalfDay = true;
           minutesLate = lateAfternoon; //+ 240;
-          noOfLates += 1;
+          noOfLates = 1;
         }
 
         //halfday -am time in
