@@ -253,7 +253,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
-        return this.findTrainingDetailsById(trainingDetails.id);
+        return trainingDetails;
       });
     } catch (error) {
       Logger.error(error);
@@ -337,7 +337,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
-        return this.findTrainingDetailsById(trainingDetails.id);
+        return trainingDetails;
       });
     } catch (error) {
       Logger.error(error);

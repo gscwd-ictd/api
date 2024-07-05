@@ -13,6 +13,6 @@ export class LeaveCardLedgerDebitController {
 
   @Get('')
   async test() {
-    return await this.leaveCardLedgerDebitService.forfeitureOfForcedLeave();
+    return await this.leaveCardLedgerDebitService.vlDeductionFromPreviouslyApprovedForceLeaveApplication();
   }
 }

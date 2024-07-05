@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { LeaveService } from './leave.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { UpdateLeaveApplicationHrdmStatusDto } from '@gscwd-api/models';
+import { UpdateLeaveApplicationHrdmStatusDto, UpdateLeaveApplicationSupervisorStatusDto } from '@gscwd-api/models';
 import dayjs = require('dayjs');
 
 @Controller()
