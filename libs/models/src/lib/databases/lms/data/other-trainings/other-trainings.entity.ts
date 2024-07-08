@@ -10,7 +10,7 @@ export class OtherTraining extends DatabaseEntity implements IEntity {
   @Column({ name: 'title', type: 'text', nullable: false })
   title: string;
 
-  @Column({ name: 'title', type: 'text', nullable: false })
+  @Column({ name: 'description', type: 'text', nullable: false })
   description: string;
 
   @Column({ name: 'date_from', type: 'date', nullable: false })
@@ -25,8 +25,11 @@ export class OtherTraining extends DatabaseEntity implements IEntity {
   @Column({ name: 'category', type: 'enum', enum: OtherTrainingCategory, nullable: false })
   category: OtherTrainingCategory;
 
-  @Column({ name: 'training_type', type: 'enum', enum: TrainingType, nullable: false })
+  @Column({ name: 'training_type', type: 'enum', enum: TrainingType, nullable: true })
   type: TrainingType;
+
+  @Column({ name: 'training_requirements', type: 'jsonb', nullable: false })
+  trainingRequirements: string;
 
   @Column({ name: 'status', type: 'enum', enum: OtherTrainingStatus, nullable: false, default: OtherTrainingStatus.PENDING })
   status: OtherTrainingStatus;
