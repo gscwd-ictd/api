@@ -7,6 +7,8 @@ import { LeaveCreditDeductionsService } from '../../leave-credit-deductions/core
 import { LeaveLedger } from '@gscwd-api/utils';
 import { LeaveBenefitsModule } from '../../leave-benefits/core/leave-benefits.module';
 import { LeaveBenefitsService } from '../../leave-benefits/core/leave-benefits.service';
+import dayjs = require('dayjs');
+import { create } from 'domain';
 
 @Injectable()
 export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit> {
@@ -33,6 +35,64 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }
+  }
+
+  async vlDeductionFromPreviouslyApprovedForceLeaveApplication() {
+    const employeeIds = (await this.rawQuery(`SELECT distinct employee_id_fk employeeId FROM leave_application WHERE status='approved';`)) as {
+      employeeId: string;
+    }[];
+
+    const vlDeductions = await Promise.all(
+      employeeIds.map(async (employee) => {
+        const { employeeId } = employee;
+        //Deduction from Forced Leave
+        const forcedLeaveApplications = (await this.rawQuery(
+          `
+            SELECT leave_application_id_fk leaveApplicationId, DATE_FORMAT(lcld.created_at,'%Y-%m-%d') createdAt,DATE_FORMAT(la.date_of_filing,'%Y-%m-%d 23:59:00') dateOfFiling,lcld.debit_value debitValue FROM leave_card_ledger_debit lcld 
+              INNER JOIN leave_application la ON la.leave_application_id = lcld.leave_application_id_fk 
+              INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
+            WHERE lb.leave_name = 'Forced Leave' AND la.employee_id_fk = ?;
+        `,
+          [employeeId]
+        )) as { leaveApplicationId: string; createdAt: Date; debitValue: number; dateOfFiling: Date }[];
+
+        if (forcedLeaveApplications.length > 0) {
+          const details = await Promise.all(
+            forcedLeaveApplications.map(async (fl) => {
+              const { createdAt, leaveApplicationId, debitValue, dateOfFiling } = fl;
+              const vlAdjustmentFromForceLeaveCount = (
+                await this.rawQuery(
+                  `
+              SELECT COUNT(leave_credit_deductions_id) vlAdjustmentFromForceLeaveCount 
+                FROM leave_credit_deductions WHERE DATE_FORMAT(created_at, '%Y-%m-%d') = ? 
+              AND employee_id_fk=? AND remarks = 'Deduction from Forced Leave';`,
+                  [dayjs(dateOfFiling).format('YYYY-MM-DD'), employeeId]
+                )
+              )[0].vlAdjustmentFromForceLeaveCount;
+
+              if (vlAdjustmentFromForceLeaveCount !== '0') {
+                return { employeeId, createdAt, leaveApplicationId };
+              } else {
+                //insert adjustment;
+                const leaveCreditDeductionsId = await this.leaveCreditDeductionService.crud().create({
+                  dto: {
+                    createdAt: dateOfFiling,
+                    updatedAt: dateOfFiling,
+                    debitValue,
+                    employeeId,
+                    leaveBenefitsId: { id: '8ea199f1-73b8-4279-a5c8-9952a51a4b8c' },
+                    remarks: 'Deduction from Forced Leave',
+                  },
+                });
+                await this.addLeaveCardLedgerDebit({ leaveCreditDeductionsId, debitValue, createdAt: dateOfFiling });
+              }
+            })
+          );
+          return details;
+        }
+      })
+    );
+    return vlDeductions;
   }
 
   @Cron('0 57 23 30 10 *')
