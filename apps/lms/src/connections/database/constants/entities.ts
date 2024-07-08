@@ -14,6 +14,7 @@ import {
   LspTraining,
   OtherTraining,
   OtherTrainingParticipant,
+  OtherTrainingParticipantRequirements,
   Tag,
   TrainingApproval,
   TrainingDesign,
@@ -64,6 +65,7 @@ export const DB_ENTITIES = [
   /* other trainings */
   OtherTraining,
   OtherTrainingParticipant,
+  OtherTrainingParticipantRequirements,
 
   LspRankView,
 ];

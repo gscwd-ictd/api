@@ -4,10 +4,15 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { EntityManager } from 'typeorm';
 import { OtherTrainingStatus } from '@gscwd-api/utils';
+import { OtherTrainingParticipantsRequirementsService } from '../../other-training-participants-requirements';
 
 @Injectable()
 export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingParticipant> {
-  constructor(private readonly crudService: CrudService<OtherTrainingParticipant>, private readonly hrmsEmployeesService: HrmsEmployeesService) {
+  constructor(
+    private readonly crudService: CrudService<OtherTrainingParticipant>,
+    private readonly OtherTrainingParticipantsRequirementsService: OtherTrainingParticipantsRequirementsService,
+    private readonly hrmsEmployeesService: HrmsEmployeesService
+  ) {
     super(crudService);
   }
 
@@ -137,6 +142,12 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
           throw error;
         },
       });
+
+      /* insert participants requirements */
+      await this.OtherTrainingParticipantsRequirementsService.createParticipantRequirements(
+        { otherTrainingParticipant: participants.id },
+        entityManager
+      );
 
       /* custom return */
       return {
