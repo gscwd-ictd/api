@@ -4,7 +4,7 @@ import { AppModule } from './app/app.module';
 import { ConfigService } from '@nestjs/config';
 import { HybridApp } from '@gscwd-api/microservices';
 import { Transport } from '@nestjs/microservices';
-import session from 'express-session';
+import * as session from 'express-session';
 import * as redis from 'redis';
 import RedisStore from 'connect-redis';
 /**
