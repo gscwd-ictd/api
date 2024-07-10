@@ -86,40 +86,36 @@
   "fileMap": {
     "nonProjectFiles": [
       {
-        "file": ".editorconfig",
-        "hash": "5443105041930014821"
+        "file": ".github/workflows/production.yml",
+        "hash": "2169779922678488158"
       },
       {
-        "file": ".eslintignore",
-        "hash": "7663861978715868291"
+        "file": ".editorconfig",
+        "hash": "5443105041930014821"
       },
       {
         "file": ".eslintrc.json",
         "hash": "18315524891129148814"
       },
       {
-        "file": ".github/workflows/codeql.yml",
-        "hash": "6986063541398626527"
-      },
-      {
-        "file": ".github/workflows/production.yml",
-        "hash": "2169779922678488158"
+        "file": "apps/.gitkeep",
+        "hash": "3244421341483603138"
       },
       {
         "file": ".github/workflows/staging.yml",
         "hash": "9201450444628377915"
       },
       {
-        "file": ".gitignore",
-        "hash": "2957345870538092911"
+        "file": "package.json",
+        "hash": "7941751429171384095"
       },
       {
-        "file": ".prettierignore",
-        "hash": "9175937087874081623"
+        "file": "README.md",
+        "hash": "7622940554281935897"
       },
       {
-        "file": ".prettierrc",
-        "hash": "8408778777331836376"
+        "file": ".eslintignore",
+        "hash": "7663861978715868291"
       },
       {
         "file": ".vscode/extensions.json",
@@ -130,11 +126,31 @@
         "hash": "10613999946166442523"
       },
       {
-        "file": "README.md",
-        "hash": "7622940554281935897"
+        "file": "tsconfig.base.json",
+        "hash": "16563190345616722058"
       },
       {
-        "file": "apps/.gitkeep",
+        "file": "migrations.json",
+        "hash": "8445159796584750611"
+      },
+      {
+        "file": "nx.json",
+        "hash": "5187539589863002474"
+      },
+      {
+        "file": "tools/tsconfig.tools.json",
+        "hash": "16088922570277978783"
+      },
+      {
+        "file": "package-lock.json",
+        "hash": "14032665607656577880"
+      },
+      {
+        "file": ".github/workflows/codeql.yml",
+        "hash": "6986063541398626527"
+      },
+      {
+        "file": "libs/.gitkeep",
         "hash": "3244421341483603138"
       },
       {
@@ -142,40 +158,24 @@
         "hash": "12333515226966617182"
       },
       {
-        "file": "jest.preset.js",
-        "hash": "9084884494335109525"
-      },
-      {
-        "file": "libs/.gitkeep",
-        "hash": "3244421341483603138"
-      },
-      {
-        "file": "migrations.json",
-        "hash": "8445159796584750611"
-      },
-      {
         "file": "nest-cli.json",
         "hash": "11497377643442351779"
       },
       {
-        "file": "nx.json",
-        "hash": "5187539589863002474"
+        "file": ".gitignore",
+        "hash": "2957345870538092911"
       },
       {
-        "file": "package-lock.json",
-        "hash": "14032665607656577880"
+        "file": ".prettierignore",
+        "hash": "9175937087874081623"
       },
       {
-        "file": "package.json",
-        "hash": "7941751429171384095"
+        "file": "jest.preset.js",
+        "hash": "9084884494335109525"
       },
       {
-        "file": "tools/tsconfig.tools.json",
-        "hash": "16088922570277978783"
-      },
-      {
-        "file": "tsconfig.base.json",
-        "hash": "16563190345616722058"
+        "file": ".prettierrc",
+        "hash": "8408778777331836376"
       }
     ],
     "projectFileMap": {
@@ -847,7 +847,7 @@
         },
         {
           "file": "libs/microservices/src/clients/hrms-client.module.ts",
-          "hash": "6403954905546904333",
+          "hash": "13438208460998913693",
           "deps": [
             "npm:@nestjs/common",
             "npm:@nestjs/config",
