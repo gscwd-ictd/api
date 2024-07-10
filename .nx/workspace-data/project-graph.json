@@ -12320,6 +12320,11 @@
         "source": "employee-monitoring",
         "target": "npm:connect-redis",
         "type": "static"
+      },
+      {
+        "source": "employee-monitoring",
+        "target": "npm:@nx/webpack",
+        "type": "static"
       }
     ],
     "microservices": [
@@ -12436,6 +12441,11 @@
         "source": "procurement",
         "target": "npm:@nestjs/swagger",
         "type": "static"
+      },
+      {
+        "source": "procurement",
+        "target": "npm:@nx/webpack",
+        "type": "static"
       }
     ],
     "generator": [
@@ -12490,6 +12500,11 @@
         "source": "warehouse",
         "target": "npm:@faker-js/faker",
         "type": "static"
+      },
+      {
+        "source": "warehouse",
+        "target": "npm:@nx/webpack",
+        "type": "static"
       }
     ],
     "ivms-dtr": [
@@ -12541,6 +12556,11 @@
       {
         "source": "ivms-dtr",
         "target": "npm:@nestjs/core",
+        "type": "static"
+      },
+      {
+        "source": "ivms-dtr",
+        "target": "npm:@nx/webpack",
         "type": "static"
       }
     ],
@@ -12630,6 +12650,11 @@
       {
         "source": "finance",
         "target": "npm:@nestjs/core",
+        "type": "static"
+      },
+      {
+        "source": "finance",
+        "target": "npm:@nx/webpack",
         "type": "static"
       }
     ],
@@ -12729,6 +12754,11 @@
       {
         "source": "items",
         "target": "npm:@nestjs/core",
+        "type": "static"
+      },
+      {
+        "source": "items",
+        "target": "npm:@nx/webpack",
         "type": "static"
       }
     ],
@@ -12840,6 +12870,11 @@
       {
         "source": "lms",
         "target": "npm:connect-redis",
+        "type": "static"
+      },
+      {
+        "source": "lms",
+        "target": "npm:@nx/webpack",
         "type": "static"
       }
     ],

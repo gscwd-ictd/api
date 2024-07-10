@@ -181,7 +181,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         },
       })) as Array<TrainingNominee>;
 
-      return await Promise.all(
+      const result = await Promise.all(
         distribution.map(async (items) => {
           /* find employee name by employee id */
           const employeeName = (await this.hrmsEmployeesService.findEmployeesById(items.employeeId)).fullName;
@@ -196,6 +196,10 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           };
         })
       );
+
+      result.sort((a, b) => (a.name > b.name ? 1 : -1));
+
+      return result;
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -248,7 +252,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
       const nominees = await Promise.all(
         distribution.map(async (items) => {
           /* find employee name by employee id */
-          const employeeName = await this.hrmsEmployeesService.findEmployeesById(items.employeeId);
+          const employeeName = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(items.employeeId);
 
           /* find supervisor name by employee id */
           const supervisorName = await this.hrmsEmployeesService.findEmployeesById(items.trainingDistribution.supervisorId);
@@ -258,10 +262,12 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           return {
             nomineeId: items.id,
             employeeId: items.employeeId,
-            name: employeeName.fullName,
+            companyId: employeeName.companyId,
+            name: employeeName.employeeFullName,
             status: items.status,
             remarks: remarks,
             isReplacedBy: items.isReplacedBy !== null ? true : false,
+            assignment: employeeName.assignment.name,
             supervisor: {
               distributionId: items.trainingDistribution.id,
               supervisorId: items.trainingDistribution.supervisorId,
