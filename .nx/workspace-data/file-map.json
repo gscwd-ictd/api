@@ -86,6 +86,26 @@
   "fileMap": {
     "nonProjectFiles": [
       {
+        "file": "README.md",
+        "hash": "7622940554281935897"
+      },
+      {
+        "file": ".github/workflows/staging.yml",
+        "hash": "9201450444628377915"
+      },
+      {
+        "file": "LICENSE",
+        "hash": "10613999946166442523"
+      },
+      {
+        "file": "jest.preset.js",
+        "hash": "9084884494335109525"
+      },
+      {
+        "file": "package.json",
+        "hash": "18076618297829115889"
+      },
+      {
         "file": ".editorconfig",
         "hash": "5443105041930014821"
       },
@@ -94,64 +114,28 @@
         "hash": "7663861978715868291"
       },
       {
-        "file": ".eslintrc.json",
-        "hash": "15629280613521941793"
-      },
-      {
-        "file": ".github/workflows/codeql.yml",
-        "hash": "6986063541398626527"
-      },
-      {
         "file": ".github/workflows/production.yml",
         "hash": "2169779922678488158"
-      },
-      {
-        "file": ".github/workflows/staging.yml",
-        "hash": "9201450444628377915"
       },
       {
         "file": ".gitignore",
         "hash": "5079654312793284407"
       },
       {
-        "file": ".prettierignore",
-        "hash": "1094603469163323313"
-      },
-      {
-        "file": ".prettierrc",
-        "hash": "8408778777331836376"
-      },
-      {
         "file": ".vscode/extensions.json",
         "hash": "235626400633494639"
-      },
-      {
-        "file": "LICENSE",
-        "hash": "10613999946166442523"
-      },
-      {
-        "file": "README.md",
-        "hash": "7622940554281935897"
-      },
-      {
-        "file": "apps/.gitkeep",
-        "hash": "3244421341483603138"
       },
       {
         "file": "jest.config.ts",
         "hash": "12333515226966617182"
       },
       {
-        "file": "jest.preset.js",
-        "hash": "9084884494335109525"
-      },
-      {
-        "file": "libs/.gitkeep",
-        "hash": "3244421341483603138"
-      },
-      {
         "file": "migrations.json",
         "hash": "8445159796584750611"
+      },
+      {
+        "file": ".prettierrc",
+        "hash": "8408778777331836376"
       },
       {
         "file": "nest-cli.json",
@@ -166,16 +150,32 @@
         "hash": "18200435303074849497"
       },
       {
-        "file": "package.json",
-        "hash": "18076618297829115889"
+        "file": ".eslintrc.json",
+        "hash": "15629280613521941793"
+      },
+      {
+        "file": ".github/workflows/codeql.yml",
+        "hash": "6986063541398626527"
+      },
+      {
+        "file": "tsconfig.base.json",
+        "hash": "16563190345616722058"
       },
       {
         "file": "tools/tsconfig.tools.json",
         "hash": "16088922570277978783"
       },
       {
-        "file": "tsconfig.base.json",
-        "hash": "16563190345616722058"
+        "file": "apps/.gitkeep",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": ".prettierignore",
+        "hash": "1094603469163323313"
+      },
+      {
+        "file": "libs/.gitkeep",
+        "hash": "3244421341483603138"
       }
     ],
     "projectFileMap": {
@@ -1213,7 +1213,7 @@
         },
         {
           "file": "apps/lms/src/main.ts",
-          "hash": "7382481917961869881",
+          "hash": "3803555924679735593",
           "deps": [
             "npm:@nestjs/common",
             "npm:@nestjs/core",
