@@ -179,666 +179,6 @@
       }
     ],
     "projectFileMap": {
-      "ivms-dtr": [
-        {
-          "file": "apps/ivms-dtr/.eslintrc.json",
-          "hash": "13800677001662881425"
-        },
-        {
-          "file": "apps/ivms-dtr/jest.config.ts",
-          "hash": "16403931580473857235"
-        },
-        {
-          "file": "apps/ivms-dtr/project.json",
-          "hash": "17759274519327447827"
-        },
-        {
-          "file": "apps/ivms-dtr/src/app/app.controller.spec.ts",
-          "hash": "15641786130910814553",
-          "deps": [
-            "npm:@nestjs/testing"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/app/app.controller.ts",
-          "hash": "9005150069945785676",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/app/app.module.ts",
-          "hash": "3944235311654420729",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/typeorm"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/app/app.service.spec.ts",
-          "hash": "7411138190872433434",
-          "deps": [
-            "npm:@nestjs/testing"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/app/app.service.ts",
-          "hash": "3499719453853304452",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/app/services/daily-time-record/core/daily-time-record.controller.ts",
-          "hash": "4212910014616480816",
-          "deps": [
-            "utils",
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/app/services/daily-time-record/core/daily-time-record.module.ts",
-          "hash": "10189268327219944554",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/app/services/daily-time-record/core/daily-time-record.service.ts",
-          "hash": "2301491580314345117",
-          "deps": [
-            "crud",
-            "models",
-            "utils",
-            "npm:@nestjs/common",
-            "npm:dayjs"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/app/services/daily-time-record/test/daily-time-record.controller.spec.ts",
-          "hash": "195308484980145907",
-          "deps": [
-            "npm:@nestjs/testing"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/app/services/daily-time-record/test/daily-time-record.service.spec.ts",
-          "hash": "2449725166802027724",
-          "deps": [
-            "npm:@nestjs/testing"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/assets/.gitkeep",
-          "hash": "3244421341483603138"
-        },
-        {
-          "file": "apps/ivms-dtr/src/constants/entities.ts",
-          "hash": "6591943314527772707",
-          "deps": [
-            "models"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/src/constants/modules.ts",
-          "hash": "2101744435416639030"
-        },
-        {
-          "file": "apps/ivms-dtr/src/main.ts",
-          "hash": "7341886163180020066",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/core",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr/tsconfig.app.json",
-          "hash": "3171572500325445971"
-        },
-        {
-          "file": "apps/ivms-dtr/tsconfig.json",
-          "hash": "3490524966360018312"
-        },
-        {
-          "file": "apps/ivms-dtr/tsconfig.spec.json",
-          "hash": "6898991939206723030"
-        },
-        {
-          "file": "apps/ivms-dtr/webpack.config.js",
-          "hash": "10619490397189790225",
-          "deps": [
-            "npm:@nx/webpack"
-          ]
-        }
-      ],
-      "crud": [
-        {
-          "file": "libs/crud/.eslintrc.json",
-          "hash": "13800677001662881425"
-        },
-        {
-          "file": "libs/crud/README.md",
-          "hash": "11558611315369436779"
-        },
-        {
-          "file": "libs/crud/jest.config.ts",
-          "hash": "15687747554107607785"
-        },
-        {
-          "file": "libs/crud/project.json",
-          "hash": "2518053654851973017"
-        },
-        {
-          "file": "libs/crud/src/index.ts",
-          "hash": "6486680584985196189"
-        },
-        {
-          "file": "libs/crud/src/lib/crud.module.ts",
-          "hash": "14608877141051136531",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "libs/crud/src/lib/crud.service.ts",
-          "hash": "1680058924409974786",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "libs/crud/src/lib/index.ts",
-          "hash": "7814287248574663905"
-        },
-        {
-          "file": "libs/crud/src/types/crud.types.ts",
-          "hash": "15615206575564499343",
-          "deps": [
-            "microservices",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "libs/crud/src/types/index.ts",
-          "hash": "2814294604175590175"
-        },
-        {
-          "file": "libs/crud/src/utils/crud.entity.ts",
-          "hash": "1762083439466296924",
-          "deps": [
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "libs/crud/src/utils/crud.errors.ts",
-          "hash": "6386773196866445935",
-          "deps": [
-            "microservices",
-            "npm:@nestjs/common",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "libs/crud/src/utils/crud.helper.ts",
-          "hash": "16302826433051545596",
-          "deps": [
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "libs/crud/src/utils/crud.interface.ts",
-          "hash": "16860377323430809737",
-          "deps": [
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "libs/crud/src/utils/index.ts",
-          "hash": "5768310323778443041"
-        },
-        {
-          "file": "libs/crud/tsconfig.json",
-          "hash": "2840670722752396445"
-        },
-        {
-          "file": "libs/crud/tsconfig.lib.json",
-          "hash": "14544085124747442214"
-        },
-        {
-          "file": "libs/crud/tsconfig.spec.json",
-          "hash": "16024984723645563823"
-        }
-      ],
-      "items": [
-        {
-          "file": "apps/items/.eslintrc.json",
-          "hash": "13800677001662881425"
-        },
-        {
-          "file": "apps/items/jest.config.ts",
-          "hash": "11298467445699598939"
-        },
-        {
-          "file": "apps/items/project.json",
-          "hash": "12319472108147347217"
-        },
-        {
-          "file": "apps/items/src/app/.gitkeep",
-          "hash": "3244421341483603138"
-        },
-        {
-          "file": "apps/items/src/app/app.module.ts",
-          "hash": "5121108128516962707",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/categories/core/categories.controller.ts",
-          "hash": "18199679851534538330",
-          "deps": [
-            "models",
-            "crud",
-            "generator",
-            "microservices",
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/categories/core/categories.module.ts",
-          "hash": "17679852013472771829",
-          "deps": [
-            "models",
-            "crud",
-            "generator",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/categories/core/categories.service.ts",
-          "hash": "5731262699305725389",
-          "deps": [
-            "models",
-            "crud",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/categories/index.ts",
-          "hash": "13166353515636076437"
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/characteristics/core/characteristics.controller.ts",
-          "hash": "17558342750679342897",
-          "deps": [
-            "microservices",
-            "models",
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices",
-            "crud"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/characteristics/core/characteristics.module.ts",
-          "hash": "9590304183936965411",
-          "deps": [
-            "models",
-            "crud",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/characteristics/core/characteristics.service.ts",
-          "hash": "9221813836674928519",
-          "deps": [
-            "models",
-            "crud",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/characteristics/index.ts",
-          "hash": "14843701212649495738"
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/classifications/core/classifications.controller.ts",
-          "hash": "16587092945298050298",
-          "deps": [
-            "models",
-            "crud",
-            "microservices",
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/classifications/core/classifications.module.ts",
-          "hash": "3935797371151953004",
-          "deps": [
-            "models",
-            "crud",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/classifications/core/classifications.service.ts",
-          "hash": "1440034550171890103",
-          "deps": [
-            "models",
-            "crud",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/classifications/index.ts",
-          "hash": "10387794726968005330"
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/details/core/details.controller.ts",
-          "hash": "7102957554721995759",
-          "deps": [
-            "models",
-            "crud",
-            "microservices",
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/details/core/details.module.ts",
-          "hash": "11945777520413011562",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/details/core/details.service.ts",
-          "hash": "8656786899419557772",
-          "deps": [
-            "models",
-            "crud",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/details/index.ts",
-          "hash": "2627943681684218042"
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/index.ts",
-          "hash": "3819978138818513596"
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/specifications/core/specifications.controller.ts",
-          "hash": "14873857504989731531",
-          "deps": [
-            "models",
-            "crud",
-            "microservices",
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/specifications/core/specifications.module.ts",
-          "hash": "5890844902668191615",
-          "deps": [
-            "models",
-            "crud",
-            "generator",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/specifications/core/specifications.service.ts",
-          "hash": "13850983123528944740",
-          "deps": [
-            "models",
-            "crud",
-            "generator",
-            "microservices",
-            "npm:@nestjs/common",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/specifications/index.ts",
-          "hash": "12041139627999803979"
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/unit-of-measure/core/unit-of-measure.controller.ts",
-          "hash": "3195062726053634064",
-          "deps": [
-            "models",
-            "crud",
-            "microservices",
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/unit-of-measure/core/unit-of-measure.module.ts",
-          "hash": "5086409311079897215",
-          "deps": [
-            "models",
-            "crud",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/unit-of-measure/core/unit-of-measure.service.ts",
-          "hash": "1943718281944256973",
-          "deps": [
-            "models",
-            "crud",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/components/unit-of-measure/index.ts",
-          "hash": "7006087352985836338"
-        },
-        {
-          "file": "apps/items/src/app/services/items/core/items.controller.ts",
-          "hash": "770098224448469538",
-          "deps": [
-            "microservices",
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/core/items.module.ts",
-          "hash": "8574917649949650690",
-          "deps": [
-            "models",
-            "crud",
-            "npm:@nestjs/common",
-            "utils"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/core/items.service.ts",
-          "hash": "17579796432340239003",
-          "deps": [
-            "models",
-            "crud",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/misc/interceptors/find-all-item-summary.interceptor.ts",
-          "hash": "810695379503322813",
-          "deps": [
-            "models",
-            "utils",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:rxjs"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/misc/interceptors/find-info-by-id.interceptor.ts",
-          "hash": "5489963461730547509",
-          "deps": [
-            "models",
-            "npm:@nestjs/common",
-            "npm:rxjs"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/misc/interceptors/find-item-summary.interceptor.ts",
-          "hash": "836404845244133616",
-          "deps": [
-            "models",
-            "npm:@nestjs/common",
-            "npm:rxjs"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/misc/interceptors/get-item-balance.interceptor.ts",
-          "hash": "5147213889396691508",
-          "deps": [
-            "models",
-            "npm:@nestjs/common",
-            "npm:rxjs"
-          ]
-        },
-        {
-          "file": "apps/items/src/app/services/items/misc/interceptors/index.ts",
-          "hash": "17628769746359761769"
-        },
-        {
-          "file": "apps/items/src/assets/.gitkeep",
-          "hash": "3244421341483603138"
-        },
-        {
-          "file": "apps/items/src/connections/database/constants/entities.ts",
-          "hash": "15729578866619481755",
-          "deps": [
-            "models"
-          ]
-        },
-        {
-          "file": "apps/items/src/connections/database/constants/environments.ts",
-          "hash": "15493928938651117712"
-        },
-        {
-          "file": "apps/items/src/connections/database/core/database.module.ts",
-          "hash": "14420726615726941877",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/typeorm"
-          ]
-        },
-        {
-          "file": "apps/items/src/connections/database/core/database.service.ts",
-          "hash": "11797231752229143149",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/items/src/connections/index.ts",
-          "hash": "14106336444260512279"
-        },
-        {
-          "file": "apps/items/src/environments/environment.prod.ts",
-          "hash": "10220522844224226756"
-        },
-        {
-          "file": "apps/items/src/environments/environment.ts",
-          "hash": "1135292433917692033"
-        },
-        {
-          "file": "apps/items/src/main.ts",
-          "hash": "9134010074645355285",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/core",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/items/tsconfig.app.json",
-          "hash": "14563161343052823546"
-        },
-        {
-          "file": "apps/items/tsconfig.json",
-          "hash": "9214820933160915425"
-        },
-        {
-          "file": "apps/items/tsconfig.spec.json",
-          "hash": "10595040461224341030"
-        },
-        {
-          "file": "apps/items/webpack.config.js",
-          "hash": "10970944162716286406",
-          "deps": [
-            "npm:@nx/webpack"
-          ]
-        }
-      ],
-      "ivms-dtr-e2e": [
-        {
-          "file": "apps/ivms-dtr-e2e/.eslintrc.json",
-          "hash": "13800677001662881425"
-        },
-        {
-          "file": "apps/ivms-dtr-e2e/jest.config.ts",
-          "hash": "837006348732538835"
-        },
-        {
-          "file": "apps/ivms-dtr-e2e/project.json",
-          "hash": "14975029086096934646"
-        },
-        {
-          "file": "apps/ivms-dtr-e2e/src/ivms-dtr/ivms-dtr.spec.ts",
-          "hash": "4579662685003779048",
-          "deps": [
-            "npm:axios"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr-e2e/src/support/global-setup.ts",
-          "hash": "2568409276037275290"
-        },
-        {
-          "file": "apps/ivms-dtr-e2e/src/support/global-teardown.ts",
-          "hash": "5275447082211835490"
-        },
-        {
-          "file": "apps/ivms-dtr-e2e/src/support/test-setup.ts",
-          "hash": "10984585515912236441",
-          "deps": [
-            "npm:axios"
-          ]
-        },
-        {
-          "file": "apps/ivms-dtr-e2e/tsconfig.json",
-          "hash": "15443990093475294480"
-        },
-        {
-          "file": "apps/ivms-dtr-e2e/tsconfig.spec.json",
-          "hash": "14954872453723519891"
-        }
-      ],
       "lms": [
         {
           "file": "apps/lms/.eslintrc.json",
@@ -1905,394 +1245,65 @@
           ]
         }
       ],
-      "procurement": [
+      "password": [
         {
-          "file": "apps/procurement/.eslintrc.json",
+          "file": "libs/password/.eslintrc.json",
           "hash": "13800677001662881425"
         },
         {
-          "file": "apps/procurement/jest.config.ts",
-          "hash": "7016932102735010674"
+          "file": "libs/password/README.md",
+          "hash": "1308659244179987932"
         },
         {
-          "file": "apps/procurement/project.json",
-          "hash": "16662801859898112550"
+          "file": "libs/password/jest.config.ts",
+          "hash": "9243712645951334601"
         },
         {
-          "file": "apps/procurement/src/app/.gitkeep",
-          "hash": "3244421341483603138"
+          "file": "libs/password/project.json",
+          "hash": "14530465282141975732"
         },
         {
-          "file": "apps/procurement/src/app/api/purchase/components/index.ts",
-          "hash": "14472381741151363162"
+          "file": "libs/password/src/index.ts",
+          "hash": "12309311825245223863"
         },
         {
-          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/core/purchase-request.controller.ts",
-          "hash": "898024382842789083",
+          "file": "libs/password/src/lib/password.module.ts",
+          "hash": "17057051509246337820",
           "deps": [
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/core/purchase-request.module.ts",
-          "hash": "11252299616801254243",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/core/purchase-request.service.ts",
-          "hash": "13308188648590861924",
-          "deps": [
-            "models",
-            "utils",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/data/pr.dto.ts",
-          "hash": "16422567829347687423",
-          "deps": [
-            "models",
-            "npm:class-transformer",
-            "npm:class-validator"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/index.ts",
-          "hash": "9461146789008816479"
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/misc/create-pr.interceptor.ts",
-          "hash": "6479427955703318306",
-          "deps": [
-            "utils",
-            "npm:@nestjs/common",
-            "npm:rxjs"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/purchase-type/core/purchase-type.controller.ts",
-          "hash": "15115024027874768076",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/purchase-type/core/purchase-type.module.ts",
-          "hash": "12437280120561765361",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/purchase-type/core/purchase-type.service.ts",
-          "hash": "2253370989404537577",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/purchase-type/index.ts",
-          "hash": "927313078781309679"
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/core/request-for-quotation.controller.ts",
-          "hash": "15682913538846271665",
-          "deps": [
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/core/request-for-quotation.module.ts",
-          "hash": "10997936375499126633",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/core/request-for-quotation.service.ts",
-          "hash": "18360550270846762884",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/data/rfq.dto.ts",
-          "hash": "6163300538019238180",
-          "deps": [
-            "models"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/index.ts",
-          "hash": "16015561845186190249"
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/misc/create-rfq.interceptor.ts",
-          "hash": "16841652416965798493",
-          "deps": [
-            "utils",
-            "npm:@nestjs/common",
-            "npm:rxjs"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/requested-item/core/requested-item.controller.ts",
-          "hash": "14616561623302533169",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/components/requested-item/core/requested-item.module.ts",
-          "hash": "1117081735103898280",
+          "file": "libs/password/src/lib/password.service.ts",
+          "hash": "220934769667243315",
           "deps": [
             "npm:@nestjs/common",
-            "crud",
-            "models"
+            "npm:argon2"
           ]
         },
         {
-          "file": "apps/procurement/src/app/api/purchase/components/requested-item/core/requested-item.service.ts",
-          "hash": "16406656759414611771",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
+          "file": "libs/password/src/types/index.ts",
+          "hash": "17215511476015540281"
         },
         {
-          "file": "apps/procurement/src/app/api/purchase/components/requested-item/index.ts",
-          "hash": "2739384166877840858"
-        },
-        {
-          "file": "apps/procurement/src/app/api/purchase/tests/purchase.e2e.spec.ts",
-          "hash": "15960499482317076610",
+          "file": "libs/password/src/types/password.types.ts",
+          "hash": "9795431097897145797",
           "deps": [
             "npm:@nestjs/common",
-            "npm:@nestjs/testing",
-            "npm:@nestjs/typeorm",
-            "npm:typeorm",
-            "npm:supertest",
-            "models",
-            "utils",
-            "npm:@nestjs/config"
+            "npm:@nestjs/microservices"
           ]
         },
         {
-          "file": "apps/procurement/src/app/api/purchase/tests/purchase.stubs.ts",
-          "hash": "14451522738063634239"
+          "file": "libs/password/tsconfig.json",
+          "hash": "2840670722752396445"
         },
         {
-          "file": "apps/procurement/src/app/app.module.ts",
-          "hash": "1632406251768747032",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config"
-          ]
+          "file": "libs/password/tsconfig.lib.json",
+          "hash": "14544085124747442214"
         },
         {
-          "file": "apps/procurement/src/app/services/finance/components/cost-estimate/core/cost-estimate.controller.ts",
-          "hash": "13719091436708955857",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/services/finance/components/cost-estimate/core/cost-estimate.module.ts",
-          "hash": "17338251255243097304",
-          "deps": [
-            "microservices",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/services/finance/components/cost-estimate/core/cost-estimate.service.ts",
-          "hash": "6990885096025608922",
-          "deps": [
-            "microservices",
-            "utils",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/services/finance/components/cost-estimate/index.ts",
-          "hash": "15207131808301640188"
-        },
-        {
-          "file": "apps/procurement/src/app/services/hrms/components/org-structure/core/org-structure.controller.ts",
-          "hash": "9953824500706071466",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/services/hrms/components/org-structure/core/org-structure.module.ts",
-          "hash": "8869972889520358315",
-          "deps": [
-            "npm:@nestjs/common",
-            "microservices"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/services/hrms/components/org-structure/core/org-structure.service.ts",
-          "hash": "5757398974323918706",
-          "deps": [
-            "microservices",
-            "utils",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/services/hrms/components/org-structure/index.ts",
-          "hash": "18398567859098778426"
-        },
-        {
-          "file": "apps/procurement/src/app/services/index.ts",
-          "hash": "11654875529045809943"
-        },
-        {
-          "file": "apps/procurement/src/app/services/items/core/items.controller.ts",
-          "hash": "4802429616360858599",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/services/items/core/items.module.ts",
-          "hash": "10934132740417364041",
-          "deps": [
-            "npm:@nestjs/common",
-            "microservices"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/services/items/core/items.service.ts",
-          "hash": "2329467814181016015",
-          "deps": [
-            "microservices",
-            "utils",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/app/services/items/index.ts",
-          "hash": "14019959426476195495"
-        },
-        {
-          "file": "apps/procurement/src/assets/.gitkeep",
-          "hash": "3244421341483603138"
-        },
-        {
-          "file": "apps/procurement/src/connections/database/constants/entities.ts",
-          "hash": "2377421997154711850",
-          "deps": [
-            "models"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/connections/database/constants/environments.ts",
-          "hash": "4113333908555459354"
-        },
-        {
-          "file": "apps/procurement/src/connections/database/constants/queries.ts",
-          "hash": "10983467374180981116"
-        },
-        {
-          "file": "apps/procurement/src/connections/database/core/database.module.ts",
-          "hash": "1279720927968099679",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/typeorm"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/connections/database/core/database.service.ts",
-          "hash": "6346269149567781407",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/connections/index.ts",
-          "hash": "14106336444260512279"
-        },
-        {
-          "file": "apps/procurement/src/environments/environment.prod.ts",
-          "hash": "10220522844224226756"
-        },
-        {
-          "file": "apps/procurement/src/environments/environment.ts",
-          "hash": "1135292433917692033"
-        },
-        {
-          "file": "apps/procurement/src/main.ts",
-          "hash": "12982407586733968746",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/core"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/utils/docs/open-api.ts",
-          "hash": "16470867437801726397",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/procurement/src/utils/mock/all-orgs.json",
-          "hash": "13304955680301853924"
-        },
-        {
-          "file": "apps/procurement/src/utils/mock/db.mock.ts",
-          "hash": "7120154504258899691"
-        },
-        {
-          "file": "apps/procurement/src/utils/mock/org-by-id.json",
-          "hash": "3951858969986377032"
-        },
-        {
-          "file": "apps/procurement/tsconfig.app.json",
-          "hash": "14563161343052823546"
-        },
-        {
-          "file": "apps/procurement/tsconfig.json",
-          "hash": "9214820933160915425"
-        },
-        {
-          "file": "apps/procurement/tsconfig.spec.json",
+          "file": "libs/password/tsconfig.spec.json",
           "hash": "10595040461224341030"
-        },
-        {
-          "file": "apps/procurement/webpack.config.js",
-          "hash": "10970944162716286406",
-          "deps": [
-            "npm:@nx/webpack"
-          ]
         }
       ],
       "warehouse": [
@@ -2613,263 +1624,1019 @@
           ]
         }
       ],
-      "microservices": [
+      "items": [
         {
-          "file": "libs/microservices/.eslintrc.json",
+          "file": "apps/items/.eslintrc.json",
           "hash": "13800677001662881425"
         },
         {
-          "file": "libs/microservices/README.md",
-          "hash": "18167579594746699301"
+          "file": "apps/items/jest.config.ts",
+          "hash": "11298467445699598939"
         },
         {
-          "file": "libs/microservices/jest.config.ts",
-          "hash": "9037298098296043254"
+          "file": "apps/items/project.json",
+          "hash": "12319472108147347217"
         },
         {
-          "file": "libs/microservices/project.json",
-          "hash": "13133446943575654021"
+          "file": "apps/items/src/app/.gitkeep",
+          "hash": "3244421341483603138"
         },
         {
-          "file": "libs/microservices/src/clients/finance.module.ts",
-          "hash": "16770660087470046687",
+          "file": "apps/items/src/app/app.module.ts",
+          "hash": "5121108128516962707",
           "deps": [
             "npm:@nestjs/common",
-            "npm:@nestjs/config",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/categories/core/categories.controller.ts",
+          "hash": "18199679851534538330",
+          "deps": [
+            "models",
+            "crud",
+            "generator",
+            "microservices",
+            "npm:@nestjs/common",
             "npm:@nestjs/microservices"
           ]
         },
         {
-          "file": "libs/microservices/src/clients/hrms-client.module.ts",
-          "hash": "13438208460998913693",
+          "file": "apps/items/src/app/services/items/components/categories/core/categories.module.ts",
+          "hash": "17679852013472771829",
           "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/microservices"
+            "models",
+            "crud",
+            "generator",
+            "npm:@nestjs/common"
           ]
         },
         {
-          "file": "libs/microservices/src/clients/items-client.module.ts",
-          "hash": "14937113367081392849",
+          "file": "apps/items/src/app/services/items/components/categories/core/categories.service.ts",
+          "hash": "5731262699305725389",
           "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/microservices"
+            "models",
+            "crud",
+            "npm:@nestjs/common"
           ]
         },
         {
-          "file": "libs/microservices/src/clients/lms-client.module.ts",
-          "hash": "1676677928177903907",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/microservices"
-          ]
+          "file": "apps/items/src/app/services/items/components/categories/index.ts",
+          "hash": "13166353515636076437"
         },
         {
-          "file": "libs/microservices/src/clients/portal-client.module.ts",
-          "hash": "10144999752277586648",
+          "file": "apps/items/src/app/services/items/components/characteristics/core/characteristics.controller.ts",
+          "hash": "17558342750679342897",
           "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "libs/microservices/src/index.ts",
-          "hash": "9342965173188929858"
-        },
-        {
-          "file": "libs/microservices/src/lib/ms-client.service.ts",
-          "hash": "4746837623253832628",
-          "deps": [
+            "microservices",
+            "models",
             "npm:@nestjs/common",
             "npm:@nestjs/microservices",
+            "crud"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/characteristics/core/characteristics.module.ts",
+          "hash": "9590304183936965411",
+          "deps": [
+            "models",
+            "crud",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/characteristics/core/characteristics.service.ts",
+          "hash": "9221813836674928519",
+          "deps": [
+            "models",
+            "crud",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/characteristics/index.ts",
+          "hash": "14843701212649495738"
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/classifications/core/classifications.controller.ts",
+          "hash": "16587092945298050298",
+          "deps": [
+            "models",
+            "crud",
+            "microservices",
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/classifications/core/classifications.module.ts",
+          "hash": "3935797371151953004",
+          "deps": [
+            "models",
+            "crud",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/classifications/core/classifications.service.ts",
+          "hash": "1440034550171890103",
+          "deps": [
+            "models",
+            "crud",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/classifications/index.ts",
+          "hash": "10387794726968005330"
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/details/core/details.controller.ts",
+          "hash": "7102957554721995759",
+          "deps": [
+            "models",
+            "crud",
+            "microservices",
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/details/core/details.module.ts",
+          "hash": "11945777520413011562",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/details/core/details.service.ts",
+          "hash": "8656786899419557772",
+          "deps": [
+            "models",
+            "crud",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/details/index.ts",
+          "hash": "2627943681684218042"
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/index.ts",
+          "hash": "3819978138818513596"
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/specifications/core/specifications.controller.ts",
+          "hash": "14873857504989731531",
+          "deps": [
+            "models",
+            "crud",
+            "microservices",
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/specifications/core/specifications.module.ts",
+          "hash": "5890844902668191615",
+          "deps": [
+            "models",
+            "crud",
+            "generator",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/specifications/core/specifications.service.ts",
+          "hash": "13850983123528944740",
+          "deps": [
+            "models",
+            "crud",
+            "generator",
+            "microservices",
+            "npm:@nestjs/common",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/specifications/index.ts",
+          "hash": "12041139627999803979"
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/unit-of-measure/core/unit-of-measure.controller.ts",
+          "hash": "3195062726053634064",
+          "deps": [
+            "models",
+            "crud",
+            "microservices",
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/unit-of-measure/core/unit-of-measure.module.ts",
+          "hash": "5086409311079897215",
+          "deps": [
+            "models",
+            "crud",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/unit-of-measure/core/unit-of-measure.service.ts",
+          "hash": "1943718281944256973",
+          "deps": [
+            "models",
+            "crud",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/components/unit-of-measure/index.ts",
+          "hash": "7006087352985836338"
+        },
+        {
+          "file": "apps/items/src/app/services/items/core/items.controller.ts",
+          "hash": "770098224448469538",
+          "deps": [
+            "microservices",
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/core/items.module.ts",
+          "hash": "8574917649949650690",
+          "deps": [
+            "models",
+            "crud",
+            "npm:@nestjs/common",
+            "utils"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/core/items.service.ts",
+          "hash": "17579796432340239003",
+          "deps": [
+            "models",
+            "crud",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/misc/interceptors/find-all-item-summary.interceptor.ts",
+          "hash": "810695379503322813",
+          "deps": [
+            "models",
+            "utils",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
             "npm:rxjs"
           ]
         },
         {
-          "file": "libs/microservices/src/types/ms.types.ts",
-          "hash": "13991288428766669922",
+          "file": "apps/items/src/app/services/items/misc/interceptors/find-info-by-id.interceptor.ts",
+          "hash": "5489963461730547509",
+          "deps": [
+            "models",
+            "npm:@nestjs/common",
+            "npm:rxjs"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/misc/interceptors/find-item-summary.interceptor.ts",
+          "hash": "836404845244133616",
+          "deps": [
+            "models",
+            "npm:@nestjs/common",
+            "npm:rxjs"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/misc/interceptors/get-item-balance.interceptor.ts",
+          "hash": "5147213889396691508",
+          "deps": [
+            "models",
+            "npm:@nestjs/common",
+            "npm:rxjs"
+          ]
+        },
+        {
+          "file": "apps/items/src/app/services/items/misc/interceptors/index.ts",
+          "hash": "17628769746359761769"
+        },
+        {
+          "file": "apps/items/src/assets/.gitkeep",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "apps/items/src/connections/database/constants/entities.ts",
+          "hash": "15729578866619481755",
+          "deps": [
+            "models"
+          ]
+        },
+        {
+          "file": "apps/items/src/connections/database/constants/environments.ts",
+          "hash": "15493928938651117712"
+        },
+        {
+          "file": "apps/items/src/connections/database/core/database.module.ts",
+          "hash": "14420726615726941877",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/typeorm"
+          ]
+        },
+        {
+          "file": "apps/items/src/connections/database/core/database.service.ts",
+          "hash": "11797231752229143149",
           "deps": [
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "libs/microservices/src/utils/ms-hybrid.ts",
-          "hash": "16703862732945901198",
+          "file": "apps/items/src/connections/index.ts",
+          "hash": "14106336444260512279"
+        },
+        {
+          "file": "apps/items/src/environments/environment.prod.ts",
+          "hash": "10220522844224226756"
+        },
+        {
+          "file": "apps/items/src/environments/environment.ts",
+          "hash": "1135292433917692033"
+        },
+        {
+          "file": "apps/items/src/main.ts",
+          "hash": "9134010074645355285",
           "deps": [
             "npm:@nestjs/common",
+            "npm:@nestjs/core",
             "npm:@nestjs/microservices"
           ]
         },
         {
-          "file": "libs/microservices/src/utils/ms-provider.ts",
-          "hash": "18242431685852753587"
+          "file": "apps/items/tsconfig.app.json",
+          "hash": "14563161343052823546"
         },
         {
-          "file": "libs/microservices/src/utils/my-rpc.ts",
-          "hash": "1147709356353291160",
-          "deps": [
-            "npm:@nestjs/microservices"
-          ]
+          "file": "apps/items/tsconfig.json",
+          "hash": "9214820933160915425"
         },
         {
-          "file": "libs/microservices/src/utils/patterns/finance.ts",
-          "hash": "15401570414937380896"
-        },
-        {
-          "file": "libs/microservices/src/utils/patterns/hrms.ts",
-          "hash": "15443878562177201967"
-        },
-        {
-          "file": "libs/microservices/src/utils/patterns/index.ts",
-          "hash": "18235413711955518265"
-        },
-        {
-          "file": "libs/microservices/src/utils/patterns/items.ts",
-          "hash": "12861764168547410868"
-        },
-        {
-          "file": "libs/microservices/src/utils/patterns/lms.ts",
-          "hash": "11992605151181778078"
-        },
-        {
-          "file": "libs/microservices/tsconfig.json",
-          "hash": "2840670722752396445"
-        },
-        {
-          "file": "libs/microservices/tsconfig.lib.json",
-          "hash": "14544085124747442214"
-        },
-        {
-          "file": "libs/microservices/tsconfig.spec.json",
+          "file": "apps/items/tsconfig.spec.json",
           "hash": "10595040461224341030"
+        },
+        {
+          "file": "apps/items/webpack.config.js",
+          "hash": "10970944162716286406",
+          "deps": [
+            "npm:@nx/webpack"
+          ]
         }
       ],
-      "password": [
+      "finance": [
         {
-          "file": "libs/password/.eslintrc.json",
+          "file": "apps/finance/.eslintrc.json",
           "hash": "13800677001662881425"
         },
         {
-          "file": "libs/password/README.md",
-          "hash": "1308659244179987932"
+          "file": "apps/finance/jest.config.ts",
+          "hash": "18212104068372049387"
         },
         {
-          "file": "libs/password/jest.config.ts",
-          "hash": "9243712645951334601"
+          "file": "apps/finance/project.json",
+          "hash": "1688081086340261638"
         },
         {
-          "file": "libs/password/project.json",
-          "hash": "14530465282141975732"
+          "file": "apps/finance/src/app/.gitkeep",
+          "hash": "3244421341483603138"
         },
         {
-          "file": "libs/password/src/index.ts",
-          "hash": "12309311825245223863"
-        },
-        {
-          "file": "libs/password/src/lib/password.module.ts",
-          "hash": "17057051509246337820",
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/account-groups/core/account-groups.controller.ts",
+          "hash": "13823750089141642701",
           "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/account-groups/core/account-groups.module.ts",
+          "hash": "13833094445404740679",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/account-groups/core/account-groups.service.ts",
+          "hash": "1720105010757182259",
+          "deps": [
+            "crud",
+            "models",
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "libs/password/src/lib/password.service.ts",
-          "hash": "220934769667243315",
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/account-groups/index.ts",
+          "hash": "482051790332978965"
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/general-ledger-accounts/core/general-ledger-accounts.controller.ts",
+          "hash": "6812864950513436376",
           "deps": [
             "npm:@nestjs/common",
-            "npm:argon2"
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm",
+            "crud",
+            "models"
           ]
         },
         {
-          "file": "libs/password/src/types/index.ts",
-          "hash": "17215511476015540281"
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/general-ledger-accounts/core/general-ledger-accounts.module.ts",
+          "hash": "17484393932533154795",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
         },
         {
-          "file": "libs/password/src/types/password.types.ts",
-          "hash": "9795431097897145797",
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/general-ledger-accounts/core/general-ledger-accounts.service.ts",
+          "hash": "5366339226433026296",
           "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/general-ledger-accounts/index.ts",
+          "hash": "16022947902004164668"
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/major-account-groups/core/major-account-groups.controller.ts",
+          "hash": "12846835301891747622",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/major-account-groups/core/major-account-groups.module.ts",
+          "hash": "13537452968761003653",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/major-account-groups/core/major-account-groups.service.ts",
+          "hash": "10516834718458225393",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/major-account-groups/index.ts",
+          "hash": "12904524810035544192"
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/sub-major-account-groups/core/sub-major-account-groups.controller.ts",
+          "hash": "9037031776957679432",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/sub-major-account-groups/core/sub-major-account-groups.module.ts",
+          "hash": "1399500639041933679",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/sub-major-account-groups/core/sub-major-account-groups.service.ts",
+          "hash": "10872437394951476454",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/sub-major-account-groups/index.ts",
+          "hash": "455420081658605647"
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/core/chart-of-accounts.controller.ts",
+          "hash": "6591921045481288684",
+          "deps": [
+            "models",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/core/chart-of-accounts.module.ts",
+          "hash": "4463059712196560517",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/core/chart-of-accounts.service.ts",
+          "hash": "9659296286329022370",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/index.ts",
+          "hash": "14989824591777277455"
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/misc/interceptors/find-all-chart-of-accounts.interceptor.ts",
+          "hash": "214729365159178199",
+          "deps": [
+            "models",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:rxjs"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/misc/interceptors/index.ts",
+          "hash": "17253925677407032086"
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/contra-accounts/core/contra-accounts.controller.ts",
+          "hash": "13584244845923259893",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/contra-accounts/core/contra-accounts.module.ts",
+          "hash": "3223854485514136181",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/contra-accounts/core/contra-accounts.service.ts",
+          "hash": "17140520859639361567",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/account-titles/contra-accounts/index.ts",
+          "hash": "10265875409083622200"
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/budget-types/core/budget-types.controller.ts",
+          "hash": "9971333341710158947",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/budget-types/core/budget-types.module.ts",
+          "hash": "5434363584196888796",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/budget-types/core/budget-types.service.ts",
+          "hash": "13728892806474598466",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/budget-types/index.ts",
+          "hash": "12789755169389449614"
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/budget-details/core/budget-details.controller.ts",
+          "hash": "3806059689758967211",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/budget-details/core/budget-details.module.ts",
+          "hash": "6542752651119138648",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/budget-details/core/budget-details.service.ts",
+          "hash": "4557173169219942883",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/budget-details/index.ts",
+          "hash": "9476396302296499157"
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/equipment-costs/core/equipment-costs.controller.ts",
+          "hash": "8290867346841987189",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/equipment-costs/core/equipment-costs.module.ts",
+          "hash": "6806667027037428760",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/equipment-costs/core/equipment-costs.service.ts",
+          "hash": "8795366343348571487",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/equipment-costs/index.ts",
+          "hash": "3138255323655631142"
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/labor-costs/core/labor-costs.controller.ts",
+          "hash": "3048108822594110043",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/labor-costs/core/labor-costs.module.ts",
+          "hash": "17109316165582851862",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/labor-costs/core/labor-costs.service.ts",
+          "hash": "15350418587108222942",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/labor-costs/index.ts",
+          "hash": "11254345110618591692"
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/material-costs/core/material-costs.controller.ts",
+          "hash": "187987140614225452",
+          "deps": [
+            "models",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/material-costs/core/material-costs.module.ts",
+          "hash": "16814941319384078788",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/material-costs/core/material-costs.service.ts",
+          "hash": "18323091779431886091",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/material-costs/index.ts",
+          "hash": "4993691951957683486"
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/project-details/core/project-details-ms.controller.ts",
+          "hash": "15704292939878123324",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices",
+            "microservices"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/project-details/core/project-details.controller.ts",
+          "hash": "16936736277942371831",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/project-details/core/project-details.module.ts",
+          "hash": "15477810933313617446",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/project-details/core/project-details.service.ts",
+          "hash": "9775899687777262101",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/project-details/index.ts",
+          "hash": "2422455680158981082"
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/value-added-tax/core/value-added-tax.controller.ts",
+          "hash": "6001919486363884434",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/value-added-tax/core/value-added-tax.module.ts",
+          "hash": "110675083079589158",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/value-added-tax/core/value-added-tax.service.ts",
+          "hash": "11247912959892222055",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/components/value-added-tax/index.ts",
+          "hash": "8534583316967162886"
+        },
+        {
+          "file": "apps/finance/src/app/api/budget/cost-estimates/core/cost-estimates-ms.controller.ts",
+          "hash": "9745034120936406161",
+          "deps": [
+            "microservices",
             "npm:@nestjs/common",
             "npm:@nestjs/microservices"
           ]
         },
         {
-          "file": "libs/password/tsconfig.json",
-          "hash": "2840670722752396445"
-        },
-        {
-          "file": "libs/password/tsconfig.lib.json",
-          "hash": "14544085124747442214"
-        },
-        {
-          "file": "libs/password/tsconfig.spec.json",
-          "hash": "10595040461224341030"
-        }
-      ],
-      "generator": [
-        {
-          "file": "libs/generator/.eslintrc.json",
-          "hash": "13800677001662881425"
-        },
-        {
-          "file": "libs/generator/README.md",
-          "hash": "11957727227016057723"
-        },
-        {
-          "file": "libs/generator/jest.config.ts",
-          "hash": "4876712939716419549"
-        },
-        {
-          "file": "libs/generator/project.json",
-          "hash": "6471482184211114966"
-        },
-        {
-          "file": "libs/generator/src/constants/generator.constants.ts",
-          "hash": "10523314631617745772"
-        },
-        {
-          "file": "libs/generator/src/constants/index.ts",
-          "hash": "11865108901342584377"
-        },
-        {
-          "file": "libs/generator/src/index.ts",
-          "hash": "1208783752159434353"
-        },
-        {
-          "file": "libs/generator/src/lib/generator.module.ts",
-          "hash": "3358634360883879613",
+          "file": "apps/finance/src/app/api/budget/cost-estimates/core/cost-estimates.controller.ts",
+          "hash": "4580037091574078332",
           "deps": [
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "libs/generator/src/lib/generator.service.ts",
-          "hash": "7142982115999748989",
+          "file": "apps/finance/src/app/api/budget/cost-estimates/core/cost-estimates.module.ts",
+          "hash": "8941217629271022091",
           "deps": [
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "libs/generator/src/types/generator.types.ts",
-          "hash": "10760979230399121413"
+          "file": "apps/finance/src/app/api/budget/cost-estimates/core/cost-estimates.service.ts",
+          "hash": "5872367565025990925",
+          "deps": [
+            "models",
+            "utils",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm"
+          ]
         },
         {
-          "file": "libs/generator/src/types/index.ts",
-          "hash": "17421885447590488231"
+          "file": "apps/finance/src/app/api/budget/cost-estimates/data/cost-estimates.dto.ts",
+          "hash": "13230241424574691904",
+          "deps": [
+            "models",
+            "npm:class-transformer",
+            "npm:class-validator"
+          ]
         },
         {
-          "file": "libs/generator/tsconfig.json",
-          "hash": "2840670722752396445"
+          "file": "apps/finance/src/app/api/budget/cost-estimates/index.ts",
+          "hash": "8224989893196667358"
         },
         {
-          "file": "libs/generator/tsconfig.lib.json",
-          "hash": "14544085124747442214"
+          "file": "apps/finance/src/app/api/budget/cost-estimates/misc/interceptors/find-all-projects.interceptor.ts",
+          "hash": "16662001006887879023",
+          "deps": [
+            "utils",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:rxjs"
+          ]
         },
         {
-          "file": "libs/generator/tsconfig.spec.json",
+          "file": "apps/finance/src/app/app.module.ts",
+          "hash": "11204347205358812056",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/services/item/core/item.controller.ts",
+          "hash": "2045373629461572244",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/services/item/core/item.module.ts",
+          "hash": "5178473853428503687",
+          "deps": [
+            "microservices",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/services/item/core/item.service.ts",
+          "hash": "1764485815319271786",
+          "deps": [
+            "microservices",
+            "utils",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate"
+          ]
+        },
+        {
+          "file": "apps/finance/src/app/services/item/index.ts",
+          "hash": "9172849374810008100"
+        },
+        {
+          "file": "apps/finance/src/assets/.gitkeep",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "apps/finance/src/connections/database/constants/entities.ts",
+          "hash": "13444718586228815054",
+          "deps": [
+            "models"
+          ]
+        },
+        {
+          "file": "apps/finance/src/connections/database/constants/environments.ts",
+          "hash": "2882516414367310075"
+        },
+        {
+          "file": "apps/finance/src/connections/database/constants/queries.ts",
+          "hash": "10400478270941291328"
+        },
+        {
+          "file": "apps/finance/src/connections/database/core/database.module.ts",
+          "hash": "11229612204315819196",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/typeorm"
+          ]
+        },
+        {
+          "file": "apps/finance/src/connections/database/core/database.service.ts",
+          "hash": "5491073371955209966",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "apps/finance/src/connections/index.ts",
+          "hash": "14106336444260512279"
+        },
+        {
+          "file": "apps/finance/src/environments/environment.prod.ts",
+          "hash": "10220522844224226756"
+        },
+        {
+          "file": "apps/finance/src/environments/environment.ts",
+          "hash": "1135292433917692033"
+        },
+        {
+          "file": "apps/finance/src/main.ts",
+          "hash": "4206993139884663194",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/core",
+            "microservices",
+            "npm:@nestjs/microservices",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/finance/tsconfig.app.json",
+          "hash": "14563161343052823546"
+        },
+        {
+          "file": "apps/finance/tsconfig.json",
+          "hash": "9214820933160915425"
+        },
+        {
+          "file": "apps/finance/tsconfig.spec.json",
           "hash": "10595040461224341030"
+        },
+        {
+          "file": "apps/finance/webpack.config.js",
+          "hash": "10970944162716286406",
+          "deps": [
+            "npm:@nx/webpack"
+          ]
         }
       ],
       "models": [
@@ -4727,6 +4494,859 @@
           "hash": "10595040461224341030"
         }
       ],
+      "utils": [
+        {
+          "file": "libs/utils/.eslintrc.json",
+          "hash": "13800677001662881425"
+        },
+        {
+          "file": "libs/utils/README.md",
+          "hash": "14342862180974447819"
+        },
+        {
+          "file": "libs/utils/jest.config.ts",
+          "hash": "15864845637948583526"
+        },
+        {
+          "file": "libs/utils/project.json",
+          "hash": "2500038152162312215"
+        },
+        {
+          "file": "libs/utils/src/decorators/api-schema.decorator.ts",
+          "hash": "4206394582680620575"
+        },
+        {
+          "file": "libs/utils/src/decorators/employee-monitoring.decorator.ts",
+          "hash": "8033126760456034381",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "libs/utils/src/decorators/index.ts",
+          "hash": "17556903098487465550"
+        },
+        {
+          "file": "libs/utils/src/enums/employee-monitoring.enum.ts",
+          "hash": "11523629395362019406"
+        },
+        {
+          "file": "libs/utils/src/enums/index.ts",
+          "hash": "3703942619963201650"
+        },
+        {
+          "file": "libs/utils/src/enums/lms.enums.ts",
+          "hash": "12231937562972310287"
+        },
+        {
+          "file": "libs/utils/src/functions/cases.ts",
+          "hash": "5452104394859313900"
+        },
+        {
+          "file": "libs/utils/src/functions/day-range.ts",
+          "hash": "17873858497283550001"
+        },
+        {
+          "file": "libs/utils/src/functions/index.ts",
+          "hash": "4446783001272365016"
+        },
+        {
+          "file": "libs/utils/src/functions/root-dir-finder.ts",
+          "hash": "1020803406658332650"
+        },
+        {
+          "file": "libs/utils/src/functions/sql-parser.ts",
+          "hash": "15528914707895745560"
+        },
+        {
+          "file": "libs/utils/src/index.ts",
+          "hash": "3971354570845947408"
+        },
+        {
+          "file": "libs/utils/src/types/auth.types.ts",
+          "hash": "7987748740615742284"
+        },
+        {
+          "file": "libs/utils/src/types/employee-monitoring.types.ts",
+          "hash": "10384326975856857880"
+        },
+        {
+          "file": "libs/utils/src/types/finance.types.ts",
+          "hash": "2811705563479709349"
+        },
+        {
+          "file": "libs/utils/src/types/hrms.types.ts",
+          "hash": "1204499442487233836"
+        },
+        {
+          "file": "libs/utils/src/types/index.ts",
+          "hash": "13843440145618139468"
+        },
+        {
+          "file": "libs/utils/src/types/items.types.ts",
+          "hash": "8501235172069283022"
+        },
+        {
+          "file": "libs/utils/src/types/ivms.types.ts",
+          "hash": "7213067471527448105"
+        },
+        {
+          "file": "libs/utils/src/types/lms.types.ts",
+          "hash": "14515682818290646075"
+        },
+        {
+          "file": "libs/utils/src/types/procurement.types.ts",
+          "hash": "6011441429909628827"
+        },
+        {
+          "file": "libs/utils/tsconfig.json",
+          "hash": "2840670722752396445"
+        },
+        {
+          "file": "libs/utils/tsconfig.lib.json",
+          "hash": "8556906484746532582"
+        },
+        {
+          "file": "libs/utils/tsconfig.spec.json",
+          "hash": "10595040461224341030"
+        }
+      ],
+      "ivms-dtr-e2e": [
+        {
+          "file": "apps/ivms-dtr-e2e/.eslintrc.json",
+          "hash": "13800677001662881425"
+        },
+        {
+          "file": "apps/ivms-dtr-e2e/jest.config.ts",
+          "hash": "837006348732538835"
+        },
+        {
+          "file": "apps/ivms-dtr-e2e/project.json",
+          "hash": "14975029086096934646"
+        },
+        {
+          "file": "apps/ivms-dtr-e2e/src/ivms-dtr/ivms-dtr.spec.ts",
+          "hash": "4579662685003779048",
+          "deps": [
+            "npm:axios"
+          ]
+        },
+        {
+          "file": "apps/ivms-dtr-e2e/src/support/global-setup.ts",
+          "hash": "2568409276037275290"
+        },
+        {
+          "file": "apps/ivms-dtr-e2e/src/support/global-teardown.ts",
+          "hash": "5275447082211835490"
+        },
+        {
+          "file": "apps/ivms-dtr-e2e/src/support/test-setup.ts",
+          "hash": "10984585515912236441",
+          "deps": [
+            "npm:axios"
+          ]
+        },
+        {
+          "file": "apps/ivms-dtr-e2e/tsconfig.json",
+          "hash": "15443990093475294480"
+        },
+        {
+          "file": "apps/ivms-dtr-e2e/tsconfig.spec.json",
+          "hash": "14954872453723519891"
+        }
+      ],
+      "crud": [
+        {
+          "file": "libs/crud/.eslintrc.json",
+          "hash": "13800677001662881425"
+        },
+        {
+          "file": "libs/crud/README.md",
+          "hash": "11558611315369436779"
+        },
+        {
+          "file": "libs/crud/jest.config.ts",
+          "hash": "15687747554107607785"
+        },
+        {
+          "file": "libs/crud/project.json",
+          "hash": "2518053654851973017"
+        },
+        {
+          "file": "libs/crud/src/index.ts",
+          "hash": "6486680584985196189"
+        },
+        {
+          "file": "libs/crud/src/lib/crud.module.ts",
+          "hash": "14608877141051136531",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "libs/crud/src/lib/crud.service.ts",
+          "hash": "1680058924409974786",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "libs/crud/src/lib/index.ts",
+          "hash": "7814287248574663905"
+        },
+        {
+          "file": "libs/crud/src/types/crud.types.ts",
+          "hash": "15615206575564499343",
+          "deps": [
+            "microservices",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "libs/crud/src/types/index.ts",
+          "hash": "2814294604175590175"
+        },
+        {
+          "file": "libs/crud/src/utils/crud.entity.ts",
+          "hash": "1762083439466296924",
+          "deps": [
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "libs/crud/src/utils/crud.errors.ts",
+          "hash": "6386773196866445935",
+          "deps": [
+            "microservices",
+            "npm:@nestjs/common",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "libs/crud/src/utils/crud.helper.ts",
+          "hash": "16302826433051545596",
+          "deps": [
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "libs/crud/src/utils/crud.interface.ts",
+          "hash": "16860377323430809737",
+          "deps": [
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "libs/crud/src/utils/index.ts",
+          "hash": "5768310323778443041"
+        },
+        {
+          "file": "libs/crud/tsconfig.json",
+          "hash": "2840670722752396445"
+        },
+        {
+          "file": "libs/crud/tsconfig.lib.json",
+          "hash": "14544085124747442214"
+        },
+        {
+          "file": "libs/crud/tsconfig.spec.json",
+          "hash": "16024984723645563823"
+        }
+      ],
+      "generator": [
+        {
+          "file": "libs/generator/.eslintrc.json",
+          "hash": "13800677001662881425"
+        },
+        {
+          "file": "libs/generator/README.md",
+          "hash": "11957727227016057723"
+        },
+        {
+          "file": "libs/generator/jest.config.ts",
+          "hash": "4876712939716419549"
+        },
+        {
+          "file": "libs/generator/project.json",
+          "hash": "6471482184211114966"
+        },
+        {
+          "file": "libs/generator/src/constants/generator.constants.ts",
+          "hash": "10523314631617745772"
+        },
+        {
+          "file": "libs/generator/src/constants/index.ts",
+          "hash": "11865108901342584377"
+        },
+        {
+          "file": "libs/generator/src/index.ts",
+          "hash": "1208783752159434353"
+        },
+        {
+          "file": "libs/generator/src/lib/generator.module.ts",
+          "hash": "3358634360883879613",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "libs/generator/src/lib/generator.service.ts",
+          "hash": "7142982115999748989",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "libs/generator/src/types/generator.types.ts",
+          "hash": "10760979230399121413"
+        },
+        {
+          "file": "libs/generator/src/types/index.ts",
+          "hash": "17421885447590488231"
+        },
+        {
+          "file": "libs/generator/tsconfig.json",
+          "hash": "2840670722752396445"
+        },
+        {
+          "file": "libs/generator/tsconfig.lib.json",
+          "hash": "14544085124747442214"
+        },
+        {
+          "file": "libs/generator/tsconfig.spec.json",
+          "hash": "10595040461224341030"
+        }
+      ],
+      "microservices": [
+        {
+          "file": "libs/microservices/.eslintrc.json",
+          "hash": "13800677001662881425"
+        },
+        {
+          "file": "libs/microservices/README.md",
+          "hash": "18167579594746699301"
+        },
+        {
+          "file": "libs/microservices/jest.config.ts",
+          "hash": "9037298098296043254"
+        },
+        {
+          "file": "libs/microservices/project.json",
+          "hash": "13133446943575654021"
+        },
+        {
+          "file": "libs/microservices/src/clients/finance.module.ts",
+          "hash": "16770660087470046687",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "libs/microservices/src/clients/hrms-client.module.ts",
+          "hash": "13438208460998913693",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "libs/microservices/src/clients/items-client.module.ts",
+          "hash": "14937113367081392849",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "libs/microservices/src/clients/lms-client.module.ts",
+          "hash": "1676677928177903907",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "libs/microservices/src/clients/portal-client.module.ts",
+          "hash": "10144999752277586648",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "libs/microservices/src/index.ts",
+          "hash": "9342965173188929858"
+        },
+        {
+          "file": "libs/microservices/src/lib/ms-client.service.ts",
+          "hash": "4746837623253832628",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices",
+            "npm:rxjs"
+          ]
+        },
+        {
+          "file": "libs/microservices/src/types/ms.types.ts",
+          "hash": "13991288428766669922",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "libs/microservices/src/utils/ms-hybrid.ts",
+          "hash": "16703862732945901198",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "libs/microservices/src/utils/ms-provider.ts",
+          "hash": "18242431685852753587"
+        },
+        {
+          "file": "libs/microservices/src/utils/my-rpc.ts",
+          "hash": "1147709356353291160",
+          "deps": [
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "libs/microservices/src/utils/patterns/finance.ts",
+          "hash": "15401570414937380896"
+        },
+        {
+          "file": "libs/microservices/src/utils/patterns/hrms.ts",
+          "hash": "15443878562177201967"
+        },
+        {
+          "file": "libs/microservices/src/utils/patterns/index.ts",
+          "hash": "18235413711955518265"
+        },
+        {
+          "file": "libs/microservices/src/utils/patterns/items.ts",
+          "hash": "12861764168547410868"
+        },
+        {
+          "file": "libs/microservices/src/utils/patterns/lms.ts",
+          "hash": "11992605151181778078"
+        },
+        {
+          "file": "libs/microservices/tsconfig.json",
+          "hash": "2840670722752396445"
+        },
+        {
+          "file": "libs/microservices/tsconfig.lib.json",
+          "hash": "14544085124747442214"
+        },
+        {
+          "file": "libs/microservices/tsconfig.spec.json",
+          "hash": "10595040461224341030"
+        }
+      ],
+      "procurement": [
+        {
+          "file": "apps/procurement/.eslintrc.json",
+          "hash": "13800677001662881425"
+        },
+        {
+          "file": "apps/procurement/jest.config.ts",
+          "hash": "7016932102735010674"
+        },
+        {
+          "file": "apps/procurement/project.json",
+          "hash": "16662801859898112550"
+        },
+        {
+          "file": "apps/procurement/src/app/.gitkeep",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/index.ts",
+          "hash": "14472381741151363162"
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/core/purchase-request.controller.ts",
+          "hash": "898024382842789083",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/core/purchase-request.module.ts",
+          "hash": "11252299616801254243",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/core/purchase-request.service.ts",
+          "hash": "13308188648590861924",
+          "deps": [
+            "models",
+            "utils",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/data/pr.dto.ts",
+          "hash": "16422567829347687423",
+          "deps": [
+            "models",
+            "npm:class-transformer",
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/index.ts",
+          "hash": "9461146789008816479"
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/purchase-request/misc/create-pr.interceptor.ts",
+          "hash": "6479427955703318306",
+          "deps": [
+            "utils",
+            "npm:@nestjs/common",
+            "npm:rxjs"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/purchase-type/core/purchase-type.controller.ts",
+          "hash": "15115024027874768076",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/purchase-type/core/purchase-type.module.ts",
+          "hash": "12437280120561765361",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/purchase-type/core/purchase-type.service.ts",
+          "hash": "2253370989404537577",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/purchase-type/index.ts",
+          "hash": "927313078781309679"
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/core/request-for-quotation.controller.ts",
+          "hash": "15682913538846271665",
+          "deps": [
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/core/request-for-quotation.module.ts",
+          "hash": "10997936375499126633",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/core/request-for-quotation.service.ts",
+          "hash": "18360550270846762884",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/data/rfq.dto.ts",
+          "hash": "6163300538019238180",
+          "deps": [
+            "models"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/index.ts",
+          "hash": "16015561845186190249"
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/request-for-quotation/misc/create-rfq.interceptor.ts",
+          "hash": "16841652416965798493",
+          "deps": [
+            "utils",
+            "npm:@nestjs/common",
+            "npm:rxjs"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/requested-item/core/requested-item.controller.ts",
+          "hash": "14616561623302533169",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/requested-item/core/requested-item.module.ts",
+          "hash": "1117081735103898280",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/requested-item/core/requested-item.service.ts",
+          "hash": "16406656759414611771",
+          "deps": [
+            "crud",
+            "models",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/components/requested-item/index.ts",
+          "hash": "2739384166877840858"
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/tests/purchase.e2e.spec.ts",
+          "hash": "15960499482317076610",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/testing",
+            "npm:@nestjs/typeorm",
+            "npm:typeorm",
+            "npm:supertest",
+            "models",
+            "utils",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/api/purchase/tests/purchase.stubs.ts",
+          "hash": "14451522738063634239"
+        },
+        {
+          "file": "apps/procurement/src/app/app.module.ts",
+          "hash": "1632406251768747032",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/services/finance/components/cost-estimate/core/cost-estimate.controller.ts",
+          "hash": "13719091436708955857",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/services/finance/components/cost-estimate/core/cost-estimate.module.ts",
+          "hash": "17338251255243097304",
+          "deps": [
+            "microservices",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/services/finance/components/cost-estimate/core/cost-estimate.service.ts",
+          "hash": "6990885096025608922",
+          "deps": [
+            "microservices",
+            "utils",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/services/finance/components/cost-estimate/index.ts",
+          "hash": "15207131808301640188"
+        },
+        {
+          "file": "apps/procurement/src/app/services/hrms/components/org-structure/core/org-structure.controller.ts",
+          "hash": "9953824500706071466",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/services/hrms/components/org-structure/core/org-structure.module.ts",
+          "hash": "8869972889520358315",
+          "deps": [
+            "npm:@nestjs/common",
+            "microservices"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/services/hrms/components/org-structure/core/org-structure.service.ts",
+          "hash": "5757398974323918706",
+          "deps": [
+            "microservices",
+            "utils",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/services/hrms/components/org-structure/index.ts",
+          "hash": "18398567859098778426"
+        },
+        {
+          "file": "apps/procurement/src/app/services/index.ts",
+          "hash": "11654875529045809943"
+        },
+        {
+          "file": "apps/procurement/src/app/services/items/core/items.controller.ts",
+          "hash": "4802429616360858599",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/services/items/core/items.module.ts",
+          "hash": "10934132740417364041",
+          "deps": [
+            "npm:@nestjs/common",
+            "microservices"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/services/items/core/items.service.ts",
+          "hash": "2329467814181016015",
+          "deps": [
+            "microservices",
+            "utils",
+            "npm:@nestjs/common",
+            "npm:nestjs-typeorm-paginate"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/app/services/items/index.ts",
+          "hash": "14019959426476195495"
+        },
+        {
+          "file": "apps/procurement/src/assets/.gitkeep",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "apps/procurement/src/connections/database/constants/entities.ts",
+          "hash": "2377421997154711850",
+          "deps": [
+            "models"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/connections/database/constants/environments.ts",
+          "hash": "4113333908555459354"
+        },
+        {
+          "file": "apps/procurement/src/connections/database/constants/queries.ts",
+          "hash": "10983467374180981116"
+        },
+        {
+          "file": "apps/procurement/src/connections/database/core/database.module.ts",
+          "hash": "1279720927968099679",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/typeorm"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/connections/database/core/database.service.ts",
+          "hash": "6346269149567781407",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:typeorm"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/connections/index.ts",
+          "hash": "14106336444260512279"
+        },
+        {
+          "file": "apps/procurement/src/environments/environment.prod.ts",
+          "hash": "10220522844224226756"
+        },
+        {
+          "file": "apps/procurement/src/environments/environment.ts",
+          "hash": "1135292433917692033"
+        },
+        {
+          "file": "apps/procurement/src/main.ts",
+          "hash": "12982407586733968746",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/core"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/utils/docs/open-api.ts",
+          "hash": "16470867437801726397",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/procurement/src/utils/mock/all-orgs.json",
+          "hash": "13304955680301853924"
+        },
+        {
+          "file": "apps/procurement/src/utils/mock/db.mock.ts",
+          "hash": "7120154504258899691"
+        },
+        {
+          "file": "apps/procurement/src/utils/mock/org-by-id.json",
+          "hash": "3951858969986377032"
+        },
+        {
+          "file": "apps/procurement/tsconfig.app.json",
+          "hash": "14563161343052823546"
+        },
+        {
+          "file": "apps/procurement/tsconfig.json",
+          "hash": "9214820933160915425"
+        },
+        {
+          "file": "apps/procurement/tsconfig.spec.json",
+          "hash": "10595040461224341030"
+        },
+        {
+          "file": "apps/procurement/webpack.config.js",
+          "hash": "10970944162716286406",
+          "deps": [
+            "npm:@nx/webpack"
+          ]
+        }
+      ],
       "employee-monitoring": [
         {
           "file": "apps/employee-monitoring/.eslintrc.json",
@@ -6528,706 +7148,36 @@
           ]
         }
       ],
-      "utils": [
+      "ivms-dtr": [
         {
-          "file": "libs/utils/.eslintrc.json",
+          "file": "apps/ivms-dtr/.eslintrc.json",
           "hash": "13800677001662881425"
         },
         {
-          "file": "libs/utils/README.md",
-          "hash": "14342862180974447819"
+          "file": "apps/ivms-dtr/jest.config.ts",
+          "hash": "16403931580473857235"
         },
         {
-          "file": "libs/utils/jest.config.ts",
-          "hash": "15864845637948583526"
+          "file": "apps/ivms-dtr/project.json",
+          "hash": "17759274519327447827"
         },
         {
-          "file": "libs/utils/project.json",
-          "hash": "2500038152162312215"
+          "file": "apps/ivms-dtr/src/app/app.controller.spec.ts",
+          "hash": "15641786130910814553",
+          "deps": [
+            "npm:@nestjs/testing"
+          ]
         },
         {
-          "file": "libs/utils/src/decorators/api-schema.decorator.ts",
-          "hash": "4206394582680620575"
-        },
-        {
-          "file": "libs/utils/src/decorators/employee-monitoring.decorator.ts",
-          "hash": "8033126760456034381",
+          "file": "apps/ivms-dtr/src/app/app.controller.ts",
+          "hash": "9005150069945785676",
           "deps": [
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "libs/utils/src/decorators/index.ts",
-          "hash": "17556903098487465550"
-        },
-        {
-          "file": "libs/utils/src/enums/employee-monitoring.enum.ts",
-          "hash": "11523629395362019406"
-        },
-        {
-          "file": "libs/utils/src/enums/index.ts",
-          "hash": "3703942619963201650"
-        },
-        {
-          "file": "libs/utils/src/enums/lms.enums.ts",
-          "hash": "12231937562972310287"
-        },
-        {
-          "file": "libs/utils/src/functions/cases.ts",
-          "hash": "5452104394859313900"
-        },
-        {
-          "file": "libs/utils/src/functions/day-range.ts",
-          "hash": "17873858497283550001"
-        },
-        {
-          "file": "libs/utils/src/functions/index.ts",
-          "hash": "4446783001272365016"
-        },
-        {
-          "file": "libs/utils/src/functions/root-dir-finder.ts",
-          "hash": "1020803406658332650"
-        },
-        {
-          "file": "libs/utils/src/functions/sql-parser.ts",
-          "hash": "15528914707895745560"
-        },
-        {
-          "file": "libs/utils/src/index.ts",
-          "hash": "3971354570845947408"
-        },
-        {
-          "file": "libs/utils/src/types/auth.types.ts",
-          "hash": "7987748740615742284"
-        },
-        {
-          "file": "libs/utils/src/types/employee-monitoring.types.ts",
-          "hash": "10384326975856857880"
-        },
-        {
-          "file": "libs/utils/src/types/finance.types.ts",
-          "hash": "2811705563479709349"
-        },
-        {
-          "file": "libs/utils/src/types/hrms.types.ts",
-          "hash": "1204499442487233836"
-        },
-        {
-          "file": "libs/utils/src/types/index.ts",
-          "hash": "13843440145618139468"
-        },
-        {
-          "file": "libs/utils/src/types/items.types.ts",
-          "hash": "8501235172069283022"
-        },
-        {
-          "file": "libs/utils/src/types/ivms.types.ts",
-          "hash": "7213067471527448105"
-        },
-        {
-          "file": "libs/utils/src/types/lms.types.ts",
-          "hash": "14515682818290646075"
-        },
-        {
-          "file": "libs/utils/src/types/procurement.types.ts",
-          "hash": "6011441429909628827"
-        },
-        {
-          "file": "libs/utils/tsconfig.json",
-          "hash": "2840670722752396445"
-        },
-        {
-          "file": "libs/utils/tsconfig.lib.json",
-          "hash": "8556906484746532582"
-        },
-        {
-          "file": "libs/utils/tsconfig.spec.json",
-          "hash": "10595040461224341030"
-        }
-      ],
-      "finance": [
-        {
-          "file": "apps/finance/.eslintrc.json",
-          "hash": "13800677001662881425"
-        },
-        {
-          "file": "apps/finance/jest.config.ts",
-          "hash": "18212104068372049387"
-        },
-        {
-          "file": "apps/finance/project.json",
-          "hash": "1688081086340261638"
-        },
-        {
-          "file": "apps/finance/src/app/.gitkeep",
-          "hash": "3244421341483603138"
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/account-groups/core/account-groups.controller.ts",
-          "hash": "13823750089141642701",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/account-groups/core/account-groups.module.ts",
-          "hash": "13833094445404740679",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/account-groups/core/account-groups.service.ts",
-          "hash": "1720105010757182259",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/account-groups/index.ts",
-          "hash": "482051790332978965"
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/general-ledger-accounts/core/general-ledger-accounts.controller.ts",
-          "hash": "6812864950513436376",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/general-ledger-accounts/core/general-ledger-accounts.module.ts",
-          "hash": "17484393932533154795",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/general-ledger-accounts/core/general-ledger-accounts.service.ts",
-          "hash": "5366339226433026296",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/general-ledger-accounts/index.ts",
-          "hash": "16022947902004164668"
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/major-account-groups/core/major-account-groups.controller.ts",
-          "hash": "12846835301891747622",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/major-account-groups/core/major-account-groups.module.ts",
-          "hash": "13537452968761003653",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/major-account-groups/core/major-account-groups.service.ts",
-          "hash": "10516834718458225393",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/major-account-groups/index.ts",
-          "hash": "12904524810035544192"
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/sub-major-account-groups/core/sub-major-account-groups.controller.ts",
-          "hash": "9037031776957679432",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/sub-major-account-groups/core/sub-major-account-groups.module.ts",
-          "hash": "1399500639041933679",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/sub-major-account-groups/core/sub-major-account-groups.service.ts",
-          "hash": "10872437394951476454",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/components/sub-major-account-groups/index.ts",
-          "hash": "455420081658605647"
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/core/chart-of-accounts.controller.ts",
-          "hash": "6591921045481288684",
-          "deps": [
-            "models",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/core/chart-of-accounts.module.ts",
-          "hash": "4463059712196560517",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/core/chart-of-accounts.service.ts",
-          "hash": "9659296286329022370",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/index.ts",
-          "hash": "14989824591777277455"
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/misc/interceptors/find-all-chart-of-accounts.interceptor.ts",
-          "hash": "214729365159178199",
-          "deps": [
-            "models",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:rxjs"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/chart-of-accounts/misc/interceptors/index.ts",
-          "hash": "17253925677407032086"
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/contra-accounts/core/contra-accounts.controller.ts",
-          "hash": "13584244845923259893",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/contra-accounts/core/contra-accounts.module.ts",
-          "hash": "3223854485514136181",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/contra-accounts/core/contra-accounts.service.ts",
-          "hash": "17140520859639361567",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/account-titles/contra-accounts/index.ts",
-          "hash": "10265875409083622200"
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/budget-types/core/budget-types.controller.ts",
-          "hash": "9971333341710158947",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/budget-types/core/budget-types.module.ts",
-          "hash": "5434363584196888796",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/budget-types/core/budget-types.service.ts",
-          "hash": "13728892806474598466",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/budget-types/index.ts",
-          "hash": "12789755169389449614"
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/budget-details/core/budget-details.controller.ts",
-          "hash": "3806059689758967211",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/budget-details/core/budget-details.module.ts",
-          "hash": "6542752651119138648",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/budget-details/core/budget-details.service.ts",
-          "hash": "4557173169219942883",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/budget-details/index.ts",
-          "hash": "9476396302296499157"
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/equipment-costs/core/equipment-costs.controller.ts",
-          "hash": "8290867346841987189",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/equipment-costs/core/equipment-costs.module.ts",
-          "hash": "6806667027037428760",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/equipment-costs/core/equipment-costs.service.ts",
-          "hash": "8795366343348571487",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/equipment-costs/index.ts",
-          "hash": "3138255323655631142"
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/labor-costs/core/labor-costs.controller.ts",
-          "hash": "3048108822594110043",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/labor-costs/core/labor-costs.module.ts",
-          "hash": "17109316165582851862",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/labor-costs/core/labor-costs.service.ts",
-          "hash": "15350418587108222942",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/labor-costs/index.ts",
-          "hash": "11254345110618591692"
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/material-costs/core/material-costs.controller.ts",
-          "hash": "187987140614225452",
-          "deps": [
-            "models",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/material-costs/core/material-costs.module.ts",
-          "hash": "16814941319384078788",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/material-costs/core/material-costs.service.ts",
-          "hash": "18323091779431886091",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/material-costs/index.ts",
-          "hash": "4993691951957683486"
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/project-details/core/project-details-ms.controller.ts",
-          "hash": "15704292939878123324",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices",
-            "microservices"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/project-details/core/project-details.controller.ts",
-          "hash": "16936736277942371831",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/project-details/core/project-details.module.ts",
-          "hash": "15477810933313617446",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/project-details/core/project-details.service.ts",
-          "hash": "9775899687777262101",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/project-details/index.ts",
-          "hash": "2422455680158981082"
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/value-added-tax/core/value-added-tax.controller.ts",
-          "hash": "6001919486363884434",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/value-added-tax/core/value-added-tax.module.ts",
-          "hash": "110675083079589158",
-          "deps": [
-            "npm:@nestjs/common",
-            "crud",
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/value-added-tax/core/value-added-tax.service.ts",
-          "hash": "11247912959892222055",
-          "deps": [
-            "crud",
-            "models",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/components/value-added-tax/index.ts",
-          "hash": "8534583316967162886"
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/core/cost-estimates-ms.controller.ts",
-          "hash": "9745034120936406161",
-          "deps": [
-            "microservices",
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/core/cost-estimates.controller.ts",
-          "hash": "4580037091574078332",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/core/cost-estimates.module.ts",
-          "hash": "8941217629271022091",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/core/cost-estimates.service.ts",
-          "hash": "5872367565025990925",
-          "deps": [
-            "models",
-            "utils",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:typeorm"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/data/cost-estimates.dto.ts",
-          "hash": "13230241424574691904",
-          "deps": [
-            "models",
-            "npm:class-transformer",
-            "npm:class-validator"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/index.ts",
-          "hash": "8224989893196667358"
-        },
-        {
-          "file": "apps/finance/src/app/api/budget/cost-estimates/misc/interceptors/find-all-projects.interceptor.ts",
-          "hash": "16662001006887879023",
-          "deps": [
-            "utils",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate",
-            "npm:rxjs"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/app.module.ts",
-          "hash": "11204347205358812056",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/services/item/core/item.controller.ts",
-          "hash": "2045373629461572244",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/services/item/core/item.module.ts",
-          "hash": "5178473853428503687",
-          "deps": [
-            "microservices",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/services/item/core/item.service.ts",
-          "hash": "1764485815319271786",
-          "deps": [
-            "microservices",
-            "utils",
-            "npm:@nestjs/common",
-            "npm:nestjs-typeorm-paginate"
-          ]
-        },
-        {
-          "file": "apps/finance/src/app/services/item/index.ts",
-          "hash": "9172849374810008100"
-        },
-        {
-          "file": "apps/finance/src/assets/.gitkeep",
-          "hash": "3244421341483603138"
-        },
-        {
-          "file": "apps/finance/src/connections/database/constants/entities.ts",
-          "hash": "13444718586228815054",
-          "deps": [
-            "models"
-          ]
-        },
-        {
-          "file": "apps/finance/src/connections/database/constants/environments.ts",
-          "hash": "2882516414367310075"
-        },
-        {
-          "file": "apps/finance/src/connections/database/constants/queries.ts",
-          "hash": "10400478270941291328"
-        },
-        {
-          "file": "apps/finance/src/connections/database/core/database.module.ts",
-          "hash": "11229612204315819196",
+          "file": "apps/ivms-dtr/src/app/app.module.ts",
+          "hash": "3944235311654420729",
           "deps": [
             "npm:@nestjs/common",
             "npm:@nestjs/config",
@@ -7235,51 +7185,101 @@
           ]
         },
         {
-          "file": "apps/finance/src/connections/database/core/database.service.ts",
-          "hash": "5491073371955209966",
+          "file": "apps/ivms-dtr/src/app/app.service.spec.ts",
+          "hash": "7411138190872433434",
           "deps": [
-            "npm:@nestjs/common",
-            "npm:typeorm"
+            "npm:@nestjs/testing"
           ]
         },
         {
-          "file": "apps/finance/src/connections/index.ts",
-          "hash": "14106336444260512279"
+          "file": "apps/ivms-dtr/src/app/app.service.ts",
+          "hash": "3499719453853304452",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
         },
         {
-          "file": "apps/finance/src/environments/environment.prod.ts",
-          "hash": "10220522844224226756"
+          "file": "apps/ivms-dtr/src/app/services/daily-time-record/core/daily-time-record.controller.ts",
+          "hash": "4212910014616480816",
+          "deps": [
+            "utils",
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices"
+          ]
         },
         {
-          "file": "apps/finance/src/environments/environment.ts",
-          "hash": "1135292433917692033"
+          "file": "apps/ivms-dtr/src/app/services/daily-time-record/core/daily-time-record.module.ts",
+          "hash": "10189268327219944554",
+          "deps": [
+            "npm:@nestjs/common",
+            "crud",
+            "models"
+          ]
         },
         {
-          "file": "apps/finance/src/main.ts",
-          "hash": "4206993139884663194",
+          "file": "apps/ivms-dtr/src/app/services/daily-time-record/core/daily-time-record.service.ts",
+          "hash": "2301491580314345117",
+          "deps": [
+            "crud",
+            "models",
+            "utils",
+            "npm:@nestjs/common",
+            "npm:dayjs"
+          ]
+        },
+        {
+          "file": "apps/ivms-dtr/src/app/services/daily-time-record/test/daily-time-record.controller.spec.ts",
+          "hash": "195308484980145907",
+          "deps": [
+            "npm:@nestjs/testing"
+          ]
+        },
+        {
+          "file": "apps/ivms-dtr/src/app/services/daily-time-record/test/daily-time-record.service.spec.ts",
+          "hash": "2449725166802027724",
+          "deps": [
+            "npm:@nestjs/testing"
+          ]
+        },
+        {
+          "file": "apps/ivms-dtr/src/assets/.gitkeep",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "apps/ivms-dtr/src/constants/entities.ts",
+          "hash": "6591943314527772707",
+          "deps": [
+            "models"
+          ]
+        },
+        {
+          "file": "apps/ivms-dtr/src/constants/modules.ts",
+          "hash": "2101744435416639030"
+        },
+        {
+          "file": "apps/ivms-dtr/src/main.ts",
+          "hash": "7341886163180020066",
           "deps": [
             "npm:@nestjs/common",
             "npm:@nestjs/core",
-            "microservices",
-            "npm:@nestjs/microservices",
-            "npm:@nestjs/config"
+            "npm:@nestjs/microservices"
           ]
         },
         {
-          "file": "apps/finance/tsconfig.app.json",
-          "hash": "14563161343052823546"
+          "file": "apps/ivms-dtr/tsconfig.app.json",
+          "hash": "3171572500325445971"
         },
         {
-          "file": "apps/finance/tsconfig.json",
-          "hash": "9214820933160915425"
+          "file": "apps/ivms-dtr/tsconfig.json",
+          "hash": "3490524966360018312"
         },
         {
-          "file": "apps/finance/tsconfig.spec.json",
-          "hash": "10595040461224341030"
+          "file": "apps/ivms-dtr/tsconfig.spec.json",
+          "hash": "6898991939206723030"
         },
         {
-          "file": "apps/finance/webpack.config.js",
-          "hash": "10970944162716286406",
+          "file": "apps/ivms-dtr/webpack.config.js",
+          "hash": "10619490397189790225",
           "deps": [
             "npm:@nx/webpack"
           ]
