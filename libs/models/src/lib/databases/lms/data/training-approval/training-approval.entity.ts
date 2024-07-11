@@ -11,6 +11,12 @@ export class TrainingApproval extends DatabaseEntity implements IEntity {
   @JoinColumn({ name: 'training_details_id_fk' })
   trainingDetails: TrainingDetails;
 
+  @Column({ name: 'tdd_manager_id_fk', nullable: true, default: null })
+  tddManager: string;
+
+  @Column({ name: 'tdd_manager_approval_date', nullable: true, default: null })
+  tddManagerApprovalDate: Date;
+
   @Column({ name: 'pdc_secretariat_id_fk', nullable: true, default: null })
   pdcSecretariat: string;
 

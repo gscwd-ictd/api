@@ -6,6 +6,7 @@ import {
   GeneralManagerDto,
   PdcChairmanDto,
   PdcSecretariatDto,
+  TddManagerDto,
   TrainingDetails,
   UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
@@ -1133,6 +1134,34 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   /* microservices */
 
   /* pdc secretariat approval of training by training id */
+  async tddManagerApproval(data: TddManagerDto, trainingStatus: TrainingStatus) {
+    try {
+      return await this.dataSource.transaction(async (entityManager) => {
+        const { trainingDetails } = data;
+
+        /* update training status */
+        await this.crudService.transact<TrainingDetails>(entityManager).update({
+          updateBy: {
+            id: trainingDetails,
+          },
+          dto: {
+            status: trainingStatus,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+
+        /* update training approvals by training id */
+        return await this.trainingApprovalsService.tddManagerApproval(data, entityManager);
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* pdc secretariat approval of training by training id */
   async pdcSecretariatApproval(data: PdcSecretariatDto, trainingStatus: TrainingStatus) {
     try {
       return await this.dataSource.transaction(async (entityManager) => {
@@ -1255,6 +1284,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             type: true,
             trainingRequirements: true,
             numberOfParticipants: true,
+            location: true,
+            numberOfHours: true,
           },
           where: {
             trainingStart: Raw((alias) => `to_char(${alias}, 'YYYY-MM') = :dateRange`, { dateRange }),
@@ -1268,6 +1299,17 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       const training = await Promise.all(
         trainingDetails.map(async (items) => {
+          const requirements = JSON.parse(items.trainingRequirements).map((req: TrainingRequirementsRaw) => {
+            switch (req.document.toLowerCase()) {
+              case 'attendance':
+                return { ...req, code: 'ATT' };
+              case 'post-test':
+                return { ...req, code: 'PTR' };
+              default:
+                return { ...req, code: '' };
+            }
+          });
+
           return {
             id: items.id,
             source: items.source.name,
@@ -1279,7 +1321,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             },
             numberOfHourse: items.numberOfHours,
             type: items.type,
-            trainingRequirements: JSON.parse(items.trainingRequirements),
+            trainingRequirements: requirements,
             numberOfParticipants: items.numberOfParticipants,
           };
         })

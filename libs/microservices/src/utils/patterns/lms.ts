@@ -10,6 +10,9 @@ export enum FindEmployeesPatterns {
   GET_EMPLOYEES_BY_ORGANIZATION_ID = 'get_employees_with_managers_by_org_id',
   GET_ALL_EMPLOYEES_WITH_SUPERVISOR = 'get_all_employees_with_supervisor',
   GET_EMPLOYEE_WITH_SUPERVISOR = 'get_employee_with_supervisor',
+  GET_ALL_MANAGERS_FOR_LND = 'get_all_managers_for_lnd',
+  GET_EMPLOYEES_UNDER_MANAGER = 'get_employees_under_manager',
+  GET_EMPLOYEE_DETAILS = 'get_employee_details',
 }
 
 export enum EmployeeTagsPatterns {
@@ -32,6 +35,10 @@ export enum TrainingPatterns {
   COUNT_PENDING_NOMINATION_BY_SUPERVISOR_ID = 'count_pending_nomination_by_supervisor_id',
 
   /*  pdc approvals */
+  FIND_ALL_TDD_MANAGER_APPROVAL = 'find_all_tdd_manager_approval',
+  TDD_MANAGER_APPROVAL = 'for_tdd_manager_approval',
+  TDD_MANAGER_DECLINED = 'for_tdd_manager_declined',
+  COUNT_TDD_MANAGER_APPROVAL = 'count_tdd_manager_approval',
   FIND_ALL_PDC_SECRETARIAT_APPROVAL = 'find_all_pdc_secretariat_approval',
   PDC_SECRETARIAT_APPROVAL = 'for_pdc_secretariat_approval',
   PDC_SECRETARIAT_DECLINED = 'for_pdc_secretariat_declined',
