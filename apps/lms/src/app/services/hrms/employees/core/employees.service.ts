@@ -78,7 +78,7 @@ export class HrmsEmployeesService {
   async findAllSupervisors() {
     return (await this.microserviceClient.call({
       action: 'send',
-      pattern: 'get_all_managers_for_lnd',
+      pattern: FindEmployeesPatterns.GET_ALL_MANAGERS_FOR_LND,
       payload: '',
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     })) as Array<SupervisorRaw>;
@@ -87,7 +87,7 @@ export class HrmsEmployeesService {
   async findAllEmployeeUnderSupervisor(supervisorId: string) {
     return (await this.microserviceClient.call({
       action: 'send',
-      pattern: 'get_employees_under_manager',
+      pattern: FindEmployeesPatterns.GET_EMPLOYEES_UNDER_MANAGER,
       payload: supervisorId,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     })) as Array<EmployeeListsRaw>;
@@ -97,7 +97,7 @@ export class HrmsEmployeesService {
   async findEmployeeDetailsByEmployeeId(employeeId: string) {
     return (await this.microserviceClient.call({
       action: 'send',
-      pattern: 'get_employee_details',
+      pattern: FindEmployeesPatterns.GET_EMPLOYEE_DETAILS,
       payload: employeeId,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     })) as EmployeeDetailsRaw;

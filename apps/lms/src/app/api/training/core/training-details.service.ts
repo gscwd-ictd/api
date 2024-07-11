@@ -6,6 +6,7 @@ import {
   GeneralManagerDto,
   PdcChairmanDto,
   PdcSecretariatDto,
+  TddManagerDto,
   TrainingDetails,
   UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
@@ -1131,6 +1132,34 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   }
 
   /* microservices */
+
+  /* pdc secretariat approval of training by training id */
+  async tddManagerApproval(data: TddManagerDto, trainingStatus: TrainingStatus) {
+    try {
+      return await this.dataSource.transaction(async (entityManager) => {
+        const { trainingDetails } = data;
+
+        /* update training status */
+        await this.crudService.transact<TrainingDetails>(entityManager).update({
+          updateBy: {
+            id: trainingDetails,
+          },
+          dto: {
+            status: trainingStatus,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+
+        /* update training approvals by training id */
+        return await this.trainingApprovalsService.tddManagerApproval(data, entityManager);
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
 
   /* pdc secretariat approval of training by training id */
   async pdcSecretariatApproval(data: PdcSecretariatDto, trainingStatus: TrainingStatus) {
