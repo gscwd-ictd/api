@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateTrainingApprovalDto, GeneralManagerDto, PdcChairmanDto, PdcSecretariatDto, TrainingApproval } from '@gscwd-api/models';
+import { CreateTrainingApprovalDto, GeneralManagerDto, PdcChairmanDto, PdcSecretariatDto, TddManagerDto, TrainingApproval } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../../nominees';
@@ -107,6 +107,37 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
     try {
       return await this.crudService.transact<TrainingApproval>(entityManager).create({
         dto: data,
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* tdd manager approval of training by training id*/
+  async tddManagerApproval(data: TddManagerDto, entityManager: EntityManager) {
+    try {
+      /* deconstruct data */
+      const { trainingDetails, tddManager, remarks } = data;
+
+      /* set the date to today */
+      const today = new Date();
+
+      /* edit training status and set date approval */
+      return await this.crudService.transact<TrainingApproval>(entityManager).update({
+        updateBy: {
+          trainingDetails: {
+            id: trainingDetails,
+          },
+        },
+        dto: {
+          tddManager: tddManager,
+          tddManagerApprovalDate: today,
+          remarks: remarks,
+        },
         onError: (error) => {
           throw error;
         },
