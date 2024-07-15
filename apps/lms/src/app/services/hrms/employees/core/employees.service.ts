@@ -102,4 +102,14 @@ export class HrmsEmployeesService {
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     })) as EmployeeDetailsRaw;
   }
+
+  /* find signatories */
+  async trainingSinatories(includeGm: boolean) {
+    return await this.microserviceClient.call({
+      action: 'send',
+      pattern: FindEmployeesPatterns.GET_TRAINING_SIGNATORIES,
+      payload: includeGm,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    });
+  }
 }
