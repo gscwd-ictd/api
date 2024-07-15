@@ -13,6 +13,7 @@ export enum FindEmployeesPatterns {
   GET_ALL_MANAGERS_FOR_LND = 'get_all_managers_for_lnd',
   GET_EMPLOYEES_UNDER_MANAGER = 'get_employees_under_manager',
   GET_EMPLOYEE_DETAILS = 'get_employee_details',
+  GET_TRAINING_SIGNATORIES = 'get_training_signatories',
 }
 
 export enum EmployeeTagsPatterns {

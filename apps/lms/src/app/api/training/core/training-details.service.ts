@@ -1297,6 +1297,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         },
       })) as Array<TrainingDetails>;
 
+      const signatories = await this.hrmsEmployeesService.trainingSinatories(false);
+
       const training = await Promise.all(
         trainingDetails.map(async (items) => {
           const requirements = JSON.parse(items.trainingRequirements).map((req: TrainingRequirementsRaw) => {
@@ -1306,7 +1308,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
               case 'post-test':
                 return { ...req, code: 'PTR' };
               default:
-                return { ...req, code: '' };
+                return { ...req, code: req.document };
             }
           });
 
@@ -1319,7 +1321,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
               from: items.trainingStart,
               to: items.trainingEnd,
             },
-            numberOfHourse: items.numberOfHours,
+            numberOfHours: items.numberOfHours,
             type: items.type,
             trainingRequirements: requirements,
             numberOfParticipants: items.numberOfParticipants,
@@ -1353,6 +1355,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       return {
         training,
         trainees,
+        signatories,
       };
     } catch (error) {
       Logger.error(error);
