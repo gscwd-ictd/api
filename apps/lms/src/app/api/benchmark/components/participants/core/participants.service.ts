@@ -108,14 +108,14 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       return await Promise.all(
         employees.map(async (items) => {
           /* find employee with supervisor */
-          const employeeDetails = await this.hrmsEmployeesService.findEmployeesWithSupervisorByEmployeeId(items.employeeId);
+          const employeeDetails = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(items.employeeId);
 
           /* custom return */
           return {
             benchmarkParticipants: items.id,
-            supervisorName: employeeDetails.supervisor.name,
             employeeId: items.employeeId,
-            name: employeeDetails.employee.name,
+            name: employeeDetails.employeeFullName,
+            assignment: employeeDetails.assignment.name,
           };
         })
       );
