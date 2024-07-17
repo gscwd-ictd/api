@@ -293,6 +293,12 @@ export class TrainingDetailsController {
   }
 
   /* send approvals to the personnel development committee */
+  @Patch(':id/approvals/tdd-manager')
+  async tddManagerTrainingApproval(@Param('id') id: string, @LoginUser() user: User) {
+    return await this.trainingDetailsService.tddManagerApproval(id, user.employeeId);
+  }
+
+  /* send approvals to the personnel development committee */
   @Patch(':id/approvals')
   async updateTrainingStatusToAppovals(@Param('id') id: string) {
     return await this.trainingDetailsService.sendToPdc(id);

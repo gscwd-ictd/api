@@ -4,14 +4,7 @@ import { TrainingPatterns } from '@gscwd-api/microservices';
 import { TrainingDistributionsService } from '../components/slot-distributions';
 import { TrainingRecommendedEmployeeService } from '../components/recommended-employees';
 import { TrainingNomineesService } from '../components/nominees';
-import {
-  CreateTrainingNomineeDto,
-  GeneralManagerDto,
-  PdcChairmanDto,
-  PdcSecretariatDto,
-  TddManagerDto,
-  UpdateTrainingNomineeStatusDto,
-} from '@gscwd-api/models';
+import { CreateTrainingNomineeDto, GeneralManagerDto, PdcChairmanDto, PdcSecretariatDto, UpdateTrainingNomineeStatusDto } from '@gscwd-api/models';
 import { TrainingNomineeRaw, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
 import { TrainingDetailsService } from './training-details.service';
@@ -261,13 +254,6 @@ export class TrainingDetailsMicroserviceController {
   @Patch('training/employees')
   async updateNomineeStatus(@Body() data: UpdateTrainingNomineeStatusDto) {
     return await this.trainingNomineesService.updateTrainingNomineeStatus(data);
-  }
-
-  /* pdc secretariat approved a training by training id */
-  @Patch('training/approvals/tdd-manager/approved')
-  async approvedTrainingByTddManager(@Body() data: TddManagerDto) {
-    const trainingStatus = TrainingStatus.PDC_SECRETARIAT_APPROVAL;
-    return await this.trainingDetailsService.tddManagerApproval(data, trainingStatus);
   }
 
   /* find all training to be approved by the pdc secretariat */
