@@ -741,13 +741,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           },
         });
 
-        /* update training status to pdc secretariat approval */
+        /* update training status to tdd manager approval */
         await this.crudService.transact<TrainingDetails>(entityManager).update({
           updateBy: {
             id: id,
           },
           dto: {
-            status: TrainingStatus.PDC_SECRETARIAT_APPROVAL,
+            status: TrainingStatus.TDD_MANAGER_APPROVAL,
           },
           onError: (error) => {
             throw error;
@@ -1135,7 +1135,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     try {
       return await this.dataSource.transaction(async (entityManager) => {
         /* update training status */
-        await this.crudService.transact<TrainingDetails>(entityManager).update({
+        const training = await this.crudService.transact<TrainingDetails>(entityManager).update({
           updateBy: {
             id: trainingId,
           },
@@ -1148,7 +1148,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         });
 
         /* update training approvals by training id */
-        return await this.trainingApprovalsService.tddManagerApproval(trainingId, employeeId, entityManager);
+        await this.trainingApprovalsService.tddManagerApproval(trainingId, employeeId, entityManager);
+
+        return training;
       });
     } catch (error) {
       Logger.error(error);

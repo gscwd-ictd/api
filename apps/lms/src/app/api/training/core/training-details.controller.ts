@@ -293,6 +293,7 @@ export class TrainingDetailsController {
   }
 
   /* send approvals to the personnel development committee */
+  @UseGuards(AuthGuard)
   @Patch(':id/approvals/tdd-manager')
   async tddManagerTrainingApproval(@Param('id') id: string, @LoginUser() user: User) {
     return await this.trainingDetailsService.tddManagerApproval(id, user.employeeId);

@@ -335,6 +335,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
               },
             },
           ],
+          order: {
+            status: 'DESC',
+          },
         },
         onError: (error) => {
           throw error;
