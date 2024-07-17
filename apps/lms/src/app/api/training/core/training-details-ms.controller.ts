@@ -82,39 +82,6 @@ export class TrainingDetailsMicroserviceController {
     return await this.trainingNomineesService.updateTrainingNomineeStatus(data);
   }
 
-  /* find all training to be approved by the tdd manager */
-  @MessagePattern(TrainingPatterns.FIND_ALL_TDD_MANAGER_APPROVAL)
-  async findAllTrainingForTddManagerApproval() {
-    try {
-      const status = TrainingStatus.TDD_MANAGER_APPROVAL;
-      return await this.trainingApprovalsService.findAllApprovalByPdcStatus(status);
-    } catch (error) {
-      throw new RpcException(error);
-    }
-  }
-
-  /* tdd manager approved a training by training id */
-  @MessagePattern(TrainingPatterns.TDD_MANAGER_APPROVAL)
-  async tddManagerApproved(@Payload() data: TddManagerDto) {
-    try {
-      const trainingStatus = TrainingStatus.TDD_MANAGER_APPROVAL;
-      return await this.trainingDetailsService.tddManagerApproval(data, trainingStatus);
-    } catch (error) {
-      throw new RpcException(error);
-    }
-  }
-
-  /* tdd manager declined a training by training id */
-  @MessagePattern(TrainingPatterns.TDD_MANAGER_DECLINED)
-  async tddManagerDeclined(@Payload() data: TddManagerDto) {
-    try {
-      const trainingStatus = TrainingStatus.TDD_MANAGER_DECLINED;
-      return await this.trainingDetailsService.tddManagerApproval(data, trainingStatus);
-    } catch (error) {
-      throw new RpcException(error);
-    }
-  }
-
   /* find all training to be approved by the pdc secretariat */
   @MessagePattern(TrainingPatterns.FIND_ALL_PDC_SECRETARIAT_APPROVAL)
   async findAllTrainingForPdcSecretariatApproval() {
@@ -224,17 +191,6 @@ export class TrainingDetailsMicroserviceController {
     }
   }
 
-  /* count tdd manager approval */
-  @MessagePattern(TrainingPatterns.COUNT_TDD_MANAGER_APPROVAL)
-  async countTddManagerApproval() {
-    try {
-      const trainingStatus = TrainingStatus.TDD_MANAGER_APPROVAL;
-      return await this.trainingDetailsService.countTrainingApproval(trainingStatus);
-    } catch (error) {
-      throw new RpcException(error);
-    }
-  }
-
   /* count pdc secretariat approval */
   @MessagePattern(TrainingPatterns.COUNT_PDC_SECRETARIAT_APPROVAL)
   async countSecretariatApproval() {
@@ -305,13 +261,6 @@ export class TrainingDetailsMicroserviceController {
   @Patch('training/employees')
   async updateNomineeStatus(@Body() data: UpdateTrainingNomineeStatusDto) {
     return await this.trainingNomineesService.updateTrainingNomineeStatus(data);
-  }
-
-  /* find all training to be approved by the tdd manager */
-  @Get('training/approvals/tdd-manager')
-  async findAllTrainingTddManagerApproval() {
-    const trainingStatus = TrainingStatus.TDD_MANAGER_APPROVAL;
-    return await this.trainingApprovalsService.findAllApprovalByPdcStatus(trainingStatus);
   }
 
   /* pdc secretariat approved a training by training id */
@@ -408,13 +357,6 @@ export class TrainingDetailsMicroserviceController {
   @Get('count/approvals/gm')
   async countApprovalGm() {
     const trainingStatus = TrainingStatus.GM_APPROVAL;
-    return await this.trainingDetailsService.countTrainingApproval(trainingStatus);
-  }
-
-  /* count secretariat approval */
-  @Get('count/approvals/tdd-manager')
-  async countApprovalTddManager() {
-    const trainingStatus = TrainingStatus.TDD_MANAGER_APPROVAL;
     return await this.trainingDetailsService.countTrainingApproval(trainingStatus);
   }
 }
