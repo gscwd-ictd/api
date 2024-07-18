@@ -251,7 +251,6 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
 
           return {
             benchmarkParticipants: items.benchmarkParticipants,
-            supervisorName: items.supervisorName,
             employeeId: items.employeeId,
             name: items.name,
             learningApplicationPlan: requirements,

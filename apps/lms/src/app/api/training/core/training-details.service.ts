@@ -6,7 +6,6 @@ import {
   GeneralManagerDto,
   PdcChairmanDto,
   PdcSecretariatDto,
-  TddManagerDto,
   TrainingDetails,
   UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
@@ -742,13 +741,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           },
         });
 
-        /* update training status to pdc secretariat approval */
+        /* update training status to tdd manager approval */
         await this.crudService.transact<TrainingDetails>(entityManager).update({
           updateBy: {
             id: id,
           },
           dto: {
-            status: TrainingStatus.PDC_SECRETARIAT_APPROVAL,
+            status: TrainingStatus.TDD_MANAGER_APPROVAL,
           },
           onError: (error) => {
             throw error;
@@ -1131,21 +1130,17 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
-  /* microservices */
-
-  /* pdc secretariat approval of training by training id */
-  async tddManagerApproval(data: TddManagerDto, trainingStatus: TrainingStatus) {
+  /* tdd manager approval of training by training id */
+  async tddManagerApproval(trainingId: string, employeeId: string) {
     try {
       return await this.dataSource.transaction(async (entityManager) => {
-        const { trainingDetails } = data;
-
         /* update training status */
-        await this.crudService.transact<TrainingDetails>(entityManager).update({
+        const training = await this.crudService.transact<TrainingDetails>(entityManager).update({
           updateBy: {
-            id: trainingDetails,
+            id: trainingId,
           },
           dto: {
-            status: trainingStatus,
+            status: TrainingStatus.PDC_SECRETARIAT_APPROVAL,
           },
           onError: (error) => {
             throw error;
@@ -1153,13 +1148,17 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         });
 
         /* update training approvals by training id */
-        return await this.trainingApprovalsService.tddManagerApproval(data, entityManager);
+        await this.trainingApprovalsService.tddManagerApproval(trainingId, employeeId, entityManager);
+
+        return training;
       });
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  /* microservices */
 
   /* pdc secretariat approval of training by training id */
   async pdcSecretariatApproval(data: PdcSecretariatDto, trainingStatus: TrainingStatus) {
