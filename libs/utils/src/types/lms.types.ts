@@ -43,6 +43,7 @@ export type NomineeRaw = {
 
 export type TrainingRequirementsRaw = {
   document: string;
+  code?: string;
 };
 
 export type EmployeeParticpantsRaw = {
@@ -75,6 +76,7 @@ export type EmployeeListsRaw = {
 };
 
 export type EmployeeDetailsRaw = {
+  companyId: string;
   employeeFullName: string;
   assignment: {
     id: string;

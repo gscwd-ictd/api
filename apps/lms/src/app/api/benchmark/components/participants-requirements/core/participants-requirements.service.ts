@@ -20,7 +20,7 @@ export class BenchmarkParticipantRequirementsService extends CrudHelper<Benchmar
         find: {
           select: {
             id: true,
-            learningApplicationPlan: true,
+            learnersJournal: true,
           },
           where: {
             benchmarkParticipants: {
@@ -34,7 +34,7 @@ export class BenchmarkParticipantRequirementsService extends CrudHelper<Benchmar
       });
 
       /* custom return */
-      return requirements.learningApplicationPlan;
+      return requirements.learnersJournal;
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
@@ -67,7 +67,7 @@ export class BenchmarkParticipantRequirementsService extends CrudHelper<Benchmar
   async createParticipantRequirementsWithRequirements(data: UpdateBenchmarkParticipantRequirementsDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
-      const { benchmarkParticipants, learningApplicationPlan } = data;
+      const { benchmarkParticipants, learnersJournal } = data;
 
       /* insert requirements */
       return await this.crudService.transact<BenchmarkParticipantRequirements>(entityManager).create({
@@ -75,7 +75,7 @@ export class BenchmarkParticipantRequirementsService extends CrudHelper<Benchmar
           benchmarkParticipants: {
             id: benchmarkParticipants,
           },
-          learningApplicationPlan: learningApplicationPlan,
+          learnersJournal: learnersJournal,
         },
         onError: (error) => {
           throw error;
@@ -91,7 +91,7 @@ export class BenchmarkParticipantRequirementsService extends CrudHelper<Benchmar
   async updateParticipantRequirementsByParticipantId(data: UpdateBenchmarkParticipantRequirementsDto, entityManager: EntityManager) {
     try {
       /* deconstruct data */
-      const { benchmarkParticipants, learningApplicationPlan } = data;
+      const { benchmarkParticipants, learnersJournal } = data;
       return await this.crudService.transact<BenchmarkParticipantRequirements>(entityManager).update({
         updateBy: {
           benchmarkParticipants: {
@@ -99,7 +99,7 @@ export class BenchmarkParticipantRequirementsService extends CrudHelper<Benchmar
           },
         },
         dto: {
-          learningApplicationPlan: learningApplicationPlan,
+          learnersJournal: learnersJournal,
         },
         onError: (error) => {
           throw error;

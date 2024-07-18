@@ -32,6 +32,8 @@ import { OtherTrainingParticipantsModule } from './api/others/components/other-t
 import { ScheduleModule } from '@nestjs/schedule';
 import { LspRatingModule } from './api/lsp-rating/core/lsp-rating.module';
 import { DocumentsModule } from './api/training/components/documents';
+import { OtherTrainingParticipantsRequirementsModule } from './api/others/components/other-training-participants-requirements';
+import { ReportsModule } from './api/reports';
 
 @Module({
   imports: [
@@ -87,9 +89,11 @@ import { DocumentsModule } from './api/training/components/documents';
     /* other trainings */
     OtherTrainingsModule,
     OtherTrainingParticipantsModule,
+    OtherTrainingParticipantsRequirementsModule,
 
     /* reports */
     DocumentsModule,
+    ReportsModule,
 
     /* cron job */
     ScheduleModule.forRoot(),

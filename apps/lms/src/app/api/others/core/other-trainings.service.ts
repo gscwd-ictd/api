@@ -35,6 +35,7 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
       /* custom return */
       return {
         ...otherTraining,
+        trainingRequirements: JSON.parse(otherTraining.trainingRequirements),
         participants: participants,
       };
     } catch (error) {
@@ -48,11 +49,14 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
     try {
       return await this.dataSource.transaction(async (entityManager) => {
         /* deconstruct data */
-        const { participants, ...rest } = data;
+        const { participants, trainingRequirements, ...rest } = data;
 
         /* insert  other training */
         const otherTraining = await this.crudService.transact<OtherTraining>(entityManager).create({
-          dto: rest,
+          dto: {
+            ...rest,
+            trainingRequirements: JSON.stringify(trainingRequirements),
+          },
           onError: (error) => {
             throw error;
           },
@@ -74,6 +78,7 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
         /* custom return */
         return {
           ...otherTraining,
+          trainingRequirements: JSON.parse(otherTraining.trainingRequirements),
           participants: employees,
         };
       });
@@ -88,7 +93,7 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
     try {
       return await this.dataSource.transaction(async (entityManager) => {
         /* deconstruct data */
-        const { participants, ...rest } = data;
+        const { participants, trainingRequirements, ...rest } = data;
 
         /* check if other training id is existing */
         await this.crudService.transact<OtherTraining>(entityManager).findOneBy({
@@ -126,6 +131,7 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
             },
             dto: {
               ...rest,
+              trainingRequirements: JSON.stringify(trainingRequirements),
             },
           });
         } else {

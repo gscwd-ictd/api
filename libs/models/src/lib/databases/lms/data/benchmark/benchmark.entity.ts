@@ -10,7 +10,7 @@ export class Benchmark extends DatabaseEntity implements IEntity {
   @Column({ name: 'title', type: 'text', nullable: false })
   title: string;
 
-  @Column({ name: 'title', type: 'text', nullable: false })
+  @Column({ name: 'description', type: 'text', nullable: true })
   description: string;
 
   @Column({ name: 'partner', type: 'text', nullable: false })

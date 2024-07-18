@@ -117,6 +117,33 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
     }
   }
 
+  /* tdd manager approval of training by training id*/
+  async tddManagerApproval(trainingId: string, employeeId: string, entityManager: EntityManager) {
+    try {
+      /* set the date to today */
+      const today = new Date();
+
+      /* edit training status and set date approval */
+      return await this.crudService.transact<TrainingApproval>(entityManager).update({
+        updateBy: {
+          trainingDetails: {
+            id: trainingId,
+          },
+        },
+        dto: {
+          tddManager: employeeId,
+          tddManagerApprovalDate: today,
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   /* pdc secretariat approval of training by training id*/
   async pdcSecretariatApproval(data: PdcSecretariatDto, entityManager: EntityManager) {
     try {

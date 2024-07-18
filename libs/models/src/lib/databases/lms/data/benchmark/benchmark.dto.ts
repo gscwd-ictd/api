@@ -10,6 +10,11 @@ export class BenchmarkDto {
   title: string;
 
   @IsNotEmpty()
+  @IsString({ message: 'benchmark description must be a string' })
+  @Length(1, 500, { message: 'benchmark description must be between 1 to 500 characters' })
+  description: string;
+
+  @IsNotEmpty()
   @IsString({ message: 'benchmark partner must be a string' })
   @Length(1, 250, { message: 'benchmark partner must be between 1 to 250 characters' })
   partner: string;

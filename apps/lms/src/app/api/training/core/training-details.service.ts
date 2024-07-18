@@ -13,11 +13,11 @@ import {
   UpdateTrainingStatusDto,
 } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { DataSource, EntityManager } from 'typeorm';
+import { DataSource, EntityManager, Raw } from 'typeorm';
 import { TrainingTagsService } from '../components/tags';
 import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
-import { DocumentRequirementsType, NomineeType, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
+import { DocumentRequirementsType, NomineeType, TrainingNomineeStatus, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
 import { TrainingNomineesService } from '../components/nominees';
 import { LspRatingService } from '../../lsp-rating';
@@ -741,13 +741,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           },
         });
 
-        /* update training status to pdc secretariat approval */
+        /* update training status to tdd manager approval */
         await this.crudService.transact<TrainingDetails>(entityManager).update({
           updateBy: {
             id: id,
           },
           dto: {
-            status: TrainingStatus.PDC_SECRETARIAT_APPROVAL,
+            status: TrainingStatus.TDD_MANAGER_APPROVAL,
           },
           onError: (error) => {
             throw error;
@@ -1130,6 +1130,34 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     }
   }
 
+  /* tdd manager approval of training by training id */
+  async tddManagerApproval(trainingId: string, employeeId: string) {
+    try {
+      return await this.dataSource.transaction(async (entityManager) => {
+        /* update training status */
+        const training = await this.crudService.transact<TrainingDetails>(entityManager).update({
+          updateBy: {
+            id: trainingId,
+          },
+          dto: {
+            status: TrainingStatus.PDC_SECRETARIAT_APPROVAL,
+          },
+          onError: (error) => {
+            throw error;
+          },
+        });
+
+        /* update training approvals by training id */
+        await this.trainingApprovalsService.tddManagerApproval(trainingId, employeeId, entityManager);
+
+        return training;
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   /* microservices */
 
   /* pdc secretariat approval of training by training id */
@@ -1229,6 +1257,108 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* custom find all trainings  */
+  async customFindAllTrainings(dateRange: string) {
+    try {
+      const trainingDetails = (await this.crudService.findAll({
+        find: {
+          relations: {
+            source: true,
+            trainingDesign: true,
+          },
+          select: {
+            id: true,
+            source: {
+              name: true,
+            },
+            trainingDesign: {
+              courseTitle: true,
+            },
+            courseTitle: true,
+            trainingStart: true,
+            trainingEnd: true,
+            type: true,
+            trainingRequirements: true,
+            numberOfParticipants: true,
+            location: true,
+            numberOfHours: true,
+          },
+          where: {
+            trainingStart: Raw((alias) => `to_char(${alias}, 'YYYY-MM') = :dateRange`, { dateRange }),
+            status: TrainingStatus.COMPLETED,
+          },
+          order: {
+            trainingStart: 'ASC',
+          },
+        },
+      })) as Array<TrainingDetails>;
+
+      const signatories = await this.hrmsEmployeesService.trainingSinatories(false);
+
+      const training = await Promise.all(
+        trainingDetails.map(async (items) => {
+          const requirements = JSON.parse(items.trainingRequirements).map((req: TrainingRequirementsRaw) => {
+            switch (req.document.toLowerCase()) {
+              case 'attendance':
+                return { ...req, code: 'ATT' };
+              case 'post-test':
+                return { ...req, code: 'PTR' };
+              default:
+                return { ...req, code: req.document };
+            }
+          });
+
+          return {
+            id: items.id,
+            source: items.source.name,
+            title: items.courseTitle || items.trainingDesign.courseTitle,
+            location: items.location,
+            trainingDate: {
+              from: items.trainingStart,
+              to: items.trainingEnd,
+            },
+            numberOfHours: items.numberOfHours,
+            type: items.type,
+            trainingRequirements: requirements,
+            numberOfParticipants: items.numberOfParticipants,
+          };
+        })
+      );
+
+      const trainees = await Promise.all(
+        training.map(async (items) => {
+          const trainingId = items.id;
+          const trainingStatus = TrainingStatus.COMPLETED;
+          const nomineeType = NomineeType.NOMINEE;
+          const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
+          const participants = (
+            await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus)
+          ).map((items) => {
+            return {
+              companyId: items.companyId,
+              name: items.name,
+              assignment: items.assignment,
+            };
+          });
+
+          return {
+            title: items.title,
+            participants,
+          };
+        })
+      );
+
+      return {
+        training,
+        trainees,
+        signatories,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

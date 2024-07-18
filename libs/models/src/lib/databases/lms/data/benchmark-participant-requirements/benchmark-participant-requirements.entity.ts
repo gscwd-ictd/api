@@ -11,6 +11,6 @@ export class BenchmarkParticipantRequirements extends DatabaseEntity implements 
   @JoinColumn({ name: 'benchmark_participants_id_fk' })
   benchmarkParticipants: BenchmarkParticipants;
 
-  @Column({ name: 'learning_application_plan', type: 'boolean', default: false })
-  learningApplicationPlan: boolean;
+  @Column({ name: 'learners_journal', type: 'boolean', default: false })
+  learnersJournal: boolean;
 }
