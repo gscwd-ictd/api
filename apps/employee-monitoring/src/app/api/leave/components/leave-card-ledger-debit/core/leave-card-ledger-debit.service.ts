@@ -48,25 +48,26 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
         //Deduction from Forced Leave
         const forcedLeaveApplications = (await this.rawQuery(
           `
-            SELECT leave_application_id_fk leaveApplicationId, DATE_FORMAT(lcld.created_at,'%Y-%m-%d') createdAt,DATE_FORMAT(la.date_of_filing,'%Y-%m-%d 23:59:00') dateOfFiling,lcld.debit_value debitValue FROM leave_card_ledger_debit lcld 
+            SELECT leave_application_id_fk leaveApplicationId, DATE_FORMAT(lcld.created_at,'%Y-%m-%d') createdAt,DATE_FORMAT(la.date_of_filing,'%Y-%m-%d 23:59:00') dateOfFiling,DATE_FORMAT(la.hrdm_approval_date,'%Y-%m-%d'
+            ) hrdmApprovalDate,lcld.debit_value debitValue FROM leave_card_ledger_debit lcld 
               INNER JOIN leave_application la ON la.leave_application_id = lcld.leave_application_id_fk 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
             WHERE lb.leave_name = 'Forced Leave' AND la.employee_id_fk = ?;
         `,
           [employeeId]
-        )) as { leaveApplicationId: string; createdAt: Date; debitValue: number; dateOfFiling: Date }[];
+        )) as { leaveApplicationId: string; createdAt: Date; debitValue: number; dateOfFiling: Date; hrdmApprovalDate: Date }[];
 
         if (forcedLeaveApplications.length > 0) {
           const details = await Promise.all(
             forcedLeaveApplications.map(async (fl) => {
-              const { createdAt, leaveApplicationId, debitValue, dateOfFiling } = fl;
+              const { createdAt, leaveApplicationId, debitValue, dateOfFiling, hrdmApprovalDate } = fl;
               const vlAdjustmentFromForceLeaveCount = (
                 await this.rawQuery(
                   `
               SELECT COUNT(leave_credit_deductions_id) vlAdjustmentFromForceLeaveCount 
-                FROM leave_credit_deductions WHERE DATE_FORMAT(created_at, '%Y-%m-%d') = ? 
+                FROM leave_credit_deductions WHERE (DATE_FORMAT(created_at, '%Y-%m-%d') = ? OR DATE_FORMAT(created_at, '%Y-%m-%d') = ?) 
               AND employee_id_fk=? AND remarks = 'Deduction from Forced Leave';`,
-                  [dayjs(dateOfFiling).format('YYYY-MM-DD'), employeeId]
+                  [dayjs(dateOfFiling).format('YYYY-MM-DD'), dayjs(hrdmApprovalDate).add(1, 'D').format('YYYY-MM-DD'), employeeId]
                 )
               )[0].vlAdjustmentFromForceLeaveCount;
 

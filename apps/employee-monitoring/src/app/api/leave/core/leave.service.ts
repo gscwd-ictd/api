@@ -145,7 +145,13 @@ export class LeaveService {
             //
             const leaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
             const leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
-              dto: { debitValue, leaveBenefitsId, remarks: 'Deduction from Forced Leave', employeeId: leaveApplicationId.employeeId },
+              dto: {
+                debitValue,
+                createdAt: leaveApplicationId.dateOfFiling,
+                leaveBenefitsId,
+                remarks: 'Deduction from Forced Leave',
+                employeeId: leaveApplicationId.employeeId,
+              },
             });
             const leaveCardLedgerDebit = await this.leaveCardLedgerDebitService.crud().create({ dto: { leaveCreditDeductionsId, debitValue } });
           }

@@ -1001,7 +1001,11 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
           ]
         : [{ label: employeeSupervisorName, value: employeeSupervisorId }];
     const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown(employeeData.employeeId);
-    const result = [...supervisorAndOfficerOfTheDayArray, ...supervisoryEmployees];
+    const result = [
+      ...supervisorAndOfficerOfTheDayArray,
+      ...supervisoryEmployees,
+      { label: 'Charlene Marie D. Pe', value: 'af7bbec8-b26e-11ed-a79b-000c29f95a80' },
+    ];
     return result.filter((value, index, self) => index === self.findIndex((item) => item.label === value.label && item.value === value.value));
   }
 }
