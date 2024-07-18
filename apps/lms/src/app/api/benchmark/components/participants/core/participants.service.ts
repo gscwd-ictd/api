@@ -116,6 +116,7 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
             supervisorName: employeeDetails.supervisor.name,
             employeeId: items.employeeId,
             name: employeeDetails.employee.name,
+            assignment: employeeDetails.employee.assignment,
           };
         })
       );
