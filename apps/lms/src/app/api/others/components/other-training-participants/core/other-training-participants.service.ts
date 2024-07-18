@@ -115,6 +115,7 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
             supervisorName: employeeDetails.supervisor.name,
             employeeId: items.employeeId,
             name: employeeDetails.employee.name,
+            assignment: employeeDetails.employee.assignment,
           };
         })
       );
