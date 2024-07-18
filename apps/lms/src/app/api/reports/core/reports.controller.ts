@@ -10,4 +10,9 @@ export class ReportsController {
   async findTrainingLogs(@Param('dateRange') dateRange: string) {
     return await this.reportsService.findTrainingLog(dateRange);
   }
+
+  @Get('signatories')
+  async signatories() {
+    return await this.reportsService.trainingSignatories();
+  }
 }
