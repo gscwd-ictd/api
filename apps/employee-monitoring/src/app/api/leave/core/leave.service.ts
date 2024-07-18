@@ -145,7 +145,13 @@ export class LeaveService {
             //
             const leaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
             const leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
-              dto: { debitValue, leaveBenefitsId, remarks: 'Deduction from Forced Leave', employeeId: leaveApplicationId.employeeId },
+              dto: {
+                debitValue,
+                createdAt: leaveApplicationId.dateOfFiling,
+                leaveBenefitsId,
+                remarks: 'Deduction from Forced Leave',
+                employeeId: leaveApplicationId.employeeId,
+              },
             });
             const leaveCardLedgerDebit = await this.leaveCardLedgerDebitService.crud().create({ dto: { leaveCreditDeductionsId, debitValue } });
           }
@@ -251,6 +257,24 @@ export class LeaveService {
         },
         onError: () => new InternalServerErrorException(),
       });
+
+      if (leaveBenefitsId.toString() === '1c6bc9b6-af14-468d-88ad-5dfc01869608') {
+        const leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
+          dto: {
+            debitValue: value,
+            remarks: 'Deduction from Forced Leave adjustment',
+            leaveBenefitsId: { id: '8ea199f1-73b8-4279-a5c8-9952a51a4b8c' },
+            employeeId,
+          },
+        });
+        adjustment = await this.leaveCardLedgerDebitService.crud().create({
+          dto: {
+            leaveCreditDeductionsId,
+            debitValue: value,
+          },
+          onError: () => new InternalServerErrorException(),
+        });
+      }
     } else if (category === 'credit') {
       const leaveCreditEarningId = await this.leaveCreditEarningsService
         .crud()
