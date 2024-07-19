@@ -556,7 +556,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           const employees = await Promise.all(
             batchEmployees.map(async (items) => {
               /* find employee name by employee id */
-              const employeeName = (await this.hrmsEmployeesService.findEmployeesById(items.employeeId)).fullName;
+              const employeeName = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(items.employeeId);
 
               /* find supervisor name by employee id */
               const supervisorName = (await this.hrmsEmployeesService.findEmployeesById(items.trainingDistribution.supervisorId)).fullName;
@@ -565,8 +565,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
               return {
                 nomineeId: items.id,
                 employeeId: items.employeeId,
-                name: employeeName,
+                name: employeeName.employeeFullName,
                 distributionId: items.trainingDistribution.id,
+                assignment: employeeName.assignment.positionTitle,
                 supervisor: {
                   supervisorId: items.trainingDistribution.supervisorId,
                   name: supervisorName,
