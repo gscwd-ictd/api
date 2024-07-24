@@ -2,10 +2,12 @@ import { FindEmployeesPatterns, MicroserviceClient } from '@gscwd-api/microservi
 import {
   BenchmarkParticipantsRaw,
   EmployeeDetailsRaw,
+  EmployeeDetailsWithSignatureRaw,
   EmployeeFullNameRaw,
   EmployeeListsRaw,
   OrganizationEmployeeRaw,
   OrganizationRaw,
+  SignatoriesRaw,
   SupervisorRaw,
 } from '@gscwd-api/utils';
 import { HttpException, Injectable } from '@nestjs/common';
@@ -103,13 +105,23 @@ export class HrmsEmployeesService {
     })) as EmployeeDetailsRaw;
   }
 
+  /* find employeeDetails by employee id with signature */
+  async findEmployeeDetailsWithSignatureByEmployeeId(employeeId: string) {
+    return (await this.microserviceClient.call({
+      action: 'send',
+      pattern: FindEmployeesPatterns.GET_EMPLOYEE_DETAILS_WITH_SIGNATURE,
+      payload: employeeId,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    })) as EmployeeDetailsWithSignatureRaw;
+  }
+
   /* find signatories */
   async trainingSinatories(includeGm: boolean) {
-    return await this.microserviceClient.call({
+    return (await this.microserviceClient.call({
       action: 'send',
       pattern: FindEmployeesPatterns.GET_TRAINING_SIGNATORIES,
       payload: includeGm,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
-    });
+    })) as SignatoriesRaw;
   }
 }
