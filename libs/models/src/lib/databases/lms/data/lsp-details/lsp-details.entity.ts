@@ -1,10 +1,10 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
+import { DatabaseEntityWithTimezone, IEntity } from '@gscwd-api/crud';
 import { LspSource, LspType } from '@gscwd-api/utils';
 import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity({ name: 'lsp_details' })
 @Unique(['firstName', 'middleName', 'lastName'])
-export class LspDetails extends DatabaseEntity implements IEntity {
+export class LspDetails extends DatabaseEntityWithTimezone implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'lsp_details_id' })
   id: string;
 
