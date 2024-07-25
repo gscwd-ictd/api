@@ -17,9 +17,20 @@ export class ReportsService {
   }
 
   /* assignatories */
-  async trainingSignatories() {
+  async trainingSignatories(currentUser: string) {
     try {
-      return await this.hrmsEmployeesService.trainingSinatories(true);
+      const user = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(currentUser);
+      const signatories = await this.hrmsEmployeesService.trainingSinatories(true);
+      return {
+        signatories: {
+          currentUser: {
+            name: user.employeeFullName,
+            signature: user.signatureUrl,
+            position: user.assignment.positionTitle,
+          },
+          ...signatories,
+        },
+      };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request.', HttpStatus.BAD_REQUEST);
