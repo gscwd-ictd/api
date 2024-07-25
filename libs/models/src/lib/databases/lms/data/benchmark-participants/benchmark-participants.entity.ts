@@ -1,10 +1,10 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Benchmark } from '../benchmark/benchmark.entity';
-import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
+import { DatabaseEntityWithTimezone, IEntity } from '@gscwd-api/crud';
 
 @Entity({ name: 'benchmark_participants' })
 @Unique(['benchmark', 'employeeId'])
-export class BenchmarkParticipants extends DatabaseEntity implements IEntity {
+export class BenchmarkParticipants extends DatabaseEntityWithTimezone implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'benchmark_participant_id' })
   id: string;
 

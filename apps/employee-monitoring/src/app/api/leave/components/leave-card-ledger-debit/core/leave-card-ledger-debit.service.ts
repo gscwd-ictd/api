@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateLeaveCardLedgerDebitDto, LeaveCardLedgerDebit } from '@gscwd-api/models';
+import { CreateLeaveCardLedgerDebitDto, LeaveApplication, LeaveCardLedgerDebit } from '@gscwd-api/models';
 import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeesService } from '../../../../employees/core/employees.service';
 import { Cron } from '@nestjs/schedule';
@@ -35,6 +35,39 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }
+  }
+
+  async vlDeductionFromPreviouslyApprovedFLAdjustment() {
+    const employeeIds = (await this.rawQuery(`SELECT distinct employee_id_fk employeeId FROM leave_application WHERE status='approved';`)) as {
+      employeeId: string;
+    }[];
+
+    const flDeductions = (await this.rawQuery(`
+      SELECT created_at createdAt,updated_at updatedAt, employee_id_fk employeeId, debit_value debitValue 
+      FROM leave_credit_deductions WHERE leave_benefits_id_fk = '1c6bc9b6-af14-468d-88ad-5dfc01869608';`)) as {
+      createdAt: Date;
+      updatedAt: Date;
+      employeeId: string;
+      debitValue: number;
+    }[];
+
+    const vlDeductions = await Promise.all(
+      flDeductions.map(async (flDeduction) => {
+        const { createdAt, debitValue, employeeId } = flDeduction;
+        //8ea199f1-73b8-4279-a5c8-9952a51a4b8c
+        const leaveCreditDeductionsId = await this.leaveCreditDeductionService.crud().create({
+          dto: {
+            createdAt,
+            updatedAt: createdAt,
+            debitValue,
+            employeeId,
+            leaveBenefitsId: { id: '8ea199f1-73b8-4279-a5c8-9952a51a4b8c' },
+            remarks: 'Deduction from Forced Leave Application',
+          },
+        });
+        await this.addLeaveCardLedgerDebit({ leaveCreditDeductionsId, debitValue, createdAt });
+      })
+    );
   }
 
   async vlDeductionFromPreviouslyApprovedForceLeaveApplication() {
@@ -96,7 +129,7 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     return vlDeductions;
   }
 
-  @Cron('0 57 23 30 10 *')
+  @Cron('0 57 23 30 11 *')
   async forfeitureOfForcedLeave() {
     const employees = await this.employeeService.getAllPermanentEmployeeIds();
     const result = await Promise.all(

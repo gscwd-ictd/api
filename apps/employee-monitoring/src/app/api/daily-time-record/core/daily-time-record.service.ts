@@ -213,6 +213,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let minutesUndertime = 0;
     let isHalfDay = false;
     let noAttendance = 0;
+    const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, dtr.dtrDate));
 
     //schedule.restDaysNumbers
     const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
@@ -240,6 +241,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         [employeeId, dtr.dtrDate]
       )
     )[0].countOvertime;
+
+    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(dtr.dtrDate);
 
     const timeOutWithinRestHours =
       dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart) ||
@@ -292,13 +295,27 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
 
         //
-        if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning > 0 && dtr.lunchIn === null && dtr.timeOut === null) {
+        if (
+          dtr.timeIn !== null &&
+          dtr.lunchOut !== null &&
+          lateMorning > 0 &&
+          dtr.lunchIn === null &&
+          dtr.timeOut === null //&&
+          //dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
+        ) {
           minutesLate += isNaN(lateAfternoon) ? 0 : lateAfternoon;
           isHalfDay = true;
           noOfUndertimes = 1;
         }
 
-        if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning <= 0 && dtr.lunchIn === null && dtr.timeOut === null) {
+        if (
+          dtr.timeIn !== null &&
+          dtr.lunchOut !== null &&
+          lateMorning <= 0 &&
+          dtr.lunchIn === null &&
+          dtr.timeOut === null &&
+          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
+        ) {
           isHalfDay = true;
           noOfUndertimes = 1;
         }
@@ -309,22 +326,23 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         if (
           isWithLunch === false &&
           (dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourStart) || dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourStart)) &&
-          (dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourEnd))
+          (dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourEnd)) &&
+          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
         ) {
           isHalfDay = true;
           minutesLate = lateAfternoon; //+ 240;
           noOfLates = 1;
         }
-
+        //dtr.dtrDate;
         //halfday -am time in
         if (
           (isWithLunch === false &&
-            dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourStart) &&
-            dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart)) ||
-          (dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourStart) &&
-            dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart) &&
-            dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart) &&
-            (dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd)))
+            dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
+            dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourStart)) ||
+          (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
+            dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
+            dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
+            (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd)))
         ) {
           isHalfDay = true;
           noOfUndertimes = 1;
@@ -334,7 +352,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //
       //console.log('DTR REMARKS: ', dtrRemarks);
       //
-
       if (
         dtr.lunchIn === null &&
         dtr.lunchOut === null &&
@@ -361,12 +378,15 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       if (passSlipsNatureOfBusiness.length > 0)
         passSlipNatureOfBusiness = passSlipsNatureOfBusiness[passSlipsNatureOfBusiness.length - 1].natureOfBusiness;
       //&& passSlipNatureOfBusiness !== 'Half Day' && passSlipNatureOfBusiness != null
-      minutesUndertime = !timeOutWithinRestHours
-        ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
-            dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
-            'm'
-          )
-        : 0;
+      minutesUndertime =
+        !timeOutWithinRestHours && suspensionHours <= 0
+          ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+              dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+              'm'
+            )
+          : 0;
+
+      //!TODO: minutesUndertime if there is work suspension;
 
       if (timeOutWithinRestHours) {
         isHalfDay = true;
@@ -376,6 +396,19 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       if (minutesUndertime > 0) {
         noOfUndertimes = 1;
       }
+
+      if (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)) {
+        minutesUndertime = !timeOutWithinRestHours
+          ? dayjs(dayjs(workSuspensionStart).format('YYYY-MM-DD HH:mm')).diff(dayjs(dtr.dtrDate + ' ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'), 'm')
+          : 0;
+        noOfUndertimes = 1;
+      }
+
+      if (suspensionHours === 4) {
+        isHalfDay = false;
+      }
+
+      //if()
 
       //change undertime logic
 
@@ -694,6 +727,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _timeOut = null;
     const { timeIn, timeOut } = schedule;
     const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, currEmployeeDtr.dtrDate));
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
         const { time, ...rest } = ivmsEntryItem;
@@ -720,7 +754,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           }
           if (
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
-            dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 5 : suspensionHours, 'hour'))
+            dayjs(currEmployeeDtr.dtrDate + ' ' + time).isAfter(
+              dayjs(suspensionHours === 0 ? currEmployeeDtr.dtrDate + ' ' + timeOut : workSuspensionStart).subtract(
+                suspensionHours === 0 ? 5 : suspensionHours,
+                'hour'
+              )
+            )
           ) {
             _timeOut = time;
           }
@@ -745,6 +784,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _timeOut;
     const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
     const { timeIn, timeOut } = schedule;
+    //const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, 'cu'));
 
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
@@ -904,6 +944,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _timeIn = null;
     let _timeOut = null;
     const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, ivmsEntry[0].date));
     console.log('work suspension', suspensionHours);
     const { timeIn, timeOut } = schedule;
     const result = await Promise.all(
@@ -933,7 +974,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
           if (
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
-            dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours === 0 ? 5 : suspensionHours, 'hour'))
+            dayjs(ivmsEntry[0].date + ' ' + time).isAfter(
+              dayjs(suspensionHours === 0 ? ivmsEntry[0].date + ' ' + timeOut : workSuspensionStart).subtract(
+                suspensionHours === 0 ? 5 : suspensionHours,
+                'hour'
+              )
+            )
           ) {
             _timeOut = time;
           }

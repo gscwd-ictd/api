@@ -85,3 +85,35 @@ export type EmployeeDetailsRaw = {
     positionTitle: string;
   };
 };
+
+export type EmployeeDetailsWithSignatureRaw = {
+  companyId: string;
+  employeeFullName: string;
+  signatureUrl: string;
+  assignment: {
+    id: string;
+    name: string;
+    positionId: string;
+    positionTitle: string;
+  };
+};
+
+export type SignatoriesRaw = {
+  signatories: {
+    tddMgr: {
+      name: string;
+      signature: string;
+      position: string;
+    };
+    hrdMgr: {
+      name: string;
+      signature: string;
+      position: string;
+    };
+    gm: {
+      name: string;
+      signature: string;
+      position: string;
+    };
+  };
+};

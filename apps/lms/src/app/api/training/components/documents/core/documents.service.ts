@@ -25,6 +25,7 @@ export class DocumentsService {
 
       return {
         courseTitle: trainingDetails.courseTitle,
+        location: trainingDetails.location,
         numberOfParticipants: trainingDetails.numberOfParticipants,
         trainingStart: trainingDetails.trainingStart,
         trainingEnd: trainingDetails.trainingEnd,

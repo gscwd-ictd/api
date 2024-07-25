@@ -1,9 +1,9 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
+import { DatabaseEntityWithTimezone, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { BenchmarkParticipants } from '../benchmark-participants';
 
 @Entity({ name: 'benchmark_participant_requirements' })
-export class BenchmarkParticipantRequirements extends DatabaseEntity implements IEntity {
+export class BenchmarkParticipantRequirements extends DatabaseEntityWithTimezone implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'benchmark_participant_requirement_id' })
   id: string;
 

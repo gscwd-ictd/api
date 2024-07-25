@@ -1,6 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateWorkSuspensionDto, WorkSuspension } from '@gscwd-api/models';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import dayjs = require('dayjs');
 
 @Injectable()
 export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
@@ -26,14 +27,14 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
     `)) as WorkSuspension[]
     ).map((ws) => {
       const { suspensionHours, ...rest } = ws;
-      return { suspensionHours: parseInt(suspensionHours.toString()), ...rest };
+      return { suspensionHours: parseFloat(suspensionHours.toString()), ...rest };
     });
   }
 
   async getWorkSuspensionBySuspensionDate(suspensionDate: Date) {
     //
     try {
-      return parseInt(
+      return parseFloat(
         (
           await this.rawQuery(
             `
@@ -49,5 +50,15 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
     } catch (error) {
       return 0;
     }
+  }
+
+  async getWorkSuspensionStart(scheduleTimeOut: string, dtrDate: Date) {
+    console.log(
+      'pipipopop',
+      dayjs(
+        (await this.rawQuery(`SELECT get_work_suspension_start(?,?) workSuspensionStart;`, [scheduleTimeOut, null]))[0].workSuspensionStart
+      ).isBefore(dayjs())
+    );
+    return (await this.rawQuery(`SELECT get_work_suspension_start(?,?) workSuspensionStart;`, [scheduleTimeOut, dtrDate]))[0].workSuspensionStart;
   }
 }

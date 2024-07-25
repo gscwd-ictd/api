@@ -1,5 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { ReportsService } from './reports.service';
+import { LoginUser, User } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'reports' })
 export class ReportsController {
@@ -12,7 +13,7 @@ export class ReportsController {
   }
 
   @Get('signatories')
-  async signatories() {
-    return await this.reportsService.trainingSignatories();
+  async signatories(@LoginUser() user: User) {
+    return await this.reportsService.trainingSignatories(user.employeeId);
   }
 }
