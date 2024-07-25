@@ -241,7 +241,13 @@ export class OvertimeService {
         const immediateSupervisorName = (await this.employeeService.getEmployeeDetails(employeeId)).employeeFullName;
         const employees = (await this.overtimeEmployeeService
           .crud()
-          .findAll({ find: { select: { employeeId: true }, where: { overtimeApplicationId: { id: overtimeApplicationId } } } })) as {
+          .findAll({
+            find: {
+              select: { employeeId: true },
+              where: { overtimeApplicationId: { id: overtimeApplicationId } },
+              order: { overtimeApplicationId: { plannedDate: 'DESC', status: 'DESC' } },
+            },
+          })) as {
           employeeId: string;
         }[];
 
@@ -711,7 +717,6 @@ export class OvertimeService {
         relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
       },
     })) as OvertimeAccomplishment;
-    console.log('overtimedetails ', overtimeDetails);
 
     const supervisorId = (await this.employeeService.getEmployeeSupervisorId(employeeId)).toString();
 
