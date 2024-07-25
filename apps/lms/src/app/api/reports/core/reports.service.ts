@@ -23,7 +23,7 @@ export class ReportsService {
       const signatories = await this.hrmsEmployeesService.trainingSinatories(true);
       return {
         signatories: {
-          currnetUser: {
+          currentUser: {
             name: user.employeeFullName,
             signature: user.signatureUrl,
             position: user.assignment.positionTitle,
