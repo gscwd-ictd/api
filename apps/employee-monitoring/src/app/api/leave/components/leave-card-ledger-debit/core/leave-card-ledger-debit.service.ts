@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateLeaveCardLedgerDebitDto, LeaveCardLedgerDebit } from '@gscwd-api/models';
+import { CreateLeaveCardLedgerDebitDto, LeaveApplication, LeaveCardLedgerDebit } from '@gscwd-api/models';
 import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeesService } from '../../../../employees/core/employees.service';
 import { Cron } from '@nestjs/schedule';
@@ -37,6 +37,39 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     }
   }
 
+  async vlDeductionFromPreviouslyApprovedFLAdjustment() {
+    const employeeIds = (await this.rawQuery(`SELECT distinct employee_id_fk employeeId FROM leave_application WHERE status='approved';`)) as {
+      employeeId: string;
+    }[];
+
+    const flDeductions = (await this.rawQuery(`
+      SELECT created_at createdAt,updated_at updatedAt, employee_id_fk employeeId, debit_value debitValue 
+      FROM leave_credit_deductions WHERE leave_benefits_id_fk = '1c6bc9b6-af14-468d-88ad-5dfc01869608';`)) as {
+      createdAt: Date;
+      updatedAt: Date;
+      employeeId: string;
+      debitValue: number;
+    }[];
+
+    const vlDeductions = await Promise.all(
+      flDeductions.map(async (flDeduction) => {
+        const { createdAt, debitValue, employeeId } = flDeduction;
+        //8ea199f1-73b8-4279-a5c8-9952a51a4b8c
+        const leaveCreditDeductionsId = await this.leaveCreditDeductionService.crud().create({
+          dto: {
+            createdAt,
+            updatedAt: createdAt,
+            debitValue,
+            employeeId,
+            leaveBenefitsId: { id: '8ea199f1-73b8-4279-a5c8-9952a51a4b8c' },
+            remarks: 'Deduction from Forced Leave Application',
+          },
+        });
+        await this.addLeaveCardLedgerDebit({ leaveCreditDeductionsId, debitValue, createdAt });
+      })
+    );
+  }
+
   async vlDeductionFromPreviouslyApprovedForceLeaveApplication() {
     const employeeIds = (await this.rawQuery(`SELECT distinct employee_id_fk employeeId FROM leave_application WHERE status='approved';`)) as {
       employeeId: string;
@@ -48,25 +81,26 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
         //Deduction from Forced Leave
         const forcedLeaveApplications = (await this.rawQuery(
           `
-            SELECT leave_application_id_fk leaveApplicationId, DATE_FORMAT(lcld.created_at,'%Y-%m-%d') createdAt,DATE_FORMAT(la.date_of_filing,'%Y-%m-%d 23:59:00') dateOfFiling,lcld.debit_value debitValue FROM leave_card_ledger_debit lcld 
+            SELECT leave_application_id_fk leaveApplicationId, DATE_FORMAT(lcld.created_at,'%Y-%m-%d') createdAt,DATE_FORMAT(la.date_of_filing,'%Y-%m-%d 23:59:00') dateOfFiling,DATE_FORMAT(la.hrdm_approval_date,'%Y-%m-%d'
+            ) hrdmApprovalDate,lcld.debit_value debitValue FROM leave_card_ledger_debit lcld 
               INNER JOIN leave_application la ON la.leave_application_id = lcld.leave_application_id_fk 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
             WHERE lb.leave_name = 'Forced Leave' AND la.employee_id_fk = ?;
         `,
           [employeeId]
-        )) as { leaveApplicationId: string; createdAt: Date; debitValue: number; dateOfFiling: Date }[];
+        )) as { leaveApplicationId: string; createdAt: Date; debitValue: number; dateOfFiling: Date; hrdmApprovalDate: Date }[];
 
         if (forcedLeaveApplications.length > 0) {
           const details = await Promise.all(
             forcedLeaveApplications.map(async (fl) => {
-              const { createdAt, leaveApplicationId, debitValue, dateOfFiling } = fl;
+              const { createdAt, leaveApplicationId, debitValue, dateOfFiling, hrdmApprovalDate } = fl;
               const vlAdjustmentFromForceLeaveCount = (
                 await this.rawQuery(
                   `
               SELECT COUNT(leave_credit_deductions_id) vlAdjustmentFromForceLeaveCount 
-                FROM leave_credit_deductions WHERE DATE_FORMAT(created_at, '%Y-%m-%d') = ? 
+                FROM leave_credit_deductions WHERE (DATE_FORMAT(created_at, '%Y-%m-%d') = ? OR DATE_FORMAT(created_at, '%Y-%m-%d') = ?) 
               AND employee_id_fk=? AND remarks = 'Deduction from Forced Leave';`,
-                  [dayjs(dateOfFiling).format('YYYY-MM-DD'), employeeId]
+                  [dayjs(dateOfFiling).format('YYYY-MM-DD'), dayjs(hrdmApprovalDate).add(1, 'D').format('YYYY-MM-DD'), employeeId]
                 )
               )[0].vlAdjustmentFromForceLeaveCount;
 
@@ -95,7 +129,7 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     return vlDeductions;
   }
 
-  @Cron('0 57 23 30 10 *')
+  @Cron('0 57 23 30 11 *')
   async forfeitureOfForcedLeave() {
     const employees = await this.employeeService.getAllPermanentEmployeeIds();
     const result = await Promise.all(
