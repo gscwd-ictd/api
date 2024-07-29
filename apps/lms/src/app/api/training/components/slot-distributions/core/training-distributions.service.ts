@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateAdditionalNomineesDto, CreateTrainingDistributionDto, CreateTrainingNomineeDto, TrainingDistribution } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { DataSource, EntityManager, MoreThan } from 'typeorm';
+import { DataSource, EntityManager, Equal, MoreThan } from 'typeorm';
 import { TrainingRecommendedEmployeeService } from '../../recommended-employees';
 import { HrmsEmployeesService } from '../../../../../services/hrms/employees';
 import { TrainingDistributionStatus, TrainingStatus } from '@gscwd-api/utils';
@@ -327,6 +327,9 @@ export class TrainingDistributionsService extends CrudHelper<TrainingDistributio
   async countPendingNominationBySupervisorId(supervisorId: string) {
     try {
       const count = await this.crudService.getRepository().countBy({
+        trainingDetails: {
+          status: TrainingStatus.ON_GOING_NOMINATION,
+        },
         numberOfSlots: MoreThan(0),
         status: TrainingDistributionStatus.NOMINATION_PENDING,
         supervisorId: supervisorId,

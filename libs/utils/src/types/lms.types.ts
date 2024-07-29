@@ -78,6 +78,7 @@ export type EmployeeListsRaw = {
 export type EmployeeDetailsRaw = {
   companyId: string;
   employeeFullName: string;
+  employeeFullNameFirst: string;
   assignment: {
     id: string;
     name: string;

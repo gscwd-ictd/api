@@ -254,17 +254,17 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
       return {
         pdcSecretariat: {
           employeeId: approvalDetails.pdcSecretariat,
-          name: pdcSecretariat.employeeFullName,
+          name: pdcSecretariat.employeeFullNameFirst,
           positionTitle: pdcSecretariat.assignment.positionTitle,
         },
         pdcChairman: {
           employeeId: approvalDetails.pdcSecretariat,
-          name: pdcChairman.employeeFullName,
+          name: pdcChairman.employeeFullNameFirst,
           positionTitle: pdcChairman.assignment.positionTitle,
         },
         generalManager: {
           employeeId: approvalDetails.generalManager,
-          name: generalManager.employeeFullName,
+          name: generalManager.employeeFullNameFirst,
           positionTitle: generalManager.assignment.positionTitle,
         },
       };

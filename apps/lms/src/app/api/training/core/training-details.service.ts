@@ -134,7 +134,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         slotDistribution: slotDistribution,
         preparedBy: {
           employeeId: trainingDetails.preparedBy,
-          name: preparedBy.employeeFullName,
+          name: preparedBy.employeeFullNameFirst,
           positionTitle: preparedBy.assignment.positionTitle,
         },
       };
@@ -202,7 +202,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         slotDistribution: slotDistribution,
         preparedBy: {
           employeeId: trainingDetails.preparedBy,
-          name: preparedBy.employeeFullName,
+          name: preparedBy.employeeFullNameFirst,
           positionTitle: preparedBy.assignment.positionTitle,
         },
       };
