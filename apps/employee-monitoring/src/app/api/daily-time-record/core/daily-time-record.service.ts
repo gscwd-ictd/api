@@ -327,9 +327,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       if (
         isWithLunch === false &&
         (dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourStart) || dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourStart)) &&
-        (dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourEnd)) &&
-        dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
+        (dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourEnd))
       ) {
+        /*
+        &&
+        dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
+        */
         isHalfDay = true;
         minutesLate = lateAfternoon; //+ 240;
         noOfLates = 1;
@@ -552,6 +555,27 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           //1.2 compute undertime by the day
         }
 
+        // if (noOfLates > 0 && latesUndertimesNoAttendance.isHalfDay) {
+        //   //insert to leave card ledger debit;
+        //   //insert only if permanent or casual;
+        //   const leaveCardItem = await this.leaveCardLedgerDebitService
+        //     .crud()
+        //     .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
+        //   let debitValue = 0;
+
+        //   if (!leaveCardItem) {
+        //     debitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+
+        //     await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+        //       dailyTimeRecordId: dtr,
+        //       debitValue,
+        //       createdAt: dtr.dtrDate,
+        //       dtrDeductionType: DtrDeductionType.TARDINESS,
+        //     });
+        //   }
+        //   //1.2 compute undertime by the day
+        // }
+
         if (noOfUndertimes > 0) {
           const leaveCardItem = await this.leaveCardLedgerDebitService
             .crud()
@@ -569,8 +593,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
           if (passSlipCount === '0') {
             if (!leaveCardItem) {
-              debitValue = (await this.rawQuery(`SELECT get_undertime_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
-
+              //debitValue = (await this.rawQuery(`SELECT get_undertime_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+              debitValue = latesUndertimesNoAttendance.minutesUndertime / 480;
               await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
                 dailyTimeRecordId: dtr,
                 debitValue,
