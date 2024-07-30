@@ -10,20 +10,14 @@ import {
 } from '@gscwd-api/models';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import {
-  DtrDeductionType,
-  NatureOfBusiness,
-  ObTransportation,
-  PassSlipApprovalStatus,
-  PassSlipForDispute,
-  PassSlipForLedger,
-} from '@gscwd-api/utils';
+import { LeaveLedger, NatureOfBusiness, ObTransportation, PassSlipApprovalStatus, PassSlipForDispute, PassSlipForLedger } from '@gscwd-api/utils';
 import { Between, DataSource, IsNull, Not } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { OfficerOfTheDayService } from '../../officer-of-the-day/core/officer-of-the-day.service';
+import { weightSrvRecords } from 'ioredis/built/cluster/util';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -44,12 +38,12 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlip = await this.dataSource.transaction(async (transactionEntityManager) => {
       const { approval, supervisorId, isMedical, ...rest } = passSlipDto;
 
-      const employeeAssignmentId = (await this.employeeService.getEmployeeDetails(rest.employeeId)).assignment.id;
-
+      //const employeeAssignmentId = (await this.employeeService.getEmployeeDetails(rest.employeeId)).assignment.id;
+      const employeeDetails = await this.employeeService.getEmployeeDetails(rest.employeeId);
+      //const natureOfAppointment = ;
       //let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
 
       //console.log('supervisor id', supervisorId);
-
       // if (supervisorId === null) {
       //   supervisorId = (await this.client.call<string, string, string>({
       //     action: 'send',
@@ -58,9 +52,38 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       //     onError: (error) => new NotFoundException(error),
       //   })) as string;
       // }
+      //check leave ledger
+      const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(rest.employeeId);
+      console.log('nature of appointment ', natureOfAppointment);
 
+      let isDeductibleToPay = false;
       let status = PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL;
-      const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save({ ...rest, isMedical, dateOfApplication: dayjs().toDate() });
+      if (rest.natureOfBusiness !== NatureOfBusiness.OFFICIAL_BUSINESS) {
+        if (natureOfAppointment === 'job order' || natureOfAppointment === 'cos jo') {
+          isDeductibleToPay = true;
+        } else {
+          const employeeLeaveLedger = (
+            await this.rawQuery(`CALL sp_generate_leave_ledger_view(?,?)`, [rest.employeeId, employeeDetails.companyId])
+          )[0] as LeaveLedger[];
+          const { sickLeaveBalance, vacationLeaveBalance } = employeeLeaveLedger[employeeLeaveLedger.length - 1];
+
+          console.log('vl: ', vacationLeaveBalance, ' sl: ', sickLeaveBalance);
+          console.log('is it medical? ', isMedical);
+          if (isMedical !== null) {
+            if (parseInt(isMedical.toString()) === 0) {
+              console.log('is it medical? ', isMedical);
+              if (vacationLeaveBalance <= 0) isDeductibleToPay = true;
+              console.log('is it deductible to pay? ', isDeductibleToPay);
+            } else {
+              if (sickLeaveBalance <= 0) isDeductibleToPay = true;
+            }
+          }
+        }
+      }
+
+      const passSlipResult = await transactionEntityManager
+        .getRepository(PassSlip)
+        .save({ ...rest, isMedical, dateOfApplication: dayjs().toDate(), isDeductibleToPay });
       if (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS) status = PassSlipApprovalStatus.FOR_HRMO_APPROVAL;
 
       const approvalResult = await transactionEntityManager.getRepository(PassSlipApproval).save({
@@ -498,18 +521,21 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
 
   async getAllPassSlips() {
-    const passSlips = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
-      find: {
-        relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
-        order: { createdAt: 'DESC', status: 'ASC' },
-      },
-    });
+    const passSlips = <PassSlipApproval[]>await this.passSlipApprovalService
+      .queryBuilder('t')
+      .addSelect('supervisor_id_fk', 'supervisorId')
+      .addSelect('pass_slip_id_fk', 'passSlipId')
+      .addSelect('status', 'status')
+      .addSelect(`DATE_FORMAT(t.created_at,'%m')`, 'dateApplied')
+      .orderBy('t.created_at', 'DESC')
+      .addOrderBy('status', 'ASC')
+      .leftJoinAndSelect('t.passSlipId', 'passSlipId')
+      .where(`DATE_FORMAT(t.created_at,'%m') = :dateApplied`, { dateApplied: dayjs().format('MM').toString() })
+      .getMany();
 
     const passSlipDetails = await Promise.all(
       passSlips.map(async (passSlip) => {
         const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
-        //const assignment = await this.getEmployeeAssignment(passSlip.passSlipId.employeeId);
         const employeeDetails = await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId);
 
         const { passSlipId, ...restOfPassSlip } = passSlip;
@@ -631,7 +657,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
   async updatePassSlipTimeRecord(updatePassSlipTimeRecordDto: UpdatePassSlipTimeRecordDto) {
     const { id, action } = updatePassSlipTimeRecordDto;
-    const timeNow = dayjs().format('HH:mm');
+    const timeNow = dayjs().format('HH:mm:ss');
     let timeIn = null,
       timeOut = null;
     action === 'time in' ? (timeIn = timeNow) : (timeOut = timeNow);
@@ -644,11 +670,25 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         onError: () => new InternalServerErrorException(),
       });
     } else {
+      const passSlipDetails = await this.getPassSlip(id);
+      const { employeeId, natureOfBusiness, dateOfApplication } = passSlipDetails;
       updateResult = await this.crud().update({
         dto: { id, timeOut },
         updateBy: { id },
         onError: () => new InternalServerErrorException(),
       });
+
+      console.log('PASS SLIP:', passSlipDetails);
+
+      if (natureOfBusiness === NatureOfBusiness.UNDERTIME || natureOfBusiness === NatureOfBusiness.HALF_DAY) {
+        const companyId = await this.employeeService.getCompanyId(employeeId);
+        //patch to dtr ;set has correction to 1
+        await this.rawQuery(`UPDATE daily_time_record SET time_out = ?,has_correction = 1 WHERE company_id_fk=? AND dtr_date=?;`, [
+          timeOut,
+          companyId,
+          dayjs(dateOfApplication).format('YYYY-MM-DD'),
+        ]);
+      }
     }
     if (updateResult.affected > 0) return updatePassSlipTimeRecordDto;
   }
@@ -711,7 +751,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       passSlips.map(async (passSlip) => {
         console.log(passSlip);
         const { id, timeIn, timeOut, natureOfBusiness, employeeId, dateOfApplication, status } = passSlip;
-
+        //2.1 if time in is null and time out is null update status to unused;
         if (timeIn === null && timeOut === null && status === PassSlipApprovalStatus.APPROVED) {
           await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.UNUSED }, updateBy: { passSlipId: { id } } });
         } else if (
@@ -721,7 +761,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ) {
           await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.CANCELLED }, updateBy: { passSlipId: { id } } });
         }
-        //2.1 if time in is null and time out is null update status to unused;
 
         //2.2  if time in is not null and time out is null check if not undertime
         if (timeOut !== null && timeIn === null) {
@@ -744,6 +783,10 @@ export class PassSlipService extends CrudHelper<PassSlip> {
               )
             )[0];
             await this.crud().update({ dto: { timeIn: scheduleTimeOut }, updateBy: { id } });
+            await this.rawQuery(
+              `UPDATE daily_time_record SET time_out = ?,has_correction = 1 WHERE company_id_fk = ? AND date_format(?,'%Y-%m-%d') = ? `,
+              [timeOut, employeeAssignment.companyId, dayjs(dateOfApplication).format('YYYY-MM-DD')]
+            );
           }
         }
       })
@@ -804,7 +847,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
           disputeRemarks,
           isDisputeApproved,
           createdAt,
-          //updatedAt,
           deletedAt,
         } = passSlip;
         const { passSlipCount } = (
@@ -850,7 +892,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
             if (natureOfBusiness === 'Undertime' || natureOfBusiness === 'Half Day' || natureOfBusiness === 'Personal Business') {
               //2.2.1 set time out to scheduled time out;
               //get employee current schedule schedule from dtr
-
               await this.crud().update({ dto: { timeIn: scheduleTimeOut }, updateBy: { id } });
             }
           }
@@ -881,7 +922,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
               dayjs(scheduleRestStart).diff(dayjs(passSlipTimeOut), 'minutes') + dayjs(passSlipTimeIn).diff(dayjs(scheduleRestEnd), 'minutes');
           }
           //4. timeout 12:30   timein 01:40
-          //if(dayjs(passSlipTimeOut).isAfter())
           if (
             (dayjs(passSlipTimeOut).isAfter(dayjs(scheduleRestStart)) || dayjs(passSlipTimeOut).isSame(dayjs(scheduleRestStart))) &&
             dayjs(passSlipTimeIn).isAfter(dayjs(scheduleRestEnd))
@@ -895,7 +935,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
               (dayjs(passSlipTimeIn).isSame(scheduleRestStart) || dayjs(passSlipTimeIn).isBefore(scheduleRestStart))) ||
             (dayjs(passSlipTimeOut).isAfter(scheduleRestEnd) && dayjs(passSlipTimeIn).isAfter(scheduleRestEnd))
           ) {
-            //
             debitValueMinutes = dayjs(passSlipTimeIn).diff(dayjs(passSlipTimeOut), 'minutes');
           }
 
@@ -933,6 +972,7 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
                 disputeRemarks,
                 isDisputeApproved,
                 createdAt,
+                isDeductibleToPay: null,
                 updatedAt: passSlipUpdated.updatedAt,
                 deletedAt,
               },
@@ -981,6 +1021,11 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
       officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(supervisorOrgId);
     }
 
+    /*
+    -- af7bbec8-b26e-11ed-a79b-000c29f95a80
+-- Charlene Marie D. Pe 
+    
+    */
     let officerOfTheDayName: string;
     if (officerOfTheDayId) officerOfTheDayName = (await this.employeeService.getEmployeeDetails(officerOfTheDayId)).employeeFullName;
     const employeeSupervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);
@@ -993,7 +1038,11 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
           ]
         : [{ label: employeeSupervisorName, value: employeeSupervisorId }];
     const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown(employeeData.employeeId);
-    const result = [...supervisorAndOfficerOfTheDayArray, ...supervisoryEmployees];
+    const result = [
+      ...supervisorAndOfficerOfTheDayArray,
+      ...supervisoryEmployees,
+      { label: 'Charlene Marie D. Pe', value: 'af7bbec8-b26e-11ed-a79b-000c29f95a80' },
+    ];
     return result.filter((value, index, self) => index === self.findIndex((item) => item.label === value.label && item.value === value.value));
   }
 }
