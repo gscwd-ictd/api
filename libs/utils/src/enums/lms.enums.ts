@@ -85,3 +85,16 @@ export enum OtherTrainingStatus {
   PENDING = 'pending',
   DONE = 'done',
 }
+
+export enum TrainingHistoryType {
+  DRAFT_CREATE = 'draft created',
+  SUPERVISOR_NOMINATION = 'supervisor nomination',
+  TDD_MANAGER_REVIEW = 'tdd manager review',
+  PDC_SECRETARIAT_REVIEW = 'pdc secretariat review',
+  PDC_CHAIRMAN_REVIEW = 'pdc chairman review',
+  GENERAL_MANAGER_REVIEW = 'general manager review',
+  PARTICIPANT_BATCHING = 'participant batching',
+  TRAINING_ONGOING = 'training ongoing',
+  REQUIREMENTS_SUBMISSION = 'requirements submission',
+  TRAINING_COMPLETED = 'training completed',
+}
