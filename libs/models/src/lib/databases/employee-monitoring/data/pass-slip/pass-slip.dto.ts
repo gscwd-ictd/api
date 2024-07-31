@@ -39,6 +39,10 @@ export class PassSlipDto {
   @IsNotEmpty()
   @IsUUID()
   supervisorId: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isDeductibleToPay?: boolean;
 }
 
 export class UpdatePassSlipTimeRecordDto {

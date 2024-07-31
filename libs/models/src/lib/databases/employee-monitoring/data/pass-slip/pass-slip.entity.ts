@@ -48,4 +48,7 @@ export class PassSlip extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'is_dispute_approved', type: 'boolean', default: null })
   isDisputeApproved: boolean;
+
+  @Column({ name: 'is_deductible_to_pay', type: 'boolean', default: null })
+  isDeductibleToPay: boolean;
 }
