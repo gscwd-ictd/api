@@ -1,4 +1,13 @@
+import { IsEnum, IsNotEmpty, IsUUID } from 'class-validator';
+import { TrainingDetailsDto } from '../training-details';
+import { TrainingHistoryType } from '@gscwd-api/utils';
+
 export class CreateTrainingHistoryDto {
-  title: string;
-  status: string;
+  @IsNotEmpty()
+  @IsUUID('4')
+  trainingDetails: TrainingDetailsDto;
+
+  @IsNotEmpty()
+  @IsEnum(TrainingHistoryType)
+  trainingHistoryType: TrainingHistoryType;
 }

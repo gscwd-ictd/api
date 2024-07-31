@@ -17,11 +17,19 @@ import { DataSource, EntityManager, Raw } from 'typeorm';
 import { TrainingTagsService } from '../components/tags';
 import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
-import { DocumentRequirementsType, NomineeType, TrainingNomineeStatus, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
+import {
+  DocumentRequirementsType,
+  NomineeType,
+  TrainingHistoryType,
+  TrainingNomineeStatus,
+  TrainingRequirementsRaw,
+  TrainingStatus,
+} from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
 import { TrainingNomineesService } from '../components/nominees';
 import { LspRatingService } from '../../lsp-rating';
 import { HrmsEmployeeTagsService, HrmsEmployeesService } from '../../../services/hrms';
+import { TrainingHistoryService } from '../../training-history';
 
 @Injectable()
 export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
@@ -35,6 +43,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     private readonly lspRatingService: LspRatingService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
     private readonly hrmsEmployeeTagsService: HrmsEmployeeTagsService,
+    private readonly trainingHistoryService: TrainingHistoryService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -253,6 +262,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: trainingDetails, trainingHistoryType: TrainingHistoryType.DRAFT_CREATE },
+          entityManager
+        );
+
         return trainingDetails;
       });
     } catch (error) {
@@ -335,6 +350,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           slotDistribution.map(async (items) => {
             return await this.trainingDistributionsService.createSlotDistributions({ trainingDetails, ...items }, entityManager);
           })
+        );
+
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: trainingDetails, trainingHistoryType: TrainingHistoryType.DRAFT_CREATE },
+          entityManager
         );
 
         return trainingDetails;
@@ -639,6 +660,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           })
         );
 
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: trainingDetails, trainingHistoryType: TrainingHistoryType.SUPERVISOR_NOMINATION },
+          entityManager
+        );
+
         return data;
       });
     } catch (error) {
@@ -708,6 +735,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           slotDistribution.map(async (items) => {
             return await this.trainingDistributionsService.createSlotDistributions({ trainingDetails, ...items }, entityManager);
           })
+        );
+
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: trainingDetails, trainingHistoryType: TrainingHistoryType.SUPERVISOR_NOMINATION },
+          entityManager
         );
 
         return data;
@@ -789,6 +822,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         /* insert a batch training */
         await this.trainingNomineesService.createTrainingBatch(batches, requirements, entityManager);
 
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: { id: trainingId }, trainingHistoryType: TrainingHistoryType.PARTICIPANT_BATCHING },
+          entityManager
+        );
+
         return data;
       });
     } catch (error) {
@@ -817,26 +856,86 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
   /* edit training status */
   async updateTrainingStatus(data: UpdateTrainingStatusDto) {
     try {
-      const { trainingId, status } = data;
+      return await this.dataSource.transaction(async (entityManager) => {
+        const { trainingId, status } = data;
 
-      if (status === TrainingStatus.COMPLETED) {
-        const lspDetails = await this.trainingLspDetailsService.findAllLspDetailsByTrainingId(trainingId);
+        if (status === TrainingStatus.COMPLETED) {
+          /* set training to completed */
+          const lspDetails = await this.trainingLspDetailsService.findAllLspDetailsByTrainingId(trainingId);
 
-        await Promise.all(
-          lspDetails.map(async (items) => {
-            /* insert the initial learning service provider rating */
-            await this.lspRatingService.createLearningServiceProviderRating({
-              lspDetails: {
-                id: items.id,
-              },
-              trainingDetails: {
-                id: trainingId,
-              },
-            });
-          })
-        );
+          await Promise.all(
+            lspDetails.map(async (items) => {
+              /* insert the initial learning service provider rating */
+              await this.lspRatingService.createLearningServiceProviderRating(
+                {
+                  lspDetails: {
+                    id: items.id,
+                  },
+                  trainingDetails: {
+                    id: trainingId,
+                  },
+                },
+                entityManager
+              );
+            })
+          );
 
-        return await this.crudService.update({
+          /* insert training history */
+          await this.trainingHistoryService.createTrainingHistory(
+            { trainingDetails: { id: trainingId }, trainingHistoryType: TrainingHistoryType.TRAINING_COMPLETED },
+            entityManager
+          );
+
+          return await this.crudService.transact<TrainingDetails>(entityManager).update({
+            updateBy: {
+              id: trainingId,
+            },
+            dto: {
+              status: status,
+            },
+            onError: (error) => {
+              throw error;
+            },
+          });
+        } else if (status === TrainingStatus.ON_GOING_TRAINING) {
+          /* insert training history */
+          await this.trainingHistoryService.createTrainingHistory(
+            { trainingDetails: { id: trainingId }, trainingHistoryType: TrainingHistoryType.TRAINING_ONGOING },
+            entityManager
+          );
+          /* set training to on-going training */
+          return await this.crudService.transact<TrainingDetails>(entityManager).update({
+            updateBy: {
+              id: trainingId,
+            },
+            dto: {
+              status: status,
+            },
+            onError: (error) => {
+              throw error;
+            },
+          });
+        } else if (status === TrainingStatus.REQUIREMENTS_SUBMISSION) {
+          /* insert training history */
+          await this.trainingHistoryService.createTrainingHistory(
+            { trainingDetails: { id: trainingId }, trainingHistoryType: TrainingHistoryType.REQUIREMENTS_SUBMISSION },
+            entityManager
+          );
+          /* set training to on-going training */
+          return await this.crudService.transact<TrainingDetails>(entityManager).update({
+            updateBy: {
+              id: trainingId,
+            },
+            dto: {
+              status: status,
+            },
+            onError: (error) => {
+              throw error;
+            },
+          });
+        }
+
+        return await this.crudService.transact<TrainingDetails>(entityManager).update({
           updateBy: {
             id: trainingId,
           },
@@ -847,18 +946,6 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             throw error;
           },
         });
-      }
-
-      return await this.crudService.update({
-        updateBy: {
-          id: trainingId,
-        },
-        dto: {
-          status: status,
-        },
-        onError: (error) => {
-          throw error;
-        },
       });
     } catch (error) {
       Logger.error(error);
@@ -1150,6 +1237,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         /* update training approvals by training id */
         await this.trainingApprovalsService.tddManagerApproval(trainingId, employeeId, entityManager);
 
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: { id: trainingId }, trainingHistoryType: TrainingHistoryType.TDD_MANAGER_REVIEW },
+          entityManager
+        );
+
         return training;
       });
     } catch (error) {
@@ -1179,6 +1272,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           },
         });
 
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.PDC_SECRETARIAT_REVIEW },
+          entityManager
+        );
+
         /* update training approvals by training id */
         return await this.trainingApprovalsService.pdcSecretariatApproval(data, entityManager);
       });
@@ -1207,6 +1306,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           },
         });
 
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.PDC_CHAIRMAN_REVIEW },
+          entityManager
+        );
+
         /* update training approvals by training id */
         return await this.trainingApprovalsService.pdcChairmanApproval(data, entityManager);
       });
@@ -1234,6 +1339,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             throw error;
           },
         });
+
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.GENERAL_MANAGER_REVIEW },
+          entityManager
+        );
 
         /* update training approvals by training id */
         return await this.trainingApprovalsService.generalManagerApproval(data, entityManager);
