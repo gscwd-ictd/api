@@ -248,110 +248,163 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart) ||
       (dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart) && dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd)) ||
       dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd);
-
-    if (overtimeApplicationCount === '0' && !isHoliday && !isRestDay) {
+    //overtimeApplicationCount === '0' &&
+    if (!isHoliday && !isRestDay) {
       console.log('lunchrest:', dayjs(restHourStart).format('YYYY-MM-DD HH:mm'), '-', restHourEnd.format('YYYY-MM-DD HH:mm'));
 
-      if (schedule.shift === 'day') {
-        const lateMorning = dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
-          dayjs('2024-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
-          'm'
-        );
+      //if (schedule.shift === 'day') {
 
-        const lateAfternoon = isWithLunch
-          ? dayjs(dayjs('2024-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
-              dayjs('2024-01-01' + schedule.lunchIn)
-                .add(29, 'minute')
-                .format('YYYY-MM-DD HH:mm'),
-              'm'
-            )
-          : 0;
+      // const lateMorning = isWithLunch
+      //   ? dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
+      //       dayjs('2024-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
+      //       'm'
+      //     )
+      //   : dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourEnd)
+      // ? dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm:00')).diff(
+      //     dayjs('2024-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm:00'),
+      //     'm'
+      //   )
+      //   : 0;
 
-        if (lateMorning > 0) {
-          minutesLate += lateMorning;
-          noOfLates += 1;
-        }
+      const lateMorning = isWithLunch
+        ? dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
+            dayjs('2024-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
+            'm'
+          )
+        : dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourEnd)
+        ? dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm:00')).diff(dayjs(restHourEnd).format('YYYY-MM-DD HH:mm:00'), 'm')
+        : dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
+            dayjs('2024-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
+            'm'
+          );
 
-        if (isWithLunch && dtr.timeIn !== null && dtr.lunchOut !== null && dtr.lunchIn !== null && lateAfternoon > 0) {
-          minutesLate += lateAfternoon;
-          noOfLates += 1;
-        }
+      console.log('LATE NI buntag:', lateMorning);
+
+      const lateAfternoon = isWithLunch
+        ? dayjs(dayjs('2024-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
+            dayjs('2024-01-01' + schedule.lunchIn)
+              .add(29, 'minute')
+              .format('YYYY-MM-DD HH:mm'),
+            'm'
+          )
+        : 0;
+
+      console.log('LATE NI:', lateAfternoon);
+
+      if (lateMorning > 0) {
+        minutesLate += lateMorning;
+        noOfLates += 1;
+      }
+
+      if (isWithLunch && dtr.timeIn !== null && dtr.lunchOut !== null && dtr.lunchIn !== null && lateAfternoon > 0) {
+        minutesLate += lateAfternoon;
+        noOfLates += 1;
+      }
+
+      // half day hapon pumasok without lunch
+      if (
+        !isWithLunch &&
+        (dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourEnd) ||
+          dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourEnd) ||
+          (dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourStart) &&
+            dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourEnd) &&
+            dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourStart)))
+      ) {
+        isHalfDay = true;
+      }
+
+      console.log(
+        'halfday undertime tinood',
+        'timeout eksaktong 12: ',
+        dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart),
+        'timeout bago 1pm',
+        dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd),
+        'timeout after 12pm',
+        dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart),
+        'timeout eksaktong 1pm',
+        dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd),
+        'resthourstart ni',
+        restHourStart.format('HH:mm')
+      );
+      //half day morning pumasok without lunch
+      if (
+        !isWithLunch &&
+        (dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart) || dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart)) &&
+        (dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd))
+      ) {
+        noOfUndertimes = 1;
+        isHalfDay = true;
+      }
+
+      if (isWithLunch && dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
         /*
             if no attendance morning and late in the afternoon in, therefore count minutes late and at the same time no of lates
             
             if no attendance in the morning and not late in the afternoon count as halfday and add in noOfLates 
         */
         //MORNING HALFDAY LATE AFTERNOON
-        if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
-          isHalfDay = true;
-          minutesLate += lateAfternoon; //+ 240;
-          noOfLates += 2;
-        }
-
-        if (dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon <= 0) {
-          //minutesLate += 240;
-          isHalfDay = true;
-          noOfLates = 1;
-        }
-
-        //
-        if (
-          dtr.timeIn !== null &&
-          dtr.lunchOut !== null &&
-          lateMorning > 0 &&
-          dtr.lunchIn === null &&
-          dtr.timeOut === null //&&
-          //dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
-        ) {
-          minutesLate += isNaN(lateAfternoon) ? 0 : lateAfternoon;
-          isHalfDay = true;
-          noOfUndertimes = 1;
-        }
-
-        if (
-          dtr.timeIn !== null &&
-          dtr.lunchOut !== null &&
-          lateMorning <= 0 &&
-          dtr.lunchIn === null &&
-          dtr.timeOut === null &&
-          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
-        ) {
-          isHalfDay = true;
-          noOfUndertimes = 1;
-        }
-
-        console.log(dtr.dtrDate, ' ', isWithLunch);
-
-        //half day - pm time in
-        if (
-          isWithLunch === false &&
-          (dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourStart) || dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourStart)) &&
-          (dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourEnd)) &&
-          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
-        ) {
-          isHalfDay = true;
-          minutesLate = lateAfternoon; //+ 240;
-          noOfLates = 1;
-        }
-        //dtr.dtrDate;
-        //halfday -am time in
-        if (
-          (isWithLunch === false &&
-            dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
-            dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourStart)) ||
-          (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
-            dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
-            dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
-            (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd)))
-        ) {
-          isHalfDay = true;
-          noOfUndertimes = 1;
-        }
+        isHalfDay = true;
+        minutesLate += lateAfternoon; //+ 240;
+        noOfLates += 2;
       }
 
-      //
-      //console.log('DTR REMARKS: ', dtrRemarks);
-      //
+      console.log('late afternoon', lateAfternoon);
+
+      if (!isWithLunch && dtr.timeIn === null && dtr.lunchOut === null && lateAfternoon > 0) {
+        isHalfDay = true;
+        minutesLate += lateAfternoon; //+ 240;
+        noOfLates += 2;
+      }
+
+      if (isWithLunch && dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon <= 0) {
+        isHalfDay = true;
+        noOfLates = 1;
+      }
+
+      if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning > 0 && dtr.lunchIn === null && dtr.timeOut === null) {
+        minutesLate += isNaN(lateAfternoon) ? 0 : lateAfternoon;
+        isHalfDay = true;
+        noOfUndertimes = 1;
+      }
+
+      if (
+        dtr.timeIn !== null &&
+        dtr.lunchOut !== null &&
+        lateMorning <= 0 &&
+        dtr.lunchIn === null &&
+        dtr.timeOut === null &&
+        dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
+      ) {
+        isHalfDay = true;
+        noOfUndertimes = 1;
+      }
+
+      //half day - pm time in
+      if (
+        isWithLunch === false &&
+        (dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourStart) || dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourStart)) &&
+        (dayjs('2024-01-01 ' + dtr.timeIn).isSame(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourEnd))
+      ) {
+        isHalfDay = true;
+        minutesLate = lateAfternoon; //+ 240;
+        noOfLates = 1;
+      }
+
+      //halfday-am time in
+      if (
+        (isWithLunch === false &&
+          dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
+          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourStart)) ||
+        (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
+          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
+          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
+          (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd)))
+      ) {
+        isHalfDay = true;
+        noOfUndertimes = 1;
+      }
+      //}
+
       if (
         dtr.lunchIn === null &&
         dtr.lunchOut === null &&
@@ -377,7 +430,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       let passSlipNatureOfBusiness: string = null;
       if (passSlipsNatureOfBusiness.length > 0)
         passSlipNatureOfBusiness = passSlipsNatureOfBusiness[passSlipsNatureOfBusiness.length - 1].natureOfBusiness;
-      //&& passSlipNatureOfBusiness !== 'Half Day' && passSlipNatureOfBusiness != null
       minutesUndertime =
         !timeOutWithinRestHours && suspensionHours <= 0
           ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
@@ -386,11 +438,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             )
           : 0;
 
-      //!TODO: minutesUndertime if there is work suspension;
-
-      if (timeOutWithinRestHours) {
+      //minutesUndertime if there is work suspension;
+      if (timeOutWithinRestHours && suspensionHours < 4 && suspensionHours > 0) {
         isHalfDay = true;
-        noOfLates += 1;
+        noOfLates = +1;
       }
 
       if (minutesUndertime > 0) {
@@ -407,8 +458,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       if (suspensionHours === 4) {
         isHalfDay = false;
       }
-
-      //if()
 
       //change undertime logic
 
@@ -551,6 +600,27 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           //1.2 compute undertime by the day
         }
 
+        // if (noOfLates > 0 && latesUndertimesNoAttendance.isHalfDay) {
+        //   //insert to leave card ledger debit;
+        //   //insert only if permanent or casual;
+        //   const leaveCardItem = await this.leaveCardLedgerDebitService
+        //     .crud()
+        //     .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
+        //   let debitValue = 0;
+
+        //   if (!leaveCardItem) {
+        //     debitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+
+        //     await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+        //       dailyTimeRecordId: dtr,
+        //       debitValue,
+        //       createdAt: dtr.dtrDate,
+        //       dtrDeductionType: DtrDeductionType.TARDINESS,
+        //     });
+        //   }
+        //   //1.2 compute undertime by the day
+        // }
+
         if (noOfUndertimes > 0) {
           const leaveCardItem = await this.leaveCardLedgerDebitService
             .crud()
@@ -568,13 +638,16 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
           if (passSlipCount === '0') {
             if (!leaveCardItem) {
-              debitValue = (await this.rawQuery(`SELECT get_undertime_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
-              await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
-                dailyTimeRecordId: dtr,
-                debitValue,
-                createdAt: dtr.dtrDate,
-                dtrDeductionType: DtrDeductionType.UNDERTIME,
-              });
+              if (latesUndertimesNoAttendance.minutesUndertime > 0) {
+                debitValue = latesUndertimesNoAttendance.minutesUndertime / 480;
+                await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+                  dailyTimeRecordId: dtr,
+                  debitValue,
+                  createdAt: dtr.dtrDate,
+                  dtrDeductionType: DtrDeductionType.UNDERTIME,
+                });
+              }
+              //debitValue = (await this.rawQuery(`SELECT get_undertime_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
             }
           }
         }
