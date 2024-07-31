@@ -817,17 +817,17 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     psa.status status,
     ps.updated_at updatedAt,
     ps.deleted_at deletedAt,
-    ps.is_dispute_approved disputeApproved
+    ps.is_dispute_approved disputeApproved,
+    ps.is_deductible_to_pay isDeductibleToPay
   FROM pass_slip ps 
   INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
-WHERE get_date_after_num_of_working_days(date_of_application, 2) = DATE_FORMAT(now(),'%Y-%m-%d') AND (
+WHERE get_date_after_num_of_working_days(date_of_application, 2) = DATE_FORMAT(now(),'%Y-%m-%d') AND (ps.is_deductible_to_pay = 0 OR ps.is_deductible_to_pay IS NULL) AND (
 psa.status = 'approved' 
-OR psa.status = 'approved with medical certificate'
-OR psa.status = 'approved without medical certificate') 
+OR psa.status = 'approved without medical certificate' OR psa.status = 'approved without medical certificate'
+) 
 AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
     `)) as PassSlipForLedger[];
     //2. check time in and time out
-    console.log('pass slip here', passSlips);
     const passSlipsToLedger = await Promise.all(
       passSlips.map(async (passSlip) => {
         const {
@@ -848,6 +848,7 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
           isDisputeApproved,
           createdAt,
           deletedAt,
+          isDeductibleToPay,
         } = passSlip;
         const { passSlipCount } = (
           await this.rawQuery(`SELECT count(*) passSlipCount FROM employee_monitoring.leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [id])
@@ -953,6 +954,11 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
           //2.2. INSERT TO LEDGER
           //const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [passSlip.id]))[0];
           if (debitValueMinutes > 0) {
+            if (passSlip.status === PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE) {
+              await this.passSlipApprovalService
+                .crud()
+                .update({ dto: { status: PassSlipApprovalStatus.APPROVED_WITHOUT_MEDICAL_CERTIFICATE }, updateBy: { passSlipId: { id } } });
+            }
             const debitValue = debitValueMinutes / 480;
             await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
               passSlipId: {
@@ -972,7 +978,7 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
                 disputeRemarks,
                 isDisputeApproved,
                 createdAt,
-                isDeductibleToPay: null,
+                isDeductibleToPay,
                 updatedAt: passSlipUpdated.updatedAt,
                 deletedAt,
               },
