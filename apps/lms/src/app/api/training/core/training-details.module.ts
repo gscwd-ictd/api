@@ -13,6 +13,7 @@ import { TrainingApprovalsModule } from '../components/approvals';
 import { TrainingRequirementsModule } from '../components/requirements';
 import { LspRatingModule } from '../../lsp-rating';
 import { HrmsEmployeeTagsModule, HrmsEmployeesModule } from '../../../services/hrms';
+import { TrainingHistoryModule } from '../../training-history';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { HrmsEmployeeTagsModule, HrmsEmployeesModule } from '../../../services/h
     LspRatingModule,
     HrmsEmployeesModule,
     HrmsEmployeeTagsModule,
+    TrainingHistoryModule,
   ],
   controllers: [TrainingDetailsController, TrainingDetailsMicroserviceController],
   providers: [TrainingDetailsService],

@@ -20,6 +20,7 @@ import {
   TrainingDesign,
   TrainingDetails,
   TrainingDistribution,
+  TrainingHistory,
   TrainingLspDetails,
   TrainingNominee,
   TrainingRecommendedEmployee,
@@ -56,6 +57,7 @@ export const DB_ENTITIES = [
   TrainingNominee,
   TrainingApproval,
   TrainingRequirements,
+  TrainingHistory,
 
   /* benchmark */
   Benchmark,

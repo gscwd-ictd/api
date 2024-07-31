@@ -118,3 +118,10 @@ export type SignatoriesRaw = {
     };
   };
 };
+
+export type TrainingHistroyRaw = {
+  date: Date;
+  title: string;
+  description: string;
+  status: string;
+};

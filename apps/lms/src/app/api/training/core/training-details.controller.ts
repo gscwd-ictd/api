@@ -381,4 +381,10 @@ export class TrainingDetailsController {
   async createAdditionalTrainees(@Body() data: CreateAdditionalNomineesDto) {
     return await this.trainingDistributionsService.createAdditionalNominees(data);
   }
+
+  /* training history */
+  @Get(':trainingId/history')
+  async findTrainingHistoryByTrainingId(@Param('trainingId') trainingId: string) {
+    return await this.trainingDetailsService.findTrainingHistoryByTrainingId(trainingId);
+  }
 }

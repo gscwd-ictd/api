@@ -34,6 +34,7 @@ import { LspRatingModule } from './api/lsp-rating/core/lsp-rating.module';
 import { DocumentsModule } from './api/training/components/documents';
 import { OtherTrainingParticipantsRequirementsModule } from './api/others/components/other-training-participants-requirements';
 import { ReportsModule } from './api/reports';
+import { TrainingHistoryModule } from './api/training-history';
 
 @Module({
   imports: [
@@ -94,6 +95,9 @@ import { ReportsModule } from './api/reports';
     /* reports */
     DocumentsModule,
     ReportsModule,
+
+    /* training logs */
+    TrainingHistoryModule,
 
     /* cron job */
     ScheduleModule.forRoot(),

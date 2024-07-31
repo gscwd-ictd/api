@@ -40,5 +40,8 @@ export * from './other-trainings';
 export * from './other-training-participants';
 export * from './other-training-participants-requirements';
 
+/* history */
+export * from './training-history';
+
 /* users */
 export * from './users';
