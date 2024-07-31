@@ -23,4 +23,25 @@ export class TrainingHistoryService extends CrudHelper<TrainingHistory> {
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  /* find training history by training id and history type */
+  async findTrainingHistoryByTrainingIdAndHistoryType(trainingId: string) {
+    try {
+      return await this.crudService.findAll({
+        find: {
+          relations: {
+            trainingDetails: true,
+          },
+          where: {
+            trainingDetails: {
+              id: trainingId,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    }
+  }
 }

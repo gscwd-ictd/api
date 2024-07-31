@@ -7,6 +7,7 @@ import {
   PdcChairmanDto,
   PdcSecretariatDto,
   TrainingDetails,
+  TrainingHistory,
   UpdateTrainingBatchDto,
   UpdateTrainingExternalDto,
   UpdateTrainingInternalDto,
@@ -21,6 +22,7 @@ import {
   DocumentRequirementsType,
   NomineeType,
   TrainingHistoryType,
+  TrainingHistroyRaw,
   TrainingNomineeStatus,
   TrainingRequirementsRaw,
   TrainingStatus,
@@ -1470,6 +1472,48 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* find training history by training id */
+  async findTrainingHistoryByTrainingId(trainingId: string) {
+    try {
+      const trainingHistory = (await this.trainingHistoryService.findTrainingHistoryByTrainingIdAndHistoryType(trainingId)) as Array<TrainingHistory>;
+
+      return await Promise.all(
+        trainingHistory.map(async (items) => {
+          const history: Array<TrainingHistroyRaw> = [];
+
+          switch (items.trainingHistoryType) {
+            case TrainingHistoryType.DRAFT_CREATE: {
+              const trainingDetails = await this.findTrainingDetailsById(items.trainingDetails.id);
+              history.push({
+                date: items.createdAt,
+                title: 'Training Drafted',
+                description: 'Prepared by ' + trainingDetails.preparedBy.name,
+                status: null,
+              });
+              break;
+            }
+            case TrainingHistoryType.SUPERVISOR_NOMINATION: {
+              const trainingDetails = await this.trainingDistributionsService.findAllDistributionByTrainingId(items.trainingDetails.id);
+              history.push({
+                date: items.createdAt,
+                title: 'Training Drafted' + trainingDetails,
+                description: 'Prepared by ',
+                status: null,
+              });
+              break;
+            }
+            default:
+              null;
+          }
+          return history;
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found.', HttpStatus.NOT_FOUND);
     }
   }
 }
