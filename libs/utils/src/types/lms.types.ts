@@ -119,9 +119,13 @@ export type SignatoriesRaw = {
   };
 };
 
-export type TrainingHistroyRaw = {
+export type TrainingHistoryRaw = {
   date: Date;
   title: string;
   description: string;
   status: string;
+};
+
+export type SignatoriesGenericRaw = {
+  [key: string]: object;
 };
