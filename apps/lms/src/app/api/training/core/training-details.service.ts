@@ -111,7 +111,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       const slotDistribution = await this.trainingDistributionsService.findAllDistributionByTrainingId(id);
 
       /* find prepared name by employee id */
-      const preparedBy = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(trainingDetails.preparedBy);
+      const preparedBy = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(trainingDetails.preparedBy);
 
       /* custom return */
       return {
@@ -144,8 +144,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         slotDistribution: slotDistribution,
         preparedBy: {
           employeeId: trainingDetails.preparedBy,
-          name: preparedBy.employeeFullNameFirst,
+          name: preparedBy.employeeFullName,
           positionTitle: preparedBy.assignment.positionTitle,
+          signature: preparedBy.signatureUrl,
         },
       };
     } catch (error) {
@@ -184,7 +185,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       const slotDistribution = await this.trainingDistributionsService.findAllDistributionByTrainingId(id);
 
       /* find prepared name by employee id */
-      const preparedBy = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(trainingDetails.preparedBy);
+      const preparedBy = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(trainingDetails.preparedBy);
 
       return {
         createdAt: trainingDetails.createdAt,
@@ -212,8 +213,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         slotDistribution: slotDistribution,
         preparedBy: {
           employeeId: trainingDetails.preparedBy,
-          name: preparedBy.employeeFullNameFirst,
+          name: preparedBy.employeeFullName,
           positionTitle: preparedBy.assignment.positionTitle,
+          signature: preparedBy.signatureUrl,
         },
       };
     } catch (error) {
