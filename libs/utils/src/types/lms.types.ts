@@ -46,6 +46,11 @@ export type TrainingRequirementsRaw = {
   code?: string;
 };
 
+export type RequirementsRaw = {
+  document: string;
+  isSelected?: boolean;
+};
+
 export type EmployeeParticpantsRaw = {
   _id: string;
   name: string;

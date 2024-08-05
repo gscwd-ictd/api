@@ -4,13 +4,15 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { OtherTrainingParticipantsService } from '../components/other-training-participants';
 import { Cron } from '@nestjs/schedule';
-import { OtherTrainingStatus } from '@gscwd-api/utils';
+import { OtherTrainingStatus, RequirementsRaw } from '@gscwd-api/utils';
+import { OtherTrainingParticipantsRequirementsService } from '../components/other-training-participants-requirements';
 
 @Injectable()
 export class OtherTrainingsService extends CrudHelper<OtherTraining> {
   constructor(
     private readonly crudService: CrudService<OtherTraining>,
     private readonly otherTrainingParticipantsService: OtherTrainingParticipantsService,
+    private readonly otherTrainingParticipantsRequirementsService: OtherTrainingParticipantsRequirementsService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -165,6 +167,46 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* find other training participants requirements */
+  async findAllParticipantsRequirements(otherTrainingId: string) {
+    try {
+      const trainingRequirements = (await this.findOtherTrainingById(otherTrainingId)).trainingRequirements as Array<RequirementsRaw>;
+
+      const participants = await this.otherTrainingParticipantsService.findAllParticipantsByOtherTrainingsId(otherTrainingId);
+
+      const participantsRequirement = await Promise.all(
+        participants.map(async (items) => {
+          /* find participant requirements by participant id */
+          const requirements = (await this.otherTrainingParticipantsRequirementsService.findParticipantsRequirementsByParticipantId(
+            items.participantId
+          )) as Array<RequirementsRaw>;
+
+          /* compare training requirements to participant requirements */
+          const participantRequirements = trainingRequirements.map((req) => ({
+            document: req.document,
+            isSelected: requirements.some((item) => item.document === req.document),
+          }));
+
+          return {
+            participantId: items.participantId,
+            employeeId: items.employeeId,
+            name: items.name,
+            assignment: items.assignment,
+            requirements: participantRequirements,
+          };
+        })
+      );
+
+      return {
+        requirements: trainingRequirements,
+        participants: participantsRequirement,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found.', HttpStatus.NOT_FOUND);
     }
   }
 }
