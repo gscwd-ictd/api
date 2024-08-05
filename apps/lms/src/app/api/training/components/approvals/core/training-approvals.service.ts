@@ -247,31 +247,35 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
         },
       });
 
-      const tddManager = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.tddManager);
-      const pdcSecretariat = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.pdcSecretariat);
-      const pdcChairman = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.pdcChairman);
-      const generalManager = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.generalManager);
+      const tddManager = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(approvalDetails.tddManager);
+      const pdcSecretariat = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(approvalDetails.pdcSecretariat);
+      const pdcChairman = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(approvalDetails.pdcChairman);
+      const generalManager = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(approvalDetails.generalManager);
 
       return {
         tddManager: {
           employeeId: approvalDetails.tddManager,
-          name: tddManager.employeeFullNameFirst,
+          name: tddManager.employeeFullName,
           positionTitle: tddManager.assignment.positionTitle,
+          signature: tddManager.signatureUrl,
         },
         pdcSecretariat: {
           employeeId: approvalDetails.pdcSecretariat,
-          name: pdcSecretariat.employeeFullNameFirst,
+          name: pdcSecretariat.employeeFullName,
           positionTitle: pdcSecretariat.assignment.positionTitle,
+          signature: pdcSecretariat.signatureUrl,
         },
         pdcChairman: {
           employeeId: approvalDetails.pdcSecretariat,
-          name: pdcChairman.employeeFullNameFirst,
+          name: pdcChairman.employeeFullName,
           positionTitle: pdcChairman.assignment.positionTitle,
+          signature: pdcChairman.signatureUrl,
         },
         generalManager: {
           employeeId: approvalDetails.generalManager,
-          name: generalManager.employeeFullNameFirst,
+          name: generalManager.employeeFullName,
           positionTitle: generalManager.assignment.positionTitle,
+          signature: generalManager.signatureUrl,
         },
       };
     } catch (error) {

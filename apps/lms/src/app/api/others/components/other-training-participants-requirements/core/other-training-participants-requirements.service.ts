@@ -19,6 +19,7 @@ export class OtherTrainingParticipantsRequirementsService extends CrudHelper<Oth
           otherTrainingParticipant: {
             id: otherTrainingParticipant,
           },
+          trainingRequirements: '[]',
         },
         onError: (error) => {
           throw error;
@@ -27,6 +28,30 @@ export class OtherTrainingParticipantsRequirementsService extends CrudHelper<Oth
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* find all participants requirements  */
+  async findParticipantsRequirementsByParticipantId(participantId: string) {
+    try {
+      const requirements = await this.crudService.findOneOrNull({
+        find: {
+          select: {
+            id: true,
+            trainingRequirements: true,
+          },
+          where: {
+            otherTrainingParticipant: {
+              id: participantId,
+            },
+          },
+        },
+      });
+
+      return JSON.parse(requirements.trainingRequirements);
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     }
   }
 }
