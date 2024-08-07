@@ -1,12 +1,9 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
 
 export class OtherTrainingRequirementsDto {
   @IsString({ message: 'training requirements must be a string' })
   document: string;
-
-  @IsBoolean({ message: 'training requirements is selected must be a boolean' })
-  isSelected: boolean;
 }
 
 export class CreateOtherTrainingParticipantsRequirementsDto {
@@ -15,10 +12,22 @@ export class CreateOtherTrainingParticipantsRequirementsDto {
   otherTrainingParticipant: string;
 }
 
-export class UpdateOtherTrainingParticipantsRequirementsDto {
+export class UpdateParticipantsRequirementsDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  participantId: string;
+
   @IsNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OtherTrainingRequirementsDto)
-  trainingRequirements: Array<OtherTrainingRequirementsDto>;
+  requirements: Array<OtherTrainingRequirementsDto>;
+}
+
+export class UpdateOtherTrainingParticipantsRequirementsDto {
+  @IsNotEmpty()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateParticipantsRequirementsDto)
+  participants: Array<UpdateParticipantsRequirementsDto>;
 }
