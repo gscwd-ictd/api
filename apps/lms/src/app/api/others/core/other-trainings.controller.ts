@@ -13,15 +13,17 @@ import {
   Query,
 } from '@nestjs/common';
 import { OtherTrainingsService } from './other-trainings.service';
-import { CreateOtherTrainingDto, OtherTraining, UpdateOtherTrainingDto } from '@gscwd-api/models';
+import { CreateOtherTrainingDto, OtherTraining, UpdateOtherTrainingDto, UpdateOtherTrainingParticipantsRequirementsDto } from '@gscwd-api/models';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { OtherTrainingParticipantsService } from '../components/other-training-participants';
+import { OtherTrainingParticipantsRequirementsService } from '../components/other-training-participants-requirements';
 
 @Controller({ version: '1', path: 'other/trainings' })
 export class OtherTrainingsController {
   constructor(
     private readonly otherTrainingsService: OtherTrainingsService,
-    private readonly otherTrainingParticipantsService: OtherTrainingParticipantsService
+    private readonly otherTrainingParticipantsService: OtherTrainingParticipantsService,
+    private readonly otherTrainingParticipantsRequirementsService: OtherTrainingParticipantsRequirementsService
   ) {}
 
   /* find all other trainings */
@@ -80,6 +82,14 @@ export class OtherTrainingsController {
   @Get(':otherTrainingId/participants/requirements')
   async findAllParticipantsRequirements(@Param('otherTrainingId') otherTrainingId: string) {
     return await this.otherTrainingsService.findAllParticipantsRequirements(otherTrainingId);
+  }
+
+  @Patch(':otherTrainingId/participants/requirements')
+  async updateParticipantsRequirementsByTrainingId(
+    @Param('otherTrainingId') otherTrainingId: string,
+    @Body() data: UpdateOtherTrainingParticipantsRequirementsDto
+  ) {
+    return await this.otherTrainingParticipantsRequirementsService.updateParticipantRequirements(data);
   }
 
   @Get('employee/:employeeId')
