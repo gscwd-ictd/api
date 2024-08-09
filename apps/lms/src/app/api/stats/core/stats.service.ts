@@ -112,7 +112,7 @@ export class StatsService {
         .crud()
         .getRepository()
         .countBy({
-          status: OtherTrainingStatus.DONE,
+          status: OtherTrainingStatus.COMPLETED,
           updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
         });
 

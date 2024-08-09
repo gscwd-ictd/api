@@ -253,7 +253,7 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
             benchmarkParticipants: items.benchmarkParticipants,
             employeeId: items.employeeId,
             name: items.name,
-            learningApplicationPlan: requirements,
+            learnersJournal: requirements,
           };
         })
       );
