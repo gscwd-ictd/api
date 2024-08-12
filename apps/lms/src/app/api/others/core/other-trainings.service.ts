@@ -161,7 +161,7 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
           dateTo: currentDate,
         },
         dto: {
-          status: OtherTrainingStatus.DONE,
+          status: OtherTrainingStatus.REQUIREMENTS_SUBMISSION,
         },
       });
     } catch (error) {
