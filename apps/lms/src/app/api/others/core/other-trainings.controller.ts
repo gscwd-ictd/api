@@ -49,10 +49,16 @@ export class OtherTrainingsController {
     return await this.otherTrainingsService.createOtherTrainings(data);
   }
 
-  /* edit a benchmark */
+  /* edit other training */
   @Patch(':id')
   async updateOtherTrainingById(@Param('id') id: string, @Body() data: UpdateOtherTrainingDto) {
     return await this.otherTrainingsService.updateOtherTrainingById(id, data);
+  }
+
+  /* update other training status */
+  @Patch(':id/status')
+  async updateOtherTrainingStatusById(@Param('id') id: string) {
+    return await this.otherTrainingsService.closeOtherTraining(id);
   }
 
   /* remove other training by id */
