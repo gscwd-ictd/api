@@ -1202,6 +1202,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
       const nomineeType = NomineeType.NOMINEE;
       const nomineeStatus = null;
+      const unassigned = parseInt(count.numberOfParticipants) - parseInt(count.pending + count.accepted) + parseInt(count.declined);
 
       const nominees = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
 
@@ -1211,6 +1212,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           pending: parseInt(count.pending),
           accepted: parseInt(count.accepted),
           declined: parseInt(count.declined),
+          unassigned: unassigned,
         },
         nominees: nominees,
       };
