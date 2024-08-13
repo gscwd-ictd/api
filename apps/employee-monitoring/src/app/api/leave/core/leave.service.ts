@@ -284,7 +284,6 @@ export class LeaveService {
         onError: () => new InternalServerErrorException(),
       });
     }
-
     return adjustment;
   }
 

@@ -228,7 +228,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const dtrRemarks = (
       await this.rawQuery(`SELECT remarks FROM daily_time_record WHERE company_id_fk = ? AND dtr_date=?`, [dtr.companyId, dtr.dtrDate])
-    )[0].remarks;
+    )[0].remarks as string;
+
+    const isLNDRemarks = dtrRemarks !== null ? dtrRemarks.includes('L & D') : false;
 
     const overtimeApplicationCount = (
       await this.rawQuery(
@@ -249,7 +251,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       (dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart) && dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd)) ||
       dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd);
     //overtimeApplicationCount === '0' &&
-    if (!isHoliday && !isRestDay) {
+
+    if (!isHoliday && !isRestDay && !isLNDRemarks) {
       console.log('lunchrest:', dayjs(restHourStart).format('YYYY-MM-DD HH:mm'), '-', restHourEnd.format('YYYY-MM-DD HH:mm'));
 
       //if (schedule.shift === 'day') {
@@ -277,8 +280,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             dayjs('2024-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
             'm'
           );
-
-      console.log('LATE NI buntag:', lateMorning);
 
       const lateAfternoon = isWithLunch
         ? dayjs(dayjs('2024-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
@@ -311,24 +312,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourStart)))
       ) {
         isHalfDay = true;
+        if (dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourEnd)) noOfLates += 1;
       }
 
-      console.log(
-        'halfday undertime tinood',
-        'timeout eksaktong 12: ',
-        dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart),
-        'timeout bago 1pm',
-        dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd),
-        'timeout after 12pm',
-        dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart),
-        'timeout eksaktong 1pm',
-        dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd),
-        'resthourstart ni',
-        restHourStart.format('HH:mm')
-      );
       //half day morning pumasok without lunch
       if (
-        !isWithLunch &&
+        // !isWithLunch &&
         (dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart) || dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart)) &&
         (dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd))
       ) {
@@ -348,8 +337,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         noOfLates += 2;
       }
 
-      console.log('late afternoon', lateAfternoon);
-
       if (!isWithLunch && dtr.timeIn === null && dtr.lunchOut === null && lateAfternoon > 0) {
         isHalfDay = true;
         minutesLate += lateAfternoon; //+ 240;
@@ -361,20 +348,17 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         noOfLates = 1;
       }
 
-      if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning > 0 && dtr.lunchIn === null && dtr.timeOut === null) {
+      if (isWithLunch && dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning > 0 && dtr.lunchIn === null && dtr.timeOut === null) {
         minutesLate += isNaN(lateAfternoon) ? 0 : lateAfternoon;
         isHalfDay = true;
         noOfUndertimes = 1;
       }
 
-      if (
-        dtr.timeIn !== null &&
-        dtr.lunchOut !== null &&
-        lateMorning <= 0 &&
-        dtr.lunchIn === null &&
-        dtr.timeOut === null &&
+      if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning <= 0 && dtr.lunchIn === null && dtr.timeOut === null) {
+        /*
+        &&
         dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
-      ) {
+        */
         isHalfDay = true;
         noOfUndertimes = 1;
       }
@@ -392,14 +376,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       //halfday-am time in
       if (
-        (isWithLunch === false &&
-          dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
-          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourStart)) ||
+        (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) && dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourStart)) ||
         (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
           dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
           dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
           (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd)))
       ) {
+        //isWithLunch === false &&
         isHalfDay = true;
         noOfUndertimes = 1;
       }
@@ -505,6 +488,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
 
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
+
+      console.log('schedule', schedule);
 
       const restDays =
         typeof schedule === 'undefined' ? [] : typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
@@ -677,6 +662,19 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
                 dtrDeductionType: DtrDeductionType.HALFDAY,
               });
             }
+            if (latesUndertimesNoAttendance.noOfLates > 0) {
+              const leaveCardItem = await this.leaveCardLedgerDebitService
+                .crud()
+                .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
+              if (!leaveCardItem) {
+                await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+                  dailyTimeRecordId: dtr,
+                  debitValue: latesUndertimesNoAttendance.minutesLate / 480,
+                  createdAt: dtr.dtrDate,
+                  dtrDeductionType: DtrDeductionType.TARDINESS,
+                });
+              }
+            }
           }
         }
       }
@@ -780,7 +778,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: EmployeeScheduleType) {
     const { isIncompleteDtr } = (await this.rawQuery(`SELECT is_incomplete_dtr(?) isIncompleteDtr;`, [currEmployeeDtr.id]))[0];
-
+    console.log('schedule schedu;e', schedule);
     if (parseInt(isIncompleteDtr) === 1) {
       switch (schedule.shift) {
         case 'day':
@@ -1335,9 +1333,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   async addDtrRemarksPerEmployee(createDtrRemarksDto: CreateDtrRemarksDto) {
     const { companyId, dtrDates, remarks } = createDtrRemarksDto;
-    console.log('dtr dates', createDtrRemarksDto);
+    //console.log('dtr dates', createDtrRemarksDto);
+
     const dtrRemarks = await Promise.all(
       dtrDates.map(async (dtrDate) => {
+        const dtrId = (await this.crud().findOneOrNull({ find: { select: { id: true }, where: { dtrDate, companyId } } })).id;
+        const dtrRemarksResult = await this.crud().update({ dto: { remarks }, updateBy: { id: dtrId } });
+        if (dtrRemarksResult.affected > 0) return { companyId, id: dtrId, dtrDate, remarks };
         return await this.crudService.create({ dto: { companyId, dtrDate, remarks } });
       })
     );

@@ -22,6 +22,7 @@ export class PassSlipController {
   async getPassSlips(@Param('employee_id') employeeId: string) {
     return await this.passSlipService.getPassSlipsByEmployeeId(employeeId);
   }
+
   @Get(':employee_id/current')
   async getCurrentPassSlips(@Param('employee_id') employeeId: string) {
     return await this.passSlipService.getCurrentPassSlipsByEmployeeId(employeeId);

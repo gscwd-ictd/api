@@ -23,6 +23,7 @@ import { OvertimeEmployeeService } from '../components/overtime-employee/core/ov
 import { OvertimeImmediateSupervisorService } from '../components/overtime-immediate-supervisor/core/overtime-immediate-supervisor.service';
 import { getDayRange1stHalf, getDayRange2ndHalf } from '@gscwd-api/utils';
 import { OfficerOfTheDayService } from '../../officer-of-the-day/core/officer-of-the-day.service';
+import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
 
 @Injectable()
 export class OvertimeService {
@@ -36,7 +37,8 @@ export class OvertimeService {
     private readonly employeeScheduleService: EmployeeScheduleService,
     private readonly dailyTimeRecordService: DailyTimeRecordService,
     private readonly officerOfTheDayService: OfficerOfTheDayService,
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
+    private readonly workSuspensionService: WorkSuspensionService
   ) {}
 
   async createOvertime(createOverTimeDto: CreateOvertimeDto) {
@@ -239,9 +241,13 @@ export class OvertimeService {
       overtimeApplications.map(async (overtimeApplication) => {
         const { employeeId, overtimeApplicationId, ...rest } = overtimeApplication;
         const immediateSupervisorName = (await this.employeeService.getEmployeeDetails(employeeId)).employeeFullName;
-        const employees = (await this.overtimeEmployeeService
-          .crud()
-          .findAll({ find: { select: { employeeId: true }, where: { overtimeApplicationId: { id: overtimeApplicationId } } } })) as {
+        const employees = (await this.overtimeEmployeeService.crud().findAll({
+          find: {
+            select: { employeeId: true },
+            where: { overtimeApplicationId: { id: overtimeApplicationId } },
+            order: { overtimeApplicationId: { plannedDate: 'DESC', status: 'DESC' } },
+          },
+        })) as {
           employeeId: string;
         }[];
 
@@ -436,7 +442,6 @@ export class OvertimeService {
         return { ...otApplication, dateApproved, approvedBy: _approvedBy, remarks };
       })
     );
-
     return overtimeApplicationsWithApprovals;
   }
 
@@ -1302,8 +1307,14 @@ export class OvertimeService {
 
               const hoursRendered = await this.getComputedHrs(restOfOvertime);
 
-              if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) totalRegularOTHoursRendered += hoursRendered;
-              else totalOffOTHoursRendered += hoursRendered;
+              const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(
+                dayjs(year + '-' + month + '-' + day).toDate()
+              );
+
+              if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) {
+                if (suspensionHours <= 0) totalRegularOTHoursRendered += hoursRendered;
+                else totalOffOTHoursRendered += hoursRendered;
+              } else totalOffOTHoursRendered += hoursRendered;
 
               return typeof overtime !== 'undefined'
                 ? { day, hoursRendered }

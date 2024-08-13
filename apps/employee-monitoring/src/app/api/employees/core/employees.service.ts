@@ -1,5 +1,5 @@
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { EmployeeDetails } from '@gscwd-api/utils';
+import { EmployeeDetails, NatureOfAppointment } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { stringify } from 'querystring';
 
@@ -228,5 +228,21 @@ export class EmployeesService {
       pattern: 'get_hrd_manager',
       payload: {},
     })) as string;
+  }
+
+  async getEmployeesByNatureOfAppointmentAndEmployeeIds(natureOfAppointment: NatureOfAppointment, employeeIds: string[]) {
+    return (await this.client.call<string, object, { employeeId: string; fullName: string }[]>({
+      action: 'send',
+      pattern: 'get_employees_by_nature_of_appointment_and_employee_ids',
+      payload: { natureOfAppointment, employeeIds },
+    })) as { employeeId: string; fullName: string }[];
+  }
+
+  async getEmployeesByNatureOfAppointment(natureOfAppointment: NatureOfAppointment) {
+    return (await this.client.call<string, string, { employeeId: string; fullName: string }[]>({
+      action: 'send',
+      pattern: 'get_employees_by_nature_of_appointment',
+      payload: natureOfAppointment,
+    })) as { employeeId: string; fullName: string }[];
   }
 }

@@ -77,7 +77,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
     console.log('Annual Leave Credit Earnings Addition executed');
   }
 
-  @Cron('0 57 23 31 11 *')
+  @Cron('0 57 23 31 12 *')
   async creditBeginningBalance() {
     //
     const employees = await this.employeeService.getAllPermanentEmployeeIds();
@@ -297,12 +297,32 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
           console.log(createdAt);
           const leaveCredits = await Promise.all(
             leaveBenefits.map(async (leaveBenefit) => {
+              const monthYear = dayjs(day).format('YYYY-MM');
+
+              //get lwop for the month
+              const lwopsForTheMonth = (await this.rawQuery(
+                `
+              SELECT DISTINCT 
+                get_num_of_leave_days(la.leave_application_id) noOfDays
+              FROM leave_application la 
+                INNER JOIN leave_application_dates lad ON la.leave_application_id = lad.leave_application_id_fk
+                  INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
+              WHERE la.employee_id_fk = ? AND lb.leave_name = 'Leave Without Pay' 
+              AND DATE_FORMAT(lad.leave_date,'%Y') = DATE_FORMAT(CONCAT(?,'-01'),'%Y') AND month(lad.leave_date) = DATE_FORMAT(CONCAT(?,'-01'),'%m');
+                `,
+                [employeeId, monthYear, monthYear]
+              )) as { noOfDays: string }[];
+
+              let lwopValue = 0;
+              if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.042;
+              console.log('lwops for the month value: ', employeeId, ': ', parseFloat(leaveBenefit.accumulatedCredits) - lwopValue);
+
               const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
                 {
                   createdAt,
                   employeeId,
                   creditDate,
-                  creditValue: parseFloat(leaveBenefit.accumulatedCredits),
+                  creditValue: parseFloat(leaveBenefit.accumulatedCredits) - lwopValue,
                   leaveBenefitsId: leaveBenefit.leaveBenefitsId,
                   remarks: '',
                 },

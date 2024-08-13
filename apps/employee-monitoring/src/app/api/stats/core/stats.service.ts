@@ -17,10 +17,8 @@ export class StatsService {
     try {
       //1. get manager organization id
       const managerOrgId = (await this.employeeService.getEmployeeDetails(employeeId)).assignment.id;
-      console.log(managerOrgId);
       //2. get employeeIds from organization id
       const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
-      console.log(employeesUnderOrgId);
 
       const employeeIds = await Promise.all(
         employeesUnderOrgId.map(async (employee) => {
@@ -41,6 +39,23 @@ export class StatsService {
         )
       )[0].passSlipCount;
 
+      const pendingOvertimeAccomplishmentApprovalsCount = (
+        await this.passSlipService.rawQuery(
+          `
+            SELECT count(DISTINCT oe.overtime_employee_id) overtimeAccomplishmentApprovalCount 
+            FROM overtime_application oa
+              INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk
+              INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id
+              INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
+            WHERE 
+            oe.employee_id_fk IN (?) 
+            AND oacc.accomplishments IS NOT NULL AND encoded_time_in IS NOT NULL AND encoded_time_out IS NOT NULL 
+            AND oacc.status = ?;
+      `,
+          [employeeIds, OvertimeStatus.PENDING]
+        )
+      )[0].overtimeAccomplishmentApprovalCount;
+
       const pendingOvertimesCount = (
         await this.passSlipService.rawQuery(
           `
@@ -49,7 +64,7 @@ export class StatsService {
               INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk
               INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
               INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
-            WHERE oe.employee_id_fk IN (?) AND status = ?
+            WHERE oe.employee_id_fk IN (?) AND status = ? 
       `,
           [employeeIds, OvertimeStatus.PENDING]
         )
@@ -64,7 +79,7 @@ export class StatsService {
         )
       )[0].leaveCount;
 
-      return { pendingPassSlipsCount, pendingLeavesCount, pendingOvertimesCount };
+      return { pendingPassSlipsCount, pendingLeavesCount, pendingOvertimesCount, pendingOvertimeAccomplishmentApprovalsCount };
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();

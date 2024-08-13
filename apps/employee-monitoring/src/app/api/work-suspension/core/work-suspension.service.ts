@@ -52,13 +52,19 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
     }
   }
 
+  async getWorkSuspensionHoursBySuspensionDateAndScheduleTimeOut(scheduleTimeOut: string, dtrDate: Date) {
+    //SELECT get_work_suspension_hours_by_date_and_schedule_time_out('2024-07-22', '21:00');
+    return (
+      await this.rawQuery(
+        `
+        SELECT get_work_suspension_hours_by_date_and_schedule_time_out(?, ?) suspensionHours;
+      `,
+        [dayjs(dtrDate).format('YYYY-MM-DD'), scheduleTimeOut]
+      )
+    )[0].suspensionHours;
+  }
+
   async getWorkSuspensionStart(scheduleTimeOut: string, dtrDate: Date) {
-    console.log(
-      'pipipopop',
-      dayjs(
-        (await this.rawQuery(`SELECT get_work_suspension_start(?,?) workSuspensionStart;`, [scheduleTimeOut, null]))[0].workSuspensionStart
-      ).isBefore(dayjs())
-    );
     return (await this.rawQuery(`SELECT get_work_suspension_start(?,?) workSuspensionStart;`, [scheduleTimeOut, dtrDate]))[0].workSuspensionStart;
   }
 }
