@@ -12,7 +12,7 @@ import {
 import { OvertimeHrsRendered, OvertimeStatus, OvertimeSummaryHalf, ScheduleBase } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
-import { DataSource, EntityManager, EntityMetadata, TreeLevelColumn } from 'typeorm';
+import { Between, DataSource, EntityManager, EntityMetadata, TreeLevelColumn } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
@@ -226,11 +226,15 @@ export class OvertimeService {
 
     const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
 
-    const employeeIds = await Promise.all(
-      employeesUnderOrgId.map(async (employee) => {
-        return employee.value;
-      })
-    );
+    const employeeIds = (
+      await Promise.all(
+        employeesUnderOrgId.map(async (employee) => {
+          return employee.value;
+        })
+      )
+    ).filter((val) => {
+      return val !== managerId;
+    });
 
     //3. get overtime employee ids for approval
     const overtimeApplications = await this.overtimeApplicationService.getOvertimeApplicationsByEmployeeIds(employeeIds);
@@ -595,6 +599,12 @@ export class OvertimeService {
               status: true,
               overtimeImmediateSupervisorId: { employeeId: true },
               managerId: true,
+            },
+            where: {
+              createdAt: Between(
+                dayjs(dayjs().format('YYYY-MM') + '-01').toDate(),
+                dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
+              ),
             },
             order: { plannedDate: 'DESC', status: 'DESC' },
             relations: { overtimeImmediateSupervisorId: true },
