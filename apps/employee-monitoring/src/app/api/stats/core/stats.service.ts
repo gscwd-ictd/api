@@ -4,13 +4,15 @@ import { EmployeesService } from '../../employees/core/employees.service';
 import { PassSlipService } from '../../pass-slip/core/pass-slip.service';
 import { OrganizationService } from '../../organization/core/organization.service';
 import dayjs = require('dayjs');
+import { OvertimeService } from '../../overtime/core/overtime.service';
 
 @Injectable()
 export class StatsService {
   constructor(
     private readonly passSlipService: PassSlipService,
     private readonly employeeService: EmployeesService,
-    private readonly organizationService: OrganizationService
+    private readonly organizationService: OrganizationService,
+    private readonly overtimeService: OvertimeService
   ) {}
 
   async countAllPendingApplicationsForManager(employeeId: string) {
@@ -56,19 +58,21 @@ export class StatsService {
         )
       )[0].overtimeAccomplishmentApprovalCount;
 
-      const pendingOvertimesCount = (
-        await this.passSlipService.rawQuery(
-          `
-            SELECT count(DISTINCT oa.overtime_application_id) overtimeApplicationCount
-            FROM overtime_application oa
-              INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk
-              INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
-              INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
-            WHERE oe.employee_id_fk IN (?) AND status = ? 
-      `,
-          [employeeIds, OvertimeStatus.PENDING]
-        )
-      )[0].overtimeApplicationCount;
+      const pendingOvertimesCount = await this.overtimeService.getOvertimeApplicationsForManagerApprovalCount(employeeId);
+
+      // (
+      //   await this.passSlipService.rawQuery(
+      //     `
+      //       SELECT count(DISTINCT oa.overtime_application_id) overtimeApplicationCount
+      //       FROM overtime_application oa
+      //         INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk
+      //         INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
+      //         INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
+      //       WHERE oe.employee_id_fk IN (?) AND status = ?
+      // `,
+      //     [employeeIds, OvertimeStatus.PENDING]
+      //   )
+      // )[0].overtimeApplicationCount;
 
       const pendingLeavesCount = (
         await this.passSlipService.rawQuery(
