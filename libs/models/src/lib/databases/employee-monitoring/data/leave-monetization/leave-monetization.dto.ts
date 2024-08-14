@@ -5,6 +5,6 @@ export class CreateLeaveMonetizationDto {
   monetizationType: MonetizationType;
   convertedVl: number;
   convertedSl: number;
-  leaveApplicationId: LeaveApplication;
+  //leaveApplicationId: LeaveApplication;
   monetizedAmount: number;
 }
