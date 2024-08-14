@@ -83,7 +83,8 @@ export enum OtherTrainingCategory {
 
 export enum OtherTrainingStatus {
   PENDING = 'pending',
-  DONE = 'done',
+  REQUIREMENTS_SUBMISSION = 'requirements submission',
+  COMPLETED = 'completed',
 }
 
 export enum TrainingHistoryType {
