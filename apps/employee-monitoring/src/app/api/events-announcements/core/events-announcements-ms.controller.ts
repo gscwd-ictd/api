@@ -8,7 +8,6 @@ export class EventsAnnouncementsMsController {
 
   @MessagePattern('get_events_announcements')
   async getEventsAnnouncements() {
-    console.log('asd');
     return await this.eventsAnnouncementService.getEventsAnnouncements();
   }
 }

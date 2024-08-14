@@ -28,7 +28,6 @@ export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> 
       const result = await this.crudService.delete({ deleteBy: { id }, softDelete: false, onError: () => new InternalServerErrorException() });
       if (result.affected > 0) {
         const deleteResult = await this.appwriteService.deleteFile(id);
-        console.log(deleteResult);
         return eventAnnouncement;
       }
     }
@@ -56,7 +55,6 @@ export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> 
   }
 
   async addEventAnnouncementFromFileBuffer(eventAnnouncementDto: CreateEventsAnnouncementsDto, uploaded_file: any) {
-    //console.log(uploaded_file);
     const { fileName, ...restOfEventAnnouncements } = eventAnnouncementDto;
     const eventAnnouncement = await this.crudService.create({
       dto: { photoUrl: null, ...restOfEventAnnouncements },
@@ -78,16 +76,14 @@ export class EventsAnnouncementsService extends CrudHelper<EventsAnnouncements> 
 
   async updateEventAnnouncement(updateEventsAnnouncementsDto: UpdateEventsAnnouncementsDto, uploaded_file: any) {
     const { id, fileName, ...restOfEventsAnnouncements } = updateEventsAnnouncementsDto;
-    //console.log(updateEventsAnnouncementsDto);
-    //console.log('UPLOOOOADED FILE', uploaded_file);
 
     if (typeof uploaded_file !== 'undefined') {
       const deleteResult = await this.appwriteService.deleteFile(id);
-      console.log('DELETETEETETEE', deleteResult);
+
       const file = await this.appwriteService.createFileFromBuffer(uploaded_file, id);
-      console.log('uploadedfile:::::', file);
+
       const photo_url = await this.appwriteService.getFileUrl(file.$id);
-      console.log(photo_url);
+
       const updateResult = await this.crudService.update({ dto: { ...restOfEventsAnnouncements, photoUrl: photo_url }, updateBy: { id } });
       if (updateResult.affected > 0) return { id, ...restOfEventsAnnouncements, photoUrl: photo_url };
     } else {

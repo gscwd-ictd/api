@@ -60,7 +60,6 @@ export class PassSlipController {
 
   @Patch()
   async updatePassSlipStatus(@Body() updatePassSlipApprovalDto: UpdatePassSlipApprovalDto) {
-    console.log(updatePassSlipApprovalDto);
     return await this.passSlipApprovalService.updatePassSlipStatus(updatePassSlipApprovalDto);
   }
 

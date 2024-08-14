@@ -60,7 +60,6 @@ export class LeaveService {
     const ledger = (
       await this.leaveApplicationService.crud().getRepository().query(`CALL sp_generate_leave_ledger_view(?,?);`, [employeeId, companyId])
     )[0];
-    console.log(ledger);
     return ledger;
   }
 

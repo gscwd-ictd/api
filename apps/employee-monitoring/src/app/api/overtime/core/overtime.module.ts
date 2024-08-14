@@ -29,5 +29,6 @@ import { WorkSuspensionModule } from '../../work-suspension/core/work-suspension
   ],
   providers: [OvertimeService],
   controllers: [OvertimeController, OvertimeMSController, OvertimeReportsController],
+  exports: [OvertimeService],
 })
 export class OvertimeModule {}

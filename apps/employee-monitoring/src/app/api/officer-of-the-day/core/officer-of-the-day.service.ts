@@ -28,6 +28,7 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
   }
 
   async getAssignableOfficerOfTheDay() {
+    //uncomment if later End user changes mind
     // const currentlyAssigned = (
     //   (await this.rawQuery(
     //     `SELECT employee_id_fk employeeId FROM officer_of_the_day WHERE now() BETWEEN date_sub(date_from,INTERVAL 1 DAY) AND date_add(date_to, INTERVAL 1 DAY);`
@@ -35,7 +36,6 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
     //     employeeId: string;
     //   }[]
     // ).map((emp) => emp.employeeId);
-    //console.log(currentlyAssigned);
     const currentlyAssigned = [];
     return await this.employeeService.getAllAssignablePermanentCasualEmployees(currentlyAssigned);
   }
@@ -78,7 +78,6 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
         employeeList.push(...res);
       })
     );
-    console.log('employeeList', employeeList);
     return employeeList;
   }
 
@@ -90,8 +89,6 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
      AND now() BETWEEN date_sub(date_from,INTERVAL 1 DAY) AND date_add(date_to, INTERVAL 1 DAY);`,
       [employeeId]
     )) as { orgId: string }[];
-
-    console.log(officerOfTheDay);
 
     let orgNames = [];
     if (officerOfTheDay.length > 0) {

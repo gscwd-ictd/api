@@ -70,7 +70,6 @@ export class EmployeesService {
       payload: employeeId,
       pattern: 'get_employee_details',
       onError: (error) => {
-        console.log('asdzxc', error);
         throw new NotFoundException(error);
       },
     })) as EmployeeDetails;

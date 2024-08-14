@@ -45,10 +45,8 @@ export class ReportsService {
   }
 
   async generateReportOnSummaryOfSickLeave(dateFrom: Date, dateTo: Date, employeeId?: string) {
-    console.log('asd');
     let leaveApplications;
     if (typeof employeeId === 'undefined' || employeeId === '') {
-      console.log('here here here');
       leaveApplications = await this.dtrService.rawQuery(
         `
         SELECT 
@@ -85,8 +83,6 @@ export class ReportsService {
         [dateFrom, dateTo, employeeId]
       );
     }
-
-    console.log(leaveApplications);
     const leaveDetails = await Promise.all(
       leaveApplications.map(async (leaveApplication) => {
         const { employeeId } = leaveApplication;
@@ -103,8 +99,6 @@ export class ReportsService {
           )
         )[0].period;
 
-        console.log('PERIOD ', period);
-
         const sickLeaveBalance = (
           await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_range(?,?,?,?);`, [
             employeeId,
@@ -113,8 +107,6 @@ export class ReportsService {
             period,
           ])
         )[0];
-
-        console.log(sickLeaveBalance);
 
         return {
           companyId: employeeDetails.companyId,
@@ -184,7 +176,6 @@ export class ReportsService {
       const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
       employees = [{ label: employeeDetails.employeeFullName, value: employeeId }];
     } else employees = await this.employeesService.getAllPermanentCasualEmployees2();
-    console.log(employees);
     const _employeePassSlips = [];
 
     const employeePassSlips = await Promise.all(
@@ -319,8 +310,6 @@ export class ReportsService {
   }
 
   async generateReportOnSummaryOfLeaveWithoutPay(monthYear: string) {
-    console.log(monthYear);
-
     const employees = await this.employeesService.getAllPermanentCasualEmployees2();
 
     const _employeesLWOP = [];
@@ -360,7 +349,6 @@ export class ReportsService {
   async generateReportOnRehabilitationLeave(dateFrom: Date, dateTo: Date, employeeId?: string) {
     let leaveApplications;
     if (typeof employeeId === 'undefined' || employeeId === '') {
-      console.log('here here here');
       leaveApplications = await this.dtrService.rawQuery(
         `
         SELECT 
@@ -436,8 +424,6 @@ export class ReportsService {
           [monthYear]
         )) as { employeeId: string }[]
       ).map((employee) => employee.employeeId);
-
-      console.log(employeeIdsPassSlipByMonthYear);
 
       let jo,
         casual,
@@ -648,7 +634,6 @@ export class ReportsService {
     const managerId = await this.employeesService.getEmployeeSupervisorId(supervisorId.toString());
     const managerDetails = await this.employeesService.getEmployeeDetails(managerId.toString());
 
-    console.log('the user', user);
     return {
       report: reportDetails,
       signatory: {

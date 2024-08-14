@@ -27,9 +27,6 @@ export class StatsService {
           return employee.value;
         })
       );
-
-      console.log(employeeIds);
-
       const pendingPassSlipsCount = (
         await this.passSlipService.rawQuery(
           `
@@ -85,7 +82,6 @@ export class StatsService {
 
       return { pendingPassSlipsCount, pendingLeavesCount, pendingOvertimesCount, pendingOvertimeAccomplishmentApprovalsCount };
     } catch (error) {
-      console.log(error);
       throw new InternalServerErrorException();
     }
   }
@@ -93,9 +89,7 @@ export class StatsService {
   async getLatesPerDepartment() {
     try {
       const depts = (await this.organizationService.getAllDepartmentsAndOgm()).map((dept) => ({ _id: dept._id, code: dept.code }));
-      //get company_ids per department;
-      console.log(depts);
-      //return depts
+
       const result = await Promise.all(
         depts.map(async (dep) => {
           const { _id, code } = dep;

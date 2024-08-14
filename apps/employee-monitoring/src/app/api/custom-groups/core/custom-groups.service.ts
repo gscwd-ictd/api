@@ -88,8 +88,6 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
       let members = [];
 
       if (typeof scheduleId !== 'undefined' && typeof dateFrom !== 'undefined' && typeof dateTo !== 'undefined') {
-        console.log('here here hreasda');
-        console.log(scheduleId, dateFrom, dateTo, customGroupId, 'asd');
         members = (await this.customGroupMembersService.getCustomGroupMembersDetails(scheduleId, dateFrom, dateTo, customGroupId)) as {
           employeeId: string;
           companyId: string;
@@ -98,7 +96,6 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
           assignment: string;
         }[];
       } else {
-        //   console.log('else');
         members = (await this.getCustomGroupAssignedMembers(customGroupId)) as {
           employeeId: string;
           companyId: string;
@@ -129,7 +126,6 @@ export class CustomGroupsService extends CrudHelper<CustomGroups> {
           return { ...member, restDays: modifiedRestdays };
         })
       );
-      console.log({ customGroupDetails, members: membersWithRestdays });
       return { customGroupDetails, members: membersWithRestdays };
     } catch {
       return { customGroupDetails, members: [] };

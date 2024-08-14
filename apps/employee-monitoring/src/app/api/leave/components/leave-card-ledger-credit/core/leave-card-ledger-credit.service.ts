@@ -294,7 +294,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
           const { employeeId } = employee;
           //dayjs(day).add(2, 'hours').hour() + ':' + dayjs().minute() + ':' + dayjs().second()
           const createdAt = dayjs(day).add(2, 'hour').toDate();
-          console.log(createdAt);
+
           const leaveCredits = await Promise.all(
             leaveBenefits.map(async (leaveBenefit) => {
               const monthYear = dayjs(day).format('YYYY-MM');
@@ -315,7 +315,6 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
 
               let lwopValue = 0;
               if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.042;
-              console.log('lwops for the month value: ', employeeId, ': ', parseFloat(leaveBenefit.accumulatedCredits) - lwopValue);
 
               const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
                 {
@@ -362,7 +361,6 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
           const { employeeId } = employee;
           //dayjs(day).add(2, 'hours').hour() + ':' + dayjs().minute() + ':' + dayjs().second()
           const createdAt = dayjs(day).add(2, 'hour').toDate();
-          console.log(createdAt);
           const leaveCredits = await Promise.all(
             leaveBenefits.map(async (leaveBenefit) => {
               const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
