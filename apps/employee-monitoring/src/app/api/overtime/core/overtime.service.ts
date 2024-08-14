@@ -195,7 +195,7 @@ export class OvertimeService {
 
     const count = (
       await this.overtimeApplicationService.rawQuery(
-        `SELECT COUNT(*) countForApprovalOT FROM overtime_application oa 
+        `SELECT COUNT(DISTINCT oa.overtime_application_id) countForApprovalOT FROM overtime_application oa 
           INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
          WHERE employee_id_fk IN (?) AND status = 'pending';`,
         [employeeIds]
