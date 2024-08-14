@@ -102,6 +102,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       /* find all training learning service provider by training id */
       const trainingLspDetails = await this.trainingLspDetailsService.findAllLspDetailsByTrainingId(id);
 
+      const actualNumberOfParticipants = await this.trainingNomineesService.countNomineeByTrainingId(id);
+
       const lspSource = trainingLspDetails.find((lsp) => lsp.source);
 
       /* find all training tag by training id */
@@ -131,6 +133,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         numberOfHours: trainingDetails.numberOfHours,
         deadlineForSubmission: trainingDetails.deadlineForSubmission,
         numberOfParticipants: trainingDetails.numberOfParticipants,
+        actualNumberOfParticipants: actualNumberOfParticipants,
         trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
         source: {
           id: trainingDetails.source.id,
@@ -176,6 +179,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       /* find all training learning service provider by training id */
       const trainingLspDetails = await this.trainingLspDetailsService.findAllLspDetailsByTrainingId(id);
 
+      const actualNumberOfParticipants = await this.trainingNomineesService.countNomineeByTrainingId(id);
+
       const lspSource = trainingLspDetails.find((lsp) => lsp.source);
 
       /* find all training tag by training id */
@@ -200,6 +205,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         numberOfHours: trainingDetails.numberOfHours,
         deadlineForSubmission: trainingDetails.deadlineForSubmission,
         numberOfParticipants: trainingDetails.numberOfParticipants,
+        actualNumberOfParticipants: actualNumberOfParticipants,
         trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
         source: {
           id: trainingDetails.source.id,
@@ -1502,7 +1508,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
               const names = trainingDetails.slotDistribution.map((item) => item.supervisor.name).join(', ');
               return {
                 date: items.createdAt,
-                title: 'Sent to Supervisors.',
+                title: 'Sent to Supervisors',
                 description: names,
                 status: 'Ongoing nomination',
               };
@@ -1513,7 +1519,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
               return {
                 date: items.createdAt,
-                title: 'Training send to Training & Development Division Manager.',
+                title: 'Training sent to Training & Development Division Manager',
                 description: approval.tddManager.name,
                 status: 'For review',
               };
@@ -1524,7 +1530,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
               return {
                 date: items.createdAt,
-                title: 'Training send to Personnel Development Committee Secretariat.',
+                title: 'Training sent to Personnel Development Committee Secretariat',
                 description: approval.pdcSecretariat.name,
                 status: 'For review',
               };
@@ -1535,7 +1541,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
               return {
                 date: items.createdAt,
-                title: 'Training send to Personnel Development Committee Chairman.',
+                title: 'Training sent to Personnel Development Committee Chairman',
                 description: approval.pdcChairman.name,
                 status: 'For review',
               };
@@ -1546,7 +1552,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
               return {
                 date: items.createdAt,
-                title: 'Training send to General Manager.',
+                title: 'Training send to General Manager',
                 description: approval.generalManager.name,
                 status: 'For approval',
               };
@@ -1555,7 +1561,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             case TrainingHistoryType.PARTICIPANT_BATCHING: {
               return {
                 date: items.createdAt,
-                title: 'Training Participants Batching.',
+                title: 'Training Participants Batching',
                 description: 'Training and Development Staff',
                 status: null,
               };
