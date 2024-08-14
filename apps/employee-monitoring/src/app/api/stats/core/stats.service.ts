@@ -4,32 +4,29 @@ import { EmployeesService } from '../../employees/core/employees.service';
 import { PassSlipService } from '../../pass-slip/core/pass-slip.service';
 import { OrganizationService } from '../../organization/core/organization.service';
 import dayjs = require('dayjs');
+import { OvertimeService } from '../../overtime/core/overtime.service';
 
 @Injectable()
 export class StatsService {
   constructor(
     private readonly passSlipService: PassSlipService,
     private readonly employeeService: EmployeesService,
-    private readonly organizationService: OrganizationService
+    private readonly organizationService: OrganizationService,
+    private readonly overtimeService: OvertimeService
   ) {}
 
   async countAllPendingApplicationsForManager(employeeId: string) {
     try {
       //1. get manager organization id
       const managerOrgId = (await this.employeeService.getEmployeeDetails(employeeId)).assignment.id;
-      console.log(managerOrgId);
       //2. get employeeIds from organization id
       const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
-      console.log(employeesUnderOrgId);
 
       const employeeIds = await Promise.all(
         employeesUnderOrgId.map(async (employee) => {
           return employee.value;
         })
       );
-
-      console.log(employeeIds);
-
       const pendingPassSlipsCount = (
         await this.passSlipService.rawQuery(
           `
@@ -41,19 +38,38 @@ export class StatsService {
         )
       )[0].passSlipCount;
 
-      const pendingOvertimesCount = (
+      const pendingOvertimeAccomplishmentApprovalsCount = (
         await this.passSlipService.rawQuery(
           `
-            SELECT count(DISTINCT oa.overtime_application_id) overtimeApplicationCount
+            SELECT count(DISTINCT oe.overtime_employee_id) overtimeAccomplishmentApprovalCount 
             FROM overtime_application oa
               INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk
-              INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
+              INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id
               INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
-            WHERE oe.employee_id_fk IN (?) AND status = ?
+            WHERE 
+            oe.employee_id_fk IN (?) 
+            AND oacc.accomplishments IS NOT NULL AND encoded_time_in IS NOT NULL AND encoded_time_out IS NOT NULL 
+            AND oacc.status = ?;
       `,
           [employeeIds, OvertimeStatus.PENDING]
         )
-      )[0].overtimeApplicationCount;
+      )[0].overtimeAccomplishmentApprovalCount;
+
+      const pendingOvertimesCount = await this.overtimeService.getOvertimeApplicationsForManagerApprovalCount(employeeId);
+
+      // (
+      //   await this.passSlipService.rawQuery(
+      //     `
+      //       SELECT count(DISTINCT oa.overtime_application_id) overtimeApplicationCount
+      //       FROM overtime_application oa
+      //         INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk
+      //         INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
+      //         INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
+      //       WHERE oe.employee_id_fk IN (?) AND status = ?
+      // `,
+      //     [employeeIds, OvertimeStatus.PENDING]
+      //   )
+      // )[0].overtimeApplicationCount;
 
       const pendingLeavesCount = (
         await this.passSlipService.rawQuery(
@@ -64,9 +80,8 @@ export class StatsService {
         )
       )[0].leaveCount;
 
-      return { pendingPassSlipsCount, pendingLeavesCount, pendingOvertimesCount };
+      return { pendingPassSlipsCount, pendingLeavesCount, pendingOvertimesCount, pendingOvertimeAccomplishmentApprovalsCount };
     } catch (error) {
-      console.log(error);
       throw new InternalServerErrorException();
     }
   }
@@ -74,9 +89,7 @@ export class StatsService {
   async getLatesPerDepartment() {
     try {
       const depts = (await this.organizationService.getAllDepartmentsAndOgm()).map((dept) => ({ _id: dept._id, code: dept.code }));
-      //get company_ids per department;
-      console.log(depts);
-      //return depts
+
       const result = await Promise.all(
         depts.map(async (dep) => {
           const { _id, code } = dep;

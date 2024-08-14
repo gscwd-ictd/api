@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Next } from '@nestjs/common';
+import { ForbiddenException, Injectable, Next, NotFoundException } from '@nestjs/common';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { NatureOfAppointment, Report, User } from '@gscwd-api/utils';
@@ -45,10 +45,8 @@ export class ReportsService {
   }
 
   async generateReportOnSummaryOfSickLeave(dateFrom: Date, dateTo: Date, employeeId?: string) {
-    console.log('asd');
     let leaveApplications;
     if (typeof employeeId === 'undefined' || employeeId === '') {
-      console.log('here here here');
       leaveApplications = await this.dtrService.rawQuery(
         `
         SELECT 
@@ -85,8 +83,6 @@ export class ReportsService {
         [dateFrom, dateTo, employeeId]
       );
     }
-
-    console.log(leaveApplications);
     const leaveDetails = await Promise.all(
       leaveApplications.map(async (leaveApplication) => {
         const { employeeId } = leaveApplication;
@@ -103,8 +99,6 @@ export class ReportsService {
           )
         )[0].period;
 
-        console.log('PERIOD ', period);
-
         const sickLeaveBalance = (
           await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_range(?,?,?,?);`, [
             employeeId,
@@ -113,8 +107,6 @@ export class ReportsService {
             period,
           ])
         )[0];
-
-        console.log(sickLeaveBalance);
 
         return {
           companyId: employeeDetails.companyId,
@@ -184,7 +176,6 @@ export class ReportsService {
       const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
       employees = [{ label: employeeDetails.employeeFullName, value: employeeId }];
     } else employees = await this.employeesService.getAllPermanentCasualEmployees2();
-    console.log(employees);
     const _employeePassSlips = [];
 
     const employeePassSlips = await Promise.all(
@@ -319,8 +310,6 @@ export class ReportsService {
   }
 
   async generateReportOnSummaryOfLeaveWithoutPay(monthYear: string) {
-    console.log(monthYear);
-
     const employees = await this.employeesService.getAllPermanentCasualEmployees2();
 
     const _employeesLWOP = [];
@@ -360,7 +349,6 @@ export class ReportsService {
   async generateReportOnRehabilitationLeave(dateFrom: Date, dateTo: Date, employeeId?: string) {
     let leaveApplications;
     if (typeof employeeId === 'undefined' || employeeId === '') {
-      console.log('here here here');
       leaveApplications = await this.dtrService.rawQuery(
         `
         SELECT 
@@ -423,172 +411,173 @@ export class ReportsService {
      * Salary deduction computation
      * Remarks(Reason of pass slip)
      */
-    const employeeIdsPassSlipByMonthYear = (
-      (await this.dtrService.rawQuery(
-        `
-        SELECT DISTINCT employee_id_fk employeeId FROM pass_slip ps 
-          INNER JOIN pass_slip_approval psa ON ps.pass_slip_id=psa.pass_slip_id_fk
-        WHERE psa.status = 'approved' AND ps.is_deductible_to_pay = true 
-        AND DATE_FORMAT(ps.date_of_application,'%Y-%m') = ? 
-        AND ps.time_out IS NOT NULL;
-      `,
-        [monthYear]
-      )) as { employeeId: string }[]
-    ).map((employee) => employee.employeeId);
-
-    console.log(employeeIdsPassSlipByMonthYear);
-
-    let jo,
-      casual,
-      permanent = [];
-    const employeesJo = await this.employeesService.getEmployeesByNatureOfAppointmentAndEmployeeIds(
-      NatureOfAppointment.JOBORDER,
-      employeeIdsPassSlipByMonthYear
-    );
-
-    await Promise.all(
-      employeesJo.map(async (employee) => {
-        const { employeeId, fullName } = employee;
-
-        const passSlipDetails = (await this.dtrService.rawQuery(
+    try {
+      const employeeIdsPassSlipByMonthYear = (
+        (await this.dtrService.rawQuery(
           `
-          SELECT 
-              DATE_FORMAT(date_of_application, '%Y-%m-%d') psDate,
-              get_pass_slip_total_minutes_consumed(ps.pass_slip_id) noOfMinConsumed,
-              TRUNCATE(get_pass_slip_total_minutes_consumed(ps.pass_slip_id)/60*.125,3) conversion,
-              get_time_out_in_personal_business_pass_slip_detailed(ps.pass_slip_id) timeInTimeOut,
-              ps.purpose_destination remarks
-            FROM 
-          pass_slip ps INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
-          WHERE employee_id_fk = ? AND DATE_FORMAT(date_of_application, '%Y-%m') = ? 
-          AND nature_of_business IN ('personal business','half day','undertime') AND psa.status = 'approved' 
-          AND (time_out IS NOT NULL OR encoded_time_out IS NOT NULL) ORDER BY psDate ASC;
+          SELECT DISTINCT employee_id_fk employeeId FROM pass_slip ps 
+            INNER JOIN pass_slip_approval psa ON ps.pass_slip_id=psa.pass_slip_id_fk
+          WHERE psa.status = 'approved' AND ps.is_deductible_to_pay = true 
+          AND DATE_FORMAT(ps.date_of_application,'%Y-%m') = ? 
+          AND ps.time_out IS NOT NULL;
         `,
-          [employeeId, monthYear]
-        )) as { noOfMinConsumed: number; conversion: number; psDate: Date; timeInTimeOut: string; remarks: string }[];
+          [monthYear]
+        )) as { employeeId: string }[]
+      ).map((employee) => employee.employeeId);
 
-        const joPassSlipDeductibleToPayWithComputation = await Promise.all(
-          passSlipDetails.map(async (passSlipDetail) => {
-            const dailyRate = parseFloat((await this.employeesService.getSalaryGradeOrDailyRateByEmployeeId(employeeId)).dailyRate.toString());
-            const { noOfMinConsumed, psDate, conversion, timeInTimeOut, remarks } = passSlipDetail;
-            const salaryDeductionComputation = Math.round(conversion * dailyRate * 100) / 100;
-            return {
-              employeeId,
-              fullName,
-              numberOfHours: Math.round((noOfMinConsumed / 60) * 100) / 100,
-              salaryDeductionComputation,
-              dateOfApplication: psDate,
-              timeInTimeOut,
-              remarks,
-            };
-          })
-        );
+      let jo,
+        casual,
+        permanent = [];
+      const employeesJo = await this.employeesService.getEmployeesByNatureOfAppointmentAndEmployeeIds(
+        NatureOfAppointment.JOBORDER,
+        employeeIdsPassSlipByMonthYear
+      );
 
-        jo = joPassSlipDeductibleToPayWithComputation;
-      })
-    );
+      await Promise.all(
+        employeesJo.map(async (employee) => {
+          const { employeeId, fullName } = employee;
 
-    const employeesCasual = await this.employeesService.getEmployeesByNatureOfAppointmentAndEmployeeIds(
-      NatureOfAppointment.CASUAL,
-      employeeIdsPassSlipByMonthYear
-    );
+          const passSlipDetails = (await this.dtrService.rawQuery(
+            `
+            SELECT 
+                DATE_FORMAT(date_of_application, '%Y-%m-%d') psDate,
+                get_pass_slip_total_minutes_consumed(ps.pass_slip_id) noOfMinConsumed,
+                TRUNCATE(get_pass_slip_total_minutes_consumed(ps.pass_slip_id)/60*.125,3) conversion,
+                get_time_out_in_personal_business_pass_slip_detailed(ps.pass_slip_id) timeInTimeOut,
+                ps.purpose_destination remarks
+              FROM 
+            pass_slip ps INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
+            WHERE employee_id_fk = ? AND DATE_FORMAT(date_of_application, '%Y-%m') = ? 
+            AND nature_of_business IN ('personal business','half day','undertime') AND psa.status = 'approved' 
+            AND (time_out IS NOT NULL OR encoded_time_out IS NOT NULL) ORDER BY psDate ASC;
+          `,
+            [employeeId, monthYear]
+          )) as { noOfMinConsumed: number; conversion: number; psDate: Date; timeInTimeOut: string; remarks: string }[];
 
-    await Promise.all(
-      employeesCasual.map(async (employee) => {
-        const { employeeId, fullName } = employee;
+          const joPassSlipDeductibleToPayWithComputation = await Promise.all(
+            passSlipDetails.map(async (passSlipDetail) => {
+              const dailyRate = parseFloat((await this.employeesService.getSalaryGradeOrDailyRateByEmployeeId(employeeId)).dailyRate.toString());
+              const { noOfMinConsumed, psDate, conversion, timeInTimeOut, remarks } = passSlipDetail;
+              const salaryDeductionComputation = Math.round(conversion * dailyRate * 100) / 100;
+              return {
+                employeeId,
+                fullName,
+                numberOfHours: Math.round((noOfMinConsumed / 60) * 100) / 100,
+                salaryDeductionComputation,
+                dateOfApplication: psDate,
+                timeInTimeOut,
+                remarks,
+              };
+            })
+          );
 
-        const passSlipDetails = (await this.dtrService.rawQuery(
-          `
-          SELECT 
-              DATE_FORMAT(date_of_application, '%Y-%m-%d') psDate,
-              get_pass_slip_total_minutes_consumed(ps.pass_slip_id) noOfMinConsumed,
-              TRUNCATE(get_pass_slip_total_minutes_consumed(ps.pass_slip_id)/60*.125,3) conversion,
-              get_time_out_in_personal_business_pass_slip_detailed(ps.pass_slip_id) timeInTimeOut,
-              ps.purpose_destination remarks
-            FROM 
-          pass_slip ps INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
-          WHERE employee_id_fk = ? AND DATE_FORMAT(date_of_application, '%Y-%m') = ? 
-          AND nature_of_business IN ('personal business','half day','undertime') AND psa.status = 'approved' 
-          AND (time_out IS NOT NULL OR encoded_time_out IS NOT NULL) ORDER BY psDate ASC;
-        `,
-          [employeeId, monthYear]
-        )) as { noOfMinConsumed: number; conversion: number; psDate: Date; timeInTimeOut: string; remarks: string }[];
+          jo = joPassSlipDeductibleToPayWithComputation;
+        })
+      );
 
-        const casualPassSlipDeductibleToPayWithComputation = await Promise.all(
-          passSlipDetails.map(async (passSlipDetail) => {
-            // const dailyRate = parseFloat(
-            //   (await this.employeesService.getSalaryGradeOrDailyRateByEmployeeId(employeeId)).salaryGradeAmount.toString()
-            // );
-            const dailyRate = (await this.employeesService.getSalaryGradeOrDailyRateByEmployeeId(employeeId)).salaryGradeAmount / 22 / 8;
-            const { noOfMinConsumed, psDate, conversion, timeInTimeOut, remarks } = passSlipDetail;
-            const salaryDeductionComputation = Math.round(conversion * dailyRate * 100) / 100;
-            return {
-              employeeId,
-              fullName,
-              numberOfHours: Math.floor((noOfMinConsumed / 60) * 100) / 100,
-              salaryDeductionComputation,
-              dateOfApplication: psDate,
-              timeInTimeOut,
-              remarks,
-            };
-          })
-        );
-        casual = casualPassSlipDeductibleToPayWithComputation;
-      })
-    );
+      const employeesCasual = await this.employeesService.getEmployeesByNatureOfAppointmentAndEmployeeIds(
+        NatureOfAppointment.CASUAL,
+        employeeIdsPassSlipByMonthYear
+      );
 
-    const employeesPermanent = await this.employeesService.getEmployeesByNatureOfAppointmentAndEmployeeIds(
-      NatureOfAppointment.PERMANENT,
-      employeeIdsPassSlipByMonthYear
-    );
+      await Promise.all(
+        employeesCasual.map(async (employee) => {
+          const { employeeId, fullName } = employee;
 
-    await Promise.all(
-      employeesPermanent.map(async (employee) => {
-        const { employeeId, fullName } = employee;
+          const passSlipDetails = (await this.dtrService.rawQuery(
+            `
+            SELECT 
+                DATE_FORMAT(date_of_application, '%Y-%m-%d') psDate,
+                get_pass_slip_total_minutes_consumed(ps.pass_slip_id) noOfMinConsumed,
+                TRUNCATE(get_pass_slip_total_minutes_consumed(ps.pass_slip_id)/60*.125,3) conversion,
+                get_time_out_in_personal_business_pass_slip_detailed(ps.pass_slip_id) timeInTimeOut,
+                ps.purpose_destination remarks
+              FROM 
+            pass_slip ps INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
+            WHERE employee_id_fk = ? AND DATE_FORMAT(date_of_application, '%Y-%m') = ? 
+            AND nature_of_business IN ('personal business','half day','undertime') AND psa.status = 'approved' 
+            AND (time_out IS NOT NULL OR encoded_time_out IS NOT NULL) ORDER BY psDate ASC;
+          `,
+            [employeeId, monthYear]
+          )) as { noOfMinConsumed: number; conversion: number; psDate: Date; timeInTimeOut: string; remarks: string }[];
 
-        const passSlipDetails = (await this.dtrService.rawQuery(
-          `
-          SELECT 
-              DATE_FORMAT(date_of_application, '%Y-%m-%d') psDate,
-              get_pass_slip_total_minutes_consumed(ps.pass_slip_id) noOfMinConsumed,
-              TRUNCATE(get_pass_slip_total_minutes_consumed(ps.pass_slip_id)/60*.125,3) conversion,
-              get_time_out_in_personal_business_pass_slip_detailed(ps.pass_slip_id) timeInTimeOut,
-              ps.purpose_destination remarks
-            FROM 
-          pass_slip ps INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
-          WHERE employee_id_fk = ? AND DATE_FORMAT(date_of_application, '%Y-%m') = ? 
-          AND nature_of_business IN ('personal business','half day','undertime') AND psa.status = 'approved' 
-          AND (time_out IS NOT NULL OR encoded_time_out IS NOT NULL) ORDER BY psDate ASC;
-        `,
-          [employeeId, monthYear]
-        )) as { noOfMinConsumed: number; conversion: number; psDate: Date; timeInTimeOut: string; remarks: string }[];
+          const casualPassSlipDeductibleToPayWithComputation = await Promise.all(
+            passSlipDetails.map(async (passSlipDetail) => {
+              // const dailyRate = parseFloat(
+              //   (await this.employeesService.getSalaryGradeOrDailyRateByEmployeeId(employeeId)).salaryGradeAmount.toString()
+              // );
+              const dailyRate = (await this.employeesService.getSalaryGradeOrDailyRateByEmployeeId(employeeId)).salaryGradeAmount / 22;
+              const { noOfMinConsumed, psDate, conversion, timeInTimeOut, remarks } = passSlipDetail;
+              const salaryDeductionComputation = Math.round(conversion * dailyRate * 100) / 100;
+              return {
+                employeeId,
+                fullName,
+                numberOfHours: Math.floor((noOfMinConsumed / 60) * 100) / 100,
+                salaryDeductionComputation,
+                dateOfApplication: psDate,
+                timeInTimeOut,
+                remarks,
+              };
+            })
+          );
+          casual = casualPassSlipDeductibleToPayWithComputation;
+        })
+      );
 
-        const permanentPassSlipDeductibleToPayWithComputation = await Promise.all(
-          passSlipDetails.map(async (passSlipDetail) => {
-            const dailyRate = (await this.employeesService.getSalaryGradeOrDailyRateByEmployeeId(employeeId)).salaryGradeAmount / 22 / 8;
-            const { noOfMinConsumed, psDate, conversion, timeInTimeOut, remarks } = passSlipDetail;
-            const salaryDeductionComputation = Math.round(conversion * dailyRate * 100) / 100;
-            return {
-              employeeId,
-              fullName,
-              numberOfHours: Math.floor((noOfMinConsumed / 60) * 100) / 100,
-              salaryDeductionComputation,
-              dateOfApplication: psDate,
-              timeInTimeOut,
-              remarks,
-            };
-          })
-        );
+      const employeesPermanent = await this.employeesService.getEmployeesByNatureOfAppointmentAndEmployeeIds(
+        NatureOfAppointment.PERMANENT,
+        employeeIdsPassSlipByMonthYear
+      );
 
-        permanent = permanentPassSlipDeductibleToPayWithComputation;
-      })
-    );
+      await Promise.all(
+        employeesPermanent.map(async (employee) => {
+          const { employeeId, fullName } = employee;
 
-    return {
-      jo,
-      casual,
-      permanent,
-    };
+          const passSlipDetails = (await this.dtrService.rawQuery(
+            `
+            SELECT 
+                DATE_FORMAT(date_of_application, '%Y-%m-%d') psDate,
+                get_pass_slip_total_minutes_consumed(ps.pass_slip_id) noOfMinConsumed,
+                TRUNCATE(get_pass_slip_total_minutes_consumed(ps.pass_slip_id)/60*.125,3) conversion,
+                get_time_out_in_personal_business_pass_slip_detailed(ps.pass_slip_id) timeInTimeOut,
+                ps.purpose_destination remarks
+              FROM 
+            pass_slip ps INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
+            WHERE employee_id_fk = ? AND DATE_FORMAT(date_of_application, '%Y-%m') = ? 
+            AND nature_of_business IN ('personal business','half day','undertime') AND psa.status = 'approved' 
+            AND (time_out IS NOT NULL OR encoded_time_out IS NOT NULL) ORDER BY psDate ASC;
+          `,
+            [employeeId, monthYear]
+          )) as { noOfMinConsumed: number; conversion: number; psDate: Date; timeInTimeOut: string; remarks: string }[];
+
+          const permanentPassSlipDeductibleToPayWithComputation = await Promise.all(
+            passSlipDetails.map(async (passSlipDetail) => {
+              const dailyRate = (await this.employeesService.getSalaryGradeOrDailyRateByEmployeeId(employeeId)).salaryGradeAmount / 22;
+              const { noOfMinConsumed, psDate, conversion, timeInTimeOut, remarks } = passSlipDetail;
+              const salaryDeductionComputation = Math.round(conversion * dailyRate * 100) / 100;
+              return {
+                employeeId,
+                fullName,
+                numberOfHours: Math.floor((noOfMinConsumed / 60) * 100) / 100,
+                salaryDeductionComputation,
+                dateOfApplication: psDate,
+                timeInTimeOut,
+                remarks,
+              };
+            })
+          );
+          permanent = permanentPassSlipDeductibleToPayWithComputation;
+        })
+      );
+
+      return {
+        jo,
+        casual,
+        permanent,
+      };
+    } catch (error) {
+      throw new NotFoundException();
+    }
   }
 
   async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string, employeeId?: string) {
@@ -645,7 +634,6 @@ export class ReportsService {
     const managerId = await this.employeesService.getEmployeeSupervisorId(supervisorId.toString());
     const managerDetails = await this.employeesService.getEmployeeDetails(managerId.toString());
 
-    console.log('the user', user);
     return {
       report: reportDetails,
       signatory: {

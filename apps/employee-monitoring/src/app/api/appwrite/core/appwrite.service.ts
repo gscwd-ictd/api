@@ -21,7 +21,6 @@ export class AppwriteService {
   }
 
   async createFileFromBuffer(file: any, id: string) {
-    console.log('file file file', file);
     const _file = InputFile.fromBuffer(file.buffer, file.originalname);
     const result = await this.getStorage().createFile(process.env.APPWRITE_BUCKET_ID, id, _file);
     return result;
@@ -38,7 +37,6 @@ export class AppwriteService {
 
   async deleteFile(fileId: string) {
     const result = await this.getStorage().deleteFile(process.env.APPWRITE_BUCKET_ID, fileId);
-    console.log(result);
     return result;
   }
 }

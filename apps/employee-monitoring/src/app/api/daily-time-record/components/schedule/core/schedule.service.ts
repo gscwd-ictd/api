@@ -115,7 +115,6 @@ export class ScheduleService extends CrudHelper<Schedule> {
   }
 
   async deleteGroupSchedule(groupSchedule: GroupScheduleType) {
-    console.log(groupSchedule);
     const { customGroupId, dateFrom, dateTo, scheduleId } = groupSchedule;
     //2. delete employees from custom group where scheduleId,dateFrom,dateTo
 
@@ -128,7 +127,6 @@ export class ScheduleService extends CrudHelper<Schedule> {
     )) as { employeeId: string }[];
 
     if (employeeIds.length === 0 || typeof employeeIds === 'undefined') {
-      console.log('asd as');
       throw new HttpException('There are no employees in this schedule.', 404);
     }
 
@@ -137,15 +135,10 @@ export class ScheduleService extends CrudHelper<Schedule> {
         return employeeId.employeeId;
       })
     )) as string[];
-
-    console.log('employees:', employeeIdsArray);
-
     const deleteEmployeeCustomGroupResult = (await this.rawQuery(
       `DELETE FROM employee_schedule WHERE employee_id_fk IN (?) AND date_format(date_from, '%Y-%m-%d') = ? and date_format(date_to, '%Y-%m-%d') = ? AND schedule_id_fk = ? AND custom_group_id_fk = ?;`,
       [employeeIdsArray, dateFrom, dateTo, scheduleId, customGroupId]
     )) as { affectedRows: number };
-
-    console.log('affected: ', deleteEmployeeCustomGroupResult.affectedRows);
 
     const { countRestDays } = (
       await this.rawQuery(
@@ -154,7 +147,6 @@ export class ScheduleService extends CrudHelper<Schedule> {
       )
     )[0];
 
-    console.log(countRestDays);
     //delete rest day/rest days
     if (parseInt(countRestDays) > 0) {
       await this.rawQuery(
@@ -171,9 +163,6 @@ export class ScheduleService extends CrudHelper<Schedule> {
       ]);
     }
 
-    console.log(deleteEmployeeCustomGroupResult);
-
-    console.log(deleteEmployeeCustomGroupResult.affectedRows);
     if (deleteEmployeeCustomGroupResult.affectedRows > 0) return groupSchedule;
     else throw new InternalServerErrorException();
   }

@@ -6,7 +6,6 @@ export const User = createParamDecorator((data: { email: string; _id: string }, 
 
   // set the data to the current user in session
   data = request.session.user;
-  console.log('as asd asdd', data);
   // return the data
   return data;
 });
