@@ -1552,7 +1552,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
               return {
                 date: items.createdAt,
-                title: 'Training send to General Manager',
+                title: 'Training sent to General Manager',
                 description: approval.generalManager.name,
                 status: 'For approval',
               };
