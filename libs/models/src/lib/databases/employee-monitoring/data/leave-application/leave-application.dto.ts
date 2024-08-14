@@ -2,6 +2,7 @@ import { LeaveApplicationStatus } from '@gscwd-api/utils';
 import { PartialType, PickType } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsDate, IsDateString, IsEnum, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { LeaveBenefits } from '../leave-benefits/leave-benefits.entity';
+import { CreateLeaveMonetizationDto, LeaveMonetizationDto } from '../leave-monetization';
 
 export class CreateLeaveApplicationDto {
   @IsUUID(4, { message: 'Invalid Leave benefits UUID value.' })
@@ -87,7 +88,11 @@ export class CreateLeaveApplicationDto {
   @IsOptional()
   isLateFiling: boolean;
 
+  @IsOptional()
   leaveApplicationDates: Date[] | { from: Date; to: Date };
+
+  @IsOptional()
+  leaveMonetization: CreateLeaveMonetizationDto;
 }
 export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) {}
 
