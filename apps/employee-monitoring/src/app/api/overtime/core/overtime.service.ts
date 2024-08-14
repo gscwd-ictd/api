@@ -12,7 +12,7 @@ import {
 import { OvertimeHrsRendered, OvertimeStatus, OvertimeSummaryHalf, ScheduleBase } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
-import { DataSource, EntityManager, EntityMetadata, TreeLevelColumn } from 'typeorm';
+import { Between, DataSource, EntityManager, EntityMetadata, TreeLevelColumn } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
@@ -23,6 +23,7 @@ import { OvertimeEmployeeService } from '../components/overtime-employee/core/ov
 import { OvertimeImmediateSupervisorService } from '../components/overtime-immediate-supervisor/core/overtime-immediate-supervisor.service';
 import { getDayRange1stHalf, getDayRange2ndHalf } from '@gscwd-api/utils';
 import { OfficerOfTheDayService } from '../../officer-of-the-day/core/officer-of-the-day.service';
+import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
 
 @Injectable()
 export class OvertimeService {
@@ -36,7 +37,8 @@ export class OvertimeService {
     private readonly employeeScheduleService: EmployeeScheduleService,
     private readonly dailyTimeRecordService: DailyTimeRecordService,
     private readonly officerOfTheDayService: OfficerOfTheDayService,
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
+    private readonly workSuspensionService: WorkSuspensionService
   ) {}
 
   async createOvertime(createOverTimeDto: CreateOvertimeDto) {
@@ -110,7 +112,7 @@ export class OvertimeService {
     //1. get manager organization id
     const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
     //2. get employeeIds from organization id
-    //INJECT HERE
+    //INJECT HERE UNCOMMENT LATER IF END USER CHANGES MIND
     //const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
     //console.log('officer of the day', officerOfTheDayOrgs.length);
     // const employeesUnderOrgId =
@@ -123,8 +125,6 @@ export class OvertimeService {
         return employee.value;
       })
     );
-
-    //console.log('Employees Under Org', employeesUnderOrgId);
 
     //3. get overtime employee ids for approval
     const overtimeApplication = await this.overtimeApplicationService.getOvertimeApplicationByEmployeeIdsAndOvertimeId(employeeIds, id);
@@ -158,10 +158,8 @@ export class OvertimeService {
             [employeeId, overtimeApplication.overtimeApplicationId]
           )
         )[0];
-        console.log(overtime);
 
         const { isAccomplishmentSubmitted, status, overtimeAccomplishmentId, approvedBy, dateApproved } = overtime;
-        console.log('asd asd', approvedBy);
 
         const _approvedBy =
           approvedBy === null || approvedBy === '' ? null : (await this.employeeService.getEmployeeDetails(approvedBy)).employeeFullName;
@@ -193,7 +191,7 @@ export class OvertimeService {
 
     const count = (
       await this.overtimeApplicationService.rawQuery(
-        `SELECT COUNT(*) countForApprovalOT FROM overtime_application oa 
+        `SELECT COUNT(DISTINCT oa.overtime_application_id) countForApprovalOT FROM overtime_application oa 
           INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
          WHERE employee_id_fk IN (?) AND status = 'pending';`,
         [employeeIds]
@@ -206,8 +204,7 @@ export class OvertimeService {
     //
     //1. get manager organization id
     const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
-    //console.log('test test test', await this.employeeService.getEmployeesByOrgId(managerOrgId));
-    //console.log(managerOrgId);
+
     //check if officer of the day/uncomment below if rules change again for officer of the day approval;
     //const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
     const officerOfTheDayOrgs = [];
@@ -218,30 +215,34 @@ export class OvertimeService {
         ? await this.officerOfTheDayService.getEmployeesUnderOfficerOfTheDay(managerId)
         : await this.employeeService.getEmployeesByOrgId(managerOrgId);*/
 
-    //console.log('test test test', await this.employeeService.getEmployeesByOrgId(managerOrgId));
-
     //2. get employeeIds from organization id
 
     const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
 
-    const employeeIds = await Promise.all(
-      employeesUnderOrgId.map(async (employee) => {
-        return employee.value;
-      })
-    );
+    const employeeIds = (
+      await Promise.all(
+        employeesUnderOrgId.map(async (employee) => {
+          return employee.value;
+        })
+      )
+    ).filter((val) => {
+      return val !== managerId;
+    });
 
     //3. get overtime employee ids for approval
     const overtimeApplications = await this.overtimeApplicationService.getOvertimeApplicationsByEmployeeIds(employeeIds);
-
-    console.log(overtimeApplications);
 
     const overtimeApplicationsWithSupervisorName = await Promise.all(
       overtimeApplications.map(async (overtimeApplication) => {
         const { employeeId, overtimeApplicationId, ...rest } = overtimeApplication;
         const immediateSupervisorName = (await this.employeeService.getEmployeeDetails(employeeId)).employeeFullName;
-        const employees = (await this.overtimeEmployeeService
-          .crud()
-          .findAll({ find: { select: { employeeId: true }, where: { overtimeApplicationId: { id: overtimeApplicationId } } } })) as {
+        const employees = (await this.overtimeEmployeeService.crud().findAll({
+          find: {
+            select: { employeeId: true },
+            where: { overtimeApplicationId: { id: overtimeApplicationId } },
+            order: { overtimeApplicationId: { plannedDate: 'DESC', status: 'DESC' } },
+          },
+        })) as {
           employeeId: string;
         }[];
 
@@ -436,7 +437,6 @@ export class OvertimeService {
         return { ...otApplication, dateApproved, approvedBy: _approvedBy, remarks };
       })
     );
-
     return overtimeApplicationsWithApprovals;
   }
 
@@ -478,7 +478,6 @@ export class OvertimeService {
   }
 
   async getOvertimeEmployeeDetails(overtimeApplications: OvertimeApplication[]) {
-    console.log('details');
     return await Promise.all(
       overtimeApplications.map(async (overtime) => {
         const { overtimeImmediateSupervisorId, ...rest } = overtime;
@@ -531,20 +530,13 @@ export class OvertimeService {
   }
 
   async getOvertimeApplicationsByImmediateSupervisorId(id: string) {
-    console.log('approved');
-    let employeeId;
-    employeeId = await this.overtimeImmediateSupervisorService.crud().findOne({ find: { select: { employeeId: true }, where: { id } } });
-
-    // if(employeeId === null){
-    //   employeeId = await this.
-    // }
+    const employeeId = await this.overtimeImmediateSupervisorService.crud().findOne({ find: { select: { employeeId: true }, where: { id } } });
 
     const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId.employeeId);
     const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
 
     const approvedOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.APPROVED);
 
-    console.log('for approval');
     const forApprovalOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.PENDING);
 
     const cancelledOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.CANCELLED);
@@ -591,6 +583,12 @@ export class OvertimeService {
               overtimeImmediateSupervisorId: { employeeId: true },
               managerId: true,
             },
+            where: {
+              createdAt: Between(
+                dayjs(dayjs().format('YYYY-MM') + '-01').toDate(),
+                dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
+              ),
+            },
             order: { plannedDate: 'DESC', status: 'DESC' },
             relations: { overtimeImmediateSupervisorId: true },
           },
@@ -623,9 +621,9 @@ export class OvertimeService {
           const _approvedBy = approvedBy === null ? null : (await this.employeeService.getEmployeeDetails(approvedBy)).employeeFullName;
 
           const _immediateSupervisorId = overtimeImmediateSupervisorId === null ? overtime.managerId : overtimeImmediateSupervisorId.employeeId;
-          //console.log(idx);
+
           const immediateSupervisorName = await this.employeeService.getEmployeeName(_immediateSupervisorId);
-          if (idx === 0) console.log('SUPERVISOR: ', { _immediateSupervisorId, immediateSupervisorName });
+
           const _employeesDetails = (await Promise.all(
             employees.map(async (employee) => {
               const { employeeId } = employee;
@@ -696,22 +694,18 @@ export class OvertimeService {
   }
 
   async getOvertimeDetails(employeeId: string, overtimeApplicationId: string) {
-    console.log(employeeId);
     const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
 
-    console.log('employee schedules:', employeeSchedules);
     const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
     const restDays = employeeSchedules !== null ? employeeSchedules[0].restDays : null;
     const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
 
-    console.log('OVERTIMEAPPLICATION ', overtimeApplicationId);
     const overtimeDetails = (await this.overtimeAccomplishmentService.crud().findOne({
       find: {
         where: { overtimeEmployeeId: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } },
         relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
       },
     })) as OvertimeAccomplishment;
-    console.log('overtimedetails ', overtimeDetails);
 
     const supervisorId = (await this.employeeService.getEmployeeSupervisorId(employeeId)).toString();
 
@@ -724,14 +718,10 @@ export class OvertimeService {
     let didFaceScan = null;
     let dtr = null;
 
-    console.log('PLANNED DATE', overtimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate);
-
     dtr = await this.dailyTimeRecordService.getDtrByCompanyIdAndDay({
       companyId: employeeDetails.companyId,
       date: dayjs(overtimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate).toDate(),
     });
-
-    console.log('asdasd asd', dtr);
 
     if (scheduleBase === ScheduleBase.OFFICE) {
       didFaceScan = await this.dailyTimeRecordService.getHasIvms({
@@ -743,12 +733,6 @@ export class OvertimeService {
           companyId: employeeDetails.companyId,
           date: dayjs(overtimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate).toDate(),
         });
-        // await this.updateOvertimeAccomplishment({
-        //   employeeId,
-        //   overtimeApplicationId: { id, ...restOfOvertimeApplication },
-        //   ivmsTimeIn: dtr.dtr.timeIn,
-        //   ivmsTimeOut: dtr.dtr.timeOut,
-        // });
       }
     }
 
@@ -827,8 +811,6 @@ export class OvertimeService {
       )
     )[0];
 
-    console.log('bvcx', overtimeAccomplishmentDto, overtimeAccomplishmentDto.approvedBy);
-
     const result = await this.overtimeAccomplishmentService.crud().update({
       dto: {
         ...overtimeAccomplishmentDto,
@@ -875,7 +857,6 @@ export class OvertimeService {
   async getEmployeeListBySupervisorId(employeeId: string) {
     const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
     const orgId = employeeDetails.assignment.id;
-    console.log(employeeDetails.userRole);
     const employeeSupervisor = await this.overtimeImmediateSupervisorService.crud().findOneOrNull({
       find: { select: { orgId: true }, where: { employeeId } },
     });
@@ -1113,7 +1094,6 @@ export class OvertimeService {
 
       return { forApproval: pendingResult, completed: approvedResult };
     } catch (error) {
-      console.log('ABCD', error);
       throw new HttpException(error, error.message);
     }
   }
@@ -1129,10 +1109,6 @@ export class OvertimeService {
     });
     if (deleteResult.affected > 0) return { deletedImmediateSupervisor: id };
     throw new InternalServerErrorException();
-  }
-
-  async getOvertimeAccomplishmentsByOvertimeApplicationId(overtimeApplicationId: string) {
-    console.log(overtimeApplicationId);
   }
 
   //#region Reports
@@ -1195,8 +1171,6 @@ export class OvertimeService {
     half: OvertimeSummaryHalf,
     _natureOfAppointment: string
   ) {
-    //
-    console.log('Immediate Supervisor Id', immediateSupervisorEmployeeId);
     const numOfDays = dayjs(year + '-' + month + '-1').daysInMonth();
 
     const _month = ('0' + month).slice(-2);
@@ -1302,8 +1276,14 @@ export class OvertimeService {
 
               const hoursRendered = await this.getComputedHrs(restOfOvertime);
 
-              if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) totalRegularOTHoursRendered += hoursRendered;
-              else totalOffOTHoursRendered += hoursRendered;
+              const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(
+                dayjs(year + '-' + month + '-' + day).toDate()
+              );
+
+              if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) {
+                if (suspensionHours <= 0) totalRegularOTHoursRendered += hoursRendered;
+                else totalOffOTHoursRendered += hoursRendered;
+              } else totalOffOTHoursRendered += hoursRendered;
 
               return typeof overtime !== 'undefined'
                 ? { day, hoursRendered }
