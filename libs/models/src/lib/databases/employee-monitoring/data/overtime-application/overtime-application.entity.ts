@@ -15,7 +15,7 @@ export class OvertimeApplication extends DatabaseEntity implements IEntity {
   @Column({ name: 'manager_id_fk', type: 'uuid', nullable: true })
   managerId: string;
 
-  @Column({ name: 'planned_date', type: 'datetime', nullable: true })
+  @Column({ name: 'planned_date', type: 'date', nullable: true })
   plannedDate: Date;
 
   @Column({ name: 'estimated_hours', type: 'decimal', precision: 4, scale: 2 })
