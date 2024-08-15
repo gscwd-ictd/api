@@ -365,7 +365,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, hrmoApprovalDate: true, hrmoDisapprovalRemarks: true, supervisorApprovalDate: true },
 
         where: [
           { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED },
@@ -394,7 +394,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipsForApproval = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, hrmoApprovalDate: true, hrmoDisapprovalRemarks: true, supervisorApprovalDate: true },
         where: [
           { passSlipId: { employeeId }, status: PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL },
           { passSlipId: { employeeId }, status: PassSlipApprovalStatus.FOR_HRMO_APPROVAL },
@@ -440,7 +440,9 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ps.is_dispute_approved isDisputeApproved,
         ps.dispute_remarks disputeRemarks,
         ps.encoded_time_in encodedTimeIn,
-        is_cancelled isCancelled
+        is_cancelled isCancelled,
+        DATE_FORMAT(psa.hrmo_approval_date,'%Y-%m-%d %H:%i:%s') hrmoApprovalDate,
+        hrmo_disapproval_remarks hrmoDisapprovalRemarks
       FROM pass_slip_approval psa 
         INNER JOIN pass_slip ps ON ps.pass_slip_id = psa.pass_slip_id_fk 
       WHERE ps.employee_id_fk = ? AND 
@@ -478,6 +480,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       encodedTimeIn: number;
       isCancelled: boolean;
       supervisorApprovalDate: Date;
+      hrmoApprovalDate: Date;
+      hrmoDisapprovalRemarks: string;
     }[];
 
     const approvedDisapproved = await Promise.all(
