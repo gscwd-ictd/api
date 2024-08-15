@@ -228,7 +228,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const dtrRemarks = (
       await this.rawQuery(`SELECT remarks FROM daily_time_record WHERE company_id_fk = ? AND dtr_date=?`, [dtr.companyId, dtr.dtrDate])
-    )[0].remarks;
+    )[0].remarks as string;
+
+    const isLNDRemarks = dtrRemarks !== null ? dtrRemarks.includes('L & D') : false;
 
     const overtimeApplicationCount = (
       await this.rawQuery(
@@ -249,7 +251,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       (dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart) && dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd)) ||
       dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd);
     //overtimeApplicationCount === '0' &&
-    if (!isHoliday && !isRestDay) {
+    if (!isHoliday && !isRestDay && !isLNDRemarks) {
       console.log('lunchrest:', dayjs(restHourStart).format('YYYY-MM-DD HH:mm'), '-', restHourEnd.format('YYYY-MM-DD HH:mm'));
 
       //if (schedule.shift === 'day') {
