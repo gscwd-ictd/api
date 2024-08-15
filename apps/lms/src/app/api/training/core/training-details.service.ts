@@ -1496,7 +1496,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
               const trainingDetails = await this.findTrainingDetailsById(trainingId);
               return {
                 date: items.createdAt,
-                title: 'Training Drafted.',
+                title: 'Training Drafted',
                 description: 'Prepared by ' + trainingDetails.preparedBy.name,
                 status: null,
               };
@@ -1570,7 +1570,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             case TrainingHistoryType.TRAINING_ONGOING: {
               return {
                 date: items.createdAt,
-                title: 'Training Start.',
+                title: 'Training Start',
                 description: null,
                 status: null,
               };
