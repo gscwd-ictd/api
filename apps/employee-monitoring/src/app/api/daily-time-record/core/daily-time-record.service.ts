@@ -377,7 +377,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
           dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
           dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
-          (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd)))
+          (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(restHourEnd) || dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourEnd)))
       ) {
         //isWithLunch === false &&
         isHalfDay = true;
