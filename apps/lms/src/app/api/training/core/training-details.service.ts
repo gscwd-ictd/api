@@ -1552,7 +1552,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
               return {
                 date: items.createdAt,
-                title: 'Training send to General Manager',
+                title: 'Training sent to General Manager',
                 description: approval.generalManager.name,
                 status: 'For approval',
               };
@@ -1579,7 +1579,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             case TrainingHistoryType.REQUIREMENTS_SUBMISSION: {
               return {
                 date: items.createdAt,
-                title: 'Training Participants submission of requirements.',
+                title: 'Training Participants submission of requirements',
                 description: null,
                 status: null,
               };
@@ -1588,7 +1588,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             case TrainingHistoryType.TRAINING_COMPLETED: {
               return {
                 date: items.createdAt,
-                title: 'Training Completed.',
+                title: 'Training Completed',
                 description: null,
                 status: null,
               };
