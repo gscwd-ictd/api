@@ -59,7 +59,6 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
             const leaveDatesCancelled = await this.crudService
               .transact<LeaveApplicationDates>(transactionEntityManager)
               .update({ dto: { status, remarks, cancelDate: dayjs().toDate() }, updateBy: { leaveApplicationId, leaveDate } });
-            //console.log(leaveType);
 
             //add back;
             const leaveApplicationDatesId = (await this.getRepository().findOne({
@@ -94,12 +93,10 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
               },
               transactionEntityManager
             );
-            console.log(leaveCardLedgerItem);
           } else if (status === 'for cancellation') {
             const leaveDatesCancelled = await this.crudService
               .transact<LeaveApplicationDates>(transactionEntityManager)
               .update({ dto: { status, remarks, forCancellationDate: dayjs().toDate() }, updateBy: { leaveApplicationId, leaveDate } });
-            console.log(leaveType);
           }
 
           return leaveDate;
@@ -115,7 +112,6 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
           [_leaveApplicationId, _leaveApplicationId]
         )
       )[0].shouldCancelWhole;
-      console.log(shouldCancelWhole);
       if (shouldCancelWhole === '1') {
         await this.rawQuery(`UPDATE leave_application SET status='cancelled' WHERE leave_application_id=?`, [_leaveApplicationId]);
       }

@@ -5,7 +5,7 @@ import { stringify } from 'querystring';
 
 @Injectable()
 export class EmployeesService {
-  constructor(private readonly client: MicroserviceClient) {}
+  constructor(private readonly client: MicroserviceClient) { }
 
   async getAllPermanentEmployeeIds() {
     //get_all_regular_employee_ids
@@ -70,7 +70,6 @@ export class EmployeesService {
       payload: employeeId,
       pattern: 'get_employee_details',
       onError: (error) => {
-        console.log('asdzxc', error);
         throw new NotFoundException(error);
       },
     })) as EmployeeDetails;

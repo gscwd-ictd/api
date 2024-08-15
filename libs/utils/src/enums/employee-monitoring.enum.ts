@@ -8,3 +8,8 @@ export enum DtrDeductionType {
   TARDINESS = 'Tardiness',
   UNDERTIME = 'Undertime',
 }
+
+export enum MonetizationType {
+  MAX_20 = 'max 20',
+  MAX_50_PERCENT = 'max 50 percent',
+}

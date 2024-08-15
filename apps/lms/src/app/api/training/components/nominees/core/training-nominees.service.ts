@@ -730,4 +730,20 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  async countNomineeByTrainingId(trainingId: string) {
+    try {
+      return await this.crudService.getRepository().countBy({
+        trainingDistribution: {
+          trainingDetails: {
+            id: trainingId,
+          },
+        },
+        status: TrainingNomineeStatus.ACCEPTED,
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
 }

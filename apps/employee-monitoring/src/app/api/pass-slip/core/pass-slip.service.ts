@@ -43,7 +43,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       //const natureOfAppointment = ;
       //let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
 
-      //console.log('supervisor id', supervisorId);
       // if (supervisorId === null) {
       //   supervisorId = (await this.client.call<string, string, string>({
       //     action: 'send',
@@ -54,7 +53,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       // }
       //check leave ledger
       const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(rest.employeeId);
-      console.log('nature of appointment ', natureOfAppointment);
 
       let isDeductibleToPay = false;
       let status = PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL;
@@ -67,13 +65,9 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           )[0] as LeaveLedger[];
           const { sickLeaveBalance, vacationLeaveBalance } = employeeLeaveLedger[employeeLeaveLedger.length - 1];
 
-          console.log('vl: ', vacationLeaveBalance, ' sl: ', sickLeaveBalance);
-          console.log('is it medical? ', isMedical);
           if (isMedical !== null) {
             if (parseInt(isMedical.toString()) === 0) {
-              console.log('is it medical? ', isMedical);
               if (vacationLeaveBalance <= 0) isDeductibleToPay = true;
-              console.log('is it deductible to pay? ', isDeductibleToPay);
             } else {
               if (sickLeaveBalance <= 0) isDeductibleToPay = true;
             }
@@ -678,8 +672,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         onError: () => new InternalServerErrorException(),
       });
 
-      console.log('PASS SLIP:', passSlipDetails);
-
       if (natureOfBusiness === NatureOfBusiness.UNDERTIME || natureOfBusiness === NatureOfBusiness.HALF_DAY) {
         const companyId = await this.employeeService.getCompanyId(employeeId);
         //patch to dtr ;set has correction to 1
@@ -745,11 +737,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     `)) as PassSlipForLedger[];
 
     //2. check time in and time out
-    console.log(passSlips);
-
     const passSlipsToLedger = await Promise.all(
       passSlips.map(async (passSlip) => {
-        console.log(passSlip);
         const { id, timeIn, timeOut, natureOfBusiness, employeeId, dateOfApplication, status } = passSlip;
         //2.1 if time in is null and time out is null update status to unused;
         if (timeIn === null && timeOut === null && status === PassSlipApprovalStatus.APPROVED) {
@@ -1013,7 +1002,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
         ),
       };
     } catch (error) {
-      console.log(error);
       throw new InternalServerErrorException();
     }
   }

@@ -32,7 +32,6 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
 
   async getCustomGroupMembersDetails(scheduleId: string, dateFrom: Date, dateTo: Date, customGroupId: string) {
     //es.employee_id_fk = cgm.employee_id_fk
-    console.log('asd asd asd', customGroupId);
 
     /*
      SELECT es.employee_id_fk employeeId 
@@ -67,9 +66,6 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
       pattern: 'get_custom_group_assigned_member',
       onError: (error) => new NotFoundException(error),
     });
-
-    console.log(employees);
-
     return employees;
   }
 

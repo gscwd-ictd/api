@@ -36,10 +36,8 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
   }
 
   async getPendingDtrCorrections(employeeId: string) {
-    console.log(employeeId);
     const employees = await this.employeeService.getEmployeesUnderSupervisor(employeeId);
     const companyIds = employees.map((emp) => emp.companyId);
-    console.log(employees);
     return parseInt(
       (
         await this.rawQuery(
@@ -92,7 +90,6 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
       })
     );
 
-    console.log(dtrCorrections);
     return dtrCorrectionsWithEmployeeName;
   }
 

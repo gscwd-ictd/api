@@ -46,6 +46,11 @@ export type TrainingRequirementsRaw = {
   code?: string;
 };
 
+export type RequirementsRaw = {
+  document: string;
+  isSelected?: boolean;
+};
+
 export type EmployeeParticpantsRaw = {
   _id: string;
   name: string;
@@ -119,9 +124,13 @@ export type SignatoriesRaw = {
   };
 };
 
-export type TrainingHistroyRaw = {
+export type TrainingHistoryRaw = {
   date: Date;
   title: string;
   description: string;
   status: string;
+};
+
+export type SignatoriesGenericRaw = {
+  [key: string]: object;
 };

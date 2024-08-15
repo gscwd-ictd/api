@@ -22,7 +22,6 @@ import {
   DocumentRequirementsType,
   NomineeType,
   TrainingHistoryType,
-  TrainingHistroyRaw,
   TrainingNomineeStatus,
   TrainingRequirementsRaw,
   TrainingStatus,
@@ -103,6 +102,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       /* find all training learning service provider by training id */
       const trainingLspDetails = await this.trainingLspDetailsService.findAllLspDetailsByTrainingId(id);
 
+      const actualNumberOfParticipants = await this.trainingNomineesService.countNomineeByTrainingId(id);
+
       const lspSource = trainingLspDetails.find((lsp) => lsp.source);
 
       /* find all training tag by training id */
@@ -112,7 +113,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       const slotDistribution = await this.trainingDistributionsService.findAllDistributionByTrainingId(id);
 
       /* find prepared name by employee id */
-      const preparedBy = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(trainingDetails.preparedBy);
+      const preparedBy = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(trainingDetails.preparedBy);
 
       /* custom return */
       return {
@@ -132,6 +133,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         numberOfHours: trainingDetails.numberOfHours,
         deadlineForSubmission: trainingDetails.deadlineForSubmission,
         numberOfParticipants: trainingDetails.numberOfParticipants,
+        actualNumberOfParticipants: actualNumberOfParticipants,
         trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
         source: {
           id: trainingDetails.source.id,
@@ -145,8 +147,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         slotDistribution: slotDistribution,
         preparedBy: {
           employeeId: trainingDetails.preparedBy,
-          name: preparedBy.employeeFullNameFirst,
+          name: preparedBy.employeeFullName,
           positionTitle: preparedBy.assignment.positionTitle,
+          signature: preparedBy.signatureUrl,
         },
       };
     } catch (error) {
@@ -176,6 +179,8 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       /* find all training learning service provider by training id */
       const trainingLspDetails = await this.trainingLspDetailsService.findAllLspDetailsByTrainingId(id);
 
+      const actualNumberOfParticipants = await this.trainingNomineesService.countNomineeByTrainingId(id);
+
       const lspSource = trainingLspDetails.find((lsp) => lsp.source);
 
       /* find all training tag by training id */
@@ -185,7 +190,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       const slotDistribution = await this.trainingDistributionsService.findAllDistributionByTrainingId(id);
 
       /* find prepared name by employee id */
-      const preparedBy = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(trainingDetails.preparedBy);
+      const preparedBy = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(trainingDetails.preparedBy);
 
       return {
         createdAt: trainingDetails.createdAt,
@@ -200,6 +205,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         numberOfHours: trainingDetails.numberOfHours,
         deadlineForSubmission: trainingDetails.deadlineForSubmission,
         numberOfParticipants: trainingDetails.numberOfParticipants,
+        actualNumberOfParticipants: actualNumberOfParticipants,
         trainingRequirements: JSON.parse(trainingDetails.trainingRequirements),
         source: {
           id: trainingDetails.source.id,
@@ -213,8 +219,9 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
         slotDistribution: slotDistribution,
         preparedBy: {
           employeeId: trainingDetails.preparedBy,
-          name: preparedBy.employeeFullNameFirst,
+          name: preparedBy.employeeFullName,
           positionTitle: preparedBy.assignment.positionTitle,
+          signature: preparedBy.signatureUrl,
         },
       };
     } catch (error) {
@@ -1201,6 +1208,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
       const nomineeType = NomineeType.NOMINEE;
       const nomineeStatus = null;
+      const unassigned = parseInt(count.numberOfParticipants) - parseInt(count.pending + count.accepted) + parseInt(count.declined);
 
       const nominees = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
 
@@ -1210,6 +1218,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           pending: parseInt(count.pending),
           accepted: parseInt(count.accepted),
           declined: parseInt(count.declined),
+          unassigned: unassigned,
         },
         nominees: nominees,
       };
@@ -1482,33 +1491,112 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       return await Promise.all(
         trainingHistory.map(async (items) => {
-          const history: Array<TrainingHistroyRaw> = [];
-
           switch (items.trainingHistoryType) {
             case TrainingHistoryType.DRAFT_CREATE: {
-              const trainingDetails = await this.findTrainingDetailsById(items.trainingDetails.id);
-              history.push({
+              const trainingDetails = await this.findTrainingDetailsById(trainingId);
+              return {
                 date: items.createdAt,
-                title: 'Training Drafted',
+                title: 'Training Drafted.',
                 description: 'Prepared by ' + trainingDetails.preparedBy.name,
                 status: null,
-              });
-              break;
+              };
             }
+
             case TrainingHistoryType.SUPERVISOR_NOMINATION: {
-              const trainingDetails = await this.trainingDistributionsService.findAllDistributionByTrainingId(items.trainingDetails.id);
-              history.push({
+              const trainingDetails = await this.findTrainingDetailsById(trainingId);
+
+              const names = trainingDetails.slotDistribution.map((item) => item.supervisor.name).join(', ');
+              return {
                 date: items.createdAt,
-                title: 'Training Drafted' + trainingDetails,
-                description: 'Prepared by ',
-                status: null,
-              });
-              break;
+                title: 'Sent to Supervisors',
+                description: names,
+                status: 'Ongoing nomination',
+              };
             }
+
+            case TrainingHistoryType.TDD_MANAGER_REVIEW: {
+              const approval = await this.trainingApprovalsService.findTddManagerApprovalByTrainingId(trainingId);
+
+              return {
+                date: items.createdAt,
+                title: 'Training sent to Training & Development Division Manager',
+                description: approval.tddManager.name,
+                status: 'For review',
+              };
+            }
+
+            case TrainingHistoryType.PDC_SECRETARIAT_REVIEW: {
+              const approval = await this.trainingApprovalsService.findPdcSecretariatApprovalByTrainingId(trainingId);
+
+              return {
+                date: items.createdAt,
+                title: 'Training sent to Personnel Development Committee Secretariat',
+                description: approval.pdcSecretariat.name,
+                status: 'For review',
+              };
+            }
+
+            case TrainingHistoryType.PDC_CHAIRMAN_REVIEW: {
+              const approval = await this.trainingApprovalsService.findPdcChairmanApprovalByTrainingId(trainingId);
+
+              return {
+                date: items.createdAt,
+                title: 'Training sent to Personnel Development Committee Chairman',
+                description: approval.pdcChairman.name,
+                status: 'For review',
+              };
+            }
+
+            case TrainingHistoryType.GENERAL_MANAGER_REVIEW: {
+              const approval = await this.trainingApprovalsService.findGeneralManagerApprovalByTrainingId(trainingId);
+
+              return {
+                date: items.createdAt,
+                title: 'Training sent to General Manager',
+                description: approval.generalManager.name,
+                status: 'For approval',
+              };
+            }
+
+            case TrainingHistoryType.PARTICIPANT_BATCHING: {
+              return {
+                date: items.createdAt,
+                title: 'Training Participants Batching',
+                description: 'Training and Development Staff',
+                status: null,
+              };
+            }
+
+            case TrainingHistoryType.TRAINING_ONGOING: {
+              return {
+                date: items.createdAt,
+                title: 'Training Start.',
+                description: null,
+                status: null,
+              };
+            }
+
+            case TrainingHistoryType.REQUIREMENTS_SUBMISSION: {
+              return {
+                date: items.createdAt,
+                title: 'Training Participants submission of requirements',
+                description: null,
+                status: null,
+              };
+            }
+
+            case TrainingHistoryType.TRAINING_COMPLETED: {
+              return {
+                date: items.createdAt,
+                title: 'Training Completed',
+                description: null,
+                status: null,
+              };
+            }
+
             default:
-              null;
+              break;
           }
-          return history;
         })
       );
     } catch (error) {

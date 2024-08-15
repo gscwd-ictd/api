@@ -14,6 +14,6 @@ export class LeaveAddBack extends DatabaseEntity implements IEntity {
   @Column({ name: 'reason', type: 'text' })
   reason: string;
 
-  @Column({ name: 'credit_value', type: 'decimal', scale: 2, precision: 3 })
+  @Column({ name: 'credit_value', type: 'decimal', scale: 3, precision: 6 })
   creditValue: number;
 }

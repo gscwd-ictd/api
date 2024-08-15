@@ -1,5 +1,4 @@
 import { NatureOfBusiness, ObTransportation } from '@gscwd-api/utils';
-import { PickType } from '@nestjs/swagger';
 import { IsBoolean, IsDate, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString, IsUUID } from 'class-validator';
 import { PassSlipApprovalDto } from '../pass-slip-approval';
 export class PassSlipDto {

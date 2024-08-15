@@ -22,6 +22,7 @@ export class PassSlipController {
   async getPassSlips(@Param('employee_id') employeeId: string) {
     return await this.passSlipService.getPassSlipsByEmployeeId(employeeId);
   }
+
   @Get(':employee_id/current')
   async getCurrentPassSlips(@Param('employee_id') employeeId: string) {
     return await this.passSlipService.getCurrentPassSlipsByEmployeeId(employeeId);
@@ -59,7 +60,6 @@ export class PassSlipController {
 
   @Patch()
   async updatePassSlipStatus(@Body() updatePassSlipApprovalDto: UpdatePassSlipApprovalDto) {
-    console.log(updatePassSlipApprovalDto);
     return await this.passSlipApprovalService.updatePassSlipStatus(updatePassSlipApprovalDto);
   }
 
