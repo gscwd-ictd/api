@@ -842,7 +842,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             in_hospital inHospital,
             in_philippines inPhilippines,
             is_terminal_leave isTerminalLeave,
-            is_late_filing isLateFiling,
+            IF(is_late_filing=1,'true','false') isLateFiling,
             supervisor_id_fk supervisorId,
             reference_no referenceNo,
             study_leave_other studyLeaveOther,
@@ -862,6 +862,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     ).map((la) => {
       const { dateOfFiling, cancelDate, ...restOfLeave } = la;
       return {
+        isLateFiling: restOfLeave.isLateFiling,
         dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
         cancelDate: cancelDate === null ? null : dayjs(cancelDate).format('YYYY-MM-DD'),
         ...restOfLeave,
