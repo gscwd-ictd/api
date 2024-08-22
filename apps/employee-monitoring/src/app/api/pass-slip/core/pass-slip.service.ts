@@ -365,7 +365,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, hrmoApprovalDate: true, supervisorApprovalDate: true },
 
         where: [
           { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED },
@@ -1027,9 +1027,9 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
     const supervisorAndOfficerOfTheDayArray =
       officerOfTheDayId !== null
         ? [
-            { label: officerOfTheDayName, value: officerOfTheDayId },
-            { label: employeeSupervisorName, value: employeeSupervisorId },
-          ]
+          { label: officerOfTheDayName, value: officerOfTheDayId },
+          { label: employeeSupervisorName, value: employeeSupervisorId },
+        ]
         : [{ label: employeeSupervisorName, value: employeeSupervisorId }];
     const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown(employeeData.employeeId);
     const result = [

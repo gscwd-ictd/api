@@ -360,6 +360,16 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         noOfUndertimes = 1;
       }
 
+      if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning <= 0 && dtr.lunchIn === null && dtr.timeOut === null &&
+        (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(workSuspensionStart) || dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(workSuspensionStart))) {
+        /*
+        &&
+        dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
+        */
+        isHalfDay = false;
+        noOfUndertimes = 0;
+      }
+
       //half day - pm time in
       if (
         isWithLunch === false &&
@@ -384,6 +394,23 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         noOfUndertimes = 1;
         //isWithLunch === false &&
       }
+
+
+      if (
+        (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) && dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourStart)) ||
+        (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
+          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
+          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
+          (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(restHourEnd) || dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourEnd))) &&
+
+        (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(workSuspensionStart) || dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(workSuspensionStart))
+      ) {
+        //isWithLunch === false &&
+        isHalfDay = false;
+        noOfUndertimes = 0;
+        //isWithLunch === false &&
+      }
+
       //}
 
       if (
@@ -421,8 +448,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       //minutesUndertime if there is work suspension;
       if (timeOutWithinRestHours && suspensionHours < 4 && suspensionHours > 0) {
-        isHalfDay = true;
+        if (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(workSuspensionStart) || dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(workSuspensionStart))
+          isHalfDay = false;
+        else
+          isHalfDay = true;
         //noOfLates += 1;
+
       }
 
       if (minutesUndertime > 0) {
@@ -439,6 +470,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       if (suspensionHours === 4) {
         isHalfDay = false;
       }
+
+
 
       //change undertime logic
 

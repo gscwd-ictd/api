@@ -77,7 +77,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
     console.log('Annual Leave Credit Earnings Addition executed');
   }
 
-  @Cron('0 57 23 31 12 *')
+  @Cron('0 57 23 31 11 *')
   async creditBeginningBalance() {
     //
     const employees = await this.employeeService.getAllPermanentEmployeeIds();
