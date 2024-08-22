@@ -38,6 +38,11 @@ export class OvertimeController {
     return await this.overtimeService.getOvertimeApplicationDetailByManagerIdAndId(managerId, id);
   }
 
+  @Get(':manager_id/list')
+  async getOvertimeApplicationsByManagerId(@Param('manager_id') managerId: string) {
+    return await this.overtimeService.getOvertimeApplicationsByManagerId(managerId);
+  }
+
   @Get(':immediate_supervisor_id')
   async getOvertimeApplicationsBySupervisorId(@Param('immediate_supervisor_id') immediateSupervisorId: string) {
     return await this.overtimeService.getOvertimeApplicationsByImmediateSupervisorId(immediateSupervisorId);
@@ -106,6 +111,11 @@ export class OvertimeController {
   @Delete('/immediate-supervisors/:overtime_immediate_supervisor_id')
   async deleteAccomplishments(@Param('overtime_immediate_supervisor_id') overtimeImmediateSupervisorId: string) {
     return await this.overtimeService.deleteImmediateSupervisor(overtimeImmediateSupervisorId);
+  }
+
+  @Get('monthly/:year_month')
+  async getOvertimeApplicationsByMonth(@Param('year_month') yearMonth: string) {
+    return await this.overtimeService.getOvertimeApplicationsByMonth(yearMonth);
   }
 
   @Get()

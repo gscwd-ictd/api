@@ -20,6 +20,7 @@ import { LeaveCreditEarningsService } from '../components/leave-credit-earnings/
 import { LeaveAdjustmentDto } from '../data/leave-adjustment.dto';
 import { LeaveApplicationDatesService } from '../components/leave-application-dates/core/leave-application-dates.service';
 import { LeaveBenefitsService } from '../components/leave-benefits/core/leave-benefits.service';
+import { LeaveMonetizationService } from '../components/leave-monetization/core/leave-monetization.service';
 
 @Injectable()
 export class LeaveService {
@@ -33,6 +34,7 @@ export class LeaveService {
     private readonly leaveAddBackService: LeaveAddBackService,
     private readonly leaveBenefitsService: LeaveBenefitsService,
     private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
+    private readonly leaveMonetizationService: LeaveMonetizationService,
     private readonly dataSource: DataSource
   ) {}
 
@@ -168,6 +170,50 @@ export class LeaveService {
               dto: { leaveCreditEarningId: leaveCreditEarning },
             });
           }
+
+          if (leaveName === 'Monetization') {
+            let leaveCreditDeductionsId;
+            const vlLeaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
+
+            const monetizationDetails = await this.leaveMonetizationService.crud().findOne({
+              find: {
+                select: { convertedSl: true, convertedVl: true, id: true, leaveApplicationId: { id: true }, monetizedAmount: true },
+                where: { leaveApplicationId: { id: leaveApplicationId.id } },
+              },
+            });
+
+            const { convertedSl, convertedVl, monetizedAmount } = monetizationDetails;
+
+            leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
+              dto: {
+                debitValue: convertedVl,
+                createdAt: leaveApplicationId.dateOfFiling,
+                leaveBenefitsId: vlLeaveBenefitsId,
+                remarks:
+                  `VL deduction from monetization (` + dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') + `/₱ ` + monetizedAmount + `)`,
+                employeeId: leaveApplicationId.employeeId,
+              },
+            });
+            const vlLeaveCardLedgerDebit = await this.leaveCardLedgerDebitService
+              .crud()
+              .create({ dto: { leaveCreditDeductionsId, debitValue: convertedVl } });
+
+            const slLeaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Sick Leave' } } });
+
+            leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
+              dto: {
+                debitValue: convertedSl,
+                createdAt: leaveApplicationId.dateOfFiling,
+                leaveBenefitsId: slLeaveBenefitsId,
+                remarks:
+                  `SL deduction from monetization (` + dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') + `/₱ ` + monetizedAmount + `)`,
+                employeeId: leaveApplicationId.employeeId,
+              },
+            });
+            const slLeaveCardLedgerDebit = await this.leaveCardLedgerDebitService
+              .crud()
+              .create({ dto: { leaveCreditDeductionsId, debitValue: convertedSl } });
+          }
           //}
         }
       }
@@ -178,7 +224,6 @@ export class LeaveService {
     //
     //
     /*
-
     const shouldCancelWhole = (
         await this.rawQuery(
           `
