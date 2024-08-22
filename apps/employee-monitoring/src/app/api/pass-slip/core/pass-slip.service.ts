@@ -358,39 +358,9 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     );
 
     return approved;
-    //return passSlips;
   }
 
   async getPassSlipsByEmployeeId(employeeId: string) {
-    const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
-      find: {
-        relations: { passSlipId: true },
-        select: { supervisorId: true, status: true, hrmoApprovalDate: true, hrmoDisapprovalRemarks: true, supervisorApprovalDate: true },
-
-        where: [
-          { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED },
-          { passSlipId: { employeeId }, status: PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE },
-          { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED_WITH_MEDICAL_CERTIFICATE },
-          { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED_WITHOUT_MEDICAL_CERTIFICATE },
-        ],
-      },
-    });
-
-    const approved = await Promise.all(
-      passSlipsApproved.map(async (passSlip) => {
-        const { passSlipId, ...restOfPassSlip } = passSlip;
-
-        const names = await this.client.call<string, { employeeId: string; supervisorId: string }, object>({
-          action: 'send',
-          payload: { employeeId: passSlip.passSlipId.employeeId, supervisorId: passSlip.supervisorId },
-          pattern: 'get_employee_supervisor_names',
-          onError: (error) => new NotFoundException(error),
-        });
-
-        return { ...passSlipId, ...names, ...restOfPassSlip };
-      })
-    );
-
     const passSlipsForApproval = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
@@ -440,6 +410,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ps.is_dispute_approved isDisputeApproved,
         ps.dispute_remarks disputeRemarks,
         ps.encoded_time_in encodedTimeIn,
+        ps.is_deductible_to_pay isDeductibleToPay, 
         is_cancelled isCancelled,
         DATE_FORMAT(psa.hrmo_approval_date,'%Y-%m-%d %H:%i:%s') hrmoApprovalDate,
         hrmo_disapproval_remarks hrmoDisapprovalRemarks
@@ -481,6 +452,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       isCancelled: boolean;
       supervisorApprovalDate: Date;
       hrmoApprovalDate: Date;
+      isDeductibleToPay: boolean;
       hrmoDisapprovalRemarks: string;
     }[];
 
@@ -494,7 +466,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           pattern: 'get_employee_supervisor_names',
           onError: (error) => new NotFoundException(error),
         });
-        return { ...names, ...restOfPassSlip };
+        return { ...names, ...restOfPassSlip, isDeductibleToPay: !!restOfPassSlip.isDeductibleToPay };
       })
     );
 
@@ -529,6 +501,41 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       .addOrderBy('status', 'ASC')
       .leftJoinAndSelect('t.passSlipId', 'passSlipId')
       .where(`DATE_FORMAT(t.created_at,'%m') = :dateApplied`, { dateApplied: dayjs().format('MM').toString() })
+      .getMany();
+
+    const passSlipDetails = await Promise.all(
+      passSlips.map(async (passSlip) => {
+        const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
+        const employeeDetails = await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId);
+
+        const { passSlipId, ...restOfPassSlip } = passSlip;
+        const { dateOfApplication, ...restOfPassSlipId } = passSlipId;
+        return {
+          ...restOfPassSlip,
+          dateOfApplication: dayjs(dateOfApplication).format('YYYY-MM-DD'),
+          ...restOfPassSlipId,
+          ...names,
+          avatarUrl: employeeDetails.photoUrl,
+          assignmentName: employeeDetails.assignment.name,
+        };
+      })
+    );
+
+    return passSlipDetails;
+  }
+
+  async getPassSlipsByYearMonth(yearMonth: string) {
+    dayjs(yearMonth + '-01').format('YYYY-MM');
+    const passSlips = <PassSlipApproval[]>await this.passSlipApprovalService
+      .queryBuilder('t')
+      .addSelect('supervisor_id_fk', 'supervisorId')
+      .addSelect('pass_slip_id_fk', 'passSlipId')
+      .addSelect('status', 'status')
+      .addSelect(`DATE_FORMAT(t.created_at,'%m')`, 'dateApplied')
+      .orderBy('t.created_at', 'DESC')
+      .addOrderBy('status', 'ASC')
+      .leftJoinAndSelect('t.passSlipId', 'passSlipId')
+      .where(`DATE_FORMAT(t.created_at,'%Y-%m') = :yearMonth`, { yearMonth: dayjs(yearMonth + '-01').format('YYYY-MM') })
       .getMany();
 
     const passSlipDetails = await Promise.all(
