@@ -50,6 +50,10 @@ export class LeaveService {
     return await this.leaveApplicationService.getLeavesByLeaveApplicationStatus(null);
   }
 
+  async getLeavesForHrmoApprovalByYearMonth(yearMonth: string) {
+    return await this.leaveApplicationService.getLeavesByYearMonth(yearMonth);
+  }
+
   async getLeavesForHrdmApproval() {
     return await this.leaveApplicationService.getLeavesForHrdm();
   }
