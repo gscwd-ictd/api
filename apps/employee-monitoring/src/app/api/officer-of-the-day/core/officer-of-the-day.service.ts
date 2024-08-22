@@ -16,6 +16,38 @@ export class OfficerOfTheDayService extends CrudHelper<OfficerOfTheDay> {
 
   async findAll() {
     const officers = (await this.crudService.findAll()) as OfficerOfTheDay[];
+
+    const officersOfTheDay = await Promise.all(
+      officers.map(async (officer) => {
+        const { employeeId, dateFrom, dateTo, id, orgId } = officer;
+        const employeeName = await this.employeeService.getEmployeeName(employeeId);
+        const orgName = await this.organizationService.getOrgNameByOrgId(orgId);
+        return { id, employeeName, orgName, dateFrom, dateTo };
+      })
+    );
+    return officersOfTheDay.sort((a, b) => (a.dateFrom > b.dateFrom ? -1 : a.dateFrom < b.dateFrom ? 1 : 0));
+  }
+
+  async findByYearMonth(yearMonth: string) {
+    //const officers = (await this.crudService.findAll()) as OfficerOfTheDay[];
+
+    const officers = (await this.rawQuery(
+      `
+        SELECT 
+          created_at createdAt,
+            updated_at updatedAt,
+            deleted_at deletedAt, 
+            officer_of_the_day_id id, 
+            employee_id_fk employeeId, 
+            org_id_fk orgId, 
+            date_from dateFrom, 
+            date_to dateTo 
+        FROM officer_of_the_day
+        WHERE date_format(date_from, '%Y-%m') = ?
+        ORDER BY date_from DESC;
+      `,
+      [yearMonth]
+    )) as OfficerOfTheDay[];
     const officersOfTheDay = await Promise.all(
       officers.map(async (officer) => {
         const { employeeId, dateFrom, dateTo, id, orgId } = officer;
