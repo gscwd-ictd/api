@@ -53,7 +53,7 @@ export class LspRatingService extends CrudHelper<LspRating> {
       const average = await this.crudService.getRepository().average('rating', { lspDetails: { id: lspId } });
 
       return {
-        average: average,
+        average: average !== null ? average : 0.0,
       };
     } catch (error) {
       Logger.error(error);
