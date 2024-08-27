@@ -32,7 +32,7 @@ export class FindAllLspRatingInterceptor implements NestInterceptor {
               status: items.trainingDetails.status,
               lspDetails: lspName,
               trainingTags: trainingTags,
-              rating: items.rating,
+              rating: parseFloat(items.rating.toString()),
             };
           })
         );
