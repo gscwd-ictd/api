@@ -21,6 +21,6 @@ export class LeaveMonetization extends DatabaseEntity implements IEntity {
   @ManyToOne(() => LeaveApplication, (leaveApplication) => leaveApplication.id)
   leaveApplicationId: LeaveApplication;
 
-  @Column({ name: 'monetizated_amount' })
+  @Column({ name: 'monetized_amount', type: 'decimal', scale: 3, precision: 12 })
   monetizedAmount: number;
 }
