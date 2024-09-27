@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsUUID, Max, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsUUID, Max, Min } from 'class-validator';
 import { LspDetailsDto } from '../lsp-details';
 import { TrainingDetailsDto } from '../training-details';
 import { PartialType } from '@nestjs/swagger';
@@ -21,7 +21,7 @@ export class CreateLspRatingDto {
 
 export class UpdateLspRatingDto extends PartialType(LspRatingDto) {
   @IsNotEmpty()
-  @IsInt()
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Min(1)
   @Max(5)
   rating: number;

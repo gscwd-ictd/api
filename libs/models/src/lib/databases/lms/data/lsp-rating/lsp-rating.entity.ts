@@ -17,6 +17,6 @@ export class LspRating extends DatabaseEntityWithTimezone implements IEntity {
   @JoinColumn({ name: 'training_details_id_fk' })
   trainingDetails: TrainingDetails;
 
-  @Column({ name: 'rating', type: 'int', default: 0, nullable: false })
+  @Column({ name: 'rating', type: 'decimal', precision: 10, scale: 2, default: 0, nullable: false })
   rating: number;
 }
