@@ -21,6 +21,11 @@ export class OfficerOfTheDayController {
     return await this.officerOfTheDayService.getAssignableOrgStruct();
   }
 
+  @Get(':year_month')
+  async getOfficerOfTheDayByYearMonth(@Param('year_month') yearMonth: string) {
+    return await this.officerOfTheDayService.findByYearMonth(yearMonth);
+  }
+
   @Post()
   async setOfficerOfTheDay(@Body() officerOfTheDayDto: OfficerOfTheDayDto) {
     return await this.officerOfTheDayService.setOfficerOfTheDay(officerOfTheDayDto);

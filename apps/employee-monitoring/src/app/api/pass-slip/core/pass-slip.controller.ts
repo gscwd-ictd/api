@@ -38,6 +38,11 @@ export class PassSlipController {
     return await this.passSlipService.getApprovedPassSlipsByEmployeeId(employeeId);
   }
 
+  @Get('ems/:year_month')
+  async getPassSlipsByYearMonth(@Param('year_month') yearMonth: string) {
+    return await this.passSlipService.getPassSlipsByYearMonth(yearMonth);
+  }
+
   @Get()
   async getAllPassSlips() {
     return await this.passSlipService.getAllPassSlips();

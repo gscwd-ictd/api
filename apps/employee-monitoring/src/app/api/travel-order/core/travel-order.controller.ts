@@ -13,6 +13,11 @@ export class TravelOrderController {
     return await this.travelOrderService.createTravelOrderTransaction(travelOrderDto);
   }
 
+  @Get(':year_month')
+  async getTravelOrdersByYearMonth(@Param('year_month') yearMonth: string) {
+    return await this.travelOrderService.getTravelOrdersByYearMonth(yearMonth);
+  }
+
   @Get()
   async getAllTravelOrders() {
     return await this.travelOrderService.getAllTravelOrders();
