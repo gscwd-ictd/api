@@ -89,10 +89,10 @@ export class CreateLeaveApplicationDto {
   isLateFiling: boolean;
 
   @IsOptional()
-  leaveApplicationDates: Date[] | { from: Date; to: Date };
+  leaveApplicationDates?: Date[] | { from: Date; to: Date };
 
   @IsOptional()
-  leaveMonetization: CreateLeaveMonetizationDto;
+  leaveMonetization?: CreateLeaveMonetizationDto;
 }
 export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) {}
 

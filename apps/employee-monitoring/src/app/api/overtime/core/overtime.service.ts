@@ -204,7 +204,7 @@ export class OvertimeService {
   async getOvertimeApplicationsForApprovalV2(managerId: string) {
     //
     //1. get manager organization id
-    const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
+    const managerOrgId = (await this.employeeService.getBasicEmployeeDetails(managerId)).assignment.id;
     //check if officer of the day/uncomment below if rules change again for officer of the day approval;
     //const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
     const officerOfTheDayOrgs = [];
@@ -235,7 +235,7 @@ export class OvertimeService {
     const overtimeApplicationsWithSupervisorName = await Promise.all(
       overtimeApplications.map(async (overtimeApplication) => {
         const { employeeId, overtimeApplicationId, ...rest } = overtimeApplication;
-        const immediateSupervisorName = (await this.employeeService.getEmployeeDetails(employeeId)).employeeFullName;
+        const immediateSupervisorName = (await this.employeeService.getBasicEmployeeDetails(employeeId)).employeeFullName;
 
         const employees = (await this.overtimeEmployeeService.crud().findAll({
           find: {
@@ -250,7 +250,7 @@ export class OvertimeService {
         const employeesWithDetails = await Promise.all(
           employees.map(async (employee) => {
             const { employeeId } = employee;
-            const employeeDetail = await this.employeeService.getEmployeeDetails(employeeId);
+            const employeeDetail = await this.employeeService.getBasicEmployeeDetails(employeeId);
 
             const { assignment, employeeFullName, companyId, photoUrl } = employeeDetail;
 
@@ -1558,8 +1558,8 @@ export class OvertimeService {
 
   private async getComputedHrs(hrsRendered: OvertimeHrsRendered) {
     //
-    const { computedEncodedHours } = hrsRendered;
-    return computedEncodedHours;
+    const { computedEncodedHours, actualHrs } = hrsRendered;
+    return actualHrs && actualHrs > 0 ? parseFloat(actualHrs.toString()) : computedEncodedHours;
   }
 
   private async isRegularOvertimeDay(employeeId: string, year: number, month: number, day: number) {
