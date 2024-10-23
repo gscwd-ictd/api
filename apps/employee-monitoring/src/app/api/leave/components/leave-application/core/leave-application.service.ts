@@ -1260,33 +1260,40 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         );
 
         let monetizationDetails = null;
+        let terminalLeaveDetails = null;
 
         if (leaveBenefitsId.leaveName === 'Monetization') {
-          monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
-            find: {
-              select: {
-                convertedSl: true,
-                convertedVl: true,
-                id: true,
-                leaveApplicationId: { id: true },
-                monetizationType: true,
-                monetizedAmount: true,
-              },
-              where: { leaveApplicationId: { id: leave.id } },
-            },
-          });
+          // monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
+          //   find: {
+          //     select: {
+          //       convertedSl: true,
+          //       convertedVl: true,
+          //       id: true,
+          //       leaveApplicationId: { id: true },
+          //       monetizationType: true,
+          //       monetizedAmount: true,
+          //     },
+          //     where: { leaveApplicationId: { id: leave.id } },
+          //   },
+          // });
+
+          monetizationDetails = await this.getFormattedMonetizationDetails(leave.id);
+        }
+
+        if (leaveBenefitsId.leaveName === 'Terminal Leave') {
+          terminalLeaveDetails = await this.getTerminalLeaveDetails(leave.id);
         }
 
         return {
           ...rest,
           leaveBenefitsId: leaveBenefitsId.id,
           leaveName: leaveBenefitsId.leaveName,
+          ...terminalLeaveDetails,
           ...monetizationDetails,
           id: rest.id,
           leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
           employee: { employeeId, companyId, employeeName },
           supervisor: { supervisorId, supervisorName },
-          details: (await this.getLeaveApplicationDetails(rest.id, employeeId)).leaveApplicationDetails,
         };
 
         // return {
