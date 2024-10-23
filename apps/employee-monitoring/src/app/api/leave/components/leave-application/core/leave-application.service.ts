@@ -859,8 +859,11 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           onError: (error) => new NotFoundException(error),
         })) as { employeeName: string; supervisorName: string };
 
+        //console.log('employee: ', employeeId, ' super: ', supervisorId);
+        // console.log('HRMO approved by', hrmoApprovedBy);
         const _hrmoApprovedBy = (await this.employeesService.getBasicEmployeeDetails(hrmoApprovedBy)).employeeFullName;
 
+        //console.log('employee id', employeeId);
         const employeeDetails = await this.employeesService.getBasicEmployeeDetails(employeeId);
 
         const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
@@ -872,23 +875,11 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             return leaveDate.leaveDate;
           })
         );
-
         let monetizationDetails = null;
-        if (leaveBenefitsId.leaveName === 'Monetization') {
-          monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
-            find: {
-              select: {
-                convertedSl: true,
-                convertedVl: true,
-                id: true,
-                leaveApplicationId: { id: true },
-                monetizationType: true,
-                monetizedAmount: true,
-              },
-              where: { leaveApplicationId: { id: leave.id } },
-            },
-          });
-        }
+        let terminalLeaveDetails = null;
+
+        if (leaveBenefitsId.leaveName === 'Monetization') monetizationDetails = await this.getFormattedMonetizationDetails(leave.id);
+        if (leaveBenefitsId.leaveName === 'Terminal Leave') terminalLeaveDetails = await this.getTerminalLeaveDetails(leave.id);
 
         const { employeeName, supervisorName } = employeeSupervisorNames;
         return {
@@ -900,10 +891,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           hrdmApprovedBy,
           hrdmApprovalDate,
           ...monetizationDetails,
+          ...terminalLeaveDetails,
           id: rest.id,
           employee: { employeeId, employeeName, companyId: employeeDetails.companyId },
           supervisor: { supervisorId, supervisorName },
-          //leaveName: leaveBenefitsId.leaveName,
           leaveDates: _leaveDates,
         };
       })
@@ -1239,7 +1230,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
         const { employeeId, leaveBenefitsId, ...rest } = leave;
-        const companyId = (await this.employeesService.getEmployeeDetails(employeeId)).companyId;
+        const companyId = (await this.employeesService.getBasicEmployeeDetails(employeeId)).companyId;
         const employeeSupervisorNames = (await this.client.call<
           string,
           { employeeId: string; supervisorId: string },
@@ -1262,27 +1253,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         let monetizationDetails = null;
         let terminalLeaveDetails = null;
 
-        if (leaveBenefitsId.leaveName === 'Monetization') {
-          // monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
-          //   find: {
-          //     select: {
-          //       convertedSl: true,
-          //       convertedVl: true,
-          //       id: true,
-          //       leaveApplicationId: { id: true },
-          //       monetizationType: true,
-          //       monetizedAmount: true,
-          //     },
-          //     where: { leaveApplicationId: { id: leave.id } },
-          //   },
-          // });
-
-          monetizationDetails = await this.getFormattedMonetizationDetails(leave.id);
-        }
-
-        if (leaveBenefitsId.leaveName === 'Terminal Leave') {
-          terminalLeaveDetails = await this.getTerminalLeaveDetails(leave.id);
-        }
+        if (leaveBenefitsId.leaveName === 'Monetization') monetizationDetails = await this.getFormattedMonetizationDetails(leave.id);
+        if (leaveBenefitsId.leaveName === 'Terminal Leave') terminalLeaveDetails = await this.getTerminalLeaveDetails(leave.id);
 
         return {
           ...rest,
