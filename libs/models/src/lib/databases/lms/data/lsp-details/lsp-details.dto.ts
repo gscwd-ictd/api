@@ -31,7 +31,7 @@ export class CreateLspIndividualInternalDto {
   experience: number;
 
   @IsString({ message: 'lsp introduction must be a string' })
-  @Length(1, 1000, { message: 'lsp introduction must be between 1 to 1000 characters' })
+  @Length(1, 2000, { message: 'lsp introduction must be between 1 to 2000 characters' })
   introduction: string;
 
   @ValidateNested({ each: true })
@@ -99,7 +99,7 @@ export class CreateLspIndividualExternalDto {
   email: string;
 
   @IsString({ message: 'lsp postal address must be a string' })
-  @Length(1, 100, { message: 'lsp postal address must be between 1 to 100 characters' })
+  @Length(1, 2000, { message: 'lsp postal address must be between 1 to 2000 characters' })
   postalAddress: string;
 
   @IsInt({ message: 'lsp experience number of years must be a number' })
@@ -109,7 +109,7 @@ export class CreateLspIndividualExternalDto {
   tin: string;
 
   @IsString({ message: 'lsp introduction must be a string' })
-  @Length(1, 1000, { message: 'lsp introduction must be between 1 to 1000 characters' })
+  @Length(1, 2000, { message: 'lsp introduction must be between 1 to 2000 characters' })
   introduction: string;
 
   @ValidateNested({ each: true })
@@ -157,7 +157,7 @@ export class CreateLspIndividualExternalDto {
 export class CreateLspOrganizationExternalDto {
   @IsNotEmpty({ message: 'lsp organization name should not empty' })
   @IsString({ message: 'lsp organization name must be a string' })
-  @Length(1, 100, { message: 'lsp organization name must be between 1 to 100 characters' })
+  @Length(1, 1000, { message: 'lsp organization name must be between 1 to 1000 characters' })
   organizationName: string;
 
   @IsString({ message: 'lsp contact number must be a string' })
@@ -168,7 +168,7 @@ export class CreateLspOrganizationExternalDto {
   email: string;
 
   @IsString({ message: 'lsp postal address must be a string' })
-  @Length(1, 100, { message: 'lsp postal address must be between 1 to 100 characters' })
+  @Length(1, 2000, { message: 'lsp postal address must be between 1 to 2000 characters' })
   postalAddress: string;
 
   @IsInt({ message: 'lsp experience number of years must be a number' })
@@ -178,7 +178,7 @@ export class CreateLspOrganizationExternalDto {
   tin: string;
 
   @IsString({ message: 'lsp introduction must be a string' })
-  @Length(1, 1000, { message: 'lsp introduction must be between 1 to 1000 characters' })
+  @Length(1, 2000, { message: 'lsp introduction must be between 1 to 2000 characters' })
   introduction: string;
 
   @ValidateNested({ each: true })
