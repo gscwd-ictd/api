@@ -796,6 +796,12 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           },
         });
 
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: { id: id }, trainingHistoryType: TrainingHistoryType.TDD_MANAGER_REVIEW },
+          entityManager
+        );
+
         /* insert training approvals */
         return await this.trainingApprovalsService.createApproval({ trainingDetails }, entityManager);
       });
@@ -1208,7 +1214,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
       const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
       const nomineeType = NomineeType.NOMINEE;
       const nomineeStatus = null;
-      const unassigned = parseInt(count.numberOfParticipants) - parseInt(count.pending + count.accepted);
+      const unassigned = parseInt(count.numberOfParticipants) - (parseInt(count.pending) + parseInt(count.accepted));
 
       const nominees = await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus);
 
@@ -1250,7 +1256,16 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
         /* insert training history */
         await this.trainingHistoryService.createTrainingHistory(
-          { trainingDetails: { id: trainingId }, trainingHistoryType: TrainingHistoryType.TDD_MANAGER_REVIEW },
+          {
+            trainingDetails: { id: trainingId },
+            trainingHistoryType: TrainingHistoryType.TDD_MANAGER_APPROVED,
+          },
+          entityManager
+        );
+
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: { id: trainingId }, trainingHistoryType: TrainingHistoryType.PDC_SECRETARIAT_REVIEW },
           entityManager
         );
 
@@ -1285,7 +1300,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
         /* insert training history */
         await this.trainingHistoryService.createTrainingHistory(
-          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.PDC_SECRETARIAT_REVIEW },
+          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.PDC_SECRETARIAT_APPROVED },
+          entityManager
+        );
+
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.PDC_CHAIRMAN_REVIEW },
           entityManager
         );
 
@@ -1319,7 +1340,13 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
         /* insert training history */
         await this.trainingHistoryService.createTrainingHistory(
-          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.PDC_CHAIRMAN_REVIEW },
+          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.PDC_CHAIRMAN_APPROVED },
+          entityManager
+        );
+
+        /* insert training history */
+        await this.trainingHistoryService.createTrainingHistory(
+          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.GENERAL_MANAGER_REVIEW },
           entityManager
         );
 
@@ -1353,7 +1380,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
         /* insert training history */
         await this.trainingHistoryService.createTrainingHistory(
-          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.GENERAL_MANAGER_REVIEW },
+          { trainingDetails: { id: trainingDetails }, trainingHistoryType: TrainingHistoryType.GENERAL_MANAGER_APPROVED },
           entityManager
         );
 
@@ -1515,46 +1542,82 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
             }
 
             case TrainingHistoryType.TDD_MANAGER_REVIEW: {
+              return {
+                date: items.createdAt,
+                title: 'Training sent to Training & Development Division Manager',
+                description: null,
+                status: 'For review',
+              };
+            }
+
+            case TrainingHistoryType.TDD_MANAGER_APPROVED: {
               const approval = await this.trainingApprovalsService.findTddManagerApprovalByTrainingId(trainingId);
 
               return {
                 date: items.createdAt,
-                title: 'Training sent to Training & Development Division Manager',
+                title: 'Training reviewed by the Training & Development Division Manager',
                 description: approval.tddManager.name,
-                status: 'For review',
+                status: 'Approved',
               };
             }
 
             case TrainingHistoryType.PDC_SECRETARIAT_REVIEW: {
+              return {
+                date: items.createdAt,
+                title: 'Training sent to Personnel Development Committee Secretariat',
+                description: null,
+                status: 'For review',
+              };
+            }
+
+            case TrainingHistoryType.PDC_SECRETARIAT_APPROVED: {
               const approval = await this.trainingApprovalsService.findPdcSecretariatApprovalByTrainingId(trainingId);
 
               return {
                 date: items.createdAt,
-                title: 'Training sent to Personnel Development Committee Secretariat',
+                title: 'Training reviewed by the Personnel Development Committee Secretariat',
                 description: approval.pdcSecretariat.name,
-                status: 'For review',
+                status: 'Approved',
               };
             }
 
             case TrainingHistoryType.PDC_CHAIRMAN_REVIEW: {
-              const approval = await this.trainingApprovalsService.findPdcChairmanApprovalByTrainingId(trainingId);
-
               return {
                 date: items.createdAt,
                 title: 'Training sent to Personnel Development Committee Chairman',
-                description: approval.pdcChairman.name,
+                description: null,
                 status: 'For review',
               };
             }
 
+            case TrainingHistoryType.PDC_CHAIRMAN_APPROVED: {
+              const approval = await this.trainingApprovalsService.findPdcChairmanApprovalByTrainingId(trainingId);
+
+              return {
+                date: items.createdAt,
+                title: 'Training reviewed by the Personnel Development Committee Chairman',
+                description: approval.pdcChairman.name,
+                status: 'Approved',
+              };
+            }
+
             case TrainingHistoryType.GENERAL_MANAGER_REVIEW: {
+              return {
+                date: items.createdAt,
+                title: 'Training sent to General Manager',
+                description: null,
+                status: 'For approval',
+              };
+            }
+
+            case TrainingHistoryType.GENERAL_MANAGER_APPROVED: {
               const approval = await this.trainingApprovalsService.findGeneralManagerApprovalByTrainingId(trainingId);
 
               return {
                 date: items.createdAt,
-                title: 'Training sent to General Manager',
+                title: 'Training reviewed by the General Manager',
                 description: approval.generalManager.name,
-                status: 'For approval',
+                status: 'Approved',
               };
             }
 

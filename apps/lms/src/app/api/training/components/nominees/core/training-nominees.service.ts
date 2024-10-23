@@ -13,6 +13,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { EntityManager, IsNull, MoreThanOrEqual, Not } from 'typeorm';
 import { TrainingRequirementsService } from '../../requirements';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
@@ -744,6 +745,35 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* update nominee status to no action taken */
+  @Cron('* 59 23 * * *')
+  async updateNomineeStatusNoActionTaken() {
+    try {
+      const currentDate = new Date();
+
+      Logger.log('------ update nominee status to no action taken -----------');
+
+      return await this.crudService.update({
+        updateBy: {
+          trainingDistribution: {
+            trainingDetails: {
+              trainingStart: currentDate,
+            },
+          },
+        },
+        dto: {
+          status: TrainingNomineeStatus.NO_ACTION,
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request, no nominee status update', HttpStatus.BAD_REQUEST);
     }
   }
 }
