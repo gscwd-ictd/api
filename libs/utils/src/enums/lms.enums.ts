@@ -46,6 +46,7 @@ export enum TrainingNomineeStatus {
   PENDING = 'pending',
   ACCEPTED = 'accepted',
   DECLINED = 'declined',
+  NO_ACTION = 'no action taken',
 }
 
 export enum NomineeType {
@@ -91,9 +92,13 @@ export enum TrainingHistoryType {
   DRAFT_CREATE = 'draft created',
   SUPERVISOR_NOMINATION = 'supervisor nomination',
   TDD_MANAGER_REVIEW = 'tdd manager review',
+  TDD_MANAGER_APPROVED = 'tdd manager approved',
   PDC_SECRETARIAT_REVIEW = 'pdc secretariat review',
+  PDC_SECRETARIAT_APPROVED = 'pdc secretariat approved',
   PDC_CHAIRMAN_REVIEW = 'pdc chairman review',
+  PDC_CHAIRMAN_APPROVED = 'pdc chairman approved',
   GENERAL_MANAGER_REVIEW = 'general manager review',
+  GENERAL_MANAGER_APPROVED = 'general manager approved',
   PARTICIPANT_BATCHING = 'participant batching',
   TRAINING_ONGOING = 'training ongoing',
   REQUIREMENTS_SUBMISSION = 'requirements submission',

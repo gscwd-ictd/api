@@ -59,7 +59,7 @@ export class LspDetails extends DatabaseEntityWithTimezone implements IEntity {
   @Column({ name: 'experience_number_of_years', nullable: true })
   experience: number;
 
-  @Column({ name: 'introduction', length: 250, nullable: true })
+  @Column({ name: 'introduction', type: 'text', nullable: true })
   introduction: string;
 
   @Column({ name: 'lsp_type', type: 'enum', enum: LspType, nullable: false })

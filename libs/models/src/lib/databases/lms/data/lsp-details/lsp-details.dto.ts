@@ -31,7 +31,7 @@ export class CreateLspIndividualInternalDto {
   experience: number;
 
   @IsString({ message: 'lsp introduction must be a string' })
-  @Length(1, 250, { message: 'lsp introduction must be between 1 to 250 characters' })
+  @Length(1, 1000, { message: 'lsp introduction must be between 1 to 1000 characters' })
   introduction: string;
 
   @ValidateNested({ each: true })
@@ -109,7 +109,7 @@ export class CreateLspIndividualExternalDto {
   tin: string;
 
   @IsString({ message: 'lsp introduction must be a string' })
-  @Length(1, 250, { message: 'lsp introduction must be between 1 to 250 characters' })
+  @Length(1, 1000, { message: 'lsp introduction must be between 1 to 1000 characters' })
   introduction: string;
 
   @ValidateNested({ each: true })
@@ -178,7 +178,7 @@ export class CreateLspOrganizationExternalDto {
   tin: string;
 
   @IsString({ message: 'lsp introduction must be a string' })
-  @Length(1, 250, { message: 'lsp introduction must be between 1 to 250 characters' })
+  @Length(1, 1000, { message: 'lsp introduction must be between 1 to 1000 characters' })
   introduction: string;
 
   @ValidateNested({ each: true })

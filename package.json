@@ -35,7 +35,7 @@
     "pg": "^8.10.0",
     "redis": "^4.6.10",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.0.0",
+    "rxjs": "^7.8.0",
     "tslib": "^2.3.0",
     "typeorm": "^0.3.6"
   },
@@ -49,8 +49,12 @@
     "@nx/js": "19.5.7",
     "@nx/nest": "19.5.7",
     "@nx/node": "19.5.7",
+    "@nx/web": "19.5.7",
     "@nx/webpack": "19.5.7",
     "@nx/workspace": "19.5.7",
+    "@swc-node/register": "~1.9.1",
+    "@swc/core": "~1.5.7",
+    "@swc/helpers": "~0.5.11",
     "@types/cron": "^2.0.0",
     "@types/express-session": "^1.17.9",
     "@types/jest": "29.4.0",
@@ -70,6 +74,7 @@
     "supertest": "^6.3.3",
     "ts-jest": "29.1.0",
     "ts-node": "10.9.1",
-    "typescript": "5.5.3"
+    "typescript": "5.5.3",
+    "webpack-cli": "^5.1.4"
   }
 }
