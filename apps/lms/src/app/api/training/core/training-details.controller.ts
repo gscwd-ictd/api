@@ -266,15 +266,15 @@ export class TrainingDetailsController {
   /* send a training notice to the manager to nominate (source = internal) */
   @UseGuards(AuthGuard)
   @Patch('notices/internal')
-  async sendNoticeToManagersInternal(@Body() data: SendTrainingNoticeInternalDto, @LoginUser() user: User) {
-    return await this.trainingDetailsService.sendNoticeToManagersInternal(data, user.employeeId);
+  async sendNoticeToManagersInternal(@Body() data: SendTrainingNoticeInternalDto) {
+    return await this.trainingDetailsService.sendNoticeToManagersInternal(data);
   }
 
   /* send a training notice to the manager to nominate (source = external) */
   @UseGuards(AuthGuard)
   @Patch('notices/external')
-  async sendNoticeToManagersExternal(@Body() data: SendTrainingNoticeExternalDto, @LoginUser() user: User) {
-    return await this.trainingDetailsService.sendNoticeToManagersExternal(data, user.employeeId);
+  async sendNoticeToManagersExternal(@Body() data: SendTrainingNoticeExternalDto) {
+    return await this.trainingDetailsService.sendNoticeToManagersExternal(data);
   }
 
   /* find all accepted nominees by training id */
