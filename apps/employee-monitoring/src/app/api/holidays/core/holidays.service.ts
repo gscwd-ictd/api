@@ -75,7 +75,13 @@ export class HolidaysService extends CrudHelper<Holidays> {
     const employees = (await this.rawQuery(`SELECT DISTINCT employee_id_fk employeeId FROM leave_application WHERE status='approved';`)) as {
       employeeId: string;
     }[];
+
     //2. get all leaveApplicationDatesId galing sa number 1 na may leave application na tumama sa day nung holiday
+    await this.rawQuery(
+      `DELETE FROM employee_monitoring.leave_card_ledger_debit WHERE daily_time_record_id_fk IN 
+(SELECT daily_time_record_id FROM daily_time_record WHERE dtr_date = ?); `,
+      [holidaysDto.holidayDate]
+    );
     const leaveAddBacks = await Promise.all(
       employees.map(async (employeeId) => {
         const leaveApplications = (await this.rawQuery(

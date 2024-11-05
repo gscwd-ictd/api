@@ -242,7 +242,7 @@ export class ReportsService {
         const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
 
         const totalVacationLeave = parseFloat(
-          (parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance)).toLocaleString(undefined, {
+          parseFloat(vacationLeaveBalance).toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })
@@ -277,7 +277,7 @@ export class ReportsService {
         const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
         const monthlyRate = ((await this.employeesService.getMonthlyHourlyRateByEmployeeId(value)) as { monthlyRate: number }).monthlyRate;
         const totalVacationLeave = parseFloat(
-          (parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance)).toLocaleString(undefined, {
+          parseFloat(vacationLeaveBalance).toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })
@@ -343,7 +343,7 @@ export class ReportsService {
         }
       })
     );
-    return _employeesLWOP;
+    return _employeesLWOP.sort((a, b) => (a.dateFrom < b.dateFrom ? -1 : a.dateFrom > b.dateFrom ? 1 : 0));
   }
 
   async generateReportOnRehabilitationLeave(dateFrom: Date, dateTo: Date, employeeId?: string) {
