@@ -506,7 +506,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipDetails = await Promise.all(
       passSlips.map(async (passSlip) => {
         const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
-        const employeeDetails = await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId);
+        const employeeDetails = await this.employeeService.getBasicEmployeeDetails(passSlip.passSlipId.employeeId);
 
         const { passSlipId, ...restOfPassSlip } = passSlip;
         const { dateOfApplication, ...restOfPassSlipId } = passSlipId;
@@ -520,7 +520,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         };
       })
     );
-
     return passSlipDetails;
   }
 
