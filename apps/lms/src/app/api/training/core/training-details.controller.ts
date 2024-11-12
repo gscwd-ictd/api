@@ -38,6 +38,7 @@ import { TrainingNomineesService } from '../components/nominees';
 import { TrainingRequirementsService } from '../components/requirements';
 import { TrainingDistributionsService } from '../components/slot-distributions';
 import { AuthGuard } from '../../../../guards';
+import { Raw } from 'typeorm';
 
 @Controller({ version: '1', path: 'training' })
 export class TrainingDetailsController {
@@ -211,6 +212,57 @@ export class TrainingDetailsController {
         },
         where: {
           status: TrainingStatus.COMPLETED,
+        },
+        order: {
+          updatedAt: 'DESC',
+        },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
+
+  /* find all training by date range */
+  @UseInterceptors(FindAllTrainingInterceptor)
+  @Get('q')
+  async findAllTrainingByDateRange(
+    @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number,
+    @Query('dateFrom') dateFrom: string,
+    @Query('dateTo') dateTo: string,
+    @Query('source') source: string
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      find: {
+        relations: {
+          source: true,
+          trainingDesign: true,
+        },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          trainingDesign: {
+            courseTitle: true,
+          },
+          courseTitle: true,
+          numberOfParticipants: true,
+          location: true,
+          trainingStart: true,
+          trainingEnd: true,
+          source: {
+            name: true,
+          },
+          type: true,
+          status: true,
+        },
+        where: {
+          trainingStart: Raw((alias) => `to_char(${alias}, 'YYYY-MM') >= :dateFrom`, { dateFrom }),
+          trainingEnd: Raw((alias) => `to_char(${alias}, 'YYYY-MM') <= :dateTo`, { dateTo }),
+          source: {
+            name: source,
+          },
         },
         order: {
           updatedAt: 'DESC',
