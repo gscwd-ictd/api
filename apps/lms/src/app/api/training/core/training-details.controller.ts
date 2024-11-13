@@ -248,6 +248,7 @@ export class TrainingDetailsController {
           },
           courseTitle: true,
           numberOfParticipants: true,
+          numberOfHours: true,
           location: true,
           trainingStart: true,
           trainingEnd: true,
