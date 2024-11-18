@@ -12,7 +12,7 @@ import {
 import { OvertimeHrsRendered, OvertimeStatus, OvertimeSummaryHalf, ScheduleBase } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
-import { Between, DataSource, EntityManager, EntityMetadata, TreeLevelColumn } from 'typeorm';
+import { Between, DataSource, EntityManager, EntityMetadata, Not, TreeLevelColumn } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
@@ -194,8 +194,8 @@ export class OvertimeService {
       await this.overtimeApplicationService.rawQuery(
         `SELECT COUNT(DISTINCT oa.overtime_application_id) countForApprovalOT FROM overtime_application oa 
           INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
-         WHERE employee_id_fk IN (?) AND status = 'pending';`,
-        [employeeIds]
+         WHERE employee_id_fk IN (?) AND status = 'pending' AND oa.manager_id_fk <> ?;`,
+        [employeeIds, managerId]
       )
     )[0].countForApprovalOT;
     return parseInt(count);
@@ -219,6 +219,8 @@ export class OvertimeService {
 
     const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
 
+    console.log('employees', employeesUnderOrgId);
+
     const employeeIds = (
       await Promise.all(
         employeesUnderOrgId.map(async (employee) => {
@@ -230,7 +232,7 @@ export class OvertimeService {
     });
 
     //3. get overtime employee ids for approval
-    const overtimeApplications = await this.overtimeApplicationService.getOvertimeApplicationsByEmployeeIds(employeeIds);
+    const overtimeApplications = await this.overtimeApplicationService.getOvertimeApplicationsByEmployeeIds(employeeIds, managerId);
 
     const overtimeApplicationsWithSupervisorName = await Promise.all(
       overtimeApplications.map(async (overtimeApplication) => {
