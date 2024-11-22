@@ -141,6 +141,45 @@ export class ReportsService {
     return _employeePassSlips;
   }
 
+  async generateReportOnPersonalPassSlipDetailedCosJo(dateFrom: Date, dateTo: Date) {
+    const employees = await this.employeesService.getEmployeesByNatureOfAppointment(NatureOfAppointment.JOBORDER);
+
+    console.log('JOs and cosjos', employees);
+
+    const _employeePassSlips = [];
+
+    const employeePassSlips = await Promise.all(
+      employees.map(async (employee) => {
+        const employeeId = employee.employeeId;
+        const name = employee.fullName;
+
+        const report = (
+          await this.dtrService.rawQuery(`CALL sp_generate_report_on_personal_business_pass_slip_detailed(?,?,?,?);`, [
+            employeeId,
+            name,
+            dateFrom,
+            dateTo,
+          ])
+        )[0];
+
+        await Promise.all(
+          report.map(async (reportItem) => {
+            _employeePassSlips.push(reportItem);
+          })
+        );
+      })
+    );
+    return _employeePassSlips.sort(function (a, b) {
+      if (a.name < b.name) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
   async generateReportOnPersonalPassSlipDetailed(dateFrom: Date, dateTo: Date) {
     const employees = await this.employeesService.getAllPermanentCasualEmployees2();
 
@@ -167,7 +206,15 @@ export class ReportsService {
         );
       })
     );
-    return _employeePassSlips;
+    return _employeePassSlips.sort(function (a, b) {
+      if (a.name < b.name) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    });
   }
 
   async generateReportOnOfficialBusinessPassSlipDetailed(dateFrom: Date, dateTo: Date, employeeId: string) {
@@ -199,7 +246,15 @@ export class ReportsService {
         );
       })
     );
-    return _employeePassSlips;
+    return _employeePassSlips.sort(function (a, b) {
+      if (a.name < b.name) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    });
   }
 
   async generateReportOnEmployeeForcedLeaveCredits(monthYear: string) {
@@ -596,6 +651,9 @@ export class ReportsService {
         break;
       case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS_DETAILED):
         reportDetails = await this.generateReportOnPersonalPassSlipDetailed(dateFrom, dateTo);
+        break;
+      case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS_DETAILED_COS_JO):
+        reportDetails = await this.generateReportOnPersonalPassSlipDetailedCosJo(dateFrom, dateTo);
         break;
       case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
         reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo, employeeId);
