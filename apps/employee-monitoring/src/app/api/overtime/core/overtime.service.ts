@@ -505,7 +505,7 @@ export class OvertimeService {
           employees.map(async (employee) => {
             const { employeeId } = employee;
 
-            const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
+            const employeeDetails = await this.employeeService.getBasicEmployeeDetails(employeeId);
             const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
             const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
 
@@ -576,7 +576,7 @@ export class OvertimeService {
 
     const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId.employeeId);
 
-    const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
+    const supervisorName = (await this.employeeService.getBasicEmployeeDetails(supervisorId)).employeeFullName;
 
     const approvedOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.APPROVED);
 
