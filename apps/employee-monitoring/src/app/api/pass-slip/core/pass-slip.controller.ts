@@ -8,11 +8,13 @@ import {
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { PassSlipService } from './pass-slip.service';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller({ version: '1', path: 'pass-slip' })
 export class PassSlipController {
   constructor(private readonly passSlipService: PassSlipService, private readonly passSlipApprovalService: PassSlipApprovalService) {}
 
+  @Throttle({ default: { limit: 1, ttl: 3000 } })
   @Post()
   async addPassSlip(@Body() passSlipDto: PassSlipDto) {
     return await this.passSlipService.addPassSlip(passSlipDto);

@@ -540,7 +540,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipDetails = await Promise.all(
       passSlips.map(async (passSlip) => {
         const names = await this.getSupervisorAndEmployeeNames(passSlip.passSlipId.employeeId, passSlip.supervisorId);
-        const employeeDetails = await this.employeeService.getEmployeeDetails(passSlip.passSlipId.employeeId);
+        const employeeDetails = await this.employeeService.getBasicEmployeeDetails(passSlip.passSlipId.employeeId);
 
         const { passSlipId, ...restOfPassSlip } = passSlip;
         const { dateOfApplication, ...restOfPassSlipId } = passSlipId;
@@ -751,7 +751,11 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       passSlips.map(async (passSlip) => {
         const { id, timeIn, timeOut, natureOfBusiness, employeeId, dateOfApplication, status } = passSlip;
         //2.1 if time in is null and time out is null update status to unused;
-        if (timeIn === null && timeOut === null && status === PassSlipApprovalStatus.APPROVED) {
+        if (
+          timeIn === null &&
+          timeOut === null &&
+          (status === PassSlipApprovalStatus.APPROVED || status === PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE)
+        ) {
           await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.UNUSED }, updateBy: { passSlipId: { id } } });
         } else if (
           timeIn === null &&
@@ -791,6 +795,43 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       })
     );
     console.log('-------------- PASS SLIP CRON JOB DONE --------------------');
+  }
+
+  @Cron('0 50 23 * * 0-6')
+  async updateMedicalPassSlips() {
+    const passSlips = (await this.rawQuery(`
+    SELECT 
+		    ps.pass_slip_id id, 
+            employee_id_fk employeeId, 
+            date_of_application dateOfApplication, 
+            nature_of_business natureOfBusiness,
+            time_in timeIn,
+            time_out timeOut,
+            encoded_time_in encodedTimeIn,
+            encoded_time_out encodedTimeOut,
+            ps.ob_transportation obTransportation,
+            ps.estimate_hours estimateHours,
+            ps.purpose_destination purposeDestination,
+            ps.is_cancelled isCancelled,
+            ps.dispute_remarks disputeRemarks,
+            psa.status status,
+            ps.created_at createdAt,
+            ps.updated_at updatedAt,
+            ps.deleted_at deletedAt,
+            ps.is_dispute_approved disputeApproved
+          FROM pass_slip ps 
+          INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
+        WHERE get_date_after_num_of_working_days(date_of_application, 2) = DATE_FORMAT(now(),'%Y-%m-%d')
+        AND psa.status = 'awaiting medical certificate';`)) as PassSlipForLedger[];
+
+    const passSlipsToLedger = await Promise.all(
+      passSlips.map(async (passSlip) => {
+        const { id } = passSlip;
+        await this.passSlipApprovalService
+          .crud()
+          .update({ dto: { status: PassSlipApprovalStatus.APPROVED_WITHOUT_MEDICAL_CERTIFICATE }, updateBy: { passSlipId: { id } } });
+      })
+    );
   }
 
   @Cron('0 57 23 * * 0-6')
@@ -991,7 +1032,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
   }
   //notes: CREATE MODULE FOR employee sungkit from microservice,
   //create functions under utils;
-
   async getUsedPassSlipsCountByEmployeeId(employeeId: string) {
     try {
       return {
