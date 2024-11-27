@@ -213,8 +213,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let minutesUndertime = 0;
     let isHalfDay = false;
     let noAttendance = 0;
-    const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, dtr.dtrDate));
 
+    const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, dtr.dtrDate));
+    const timeOutDay = schedule.shift === 'night' ? '2024-01-02 ' : '2024-01-01 ';
     //schedule.restDaysNumbers
     const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
     const day = dayjs(dayjs(dtr.dtrDate).format('YYYY-MM-DD')).format('d');
@@ -230,7 +231,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       await this.rawQuery(`SELECT remarks FROM daily_time_record WHERE company_id_fk = ? AND dtr_date=?`, [dtr.companyId, dtr.dtrDate])
     )[0].remarks as string;
 
-    const isLNDRemarks = dtrRemarks !== null ? dtrRemarks.includes('L & D') : false;
+    const isLNDRemarks = dtrRemarks !== null ? dtrRemarks.includes('L & D') || dtrRemarks.includes('Office Event') : false;
 
     const overtimeApplicationCount = (
       await this.rawQuery(
@@ -245,11 +246,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     )[0].countOvertime;
 
     const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(dtr.dtrDate);
+    const suspensionTimeOutDay = schedule.shift === 'night' ? dayjs(dtr.dtrDate.toString()).add(1, 'day').format('YYYY-MM-DD') : dtr.dtrDate;
 
     const timeOutWithinRestHours =
-      dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart) ||
-      (dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart) && dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd)) ||
-      dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd);
+      dayjs(timeOutDay + dtr.timeOut).isSame(restHourStart) ||
+      (dayjs(timeOutDay + dtr.timeOut).isAfter(restHourStart) && dayjs(timeOutDay + dtr.timeOut).isBefore(restHourEnd)) ||
+      dayjs(timeOutDay + dtr.timeOut).isSame(restHourEnd);
     //overtimeApplicationCount === '0' &&
 
     if (!isHoliday && !isRestDay && !isLNDRemarks) {
@@ -315,11 +317,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //half day morning pumasok without lunch
       if (
         // !isWithLunch &&
-        (dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourStart) || dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourStart)) &&
-        (dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourEnd) || dayjs('2024-01-01 ' + dtr.timeOut).isSame(restHourEnd))
+        (dayjs(timeOutDay + dtr.timeOut).isSame(restHourStart) || dayjs(timeOutDay + dtr.timeOut).isAfter(restHourStart)) &&
+        (dayjs(timeOutDay + dtr.timeOut).isBefore(restHourEnd) || dayjs(timeOutDay + dtr.timeOut).isSame(restHourEnd))
       ) {
         if (suspensionHours > 0) {
-          if (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)) {
+          if (dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).isBefore(workSuspensionStart)) {
             noOfUndertimes = 1;
             isHalfDay = true;
           }
@@ -367,6 +369,22 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         noOfUndertimes = 1;
       }
 
+      if (
+        dtr.timeIn !== null &&
+        dtr.lunchOut !== null &&
+        lateMorning <= 0 &&
+        dtr.lunchIn === null &&
+        dtr.timeOut === null &&
+        (dayjs(timeOutDay + dtr.timeOut).isAfter(workSuspensionStart) || dayjs(timeOutDay + dtr.timeOut).isSame(workSuspensionStart))
+      ) {
+        /*
+        &&
+        dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
+        */
+        isHalfDay = false;
+        noOfUndertimes = 0;
+      }
+
       //half day - pm time in
       if (
         isWithLunch === false &&
@@ -380,23 +398,36 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       //halfday-am time in
       if (
-        (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) && dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourStart)) ||
+        (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) && dayjs(timeOutDay + dtr.timeOut).isSame(restHourStart)) ||
         (dayjs(dtr.dtrDate + ' ' + dtr.timeIn).isBefore(restHourStart) &&
-          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
-          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(restHourStart) &&
-          (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(restHourEnd) || dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourEnd)))
+          dayjs(timeOutDay + dtr.timeOut).isAfter(restHourStart) &&
+          dayjs(timeOutDay + dtr.timeOut).isAfter(restHourStart) &&
+          (dayjs(timeOutDay + dtr.timeOut).isBefore(restHourEnd) || dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(restHourEnd)))
       ) {
         //isWithLunch === false &&
         isHalfDay = true;
         noOfUndertimes = 1;
-        if (
-          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isAfter(workSuspensionStart) ||
-          dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isSame(workSuspensionStart)
-        ) {
+        if (dayjs(timeOutDay + dtr.timeOut).isAfter(workSuspensionStart) || dayjs(timeOutDay + dtr.timeOut).isSame(workSuspensionStart)) {
           isHalfDay = false;
           noOfUndertimes = 0;
         }
       }
+
+      if (
+        (dayjs('2024-01-01 ' + dtr.timeIn).isBefore(restHourStart) && dayjs(timeOutDay + dtr.timeOut).isSame(restHourStart)) ||
+        (dayjs('2024-01-01 ' + ' ' + dtr.timeIn).isBefore(restHourStart) &&
+          dayjs(timeOutDay + dtr.timeOut).isAfter(restHourStart) &&
+          dayjs(timeOutDay + dtr.timeOut).isAfter(restHourStart) &&
+          (dayjs(timeOutDay + dtr.timeOut).isBefore(restHourEnd) || dayjs(timeOutDay + dtr.timeOut).isSame(restHourEnd)) &&
+          (dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).isAfter(workSuspensionStart) ||
+            dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).isSame(workSuspensionStart)))
+      ) {
+        //isWithLunch === false &&
+        isHalfDay = false;
+        noOfUndertimes = 0;
+        //isWithLunch === false &&
+      }
+
       //}
 
       if (
@@ -434,17 +465,25 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       //minutesUndertime if there is work suspension;
       if (timeOutWithinRestHours && suspensionHours < 4 && suspensionHours > 0) {
-        isHalfDay = true;
-        noOfLates = +1;
+        if (
+          dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).isAfter(workSuspensionStart) ||
+          dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).isSame(workSuspensionStart)
+        )
+          isHalfDay = false;
+        else isHalfDay = true;
+        //noOfLates += 1;
       }
 
       if (minutesUndertime > 0) {
         noOfUndertimes = 1;
       }
 
-      if (dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)) {
+      if (dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).isBefore(workSuspensionStart)) {
         minutesUndertime = !timeOutWithinRestHours
-          ? dayjs(dayjs(workSuspensionStart).format('YYYY-MM-DD HH:mm')).diff(dayjs(dtr.dtrDate + ' ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'), 'm')
+          ? dayjs(dayjs(workSuspensionStart).format('YYYY-MM-DD HH:mm')).diff(
+              dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+              'm'
+            )
           : 0;
         noOfUndertimes = 1;
       }
