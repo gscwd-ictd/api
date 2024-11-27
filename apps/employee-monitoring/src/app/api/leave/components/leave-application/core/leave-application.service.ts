@@ -208,7 +208,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         `SELECT
                 la.employee_id_fk employeeId,
                 la.leave_application_id id,
-                la.is_late_filing isLateFiling,
+                if(la.is_late_filing=1,'true','false') isLateFiling,
                 lb.leave_name leaveName,
                 lb.leave_types leaveType,
                 la.reference_no referenceNo,
