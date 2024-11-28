@@ -305,25 +305,8 @@ export class LeaveService {
       return await this.leaveApplicationService.getLeaveApplicationDetails(id, leaveApplicationId.employeeId);
     }
   }
+
   async cancelLeave(updateLeaveApplicationEmployeeStatus: UpdateLeaveApplicationEmployeeStatus) {
-    //
-    //
-    /*
-    const shouldCancelWhole = (
-        await this.rawQuery(
-          `
-      SELECT IF(countCancelled = countTotal, true, false) shouldCancelWhole FROM (SELECT 
-        (SELECT count(leave_application_date_id) FROM leave_application_dates WHERE leave_application_id_fk = ? AND status='cancelled') countCancelled, 
-          (SELECT count(leave_application_date_id) FROM leave_application_dates WHERE leave_application_id_fk = ?) countTotal) leaveApplicationDates;
-      `,
-          [_leaveApplicationId, _leaveApplicationId]
-        )
-      )[0].shouldCancelWhole;
-      console.log(shouldCancelWhole);
-      if (shouldCancelWhole === '1') {
-        await this.rawQuery(`UPDATE leave_application SET status='cancelled' WHERE leave_application_id=?`, [_leaveApplicationId]);
-      }
-    */
     const { id, ...rest } = updateLeaveApplicationEmployeeStatus;
 
     const leaveApplication = await this.leaveApplicationService.crud().findOne({ find: { select: { id: true, status: true }, where: { id } } });
@@ -333,12 +316,16 @@ export class LeaveService {
       updateBy: { id },
       onError: () => new InternalServerErrorException(),
     });
+
     if (leaveApplication.status === 'approved') {
       //credit value= number of days of leave
       const leaveApplicationDates = (await this.leaveApplicationService.rawQuery(
-        `SELECT leave_application_date_id id, leave_date leaveDate FROM leave_application_dates WHERE leave_date NOT IN (SELECT holiday_date FROM holidays) AND leave_application_id_fk = ?;`,
+        `SELECT leave_application_date_id id, leave_date leaveDate FROM leave_application_dates 
+        WHERE leave_date NOT IN (SELECT holiday_date FROM holidays) AND leave_application_id_fk = ?;`,
         [leaveApplication.id]
       )) as LeaveApplicationDates[];
+
+      const leaveName = leaveApplication.leaveBenefitsId.leaveName;
 
       await Promise.all(
         leaveApplicationDates.map(async (leaveApplicationDate) => {
@@ -360,12 +347,30 @@ export class LeaveService {
               },
               entityManager
             );
+            if (leaveName === 'Forced Leave') {
+              const vl = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
+              const leaveCreditEarningId = await this.leaveCreditEarningsService.crud().create({
+                dto: {
+                  creditValue: 1,
+                  leaveBenefitsId: vl,
+                  employeeId: leaveApplication.employeeId,
+                  remarks: 'Add Back due to Leave Cancellation',
+                },
+              });
+              const leaveCardLedgerItem = await this.leaveCardLedgerCreditService.addLeaveCardLedgerCreditTransaction(
+                {
+                  leaveCreditEarningId,
+                },
+                entityManager
+              );
+            }
           });
         })
       );
     }
     return updateLeaveApplicationEmployeeStatus;
   }
+
   async addAdjustment(leaveAdjustmentDto: LeaveAdjustmentDto) {
     //
     const { category, leaveBenefitsId, remarks, value, employeeId } = leaveAdjustmentDto;
