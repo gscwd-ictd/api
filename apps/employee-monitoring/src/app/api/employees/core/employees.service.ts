@@ -164,6 +164,14 @@ export class EmployeesService {
     })) as { value: string; label: string }[];
   }
 
+  async getEmployeesByOrgIdForOt(orgId: string) {
+    return (await this.client.call<string, string, { value: string; label: string }[]>({
+      action: 'send',
+      payload: orgId,
+      pattern: 'get_employees_by_org_id_for_ot',
+    })) as { value: string; label: string }[];
+  }
+
   async getEmployeesByOrgIdAlone(orgId: string) {
     //get_employees_by_org_id_alone
     return (await this.client.call<string, string, { value: string; label: string }[]>({

@@ -8,11 +8,13 @@ import {
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { PassSlipService } from './pass-slip.service';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller({ version: '1', path: 'pass-slip' })
 export class PassSlipController {
   constructor(private readonly passSlipService: PassSlipService, private readonly passSlipApprovalService: PassSlipApprovalService) {}
 
+  @Throttle({ default: { limit: 1, ttl: 3000 } })
   @Post()
   async addPassSlip(@Body() passSlipDto: PassSlipDto) {
     return await this.passSlipService.addPassSlip(passSlipDto);
@@ -85,18 +87,8 @@ export class PassSlipController {
     return await this.passSlipService.hrUpdatePassSlipTimeLog(hrUpdatePassSlipTimeRecordDto);
   }
 
-  @Post('test-cron')
-  async testCron() {
-    return await this.passSlipService.addPassSlipsToLedger();
+  @Post('pass-slip-to-ledger/:date_applied')
+  async passSlipToLedger(@Param('date_applied') dateApplied: string) {
+    return await this.passSlipService.addPassSlipsToLedgerManually(dateApplied);
   }
-
-  // @Post('test-cron2')
-  // async testCron2() {
-  //   return await this.passSlipService.updatePassSlipStatusCron();
-  // }
-
-  // @Get('asd/asd/asd/asd/asd/asd')
-  // async testCron3() {
-  //   return await this.passSlipService.addPassSlipsToLedger();
-  // }
 }
