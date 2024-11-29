@@ -59,6 +59,30 @@ export class HolidaysService extends CrudHelper<Holidays> {
     console.log('regular holidays added for the year');
   }
 
+  async getLastWeekDayOfTheMonth(dateString: string) {
+    const theDate = dayjs(dateString);
+    const lastDayOfMonth = dayjs(theDate.format('YYYY-MM') + '-' + theDate.daysInMonth());
+    const lastDayOfMonthDayOfWeek = lastDayOfMonth.day();
+    let lastWeekDayOfMonth = lastDayOfMonth;
+    if (lastDayOfMonthDayOfWeek === 6) lastWeekDayOfMonth = lastDayOfMonth.subtract(1, 'day');
+    if (lastDayOfMonthDayOfWeek === 0) lastWeekDayOfMonth = lastDayOfMonth.subtract(2, 'day');
+    return lastWeekDayOfMonth.toDate();
+  }
+
+  async getTheNextWorkingDayByDays(date: Date, days: number) {
+    const theDate = dayjs(date);
+    let currDate = theDate;
+    for (let i = 1; i < days; i++) {
+      if (currDate.day() === 6) currDate = currDate.add(3, 'day');
+      if (currDate.day() === 0 || (await this.isHoliday(dayjs(theDate.format('YYYY-MM-DD')).toDate()))) currDate = currDate.add(2, 'day');
+      else currDate = currDate.add(1, 'day');
+    }
+    if (currDate.day() === 6) currDate = currDate.add(2, 'day');
+    if (currDate.day() === 0 || (await this.isHoliday(dayjs(theDate.format('YYYY-MM-DD')).toDate()))) currDate = currDate.add(1, 'day');
+
+    return currDate.toDate();
+  }
+
   async addHoliday(holidaysDto: HolidaysDto) {
     const holiday = await this.crudService.create({
       dto: holidaysDto,
