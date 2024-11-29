@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { SmsModule } from './api/sms/sms.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigModule } from '@nestjs/config';
+import { join } from 'path';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [ConfigModule.forRoot({ isGlobal: true, envFilePath: join(__dirname, '../../../.env') }), SmsModule, ScheduleModule.forRoot()],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
