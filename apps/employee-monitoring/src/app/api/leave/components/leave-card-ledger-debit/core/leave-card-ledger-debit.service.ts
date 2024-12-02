@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveCardLedgerDebitDto, LeaveApplication, LeaveCardLedgerDebit } from '@gscwd-api/models';
-import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { forwardRef, HttpException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeesService } from '../../../../employees/core/employees.service';
 import { Cron } from '@nestjs/schedule';
 import { LeaveCreditDeductionsService } from '../../leave-credit-deductions/core/leave-credit-deductions.service';
@@ -9,6 +9,8 @@ import { LeaveBenefitsModule } from '../../leave-benefits/core/leave-benefits.mo
 import { LeaveBenefitsService } from '../../leave-benefits/core/leave-benefits.service';
 import dayjs = require('dayjs');
 import { create } from 'domain';
+import { LeaveApplicationService } from '../../leave-application/core/leave-application.service';
+import { HolidaysService } from '../../../../holidays/core/holidays.service';
 
 @Injectable()
 export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit> {
@@ -16,7 +18,9 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     private readonly crudService: CrudService<LeaveCardLedgerDebit>,
     private readonly employeeService: EmployeesService,
     private readonly leaveCreditDeductionService: LeaveCreditDeductionsService,
-    private readonly leaveBenefitsService: LeaveBenefitsService
+    private readonly leaveBenefitsService: LeaveBenefitsService,
+    @Inject(forwardRef(() => HolidaysService))
+    private readonly holidaysService: HolidaysService
   ) {
     super(crudService);
   }
@@ -129,142 +133,79 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     return vlDeductions;
   }
 
-  @Cron('0 57 23 30 11 *')
-  async forfeitureOfForcedLeave() {
-    const employees = await this.employeeService.getAllPermanentEmployeeIds();
-    const result = await Promise.all(
-      employees.map(async (employee) => {
-        const { companyId, employeeId } = employee;
-        const employeeLeaveLedger = (await this.rawQuery(`CALL sp_generate_leave_ledger_view(?,?)`, [employeeId, companyId]))[0] as LeaveLedger[];
-
-        const currentForcedLeaveBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].forcedLeaveBalance;
-        const currentVLBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].vacationLeaveBalance;
-
-        const forceLeaveBenefit = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Forced Leave' } } });
-        const vacationLeaveBenefit = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
-        //fl 2 vl 10
-        //if (currentForcedLeaveBalance < currentVLBalance && currentVLBalance > 0) {
-        const flDeduction = await this.leaveCreditDeductionService.crud().create({
-          dto: {
-            leaveBenefitsId: forceLeaveBenefit,
-            debitValue: currentForcedLeaveBalance,
-            employeeId,
-            remarks: 'FL Forfeiture',
-          },
-        });
-
-        const flLedger = await this.crud().create({
-          dto: {
-            leaveCreditDeductionsId: flDeduction,
-            debitValue: currentForcedLeaveBalance,
-          },
-        });
-
-        const vlDeduction = await this.leaveCreditDeductionService.crud().create({
-          dto: {
-            leaveBenefitsId: vacationLeaveBenefit,
-            debitValue: currentForcedLeaveBalance,
-            employeeId,
-            remarks: 'FL Forfeiture',
-          },
-        });
-
-        const vlLedger = await this.crud().create({
-          dto: {
-            leaveCreditDeductionsId: vlDeduction,
-            debitValue: currentForcedLeaveBalance,
-          },
-        });
-        //}
-
-        // if (currentForcedLeaveBalance < currentVLBalance && currentVLBalance < 0) {
-        //   const flDeduction = await this.leaveCreditDeductionService.crud().create({
-        //     dto: {
-        //       leaveBenefitsId: forceLeaveBenefit,
-        //       debitValue: currentForcedLeaveBalance,
-        //       employeeId,
-        //       remarks: 'FL Forfeiture',
-        //     },
-        //   });
-
-        //   const flLedger = await this.crud().create({
-        //     dto: {
-        //       leaveCreditDeductionsId: flDeduction,
-        //       debitValue: currentForcedLeaveBalance,
-        //     },
-        //   });
-        // }
-
-        // // if (currentForcedLeaveBalance < currentVLBalance && currentVLBalance > 0) {
-        // //   const flDeduction = await this.leaveCreditDeductionService.crud().create({
-        // //     dto: {
-        // //       leaveBenefitsId: forceLeaveBenefit,
-        // //       debitValue: currentForcedLeaveBalance,
-        // //       employeeId,
-        // //       remarks: 'FL Forfeiture',
-        // //     },
-        // //   });
-
-        // //   const flLedger = await this.crud().create({
-        // //     dto: {
-        // //       leaveCreditDeductionsId: flDeduction,
-        // //       debitValue: currentForcedLeaveBalance,
-        // //     },
-        // //   });
-        // // }
-        // if (currentForcedLeaveBalance > currentVLBalance && currentVLBalance < 0) {
-        //   const flDeduction = await this.leaveCreditDeductionService.crud().create({
-        //     dto: {
-        //       leaveBenefitsId: forceLeaveBenefit,
-        //       debitValue: currentForcedLeaveBalance,
-        //       employeeId,
-        //       remarks: 'FL Forfeiture',
-        //     },
-        //   });
-
-        //   const flLedger = await this.crud().create({
-        //     dto: {
-        //       leaveCreditDeductionsId: flDeduction,
-        //       debitValue: currentForcedLeaveBalance,
-        //     },
-        //   });
-        // }
-        // //fl 3 vl 2
-        // if (currentForcedLeaveBalance > currentVLBalance && currentVLBalance > 0) {
-        //   const flDeduction = await this.leaveCreditDeductionService.crud().create({
-        //     dto: {
-        //       leaveBenefitsId: forceLeaveBenefit,
-        //       debitValue: currentForcedLeaveBalance,
-        //       employeeId,
-        //       remarks: 'FL Forfeiture',
-        //     },
-        //   });
-
-        //   const flLedger = await this.crud().create({
-        //     dto: {
-        //       leaveCreditDeductionsId: flDeduction,
-        //       debitValue: currentForcedLeaveBalance,
-        //     },
-        //   });
-
-        //   const vlDeduction = await this.leaveCreditDeductionService.crud().create({
-        //     dto: {
-        //       leaveBenefitsId: vacationLeaveBenefit,
-        //       debitValue: currentVLBalance,
-        //       employeeId,
-        //       remarks: 'FL Forfeiture',
-        //     },
-        //   });
-
-        //   const vlLedger = await this.crud().create({
-        //     dto: {
-        //       leaveCreditDeductionsId: vlDeduction,
-        //       debitValue: currentVLBalance,
-        //     },
-        //   });
-        // }
-      })
+  async deductRehabilitationLeave() {
+    //get this month's approved rehabilitation leave
+    const hrdmApprovalDate = dayjs().format('YYYY-MM');
+    const leaveBenefitsId = '29086442-1e52-43d8-a537-f26dadda5305'; //id of rehabilitation leave
+    const rehabs = await this.rawQuery(
+      `
+        SELECT leave_application_id FROM leave_application WHERE DATE_FORMAT('hrdm_approval_date','%Y-%m')=? AND leave_benefits_id_fk=?
+      `,
+      [hrdmApprovalDate, leaveBenefitsId]
     );
-    console.log('FL forfeited.');
+    // const rehabs = await this.
+    //   .where(`DATE_FORMAT('hrdm_approval_date','%Y-%m')=:hrdmApprovalDate`, { hrdmApprovalDate })
+    //   .andWhere(`leave_benefits_id_fk=:leaveBenefitsId`, { leaveBenefitsId })
+    //   .getMany();
+    console.log(rehabs);
+  }
+
+  @Cron('0 57 23 5-10 12 *')
+  async forfeitureOfForcedLeave() {
+    const novemberLastWeekDay = await this.holidaysService.getLastWeekDayOfTheMonth(dayjs().format('YYYY') + '-11-30');
+    const finalWorkingDay = await this.holidaysService.getTheNextWorkingDayByDays(dayjs(novemberLastWeekDay).toDate(), 5);
+    const dayNow = dayjs().format('YYYY-MM-DD');
+    if (dayjs(finalWorkingDay).format('YYYY-MM-DD') === dayNow) {
+      const employees = await this.employeeService.getAllPermanentEmployeeIds();
+      const result = await Promise.all(
+        employees.map(async (employee) => {
+          const { companyId, employeeId } = employee;
+          const employeeLeaveLedger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?)`, [employeeId, companyId]))[0] as LeaveLedger[];
+
+          const currentForcedLeaveBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].forcedLeaveBalance;
+          const currentVLBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].vacationLeaveBalance;
+
+          const forceLeaveBenefit = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Forced Leave' } } });
+          const vacationLeaveBenefit = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
+
+          if (currentForcedLeaveBalance !== 0) {
+            const flDeduction = await this.leaveCreditDeductionService.crud().create({
+              dto: {
+                leaveBenefitsId: forceLeaveBenefit,
+                debitValue: currentForcedLeaveBalance,
+                employeeId,
+                remarks: 'FL Forfeiture',
+              },
+            });
+
+            const flLedger = await this.crud().create({
+              dto: {
+                leaveCreditDeductionsId: flDeduction,
+                debitValue: currentForcedLeaveBalance,
+              },
+            });
+
+            const vlDeduction = await this.leaveCreditDeductionService.crud().create({
+              dto: {
+                leaveBenefitsId: vacationLeaveBenefit,
+                debitValue: currentForcedLeaveBalance,
+                employeeId,
+                remarks: 'FL Forfeiture',
+              },
+            });
+
+            const vlLedger = await this.crud().create({
+              dto: {
+                leaveCreditDeductionsId: vlDeduction,
+                debitValue: currentForcedLeaveBalance,
+              },
+            });
+          } else {
+            console.log('0 fl here');
+          }
+        })
+      );
+      console.log('FL forfeiture executed.');
+    }
   }
 }
