@@ -785,7 +785,6 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         NomineeType.NOMINEE,
         TrainingNomineeStatus.PENDING
       );
-      console.log(nominess);
 
       return await Promise.all(
         nominess.map(async (items) => {
