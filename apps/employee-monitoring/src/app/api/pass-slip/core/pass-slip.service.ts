@@ -709,12 +709,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       dto: { timeIn, timeOut },
       updateBy: { id },
     });
-    if (result.affected > 0) {
-      const passSlipApproval = await this.passSlipApprovalService
-        .crud()
-        .update({ dto: { status: PassSlipApprovalStatus.APPROVED }, updateBy: { passSlipId: { id } } });
-      if (passSlipApproval.affected > 0) return hrUpdatePassSlipTimeRecordDto;
-    }
   }
 
   @Cron('0 57 23 * * 0-6')
