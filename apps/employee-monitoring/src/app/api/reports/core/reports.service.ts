@@ -700,7 +700,7 @@ export class ReportsService {
         },
       };
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 }
