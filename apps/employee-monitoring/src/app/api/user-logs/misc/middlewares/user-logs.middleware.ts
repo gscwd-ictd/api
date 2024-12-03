@@ -1,4 +1,4 @@
-import { ExecutionContext, Injectable, NestMiddleware } from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { UserLogsService } from '../../core/user-logs.service';
 
@@ -13,7 +13,7 @@ export class UserlogsMiddleware implements NestMiddleware {
       if (req.method !== 'GET') {
         console.log('request', req.originalUrl);
         const currentSession = req.session as typeof req.session & { user: { employeeId: string; isSuperUser?: boolean } };
-        let employeeId = currentSession.user.employeeId;
+        let employeeId = '';
         if (!currentSession.user.isSuperUser) {
           employeeId = currentSession.user.employeeId;
         }

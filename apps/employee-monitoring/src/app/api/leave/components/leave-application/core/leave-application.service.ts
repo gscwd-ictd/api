@@ -198,7 +198,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         completed: [...approved, ...disapproved, ...cancelled],
       };
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -299,7 +299,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       );
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -360,7 +360,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -396,7 +396,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       );
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -463,7 +463,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -479,7 +479,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return vacationLeaveDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -498,7 +498,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return sickLeaveDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -517,7 +517,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return studyLeaveDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -532,7 +532,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return specialLeaveBenefitsForWomenDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
