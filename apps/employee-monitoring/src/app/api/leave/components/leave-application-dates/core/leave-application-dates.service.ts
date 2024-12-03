@@ -7,6 +7,8 @@ import { LeaveCardLedgerCreditService } from '../../leave-card-ledger-credit/cor
 import { EmployeesService } from '../../../../employees/core/employees.service';
 import { LeaveDayStatus } from '@gscwd-api/utils';
 import dayjs = require('dayjs');
+import { LeaveCreditEarningsService } from '../../leave-credit-earnings/core/leave-credit-earnings.service';
+import { LeaveBenefitsService } from '../../leave-benefits/core/leave-benefits.service';
 
 @Injectable()
 export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDates> {
@@ -14,6 +16,8 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
     private readonly crudService: CrudService<LeaveApplicationDates>,
     private readonly leaveAddBackService: LeaveAddBackService,
     private readonly leaveCardLedgerCreditService: LeaveCardLedgerCreditService,
+    private readonly leaveCreditEarningsService: LeaveCreditEarningsService,
+    private readonly leaveBenefitsService: LeaveBenefitsService,
     private readonly employeesService: EmployeesService
   ) {
     super(crudService);
@@ -41,6 +45,16 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
       )
     )[0].leaveType;
 
+    const leaveName = (
+      await this.rawQuery(
+        `SELECT lb.leave_name leaveName 
+            FROM leave_application la 
+          INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
+          WHERE la.leave_application_id = ?;`,
+        [leaveApplicationId]
+      )
+    )[0].leaveName;
+
     if (leaveType === 'special leave benefit') {
       const updateResult = await this.rawQuery(
         `UPDATE leave_application_dates SET status = ?,remarks = ? WHERE leave_date >= ? AND leave_application_id_fk = ?`,
@@ -66,7 +80,7 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
                 id: true,
                 createdAt: true,
                 deletedAt: true,
-                leaveApplicationId: { id: true },
+                leaveApplicationId: { id: true, employeeId: true },
                 leaveDate: true,
                 status: true,
                 cancelDate: true,
@@ -93,6 +107,25 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
               },
               transactionEntityManager
             );
+
+            if (leaveName === 'Forced Leave') {
+              const vl = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
+              const leaveCreditEarningId = await this.leaveCreditEarningsService.crud().create({
+                dto: {
+                  creditValue: 1,
+                  leaveBenefitsId: vl,
+                  creditDate: dayjs().toDate(),
+                  employeeId: leaveApplicationDatesId.leaveApplicationId.employeeId,
+                  remarks: 'Add Back due to Leave Cancellation',
+                },
+              });
+              const leaveCardLedgerItem = await this.leaveCardLedgerCreditService.addLeaveCardLedgerCreditTransaction(
+                {
+                  leaveCreditEarningId,
+                },
+                transactionEntityManager
+              );
+            }
           } else if (status === 'for cancellation') {
             const leaveDatesCancelled = await this.crudService
               .transact<LeaveApplicationDates>(transactionEntityManager)

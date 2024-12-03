@@ -29,7 +29,7 @@ export class LspDetails extends DatabaseEntityWithTimezone implements IEntity {
   @Column({ name: 'extension_name', type: 'varchar', length: '10', nullable: true })
   extensionName: string;
 
-  @Column({ name: 'organization_name', unique: true, type: 'varchar', length: '100', nullable: true })
+  @Column({ name: 'organization_name', unique: true, type: 'text', nullable: true })
   organizationName: string;
 
   @Column({ name: 'sex', type: 'varchar', length: '10', nullable: true })
@@ -44,7 +44,7 @@ export class LspDetails extends DatabaseEntityWithTimezone implements IEntity {
   @Column({ name: 'tax_identification_number', nullable: true })
   tin: string;
 
-  @Column({ name: 'postal_address', type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'postal_address', type: 'text', nullable: true })
   postalAddress: string;
 
   @Column({ name: 'subject_matter_expertise', type: 'jsonb', nullable: true })

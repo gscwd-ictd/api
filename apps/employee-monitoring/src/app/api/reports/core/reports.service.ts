@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Next, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, HttpException, Injectable, Next, NotFoundException } from '@nestjs/common';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { NatureOfAppointment, Report, User } from '@gscwd-api/utils';
@@ -141,6 +141,43 @@ export class ReportsService {
     return _employeePassSlips;
   }
 
+  async generateReportOnPersonalPassSlipDetailedCosJo(dateFrom: Date, dateTo: Date) {
+    const employees = await this.employeesService.getEmployeesByNatureOfAppointment(NatureOfAppointment.JOBORDER);
+
+    const _employeePassSlips = [];
+
+    const employeePassSlips = await Promise.all(
+      employees.map(async (employee) => {
+        const employeeId = employee.employeeId;
+        const name = employee.fullName;
+
+        const report = (
+          await this.dtrService.rawQuery(`CALL sp_generate_report_on_personal_business_pass_slip_detailed(?,?,?,?);`, [
+            employeeId,
+            name,
+            dateFrom,
+            dateTo,
+          ])
+        )[0];
+
+        await Promise.all(
+          report.map(async (reportItem) => {
+            _employeePassSlips.push(reportItem);
+          })
+        );
+      })
+    );
+    return _employeePassSlips.sort(function (a, b) {
+      if (a.name < b.name) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
   async generateReportOnPersonalPassSlipDetailed(dateFrom: Date, dateTo: Date) {
     const employees = await this.employeesService.getAllPermanentCasualEmployees2();
 
@@ -167,7 +204,15 @@ export class ReportsService {
         );
       })
     );
-    return _employeePassSlips;
+    return _employeePassSlips.sort(function (a, b) {
+      if (a.name < b.name) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    });
   }
 
   async generateReportOnOfficialBusinessPassSlipDetailed(dateFrom: Date, dateTo: Date, employeeId: string) {
@@ -199,7 +244,15 @@ export class ReportsService {
         );
       })
     );
-    return _employeePassSlips;
+    return _employeePassSlips.sort(function (a, b) {
+      if (a.name < b.name) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    });
   }
 
   async generateReportOnEmployeeForcedLeaveCredits(monthYear: string) {
@@ -242,7 +295,7 @@ export class ReportsService {
         const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
 
         const totalVacationLeave = parseFloat(
-          (parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance)).toLocaleString(undefined, {
+          parseFloat(vacationLeaveBalance).toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })
@@ -277,7 +330,7 @@ export class ReportsService {
         const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
         const monthlyRate = ((await this.employeesService.getMonthlyHourlyRateByEmployeeId(value)) as { monthlyRate: number }).monthlyRate;
         const totalVacationLeave = parseFloat(
-          (parseFloat(vacationLeaveBalance) + parseFloat(forcedLeaveBalance)).toLocaleString(undefined, {
+          parseFloat(vacationLeaveBalance).toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })
@@ -343,7 +396,7 @@ export class ReportsService {
         }
       })
     );
-    return _employeesLWOP;
+    return _employeesLWOP.sort((a, b) => (a.dateFrom < b.dateFrom ? -1 : a.dateFrom > b.dateFrom ? 1 : 0));
   }
 
   async generateReportOnRehabilitationLeave(dateFrom: Date, dateTo: Date, employeeId?: string) {
@@ -581,66 +634,74 @@ export class ReportsService {
   }
 
   async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string, employeeId?: string) {
-    if (user === null) throw new ForbiddenException();
-    let reportDetails: object;
-    switch (report) {
-      case decodeURI(Report.REPORT_ON_ATTENDANCE):
-        reportDetails = await this.generateReportOnAttendance(dateFrom, dateTo);
-        break;
-      //#region Report About Pass Slips
-      case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS):
-        reportDetails = await this.generateReportOnPersonalPassSlip(dateFrom, dateTo);
-        break;
-      case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS):
-        reportDetails = await this.generateReportOnOfficialBusinessPassSlip(dateFrom, dateTo);
-        break;
-      case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS_DETAILED):
-        reportDetails = await this.generateReportOnPersonalPassSlipDetailed(dateFrom, dateTo);
-        break;
-      case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
-        reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo, employeeId);
-        break;
-      case decodeURI(Report.REPORT_ON_SUMMARY_OF_SICK_LEAVE):
-        reportDetails = await this.generateReportOnSummaryOfSickLeave(dateFrom, dateTo, employeeId);
-        break;
-      case decodeURI(Report.REPORT_ON_REHABILITATION_LEAVE):
-        reportDetails = await this.generateReportOnRehabilitationLeave(dateFrom, dateTo, employeeId);
-        break;
-      case decodeURI(Report.REPORT_ON_PASS_SLIP_DEDUCTIBLE_TO_PAY):
-        if (monthYear) reportDetails = await this.generateReportOnPassSlipDeductibleToPay(monthYear);
-        break;
-      //#endregion Report About Pass Slips
-      //#region Report About Leaves
-      case decodeURI(Report.REPORT_ON_EMPLOYEE_FORCED_LEAVE_CREDITS):
-        if (monthYear) reportDetails = await this.generateReportOnEmployeeForcedLeaveCredits(monthYear);
-        break;
-      case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE):
-        if (monthYear) reportDetails = await this.generateReportOnEmployeeLeaveCreditBalance(monthYear);
-        break;
-      case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE_WITH_MONEY):
-        if (monthYear) reportDetails = await this.generateReportOnEmployeeLeaveCreditBalanceWithMoney(monthYear);
-        break;
-      case decodeURI(Report.REPORT_ON_SUMMARY_OF_LEAVE_WITHOUT_PAY):
-        if (monthYear) reportDetails = await this.generateReportOnSummaryOfLeaveWithoutPay(monthYear);
-        break;
-      //#endregion Report About Leaves
-      default:
-        break;
+    try {
+      if (user === null) throw new ForbiddenException();
+      let reportDetails: object;
+      switch (report) {
+        case decodeURI(Report.REPORT_ON_ATTENDANCE):
+          reportDetails = await this.generateReportOnAttendance(dateFrom, dateTo);
+          break;
+        //#region Report About Pass Slips
+        case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS):
+          reportDetails = await this.generateReportOnPersonalPassSlip(dateFrom, dateTo);
+          break;
+        case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS):
+          reportDetails = await this.generateReportOnOfficialBusinessPassSlip(dateFrom, dateTo);
+          break;
+        case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS_DETAILED):
+          reportDetails = await this.generateReportOnPersonalPassSlipDetailed(dateFrom, dateTo);
+          break;
+        // Commented for quick fix
+        // case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS_DETAILED_COS_JO):
+        //   reportDetails = await this.generateReportOnPersonalPassSlipDetailedCosJo(dateFrom, dateTo);
+        //   break;
+        case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
+          reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo, employeeId);
+          break;
+        case decodeURI(Report.REPORT_ON_SUMMARY_OF_SICK_LEAVE):
+          reportDetails = await this.generateReportOnSummaryOfSickLeave(dateFrom, dateTo, employeeId);
+          break;
+        case decodeURI(Report.REPORT_ON_REHABILITATION_LEAVE):
+          reportDetails = await this.generateReportOnRehabilitationLeave(dateFrom, dateTo, employeeId);
+          break;
+        case decodeURI(Report.REPORT_ON_PASS_SLIP_DEDUCTIBLE_TO_PAY):
+          if (monthYear) reportDetails = await this.generateReportOnPassSlipDeductibleToPay(monthYear);
+          break;
+        //#endregion Report About Pass Slips
+        //#region Report About Leaves
+        case decodeURI(Report.REPORT_ON_EMPLOYEE_FORCED_LEAVE_CREDITS):
+          if (monthYear) reportDetails = await this.generateReportOnEmployeeForcedLeaveCredits(monthYear);
+          break;
+        case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE):
+          if (monthYear) reportDetails = await this.generateReportOnEmployeeLeaveCreditBalance(monthYear);
+          break;
+        case decodeURI(Report.REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE_WITH_MONEY):
+          if (monthYear) reportDetails = await this.generateReportOnEmployeeLeaveCreditBalanceWithMoney(monthYear);
+          break;
+        case decodeURI(Report.REPORT_ON_SUMMARY_OF_LEAVE_WITHOUT_PAY):
+          if (monthYear) reportDetails = await this.generateReportOnSummaryOfLeaveWithoutPay(monthYear);
+          break;
+        //#endregion Report About Leaves
+        default:
+          break;
+      }
+
+      const employeeDetails = await this.employeesService.getEmployeeDetails(user.employeeId);
+      const supervisorId = await this.employeesService.getEmployeeSupervisorId(user.employeeId);
+      const supervisorDetails = await this.employeesService.getEmployeeDetails(supervisorId.toString());
+      const managerId = await this.employeesService.getEmployeeSupervisorId(supervisorId.toString());
+      const managerDetails = await this.employeesService.getEmployeeDetails(managerId.toString());
+
+      return {
+        report: reportDetails,
+        signatory: {
+          preparedBy: { name: user.name, positionTitle: employeeDetails.assignment.positionTitle },
+          reviewedBy: { name: supervisorDetails.employeeFullName, positionTitle: supervisorDetails.assignment.positionTitle },
+          approvedBy: { name: managerDetails.employeeFullName, positionTitle: managerDetails.assignment.positionTitle },
+        },
+      };
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
     }
-
-    const employeeDetails = await this.employeesService.getEmployeeDetails(user.employeeId);
-    const supervisorId = await this.employeesService.getEmployeeSupervisorId(user.employeeId);
-    const supervisorDetails = await this.employeesService.getEmployeeDetails(supervisorId.toString());
-    const managerId = await this.employeesService.getEmployeeSupervisorId(supervisorId.toString());
-    const managerDetails = await this.employeesService.getEmployeeDetails(managerId.toString());
-
-    return {
-      report: reportDetails,
-      signatory: {
-        preparedBy: { name: user.name, positionTitle: employeeDetails.assignment.positionTitle },
-        reviewedBy: { name: supervisorDetails.employeeFullName, positionTitle: supervisorDetails.assignment.positionTitle },
-        approvedBy: { name: managerDetails.employeeFullName, positionTitle: managerDetails.assignment.positionTitle },
-      },
-    };
   }
 }

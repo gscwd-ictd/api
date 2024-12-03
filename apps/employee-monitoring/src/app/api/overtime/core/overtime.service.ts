@@ -12,7 +12,7 @@ import {
 import { OvertimeHrsRendered, OvertimeStatus, OvertimeSummaryHalf, ScheduleBase } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
-import { Between, DataSource, EntityManager, EntityMetadata, TreeLevelColumn } from 'typeorm';
+import { Between, DataSource, EntityManager, EntityMetadata, Not, TreeLevelColumn } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
@@ -194,8 +194,8 @@ export class OvertimeService {
       await this.overtimeApplicationService.rawQuery(
         `SELECT COUNT(DISTINCT oa.overtime_application_id) countForApprovalOT FROM overtime_application oa 
           INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
-         WHERE employee_id_fk IN (?) AND status = 'pending';`,
-        [employeeIds]
+         WHERE employee_id_fk IN (?) AND status = 'pending' AND oa.manager_id_fk <> ?;`,
+        [employeeIds, managerId]
       )
     )[0].countForApprovalOT;
     return parseInt(count);
@@ -204,7 +204,7 @@ export class OvertimeService {
   async getOvertimeApplicationsForApprovalV2(managerId: string) {
     //
     //1. get manager organization id
-    const managerOrgId = (await this.employeeService.getEmployeeDetails(managerId)).assignment.id;
+    const managerOrgId = (await this.employeeService.getBasicEmployeeDetails(managerId)).assignment.id;
     //check if officer of the day/uncomment below if rules change again for officer of the day approval;
     //const officerOfTheDayOrgs = await this.officerOfTheDayService.getOfficerOfTheDayOrgs(managerId);
     const officerOfTheDayOrgs = [];
@@ -219,6 +219,8 @@ export class OvertimeService {
 
     const employeesUnderOrgId = await this.employeeService.getEmployeesByOrgId(managerOrgId);
 
+    console.log('employees', employeesUnderOrgId);
+
     const employeeIds = (
       await Promise.all(
         employeesUnderOrgId.map(async (employee) => {
@@ -230,12 +232,12 @@ export class OvertimeService {
     });
 
     //3. get overtime employee ids for approval
-    const overtimeApplications = await this.overtimeApplicationService.getOvertimeApplicationsByEmployeeIds(employeeIds);
+    const overtimeApplications = await this.overtimeApplicationService.getOvertimeApplicationsByEmployeeIds(employeeIds, managerId);
 
     const overtimeApplicationsWithSupervisorName = await Promise.all(
       overtimeApplications.map(async (overtimeApplication) => {
         const { employeeId, overtimeApplicationId, ...rest } = overtimeApplication;
-        const immediateSupervisorName = (await this.employeeService.getEmployeeDetails(employeeId)).employeeFullName;
+        const immediateSupervisorName = (await this.employeeService.getBasicEmployeeDetails(employeeId)).employeeFullName;
 
         const employees = (await this.overtimeEmployeeService.crud().findAll({
           find: {
@@ -250,7 +252,7 @@ export class OvertimeService {
         const employeesWithDetails = await Promise.all(
           employees.map(async (employee) => {
             const { employeeId } = employee;
-            const employeeDetail = await this.employeeService.getEmployeeDetails(employeeId);
+            const employeeDetail = await this.employeeService.getBasicEmployeeDetails(employeeId);
 
             const { assignment, employeeFullName, companyId, photoUrl } = employeeDetail;
 
@@ -503,7 +505,7 @@ export class OvertimeService {
           employees.map(async (employee) => {
             const { employeeId } = employee;
 
-            const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
+            const employeeDetails = await this.employeeService.getBasicEmployeeDetails(employeeId);
             const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
             const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
 
@@ -574,7 +576,7 @@ export class OvertimeService {
 
     const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId.employeeId);
 
-    const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
+    const supervisorName = (await this.employeeService.getBasicEmployeeDetails(supervisorId)).employeeFullName;
 
     const approvedOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.APPROVED);
 
@@ -1559,8 +1561,8 @@ export class OvertimeService {
 
   private async getComputedHrs(hrsRendered: OvertimeHrsRendered) {
     //
-    const { computedEncodedHours } = hrsRendered;
-    return computedEncodedHours;
+    const { computedEncodedHours, actualHrs } = hrsRendered;
+    return actualHrs && actualHrs > 0 ? parseFloat(actualHrs.toString()) : computedEncodedHours;
   }
 
   private async isRegularOvertimeDay(employeeId: string, year: number, month: number, day: number) {

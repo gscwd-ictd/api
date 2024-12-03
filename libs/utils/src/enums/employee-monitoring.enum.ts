@@ -12,4 +12,5 @@ export enum DtrDeductionType {
 export enum MonetizationType {
   MAX_20 = 'max 20',
   MAX_50_PERCENT = 'max 50 percent',
+  TERMINAL = 'terminal',
 }

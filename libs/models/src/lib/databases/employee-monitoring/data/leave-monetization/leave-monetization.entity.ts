@@ -11,10 +11,10 @@ export class LeaveMonetization extends DatabaseEntity implements IEntity {
   @Column({ name: 'monetization_type', type: 'enum', enum: MonetizationType })
   monetizationType: MonetizationType;
 
-  @Column({ name: 'converted_vl', type: 'int' })
+  @Column({ name: 'converted_vl', type: 'decimal', precision: 6, scale: 3 })
   convertedVl: number;
 
-  @Column({ name: 'converted_sl', type: 'int' })
+  @Column({ name: 'converted_sl', type: 'decimal', precision: 6, scale: 3 })
   convertedSl: number;
 
   @JoinColumn({ name: 'leave_application_id_fk' })

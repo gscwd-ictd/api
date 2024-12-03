@@ -38,6 +38,7 @@ import { TrainingNomineesService } from '../components/nominees';
 import { TrainingRequirementsService } from '../components/requirements';
 import { TrainingDistributionsService } from '../components/slot-distributions';
 import { AuthGuard } from '../../../../guards';
+import { Raw } from 'typeorm';
 
 @Controller({ version: '1', path: 'training' })
 export class TrainingDetailsController {
@@ -221,6 +222,58 @@ export class TrainingDetailsController {
     });
   }
 
+  /* find all training by date range */
+  @UseInterceptors(FindAllTrainingInterceptor)
+  @Get('q')
+  async findAllTrainingByDateRange(
+    @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number,
+    @Query('dateFrom') dateFrom: string,
+    @Query('dateTo') dateTo: string,
+    @Query('source') source: string
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      find: {
+        relations: {
+          source: true,
+          trainingDesign: true,
+        },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          trainingDesign: {
+            courseTitle: true,
+          },
+          courseTitle: true,
+          numberOfParticipants: true,
+          numberOfHours: true,
+          location: true,
+          trainingStart: true,
+          trainingEnd: true,
+          source: {
+            name: true,
+          },
+          type: true,
+          status: true,
+        },
+        where: {
+          trainingStart: Raw((alias) => `to_char(${alias}, 'YYYY-MM') >= :dateFrom`, { dateFrom }),
+          trainingEnd: Raw((alias) => `to_char(${alias}, 'YYYY-MM') <= :dateTo`, { dateTo }),
+          source: {
+            name: source,
+          },
+        },
+        order: {
+          updatedAt: 'DESC',
+        },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
+
   /* find training by id */
   @Get(':id')
   async findTrainingDetailsById(@Param('id') id: string) {
@@ -266,15 +319,15 @@ export class TrainingDetailsController {
   /* send a training notice to the manager to nominate (source = internal) */
   @UseGuards(AuthGuard)
   @Patch('notices/internal')
-  async sendNoticeToManagersInternal(@Body() data: SendTrainingNoticeInternalDto, @LoginUser() user: User) {
-    return await this.trainingDetailsService.sendNoticeToManagersInternal(data, user.employeeId);
+  async sendNoticeToManagersInternal(@Body() data: SendTrainingNoticeInternalDto) {
+    return await this.trainingDetailsService.sendNoticeToManagersInternal(data);
   }
 
   /* send a training notice to the manager to nominate (source = external) */
   @UseGuards(AuthGuard)
   @Patch('notices/external')
-  async sendNoticeToManagersExternal(@Body() data: SendTrainingNoticeExternalDto, @LoginUser() user: User) {
-    return await this.trainingDetailsService.sendNoticeToManagersExternal(data, user.employeeId);
+  async sendNoticeToManagersExternal(@Body() data: SendTrainingNoticeExternalDto) {
+    return await this.trainingDetailsService.sendNoticeToManagersExternal(data);
   }
 
   /* find all accepted nominees by training id */

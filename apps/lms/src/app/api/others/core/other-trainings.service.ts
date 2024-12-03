@@ -6,7 +6,6 @@ import { OtherTrainingParticipantsService } from '../components/other-training-p
 import { Cron } from '@nestjs/schedule';
 import { OtherTrainingStatus, RequirementsRaw } from '@gscwd-api/utils';
 import { OtherTrainingParticipantsRequirementsService } from '../components/other-training-participants-requirements';
-import { HttpStatusCode } from 'axios';
 
 @Injectable()
 export class OtherTrainingsService extends CrudHelper<OtherTraining> {
@@ -184,7 +183,7 @@ export class OtherTrainingsService extends CrudHelper<OtherTraining> {
       });
     } catch (error) {
       Logger.error(error);
-      throw new HttpException('Bad request.', HttpStatusCode.BadRequest);
+      throw new HttpException('Bad request.', HttpStatus.BAD_REQUEST);
     }
   }
 

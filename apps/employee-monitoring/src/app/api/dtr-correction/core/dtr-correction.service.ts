@@ -36,21 +36,25 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
   }
 
   async getPendingDtrCorrections(employeeId: string) {
-    const employees = await this.employeeService.getEmployeesUnderSupervisor(employeeId);
-    const companyIds = employees.map((emp) => emp.companyId);
-    return parseInt(
-      (
-        await this.rawQuery(
-          `
-            SELECT COUNT(*) pendingDtrCorrections
-              FROM dtr_correction dtrc 
-            INNER JOIN 
-              daily_time_record dtr ON dtr.daily_time_record_id = dtrc.daily_time_record_id_fk
-            WHERE dtrc.status = 'for approval' AND company_id_fk IN (?);`,
-          [companyIds]
-        )
-      )[0].pendingDtrCorrections
-    );
+    try {
+      const employees = await this.employeeService.getEmployeesUnderSupervisor(employeeId);
+      const companyIds = employees.map((emp) => emp.companyId);
+      return parseInt(
+        (
+          await this.rawQuery(
+            `
+              SELECT COUNT(*) pendingDtrCorrections
+                FROM dtr_correction dtrc 
+              INNER JOIN 
+                daily_time_record dtr ON dtr.daily_time_record_id = dtrc.daily_time_record_id_fk
+              WHERE dtrc.status = 'for approval' AND company_id_fk IN (?);`,
+            [companyIds]
+          )
+        )[0].pendingDtrCorrections
+      );
+    } catch (error) {
+      return 0;
+    }
   }
 
   async getDtrCorrections(employeeId: any): Promise<DtrCorrectionsType[]> {

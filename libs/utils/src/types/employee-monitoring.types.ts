@@ -286,6 +286,7 @@ export type PassSlipForDispute = {
 
 export type OvertimeHrsRendered = {
   computedEncodedHours: number;
+  actualHrs: number;
 };
 
 export type User = {
