@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveCardLedgerDebitDto, LeaveApplication, LeaveCardLedgerDebit } from '@gscwd-api/models';
-import { forwardRef, HttpException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { forwardRef, HttpException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { EmployeesService } from '../../../../employees/core/employees.service';
 import { Cron } from '@nestjs/schedule';
 import { LeaveCreditDeductionsService } from '../../leave-credit-deductions/core/leave-credit-deductions.service';
@@ -37,7 +37,7 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     try {
       return (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [id]))[0].debitValue;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 

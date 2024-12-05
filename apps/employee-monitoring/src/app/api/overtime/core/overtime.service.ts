@@ -710,7 +710,7 @@ export class OvertimeService {
       return result;
     } catch (error) {
       console.log(error);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -821,7 +821,7 @@ export class OvertimeService {
       return result;
     } catch (error) {
       console.log(error);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 

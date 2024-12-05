@@ -38,8 +38,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
   async createLeaveApplicationTransaction(transactionEntityManager: EntityManager, createLeaveApplicationDto: CreateLeaveApplicationDto) {
     const { leaveApplicationDates, ...rest } = createLeaveApplicationDto;
-    console.log('transaction create leave');
+
     const referenceNo = (await this.rawQuery(`SELECT generate_leave_application_reference_number() referenceNo;`))[0].referenceNo;
+    console.log(referenceNo);
     console.log(referenceNo);
     return await this.crudService.transact<LeaveApplication>(transactionEntityManager).create({
       dto: { ...rest, referenceNo },
@@ -67,7 +68,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const result = this.dataSource.transaction(async (transactionEntityManager) => {
       const { leaveApplicationDates, ...rest } = createLeaveApplication;
-
       const companyId = await this.employeesService.getCompanyId(rest.employeeId);
       let supervisorId = null;
 
@@ -138,8 +138,45 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
               (parseFloat(finalBalance.vacationLeaveBalance.toString()) +
                 parseFloat(finalBalance.sickLeaveBalance.toString()) +
                 excessCreditEarnings * 2) *
-                (salaryGradeAmount * monetizationConstant) *
-                100
+              (salaryGradeAmount * monetizationConstant) *
+              100
+            ) / 100;
+          //console.log(monetizAmount);
+          const leaveMonetization = await this.leaveMonetizationService.createLeaveMonetization(
+            transactionEntityManager,
+            {
+              convertedSl: excessCreditEarnings + parseFloat(finalBalance.sickLeaveBalance.toString()),
+              convertedVl: excessCreditEarnings + parseFloat(finalBalance.vacationLeaveBalance.toString()),
+              monetizationType: MonetizationType.TERMINAL,
+              monetizedAmount,
+            },
+            leaveApplication
+          );
+        }
+        if (leaveName === 'Terminal Leave') {
+          const terminalLeaveDay = leaveApplicationDates[0];
+          const salaryGradeAmount = (await this.employeesService.getSalaryGradeOrDailyRateByEmployeeId(rest.employeeId)).salaryGradeAmount;
+
+          const excessDates = parseInt(dayjs(terminalLeaveDay).format('DD'));
+          const { dailyLeaveCredit, monetizationConstant } = (
+            await this.rawQuery(
+              `SELECT (SELECT value FROM ems_settings WHERE name= 'daily_leave_credit') dailyLeaveCredit, (SELECT value FROM ems_settings WHERE name= 'monetization_constant') monetizationConstant;`
+            )
+          )[0] as { dailyLeaveCredit: number; monetizationConstant: number };
+
+          const excessCreditEarnings = excessDates * dailyLeaveCredit;
+          const employeeLeaveLedger = (
+            await this.rawQuery(`CALL sp_generate_leave_ledger_view(?,?)`, [rest.employeeId, companyId])
+          )[0] as LeaveLedger[];
+          const finalBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
+
+          const monetizedAmount: number =
+            Math.trunc(
+              (parseFloat(finalBalance.vacationLeaveBalance.toString()) +
+                parseFloat(finalBalance.sickLeaveBalance.toString()) +
+                excessCreditEarnings * 2) *
+              (salaryGradeAmount * monetizationConstant) *
+              100
             ) / 100;
           //console.log(monetizAmount);
           const leaveMonetization = await this.leaveMonetizationService.createLeaveMonetization(
@@ -198,7 +235,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         completed: [...approved, ...disapproved, ...cancelled],
       };
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -299,7 +336,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       );
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -360,7 +397,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -396,7 +433,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       );
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -463,7 +500,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -479,7 +516,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return vacationLeaveDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -498,7 +535,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return sickLeaveDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -517,7 +554,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return studyLeaveDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -532,7 +569,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return specialLeaveBenefitsForWomenDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -583,6 +620,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return { employeeDetails, leaveApplicationBasicInfo };
     }
   }
+
 
   async getTerminalLeaveDetails(leaveApplicationId: string) {
     const monetizationDetails = await this.getMonetizationDetails(leaveApplicationId);
@@ -861,8 +899,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
         const _hrmoApprovedBy = hrmoApprovedBy === null ? null : (await this.employeesService.getEmployeeDetails(hrmoApprovedBy)).employeeFullName;
 
-        //console.log('employee id', employeeId);
         const employeeDetails = await this.employeesService.getBasicEmployeeDetails(employeeId);
+
 
         const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
           find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
@@ -889,6 +927,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           hrdmApprovedBy,
           hrdmApprovalDate,
           ...monetizationDetails,
+          ...terminalLeaveDetails,
           ...terminalLeaveDetails,
           id: rest.id,
           employee: { employeeId, employeeName, companyId: employeeDetails.companyId },
@@ -1013,40 +1052,40 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
   async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
     const leaves = ((<LeaveApplication[]>await this.crud().findAll({
-        find: {
-          select: {
-            id: true,
-            abroad: true,
-            dateOfFiling: true,
-            employeeId: true,
-            forBarBoardReview: true,
-            forMastersCompletion: true,
-            forMonetization: true,
-            hrdmApprovalDate: true,
-            hrdmDisapprovalRemarks: true,
-            hrmoApprovalDate: true,
-            supervisorApprovalDate: true,
-            supervisorDisapprovalRemarks: true,
-            inHospital: true,
-            inPhilippines: true,
-            isTerminalLeave: true,
-            isLateFiling: true,
-            supervisorId: true,
-            referenceNo: true,
-            studyLeaveOther: true,
-            outPatient: true,
-            cancelDate: true,
-            cancelReason: true,
-            requestedCommutation: true,
-            splWomen: true,
-            leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
-            status: true,
-          },
-          relations: { leaveBenefitsId: true },
-          where: { status: leaveApplicationStatus },
-          order: { dateOfFiling: 'DESC' },
+      find: {
+        select: {
+          id: true,
+          abroad: true,
+          dateOfFiling: true,
+          employeeId: true,
+          forBarBoardReview: true,
+          forMastersCompletion: true,
+          forMonetization: true,
+          hrdmApprovalDate: true,
+          hrdmDisapprovalRemarks: true,
+          hrmoApprovalDate: true,
+          supervisorApprovalDate: true,
+          supervisorDisapprovalRemarks: true,
+          inHospital: true,
+          inPhilippines: true,
+          isTerminalLeave: true,
+          isLateFiling: true,
+          supervisorId: true,
+          referenceNo: true,
+          studyLeaveOther: true,
+          outPatient: true,
+          cancelDate: true,
+          cancelReason: true,
+          requestedCommutation: true,
+          splWomen: true,
+          leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
+          status: true,
         },
-      })) as LeaveApplication[]).map((la) => {
+        relations: { leaveBenefitsId: true },
+        where: { status: leaveApplicationStatus },
+        order: { dateOfFiling: 'DESC' },
+      },
+    })) as LeaveApplication[]).map((la) => {
       const { dateOfFiling, cancelDate, ...restOfLeave } = la;
       return {
         dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),

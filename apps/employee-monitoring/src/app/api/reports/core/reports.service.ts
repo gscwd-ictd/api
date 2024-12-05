@@ -7,7 +7,7 @@ import { last } from 'rxjs';
 
 @Injectable()
 export class ReportsService {
-  constructor(private readonly employeesService: EmployeesService, private readonly dtrService: DailyTimeRecordService) {}
+  constructor(private readonly employeesService: EmployeesService, private readonly dtrService: DailyTimeRecordService) { }
 
   async generateReportOnAttendance(dateFrom: Date, dateTo: Date) {
     const employees = await this.employeesService.getAllPermanentCasualEmployees2();
@@ -651,10 +651,9 @@ export class ReportsService {
         case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS_DETAILED):
           reportDetails = await this.generateReportOnPersonalPassSlipDetailed(dateFrom, dateTo);
           break;
-        // Commented for quick fix
-        // case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS_DETAILED_COS_JO):
-        //   reportDetails = await this.generateReportOnPersonalPassSlipDetailedCosJo(dateFrom, dateTo);
-        //   break;
+        case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS_DETAILED_COS_JO):
+          reportDetails = await this.generateReportOnPersonalPassSlipDetailedCosJo(dateFrom, dateTo);
+          break;
         case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
           reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo, employeeId);
           break;
@@ -701,7 +700,7 @@ export class ReportsService {
         },
       };
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 }

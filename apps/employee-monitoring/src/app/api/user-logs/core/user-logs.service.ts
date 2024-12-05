@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateUserLogsDto, UserLogs } from '@gscwd-api/models';
-import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { EmployeesService } from '../../employees/core/employees.service';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class UserLogsService extends CrudHelper<UserLogs> {
         userId,
       ]);
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -38,7 +38,7 @@ export class UserLogsService extends CrudHelper<UserLogs> {
       );
       return logsDetailed;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -58,7 +58,7 @@ export class UserLogsService extends CrudHelper<UserLogs> {
       );
       return logsDetailed;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -70,7 +70,7 @@ export class UserLogsService extends CrudHelper<UserLogs> {
       if (userId !== '') userFullName = await this.employeeService.getEmployeeName(userId);
       return { id, dateLogged: createdAt, userFullName, body, method, route };
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 }

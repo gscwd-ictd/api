@@ -5,8 +5,10 @@ import dayjs = require('dayjs');
 import { join } from 'path';
 import { DatabaseConfig } from '../config/database.config';
 import { appModules } from '../constants/modules';
+import { LoggerMiddleWare } from './logger.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserlogsMiddleware } from './api/user-logs/misc/middlewares/user-logs.middleware';
+import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 
 const envFilePath = join(__dirname, '../../../apps/employee-monitoring/.env');
 @Module({
