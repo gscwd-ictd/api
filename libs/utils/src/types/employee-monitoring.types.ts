@@ -1,5 +1,3 @@
-import { LargeNumberLike } from 'crypto';
-
 export enum LeaveTypes {
   RECURRING = 'recurring',
   CUMULATIVE = 'cumulative',
@@ -14,6 +12,8 @@ export enum CreditDistribution {
 export enum LeaveApplicationStatus {
   APPROVED = 'approved',
   ONGOING = 'ongoing',
+  FOR_HRMO_CERTIFICATION = 'for hrmo certification',
+  FOR_HRMO_CREDIT_CERTIFICATION = 'for hrmo credit certification',
   FOR_HRMO_APPROVAL = 'for hrmo approval',
   FOR_SUPERVISOR_APPROVAL = 'for supervisor approval',
   FOR_HRDM_APPROVAL = 'for hrdm approval',
@@ -34,7 +34,15 @@ export type LeaveApplicationType = {
   leaveName: string;
   dateOfFiling: Date;
   status: LeaveApplicationStatus;
+  employeeId: string;
   supervisorId: string;
+  hrmoApprovedBy: string;
+  hrdmApprovedBy: string;
+  hrdmApprovalDate: Date;
+  hrmoApprovalDate: Date;
+  supervisorApprovalDate: Date;
+  referenceNo: string;
+  forMonetization: boolean;
 };
 
 export type DtrPayload = {
@@ -57,6 +65,9 @@ export enum ObTransportation {
 
 export enum PassSlipApprovalStatus {
   APPROVED = 'approved',
+  AWAITING_MEDICAL_CERTIFICATE = 'awaiting medical certificate',
+  APPROVED_WITH_MEDICAL_CERTIFICATE = 'approved with medical certificate',
+  APPROVED_WITHOUT_MEDICAL_CERTIFICATE = 'approved without medical certificate',
   ONGOING = 'ongoing',
   DISAPPROVED_BY_HRMO = 'disapproved by hrmo',
   DISAPPROVED = 'disapproved',
@@ -104,11 +115,22 @@ export enum Report {
   REPORT_ON_PERSONAL_BUSINESS = 'report on personal business pass slip',
   REPORT_ON_OFFICIAL_BUSINESS = 'report on official business pass slip',
   REPORT_ON_PERSONAL_BUSINESS_DETAILED = 'detailed report on personal business pass slip',
+  REPORT_ON_PERSONAL_BUSINESS_DETAILED_COS_JO = 'detailed report on personal business pass slip (cos-jo)',
   REPORT_ON_OFFICIAL_BUSINESS_DETAILED = 'detailed report on official business pass slip',
   REPORT_ON_EMPLOYEE_FORCED_LEAVE_CREDITS = 'report on employee forced leave credits',
   REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE = 'report on employee leave credit balance',
   REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE_WITH_MONEY = 'report on employee leave credit balance with money',
   REPORT_ON_SUMMARY_OF_LEAVE_WITHOUT_PAY = 'report on summary of leave without pay',
+  REPORT_ON_SUMMARY_OF_SICK_LEAVE = 'report on summary of sick leave',
+  REPORT_ON_REHABILITATION_LEAVE = 'report on summary of rehabilitation leave',
+  REPORT_ON_PASS_SLIP_DEDUCTIBLE_TO_PAY = 'report on pass slip deductible to pay',
+}
+
+export enum NatureOfAppointment {
+  JOBORDER = 'job order',
+  PERMANENT = 'permanent',
+  CASUAL = 'casual',
+  BOARD_OF_DIRECTORS = 'board of directors',
 }
 
 export type VacationLeaveDetails = {
@@ -213,6 +235,7 @@ export type PassSlipForLedger = {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;
+  isDeductibleToPay: boolean;
 };
 
 export type LeaveLedger = {
@@ -264,6 +287,7 @@ export type PassSlipForDispute = {
 
 export type OvertimeHrsRendered = {
   computedEncodedHours: number;
+  actualHrs: number;
 };
 
 export type User = {

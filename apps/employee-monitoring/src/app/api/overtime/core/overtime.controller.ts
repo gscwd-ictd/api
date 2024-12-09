@@ -20,8 +20,7 @@ export class OvertimeController {
 
   @Get(':overtime_application_id/accomplishments/employees')
   async getOvertimeAccomplishmentsByOvertimeApplicationId(@Param('overtime_application_id') overtimeApplicationId: string) {
-    console.log(overtimeApplicationId);
-    return await this.overtimeService.getOvertimeAccomplishmentsByOvertimeApplicationId(overtimeApplicationId);
+    //return await this.overtimeService.getOvertimeAccomplishmentsByOvertimeApplicationId(overtimeApplicationId);
   }
 
   @Get('immediate-supervisors')
@@ -39,6 +38,11 @@ export class OvertimeController {
     return await this.overtimeService.getOvertimeApplicationDetailByManagerIdAndId(managerId, id);
   }
 
+  @Get(':manager_id/list')
+  async getOvertimeApplicationsByManagerId(@Param('manager_id') managerId: string) {
+    return await this.overtimeService.getOvertimeApplicationsByManagerId(managerId);
+  }
+
   @Get(':immediate_supervisor_id')
   async getOvertimeApplicationsBySupervisorId(@Param('immediate_supervisor_id') immediateSupervisorId: string) {
     return await this.overtimeService.getOvertimeApplicationsByImmediateSupervisorId(immediateSupervisorId);
@@ -51,6 +55,11 @@ export class OvertimeController {
 
   @Get('/employees/:employee_id/accomplishments')
   async getOvertimeAccomplishmentByEmployeeId(@Param('employee_id') employeeId: string) {
+    return await this.overtimeService.getOvertimeAccomplishmentByEmployeeId(employeeId);
+  }
+
+  @Get('/employees/:employee_id/accomplishments/asd/asd/asd/asd/')
+  async getOvertimeAccomplishmentByEmployeeIdasd(@Param('employee_id') employeeId: string) {
     return await this.overtimeService.getOvertimeAccomplishmentByEmployeeId(employeeId);
   }
 
@@ -102,6 +111,11 @@ export class OvertimeController {
   @Delete('/immediate-supervisors/:overtime_immediate_supervisor_id')
   async deleteAccomplishments(@Param('overtime_immediate_supervisor_id') overtimeImmediateSupervisorId: string) {
     return await this.overtimeService.deleteImmediateSupervisor(overtimeImmediateSupervisorId);
+  }
+
+  @Get('monthly/:year_month')
+  async getOvertimeApplicationsByMonth(@Param('year_month') yearMonth: string) {
+    return await this.overtimeService.getOvertimeApplicationsByMonth(yearMonth);
   }
 
   @Get()

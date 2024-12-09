@@ -29,6 +29,13 @@ import { BenchmarkParticipantsModule } from './api/benchmark/components/particip
 import { BenchmarkParticipantRequirementsModule } from './api/benchmark/components/participants-requirements';
 import { OtherTrainingsModule } from './api/others';
 import { OtherTrainingParticipantsModule } from './api/others/components/other-training-participants';
+import { ScheduleModule } from '@nestjs/schedule';
+import { LspRatingModule } from './api/lsp-rating/core/lsp-rating.module';
+import { DocumentsModule } from './api/training/components/documents';
+import { OtherTrainingParticipantsRequirementsModule } from './api/others/components/other-training-participants-requirements';
+import { ReportsModule } from './api/reports';
+import { TrainingHistoryModule } from './api/training-history';
+import { SmsModule } from './services/sms';
 
 @Module({
   imports: [
@@ -47,6 +54,7 @@ import { OtherTrainingParticipantsModule } from './api/others/components/other-t
     LspEducationsModule,
     LspProjectsModule,
     LspTrainingsModule,
+    LspRatingModule,
 
     /* tag */
     TagsModule,
@@ -58,6 +66,9 @@ import { OtherTrainingParticipantsModule } from './api/others/components/other-t
 
     /* portal microservices */
     PortalEmployeesModule,
+
+    /* sms microservices */
+    SmsModule,
 
     /* trainings */
     TrainingSourcesModule,
@@ -83,6 +94,17 @@ import { OtherTrainingParticipantsModule } from './api/others/components/other-t
     /* other trainings */
     OtherTrainingsModule,
     OtherTrainingParticipantsModule,
+    OtherTrainingParticipantsRequirementsModule,
+
+    /* reports */
+    DocumentsModule,
+    ReportsModule,
+
+    /* training logs */
+    TrainingHistoryModule,
+
+    /* cron job */
+    ScheduleModule.forRoot(),
   ],
 })
 export class AppModule {}

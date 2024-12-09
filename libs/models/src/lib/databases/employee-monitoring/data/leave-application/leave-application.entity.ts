@@ -66,6 +66,9 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ type: 'datetime', name: 'hrmo_approval_date', nullable: true })
   hrmoApprovalDate: Date;
 
+  @Column({ type: 'varchar', name: 'hrmo_approved_by', nullable: true })
+  hrmoApprovedBy: string;
+
   @Column({ type: 'datetime', name: 'supervisor_approval_date', nullable: true })
   supervisorApprovalDate: Date;
 
@@ -75,9 +78,15 @@ export class LeaveApplication extends DatabaseEntity implements IEntity {
   @Column({ type: 'datetime', name: 'hrdm_approval_date', nullable: true })
   hrdmApprovalDate: Date;
 
+  @Column({ type: 'varchar', name: 'hrdm_approved_by', nullable: true })
+  hrdmApprovedBy: string;
+
   @Column({ type: 'text', name: 'hrdm_disapproval_remarks', nullable: true })
   hrdmDisapprovalRemarks: string;
 
   @Column({ type: 'boolean', name: 'is_late_filing', nullable: true })
   isLateFiling: boolean;
+
+  @Column({ type: 'varchar', name: 'reference_no', nullable: true })
+  referenceNo: string;
 }

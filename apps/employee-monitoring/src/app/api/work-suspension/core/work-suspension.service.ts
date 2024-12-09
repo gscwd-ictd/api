@@ -1,6 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateWorkSuspensionDto, WorkSuspension } from '@gscwd-api/models';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import dayjs = require('dayjs');
 
 @Injectable()
 export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
@@ -26,14 +27,14 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
     `)) as WorkSuspension[]
     ).map((ws) => {
       const { suspensionHours, ...rest } = ws;
-      return { suspensionHours: parseInt(suspensionHours.toString()), ...rest };
+      return { suspensionHours: parseFloat(suspensionHours.toString()), ...rest };
     });
   }
 
   async getWorkSuspensionBySuspensionDate(suspensionDate: Date) {
     //
     try {
-      return parseInt(
+      return parseFloat(
         (
           await this.rawQuery(
             `
@@ -49,5 +50,21 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
     } catch (error) {
       return 0;
     }
+  }
+
+  async getWorkSuspensionHoursBySuspensionDateAndScheduleTimeOut(scheduleTimeOut: string, dtrDate: Date) {
+    //SELECT get_work_suspension_hours_by_date_and_schedule_time_out('2024-07-22', '21:00');
+    return (
+      await this.rawQuery(
+        `
+        SELECT get_work_suspension_hours_by_date_and_schedule_time_out(?, ?) suspensionHours;
+      `,
+        [dayjs(dtrDate).format('YYYY-MM-DD'), scheduleTimeOut]
+      )
+    )[0].suspensionHours;
+  }
+
+  async getWorkSuspensionStart(scheduleTimeOut: string, dtrDate: Date) {
+    return (await this.rawQuery(`SELECT get_work_suspension_start(?,?) workSuspensionStart;`, [scheduleTimeOut, dtrDate]))[0].workSuspensionStart;
   }
 }

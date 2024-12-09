@@ -1,10 +1,10 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
+import { DatabaseEntityWithTimezone, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { TrainingNominee } from '../training-nominees';
 
 @Entity('training_requirements')
 @Unique(['trainingNominee'])
-export class TrainingRequirements extends DatabaseEntity implements IEntity {
+export class TrainingRequirements extends DatabaseEntityWithTimezone implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_requirement_id' })
   id: string;
 

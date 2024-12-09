@@ -20,6 +20,8 @@ export enum TrainingStatus {
   PENDING = 'pending',
   ON_GOING_NOMINATION = 'on going nomination',
   NOMINATION_DONE = 'nomination done',
+  TDD_MANAGER_APPROVAL = 'for tdd manager approval',
+  TDD_MANAGER_DECLINED = 'tdd manager declined',
   PDC_SECRETARIAT_APPROVAL = 'for pdc secretariat approval',
   PDC_SECRETARIAT_DECLINED = 'pdc secretariat declined',
   PDC_CHAIRMAN_APPROVAL = 'for pdc chairman approval',
@@ -36,14 +38,15 @@ export enum TrainingStatus {
 
 export enum TrainingDistributionStatus {
   NOMINATION_PENDING = 'nomination pending',
-  NOMINATION_INELIGIBLE = 'nomination ineligible',
-  NOMINATION_COMPLETED = 'nomination completed',
+  NOMINATION_SKIPPED = 'nomination skipped',
+  NOMINATION_SUBMITTED = 'nomination submitted',
 }
 
 export enum TrainingNomineeStatus {
   PENDING = 'pending',
   ACCEPTED = 'accepted',
   DECLINED = 'declined',
+  NO_ACTION = 'no action taken',
 }
 
 export enum NomineeType {
@@ -73,7 +76,7 @@ export enum OtherTrainingCategory {
   CONFERENCE = 'conference',
   CONVENTION = 'convention',
   MEETING = 'meeting',
-  ORIENTATION = 'orientation',
+  ORIENTATION = 'orientation/talakayan',
   SEMINAR = 'seminar',
   SYMPOSIUM = 'symposium',
   WORKSHOP = 'workshop',
@@ -81,5 +84,23 @@ export enum OtherTrainingCategory {
 
 export enum OtherTrainingStatus {
   PENDING = 'pending',
-  DONE = 'done',
+  REQUIREMENTS_SUBMISSION = 'requirements submission',
+  COMPLETED = 'completed',
+}
+
+export enum TrainingHistoryType {
+  DRAFT_CREATE = 'draft created',
+  SUPERVISOR_NOMINATION = 'supervisor nomination',
+  TDD_MANAGER_REVIEW = 'tdd manager review',
+  TDD_MANAGER_APPROVED = 'tdd manager approved',
+  PDC_SECRETARIAT_REVIEW = 'pdc secretariat review',
+  PDC_SECRETARIAT_APPROVED = 'pdc secretariat approved',
+  PDC_CHAIRMAN_REVIEW = 'pdc chairman review',
+  PDC_CHAIRMAN_APPROVED = 'pdc chairman approved',
+  GENERAL_MANAGER_REVIEW = 'general manager review',
+  GENERAL_MANAGER_APPROVED = 'general manager approved',
+  PARTICIPANT_BATCHING = 'participant batching',
+  TRAINING_ONGOING = 'training ongoing',
+  REQUIREMENTS_SUBMISSION = 'requirements submission',
+  TRAINING_COMPLETED = 'training completed',
 }

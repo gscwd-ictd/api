@@ -10,6 +10,7 @@ export * from './lsp-coachings';
 export * from './lsp-educations';
 export * from './lsp-projects';
 export * from './lsp-trainings';
+export * from './lsp-rating';
 
 /* tags */
 export * from './tags';
@@ -37,6 +38,10 @@ export * from './benchmark-participant-requirements';
 /* others */
 export * from './other-trainings';
 export * from './other-training-participants';
+export * from './other-training-participants-requirements';
+
+/* history */
+export * from './training-history';
 
 /* users */
 export * from './users';

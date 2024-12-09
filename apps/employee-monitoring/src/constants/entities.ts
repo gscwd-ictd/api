@@ -31,6 +31,7 @@ import {
   DtrCorrection,
   EventsAnnouncements,
   WorkSuspension,
+  LeaveMonetization,
 } from '@gscwd-api/models';
 
 export const typeOrmEntities = [
@@ -66,4 +67,5 @@ export const typeOrmEntities = [
   DtrCorrection,
   EventsAnnouncements,
   WorkSuspension,
+  LeaveMonetization,
 ];

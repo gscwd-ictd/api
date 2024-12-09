@@ -1,5 +1,5 @@
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { EmployeeDetails } from '@gscwd-api/utils';
+import { EmployeeDetails, NatureOfAppointment } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { stringify } from 'querystring';
 
@@ -85,6 +85,35 @@ export class EmployeesService {
       action: 'send',
       payload: employeeId,
       pattern: 'get_employee_details',
+      onError: (error) => {
+        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
+        throw new NotFoundException(error);
+      },
+    })) as EmployeeDetails;
+    return employeeDetails;
+  }
+
+  //get_basic_employee_details
+  async getBasicEmployeeDetails(employeeId: string) {
+    //find_employee_details
+    const employeeDetails = (await this.client.call({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_basic_employee_details',
+      onError: (error) => {
+        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
+        throw new NotFoundException(error);
+      },
+    })) as EmployeeDetails;
+    return employeeDetails;
+  }
+
+  async getEmployeeDetailsWithSignature(employeeId: string) {
+    //find_employee_details
+    const employeeDetails = (await this.client.call({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_employee_details_with_signature',
       onError: (error) => new NotFoundException(error),
     })) as EmployeeDetails;
 
@@ -151,6 +180,14 @@ export class EmployeesService {
     })) as { value: string; label: string }[];
   }
 
+  async getEmployeesByOrgIdForOt(orgId: string) {
+    return (await this.client.call<string, string, { value: string; label: string }[]>({
+      action: 'send',
+      payload: orgId,
+      pattern: 'get_employees_by_org_id_for_ot',
+    })) as { value: string; label: string }[];
+  }
+
   async getEmployeesByOrgIdAlone(orgId: string) {
     //get_employees_by_org_id_alone
     return (await this.client.call<string, string, { value: string; label: string }[]>({
@@ -206,12 +243,45 @@ export class EmployeesService {
     })) as { companyId: string }[];
   }
 
-  async getSupervisoryEmployeesForDropdown() {
-    //sg 16 and above;
-    return (await this.client.call<string, object, object[]>({
+  async getSupervisoryEmployeesForDropdown(employeeId: string) {
+    return (await this.client.call<string, string, object[]>({
       action: 'send',
-      pattern: 'get_all_assignable_supervisory_employees',
-      payload: {},
+      pattern: 'get_all_assignable_supervisory_employees_by_id',
+      payload: employeeId,
     })) as { label: string; value: string }[];
+  }
+
+  //get_salary_grade_or_daily_rate_by_employee_id
+  async getSalaryGradeOrDailyRateByEmployeeId(employeeId) {
+    return (await this.client.call<string, string, object>({
+      action: 'send',
+      pattern: 'get_salary_grade_or_daily_rate_by_employee_id',
+      payload: employeeId,
+    })) as { salaryGradeAmount: number; amount: number; dailyRate: number };
+  }
+
+  //get_hrd_manager
+  async getHrdManagerId() {
+    return (await this.client.call<string, object, string>({
+      action: 'send',
+      pattern: 'get_hrd_manager',
+      payload: {},
+    })) as string;
+  }
+
+  async getEmployeesByNatureOfAppointmentAndEmployeeIds(natureOfAppointment: NatureOfAppointment, employeeIds: string[]) {
+    return (await this.client.call<string, object, { employeeId: string; fullName: string }[]>({
+      action: 'send',
+      pattern: 'get_employees_by_nature_of_appointment_and_employee_ids',
+      payload: { natureOfAppointment, employeeIds },
+    })) as { employeeId: string; fullName: string }[];
+  }
+
+  async getEmployeesByNatureOfAppointment(natureOfAppointment: NatureOfAppointment) {
+    return (await this.client.call<string, string, { employeeId: string; fullName: string }[]>({
+      action: 'send',
+      pattern: 'get_employees_by_nature_of_appointment',
+      payload: natureOfAppointment,
+    })) as { employeeId: string; fullName: string }[];
   }
 }

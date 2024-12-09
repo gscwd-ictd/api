@@ -31,7 +31,8 @@ export type PortalEmployeeDetailsRaw = {
 };
 
 export type TrainingNomineeRaw = {
-  distributionId: string;
+  trainingId: string;
+  supervisorId: string;
   nomineeType: NomineeType;
 };
 
@@ -42,6 +43,12 @@ export type NomineeRaw = {
 
 export type TrainingRequirementsRaw = {
   document: string;
+  code?: string;
+};
+
+export type RequirementsRaw = {
+  document: string;
+  isSelected?: boolean;
 };
 
 export type EmployeeParticpantsRaw = {
@@ -61,4 +68,69 @@ export type SupervisorParticipantsRaw = {
 export type BenchmarkParticipantsRaw = {
   employee: EmployeeParticpantsRaw;
   supervisor: SupervisorParticipantsRaw;
+};
+
+export type SupervisorRaw = {
+  employeeId: string;
+  fullName: string;
+};
+
+export type EmployeeListsRaw = {
+  value: string;
+  label: string;
+};
+
+export type EmployeeDetailsRaw = {
+  companyId: string;
+  employeeFullName: string;
+  employeeFullNameFirst: string;
+  assignment: {
+    id: string;
+    name: string;
+    positionId: string;
+    positionTitle: string;
+  };
+};
+
+export type EmployeeDetailsWithSignatureRaw = {
+  companyId: string;
+  employeeFullName: string;
+  signatureUrl: string;
+  assignment: {
+    id: string;
+    name: string;
+    positionId: string;
+    positionTitle: string;
+  };
+};
+
+export type SignatoriesRaw = {
+  signatories: {
+    tddMgr: {
+      name: string;
+      signature: string;
+      position: string;
+    };
+    hrdMgr: {
+      name: string;
+      signature: string;
+      position: string;
+    };
+    gm: {
+      name: string;
+      signature: string;
+      position: string;
+    };
+  };
+};
+
+export type TrainingHistoryRaw = {
+  date: Date;
+  title: string;
+  description: string;
+  status: string;
+};
+
+export type SignatoriesGenericRaw = {
+  [key: string]: object;
 };

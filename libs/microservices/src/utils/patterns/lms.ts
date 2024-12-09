@@ -7,9 +7,14 @@ export enum FindEmployeesPatterns {
   GET_EMPLOYEES_BY_ID = 'get_employee_name',
   GET_EMPLOYEES_DETAILS_BY_ID = 'get_lsp_pds_details',
   GET_ALL_ORGANIZATION = 'get_all_departments_and_ogm',
-  GET_EMPLOYEES_BY_ORGANIZATION_ID = 'get_employees_by_org_id',
+  GET_EMPLOYEES_BY_ORGANIZATION_ID = 'get_employees_with_managers_by_org_id',
   GET_ALL_EMPLOYEES_WITH_SUPERVISOR = 'get_all_employees_with_supervisor',
   GET_EMPLOYEE_WITH_SUPERVISOR = 'get_employee_with_supervisor',
+  GET_ALL_MANAGERS_FOR_LND = 'get_all_managers_for_lnd',
+  GET_EMPLOYEES_UNDER_MANAGER = 'get_employees_under_manager',
+  GET_EMPLOYEE_DETAILS = 'get_employee_details',
+  GET_EMPLOYEE_DETAILS_WITH_SIGNATURE = 'get_employee_details_with_signature',
+  GET_TRAINING_SIGNATORIES = 'get_training_signatories',
 }
 
 export enum EmployeeTagsPatterns {
@@ -25,13 +30,17 @@ export enum TrainingPatterns {
   /* distribution */
   FIND_TRAINING_DISTRIBUTION_BY_SUPERVISOR_ID = 'find_training_distribution_by_supervisor_id',
   FIND_TRAINING_RECOMMENDED_EMPLOYEES_BY_DISTRIBUTION_ID = 'find_training_recommended_employees_by_distribution_id',
-  FIND_TRAINING_NOMINEES_BY_DISTRIBUTION_ID = 'find_training_nominees_by_distribution_id',
+  FIND_TRAINING_NOMINEES_BY_SUPERVISOR_ID = 'find_training_nominees_by_supervisor_id',
   FIND_ALL_TRAINING_BY_EMPLOYEE_ID = 'find_all_training_by_employee_id',
   ADD_NOMINEES_BY_TRAINING_DISTRIBUTION_ID = 'add_nominees_by_training_distribution_id',
   UPDATE_TRAINING_NOMINEES_STATUS_BY_ID = 'update_training_nominees_status_by_id',
   COUNT_PENDING_NOMINATION_BY_SUPERVISOR_ID = 'count_pending_nomination_by_supervisor_id',
 
   /*  pdc approvals */
+  FIND_ALL_TDD_MANAGER_APPROVAL = 'find_all_tdd_manager_approval',
+  TDD_MANAGER_APPROVAL = 'for_tdd_manager_approval',
+  TDD_MANAGER_DECLINED = 'for_tdd_manager_declined',
+  COUNT_TDD_MANAGER_APPROVAL = 'count_tdd_manager_approval',
   FIND_ALL_PDC_SECRETARIAT_APPROVAL = 'find_all_pdc_secretariat_approval',
   PDC_SECRETARIAT_APPROVAL = 'for_pdc_secretariat_approval',
   PDC_SECRETARIAT_DECLINED = 'for_pdc_secretariat_declined',

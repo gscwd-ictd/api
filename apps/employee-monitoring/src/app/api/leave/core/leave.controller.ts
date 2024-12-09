@@ -5,14 +5,22 @@ import {
   UpdateLeaveApplicationHrmoStatusDto,
   UpdateLeaveApplicationSupervisorStatusDto,
 } from '@gscwd-api/models';
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { LeaveAdjustmentDto } from '../data/leave-adjustment.dto';
 import { LeaveService } from './leave.service';
+import { User } from '../../users/utils/user.decorator';
+import { AuthenticatedGuard } from '../../users/guards/authenticated.guard';
+import { AuthenticatedUser } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'leave' })
 export class LeaveController {
   constructor(private readonly leaveService: LeaveService) {}
+
+  @Get('hrmo/:year_month')
+  async getLeavesForHrApprovalByYearMonth(@Param('year_month') yearMonth: string) {
+    return await this.leaveService.getLeavesForHrmoApprovalByYearMonth(yearMonth);
+  }
 
   @Get('hrmo/')
   async getLeavesForHrApproval() {
@@ -42,18 +50,22 @@ export class LeaveController {
 
   //!todo hrmo guard
   //!todo cred
+  @UseGuards(AuthenticatedGuard)
   @Patch('hrmo/')
-  async updateHrmoLeaveStatus(@Body() updateLeaveApplicationStatus: UpdateLeaveApplicationHrmoStatusDto) {
-    return await this.leaveService.updateLeaveStatus({ ...updateLeaveApplicationStatus, hrmoApprovalDate: dayjs().toDate() });
+  async updateHrmoLeaveStatus(@Body() updateLeaveApplicationStatus: UpdateLeaveApplicationHrmoStatusDto, @User() user: AuthenticatedUser) {
+    const userId = user._id;
+    return await this.leaveService.updateLeaveStatus({ ...updateLeaveApplicationStatus, hrmoApprovedBy: userId, hrmoApprovalDate: dayjs().toDate() });
   }
 
   //!todo hrdm guard
   @Patch('hrdm/')
   async updateHrmdLeaveStatus(@Body() updateLeaveApplicationStatus: UpdateLeaveApplicationHrdmStatusDto) {
-    return await this.leaveService.updateLeaveStatus({ ...updateLeaveApplicationStatus, hrdmApprovalDate: dayjs().toDate() });
+    return await this.leaveService.updateLeaveStatus({
+      ...updateLeaveApplicationStatus,
+      hrdmApprovalDate: dayjs().toDate(),
+    });
   }
 
-  //TODO: guard check if logged in is employee status is set for cancellation, if logged in is manager status is set to cancelled
   @Patch('employee/leave-date-cancellation/')
   async cancelLeaveDate(@Body() LeaveDateCancellationDto: LeaveDateCancellationDto) {
     return await this.leaveService.cancelLeaveDate(LeaveDateCancellationDto);
@@ -77,6 +89,5 @@ export class LeaveController {
   @Post('adjustment/beginning-balance')
   async addAdjustmentBeginningBalance(@Body() leaveAdjustmentDto: LeaveAdjustmentDto) {
     return await this.leaveService.addAdjustment(leaveAdjustmentDto);
-    //
   }
 }

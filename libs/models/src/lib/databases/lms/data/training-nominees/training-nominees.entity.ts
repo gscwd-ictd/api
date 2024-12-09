@@ -1,11 +1,11 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
+import { DatabaseEntityWithTimezone, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { TrainingDistribution } from '../training-distributions';
 import { NomineeType, TrainingNomineeStatus } from '@gscwd-api/utils';
 
 @Entity({ name: 'training_nominees' })
 @Unique(['trainingDistribution', 'employeeId'])
-export class TrainingNominee extends DatabaseEntity implements IEntity {
+export class TrainingNominee extends DatabaseEntityWithTimezone implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_nominee_id' })
   id: string;
 
@@ -33,9 +33,15 @@ export class TrainingNominee extends DatabaseEntity implements IEntity {
   @Column({ name: 'training_end', type: 'timestamp', nullable: true })
   trainingEnd: Date;
 
-  @Column({ name: 'remarks', length: 200, nullable: true })
+  @Column({ name: 'remarks', type: 'text', nullable: true })
   remarks: string;
 
   @Column({ name: 'status', type: 'enum', enum: TrainingNomineeStatus, default: TrainingNomineeStatus.PENDING })
   status: TrainingNomineeStatus;
+
+  @Column({ name: 'is_replaced_by', type: 'uuid', nullable: true })
+  isReplacedBy: string;
+
+  @Column({ name: 'is_proxy_by', type: 'uuid', nullable: true })
+  isProxyBy: string;
 }

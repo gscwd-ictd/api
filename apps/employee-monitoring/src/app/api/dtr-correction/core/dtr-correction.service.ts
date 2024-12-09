@@ -4,6 +4,7 @@ import { DtrCorrectionsType } from '@gscwd-api/utils';
 import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
+import { timeout } from 'rxjs';
 
 @Injectable()
 export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
@@ -16,6 +17,15 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
   }
 
   async addDtrCorrection(createDtrCorrectionDto: CreateDtrCorrectionDto) {
+    /*
+     lunchIn: lunchIn.toString() !== '' ? lunchIn : null,
+        lunchOut: lunchOut.toString() !== '' ? lunchOut : null,
+        timeIn: timeIn.toString() !== '' ? timeIn : null,
+        timeOut: timeOut.toString() !== '' ? timeOut : null,
+        ...restOfDtrCorrection,
+    
+    */
+    const { lunchIn, lunchOut, timeIn, timeOut, ...restOfDtrCorrection } = createDtrCorrectionDto;
     return await this.crudService.create({
       dto: createDtrCorrectionDto,
       onError: (error: any) => {
@@ -26,23 +36,25 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
   }
 
   async getPendingDtrCorrections(employeeId: string) {
-    console.log(employeeId);
-    const employees = await this.employeeService.getEmployeesUnderSupervisor(employeeId);
-    const companyIds = employees.map((emp) => emp.companyId);
-    console.log(employees);
-    return parseInt(
-      (
-        await this.rawQuery(
-          `
-            SELECT COUNT(*) pendingDtrCorrections
-              FROM dtr_correction dtrc 
-            INNER JOIN 
-              daily_time_record dtr ON dtr.daily_time_record_id = dtrc.daily_time_record_id_fk
-            WHERE dtrc.status = 'for approval' AND company_id_fk IN (?);`,
-          [companyIds]
-        )
-      )[0].pendingDtrCorrections
-    );
+    try {
+      const employees = await this.employeeService.getEmployeesUnderSupervisor(employeeId);
+      const companyIds = employees.map((emp) => emp.companyId);
+      return parseInt(
+        (
+          await this.rawQuery(
+            `
+              SELECT COUNT(*) pendingDtrCorrections
+                FROM dtr_correction dtrc 
+              INNER JOIN 
+                daily_time_record dtr ON dtr.daily_time_record_id = dtrc.daily_time_record_id_fk
+              WHERE dtrc.status = 'for approval' AND company_id_fk IN (?);`,
+            [companyIds]
+          )
+        )[0].pendingDtrCorrections
+      );
+    } catch (error) {
+      return 0;
+    }
   }
 
   async getDtrCorrections(employeeId: any): Promise<DtrCorrectionsType[]> {
@@ -68,10 +80,8 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
           dtrc.\`status\` \`status\`,
           dtrc.remarks remarks
         FROM dtr_correction dtrc 
-        INNER JOIN daily_time_record dtr ON dtr.daily_time_record_id = dtrc.daily_time_record_id_fk
-        WHERE dtr.company_id_fk IN (?)
-        ;
-        
+        INNER JOIN daily_time_record dtr ON dtr.daily_time_record_id = dtrc.daily_time_record_id_fk 
+        WHERE dtr.company_id_fk IN (?) ORDER BY dtrc.status ASC, DATE_FORMAT(dtr.dtr_date,'%Y-%m-%d') DESC;
     `,
       [companyIds]
     )) as DtrCorrectionsType[];
@@ -84,7 +94,6 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
       })
     );
 
-    console.log(dtrCorrections);
     return dtrCorrectionsWithEmployeeName;
   }
 
@@ -100,10 +109,11 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
             relations: { dtrId: true },
           },
         });
+
         const { dtrId, lunchIn, lunchOut, timeIn, timeOut } = correctedDtr;
         const dtrUpdateResult = await this.dailyTimeRecordService
           .crud()
-          .update({ dto: { timeIn, timeOut, lunchIn, lunchOut }, updateBy: { id: dtrId.id } });
+          .update({ dto: { timeIn, timeOut, lunchIn, lunchOut, hasCorrection: true }, updateBy: { id: dtrId.id } });
         if (dtrUpdateResult.affected > 0) return approveDtrCorrectionDto;
       }
       return approveDtrCorrectionDto;

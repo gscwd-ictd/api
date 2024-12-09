@@ -3,10 +3,16 @@ import { CreateOtherTrainingParticipantsDto, OtherTrainingParticipant } from '@g
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { EntityManager } from 'typeorm';
+import { OtherTrainingStatus } from '@gscwd-api/utils';
+import { OtherTrainingParticipantsRequirementsService } from '../../other-training-participants-requirements';
 
 @Injectable()
 export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingParticipant> {
-  constructor(private readonly crudService: CrudService<OtherTrainingParticipant>, private readonly hrmsEmployeesService: HrmsEmployeesService) {
+  constructor(
+    private readonly crudService: CrudService<OtherTrainingParticipant>,
+    private readonly OtherTrainingParticipantsRequirementsService: OtherTrainingParticipantsRequirementsService,
+    private readonly hrmsEmployeesService: HrmsEmployeesService
+  ) {
     super(crudService);
   }
 
@@ -109,6 +115,7 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
             supervisorName: employeeDetails.supervisor.name,
             employeeId: items.employeeId,
             name: employeeDetails.employee.name,
+            assignment: employeeDetails.employee.assignment,
           };
         })
       );
@@ -137,6 +144,12 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
         },
       });
 
+      /* insert participants requirements */
+      await this.OtherTrainingParticipantsRequirementsService.createParticipantRequirements(
+        { otherTrainingParticipant: participants.id },
+        entityManager
+      );
+
       /* custom return */
       return {
         participantId: participants.id,
@@ -162,6 +175,71 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
           throw error;
         },
       });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* find all other training by employee id */
+  async findAllOtherTrainingsByEmployeeId(employeeId: string) {
+    try {
+      const otherTraining = (await this.crudService.findAll({
+        find: {
+          relations: {
+            otherTraining: true,
+          },
+          select: {
+            otherTraining: {
+              id: true,
+              title: true,
+              category: true,
+              location: true,
+              dateFrom: true,
+              dateTo: true,
+              status: true,
+            },
+          },
+          where: {
+            employeeId: employeeId,
+          },
+        },
+      })) as Array<OtherTrainingParticipant>;
+
+      /* custom return */
+      return await Promise.all(
+        otherTraining.map(async (items) => {
+          return {
+            participantId: items.id,
+            otherTrainingId: items.otherTraining.id,
+            title: items.otherTraining.title,
+            category: items.otherTraining.category,
+            location: items.otherTraining.location,
+            dateFrom: items.otherTraining.dateFrom,
+            dateTo: items.otherTraining.dateTo,
+            status: items.otherTraining.status,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* count pending other training by employee id */
+  async countPendingOtherTrainingByEmployeeId(employeeId: string) {
+    try {
+      const count = await this.crudService.getRepository().countBy({
+        otherTraining: {
+          status: OtherTrainingStatus.PENDING,
+        },
+        employeeId: employeeId,
+      });
+
+      return {
+        pending: count,
+      };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);

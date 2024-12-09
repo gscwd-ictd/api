@@ -8,13 +8,14 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MicroserviceClient, MS_CLIENT } from '@gscwd-api/microservices';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EmployeesModule } from '../../../../employees/core/employees.module';
+import { OfficerOfTheDayModule } from '../../../../officer-of-the-day/core/officer-of-the-day.module';
+import { LeaveMonetizationModule } from '../../leave-monetization/core/leave-monetization.module';
 
 @Module({
   imports: [
     CrudModule.register(LeaveApplication),
     LeaveApplicationDatesModule,
     EmployeesModule,
-    ScheduleModule.forRoot(),
     ClientsModule.register([
       {
         name: MS_CLIENT,
@@ -22,9 +23,13 @@ import { EmployeesModule } from '../../../../employees/core/employees.module';
         options: {
           host: process.env.EMPLOYEE_REDIS_HOST,
           port: parseInt(process.env.EMPLOYEE_REDIS_PORT),
+          //!TODO CHECK THIS ON PROD
+          password: process.env.EMPLOYEE_REDIS_PASSWORD,
         },
       },
     ]),
+    OfficerOfTheDayModule,
+    LeaveMonetizationModule,
   ],
   providers: [LeaveApplicationService, MicroserviceClient],
   controllers: [LeaveApplicationController],

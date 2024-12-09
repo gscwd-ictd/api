@@ -4,6 +4,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { EntityManager, QueryFailedError } from 'typeorm';
 import { BenchmarkParticipantRequirementsService } from '../../participants-requirements';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
+import { BenchmarkStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipants> {
@@ -115,6 +116,7 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
             supervisorName: employeeDetails.supervisor.name,
             employeeId: items.employeeId,
             name: employeeDetails.employee.name,
+            assignment: employeeDetails.employee.assignment,
           };
         })
       );
@@ -179,6 +181,71 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
           throw error;
         },
       });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* find all benchmark by employee id */
+  async findAllBenchmarkByEmployeeId(employeeId: string) {
+    try {
+      const benchmark = (await this.crudService.findAll({
+        find: {
+          relations: {
+            benchmark: true,
+          },
+          select: {
+            benchmark: {
+              id: true,
+              title: true,
+              partner: true,
+              location: true,
+              dateFrom: true,
+              dateTo: true,
+              status: true,
+            },
+          },
+          where: {
+            employeeId: employeeId,
+          },
+        },
+      })) as Array<BenchmarkParticipants>;
+
+      /* custom return */
+      return await Promise.all(
+        benchmark.map(async (items) => {
+          return {
+            participantId: items.id,
+            benchmarkId: items.benchmark.id,
+            title: items.benchmark.title,
+            partner: items.benchmark.partner,
+            location: items.benchmark.location,
+            dateFrom: items.benchmark.dateFrom,
+            dateTo: items.benchmark.dateTo,
+            status: items.benchmark.status,
+          };
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* count pending benchmark by employee id */
+  async countPendingBenchmarkByEmployeeId(employeeId: string) {
+    try {
+      const count = await this.crudService.getRepository().countBy({
+        benchmark: {
+          status: BenchmarkStatus.PENDING,
+        },
+        employeeId: employeeId,
+      });
+
+      return {
+        pending: count,
+      };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);

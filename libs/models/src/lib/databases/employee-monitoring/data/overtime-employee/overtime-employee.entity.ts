@@ -17,4 +17,10 @@ export class OvertimeEmployee extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'is_read', type: 'boolean', default: null })
   isRead: boolean;
+
+  @Column({ name: 'salary_grade_amount', type: 'decimal', scale: 2, precision: 8, nullable: true })
+  salaryGradeAmount: number;
+
+  @Column({ name: 'daily_rate', type: 'decimal', scale: 2, precision: 8, nullable: true })
+  dailyRate: number;
 }

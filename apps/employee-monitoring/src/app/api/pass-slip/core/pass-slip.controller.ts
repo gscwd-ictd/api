@@ -1,12 +1,20 @@
-import { PassSlipDto, UpdatePassSlipApprovalDto, UpdatePassSlipTimeRecordDto } from '@gscwd-api/models';
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  HrUpdatePassSlipTimeRecordDto,
+  PassSlipDto,
+  PassSlipHrCancellationDto,
+  UpdatePassSlipApprovalDto,
+  UpdatePassSlipTimeRecordDto,
+} from '@gscwd-api/models';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { PassSlipService } from './pass-slip.service';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller({ version: '1', path: 'pass-slip' })
 export class PassSlipController {
   constructor(private readonly passSlipService: PassSlipService, private readonly passSlipApprovalService: PassSlipApprovalService) {}
 
+  @Throttle({ default: { limit: 1, ttl: 3000 } })
   @Post()
   async addPassSlip(@Body() passSlipDto: PassSlipDto) {
     return await this.passSlipService.addPassSlip(passSlipDto);
@@ -16,6 +24,7 @@ export class PassSlipController {
   async getPassSlips(@Param('employee_id') employeeId: string) {
     return await this.passSlipService.getPassSlipsByEmployeeId(employeeId);
   }
+
   @Get(':employee_id/current')
   async getCurrentPassSlips(@Param('employee_id') employeeId: string) {
     return await this.passSlipService.getCurrentPassSlipsByEmployeeId(employeeId);
@@ -29,6 +38,11 @@ export class PassSlipController {
   @Get(':employee_id/approved')
   async getApprovedPassSlipsByEmployeeId(@Param('employee_id') employeeId: string) {
     return await this.passSlipService.getApprovedPassSlipsByEmployeeId(employeeId);
+  }
+
+  @Get('ems/:year_month')
+  async getPassSlipsByYearMonth(@Param('year_month') yearMonth: string) {
+    return await this.passSlipService.getPassSlipsByYearMonth(yearMonth);
   }
 
   @Get()
@@ -61,13 +75,20 @@ export class PassSlipController {
     return await this.passSlipService.updatePassSlipTimeRecord(updatePassSlipTimeRecordDto);
   }
 
-  @Post('test-cron')
-  async testCron() {
-    return await this.passSlipService.addPassSlipsToLedger();
+  //@UseGuards(AuthenticatedGuard)
+  @Patch('hr/cancel')
+  async cancelPassSlip(@Body() passSlipHrCancellationDto: PassSlipHrCancellationDto) {
+    return await this.passSlipService.cancelPassSlip(passSlipHrCancellationDto);
   }
 
-  @Post('test-cron2')
-  async testCron2() {
-    return await this.passSlipService.updatePassSlipStatusCron();
+  //@UseGuards(AuthenticatedGuard)
+  @Patch('hr/time-record/')
+  async hrUpdatePassSlipTimeLog(@Body() hrUpdatePassSlipTimeRecordDto: HrUpdatePassSlipTimeRecordDto) {
+    return await this.passSlipService.hrUpdatePassSlipTimeLog(hrUpdatePassSlipTimeRecordDto);
+  }
+
+  @Post('pass-slip-to-ledger/:date_applied')
+  async passSlipToLedger(@Param('date_applied') dateApplied: string) {
+    return await this.passSlipService.addPassSlipsToLedgerManually(dateApplied);
   }
 }

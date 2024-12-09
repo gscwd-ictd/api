@@ -9,14 +9,18 @@ import {
   LspDetails,
   LspEducation,
   LspProject,
+  LspRankView,
+  LspRating,
   LspTraining,
   OtherTraining,
   OtherTrainingParticipant,
+  OtherTrainingParticipantRequirements,
   Tag,
   TrainingApproval,
   TrainingDesign,
   TrainingDetails,
   TrainingDistribution,
+  TrainingHistory,
   TrainingLspDetails,
   TrainingNominee,
   TrainingRecommendedEmployee,
@@ -37,6 +41,7 @@ export const DB_ENTITIES = [
   LspEducation,
   LspProject,
   LspTraining,
+  LspRating,
 
   /* tag */
   Tag,
@@ -52,6 +57,7 @@ export const DB_ENTITIES = [
   TrainingNominee,
   TrainingApproval,
   TrainingRequirements,
+  TrainingHistory,
 
   /* benchmark */
   Benchmark,
@@ -61,4 +67,7 @@ export const DB_ENTITIES = [
   /* other trainings */
   OtherTraining,
   OtherTrainingParticipant,
+  OtherTrainingParticipantRequirements,
+
+  LspRankView,
 ];

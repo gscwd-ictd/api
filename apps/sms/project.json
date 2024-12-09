@@ -1,0 +1,51 @@
+{
+  "name": "sms",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/sms/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/sms",
+        "main": "apps/sms/src/main.ts",
+        "tsConfig": "apps/sms/tsconfig.app.json",
+        "assets": ["apps/sms/src/assets"],
+        "webpackConfig": "apps/sms/webpack.config.js"
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "sms:build"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "sms:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/sms/jest.config.ts"
+      }
+    }
+  },
+  "tags": []
+}

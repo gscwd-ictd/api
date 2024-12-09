@@ -1,5 +1,15 @@
 import { FindEmployeesPatterns, MicroserviceClient } from '@gscwd-api/microservices';
-import { BenchmarkParticipantsRaw, EmployeeFullNameRaw, OrganizationEmployeeRaw, OrganizationRaw } from '@gscwd-api/utils';
+import {
+  BenchmarkParticipantsRaw,
+  EmployeeDetailsRaw,
+  EmployeeDetailsWithSignatureRaw,
+  EmployeeFullNameRaw,
+  EmployeeListsRaw,
+  OrganizationEmployeeRaw,
+  OrganizationRaw,
+  SignatoriesRaw,
+  SupervisorRaw,
+} from '@gscwd-api/utils';
 import { HttpException, Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -64,5 +74,54 @@ export class HrmsEmployeesService {
       payload: employeeId,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     })) as BenchmarkParticipantsRaw;
+  }
+
+  /* find all supervisors */
+  async findAllSupervisors() {
+    return (await this.microserviceClient.call({
+      action: 'send',
+      pattern: FindEmployeesPatterns.GET_ALL_MANAGERS_FOR_LND,
+      payload: '',
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    })) as Array<SupervisorRaw>;
+  }
+
+  async findAllEmployeeUnderSupervisor(supervisorId: string) {
+    return (await this.microserviceClient.call({
+      action: 'send',
+      pattern: FindEmployeesPatterns.GET_EMPLOYEES_UNDER_MANAGER,
+      payload: supervisorId,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    })) as Array<EmployeeListsRaw>;
+  }
+
+  /* find employee details by employee id */
+  async findEmployeeDetailsByEmployeeId(employeeId: string) {
+    return (await this.microserviceClient.call({
+      action: 'send',
+      pattern: FindEmployeesPatterns.GET_EMPLOYEE_DETAILS,
+      payload: employeeId,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    })) as EmployeeDetailsRaw;
+  }
+
+  /* find employeeDetails by employee id with signature */
+  async findEmployeeDetailsWithSignatureByEmployeeId(employeeId: string) {
+    return (await this.microserviceClient.call({
+      action: 'send',
+      pattern: FindEmployeesPatterns.GET_EMPLOYEE_DETAILS_WITH_SIGNATURE,
+      payload: employeeId,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    })) as EmployeeDetailsWithSignatureRaw;
+  }
+
+  /* find signatories */
+  async trainingSinatories(includeGm: boolean) {
+    return (await this.microserviceClient.call({
+      action: 'send',
+      pattern: FindEmployeesPatterns.GET_TRAINING_SIGNATORIES,
+      payload: includeGm,
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    })) as SignatoriesRaw;
   }
 }

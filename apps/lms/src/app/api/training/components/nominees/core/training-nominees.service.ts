@@ -1,80 +1,143 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import {
-  CreateTrainingNomineeDto,
+  CreateAdditionalNomineeDto,
+  CreateNomineeDto,
+  CreateStandInNomineeDto,
   RequirementsDto,
   TrainingBatchDto,
-  TrainingDistribution,
   TrainingNominee,
   UpdateTrainingNomineeStatusDto,
 } from '@gscwd-api/models';
-import { NomineeType, TrainingDistributionStatus, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
+import { NomineeType, TrainingNomineeRaw, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
-import { DataSource, EntityManager, IsNull, MoreThanOrEqual, Not } from 'typeorm';
-import { TrainingDistributionsService } from '../../slot-distributions';
+import { EntityManager, IsNull, MoreThanOrEqual, Not } from 'typeorm';
 import { TrainingRequirementsService } from '../../requirements';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   constructor(
     private readonly crudService: CrudService<TrainingNominee>,
-    private readonly trainingDistributionsService: TrainingDistributionsService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
-    private readonly trainingRequirementsService: TrainingRequirementsService,
-    private readonly datasource: DataSource
+    private readonly trainingRequirementsService: TrainingRequirementsService
   ) {
     super(crudService);
   }
 
+  /* find all standin nominee by distribution id */
+  async findStandInNomineeByDistributionId(distributionId: string) {
+    try {
+      const slot = await this.crudService
+        .getRepository()
+        .createQueryBuilder('tn')
+        .select('td.no_of_slots', 'slots')
+        .addSelect(
+          `(td.no_of_slots - count(case when tn.status in ('accepted', 'pending') and tn.nominee_type = 'nominee' then 1 end))`,
+          'availableSlots'
+        )
+        .innerJoin('training_distributions', 'td', 'tn.training_distribution_id_fk = td.training_distribution_id')
+        .where('td.training_distribution_id = :distributionId', { distributionId: distributionId })
+        .groupBy('td.no_of_slots')
+        .getRawOne();
+
+      const nominees = (await this.crudService.findAll({
+        find: {
+          relations: {
+            trainingDistribution: true,
+          },
+          select: {
+            id: true,
+            employeeId: true,
+          },
+          where: {
+            nomineeType: NomineeType.STAND_IN,
+            trainingDistribution: {
+              id: distributionId,
+            },
+          },
+        },
+      })) as Array<TrainingNominee>;
+
+      const standin = await Promise.all(
+        nominees.map(async (items) => {
+          /* find employee name by employee id */
+          const employeeName = (await this.hrmsEmployeesService.findEmployeesById(items.employeeId)).fullName;
+
+          return {
+            nomineeId: items.id,
+            employeeId: items.employeeId,
+            name: employeeName,
+          };
+        })
+      );
+
+      return {
+        slots: slot.slots,
+        availableSlots: parseInt(slot.availableSlots),
+        standin: standin,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* create standin nominee */
+  async createStandinNominee(data: CreateStandInNomineeDto) {
+    try {
+      const { nomineeId, standinId } = data;
+
+      const nominee = await this.crudService.update({
+        updateBy: {
+          id: nomineeId,
+        },
+        dto: {
+          isReplacedBy: standinId,
+        },
+        onError: () => {
+          throw new HttpException('Error on updating nominee.', HttpStatus.BAD_REQUEST);
+        },
+      });
+
+      if (nominee.affected > 0) {
+        return await this.crudService.update({
+          updateBy: {
+            id: standinId,
+          },
+          dto: {
+            nomineeType: NomineeType.NOMINEE,
+            status: TrainingNomineeStatus.ACCEPTED,
+            isProxyBy: nomineeId,
+          },
+        });
+      } else {
+        throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+      }
+    } catch (error) {
+      Logger.error(error);
+      if (error instanceof HttpException) throw error;
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   /* microservices for employees portal */
 
-  /* insert training nominees */
-  async createNominees(data: CreateTrainingNomineeDto) {
+  /* create nominee */
+  async createNominee(data: CreateNomineeDto, entityManager: EntityManager) {
     try {
-      return await this.datasource.transaction(async (entityManager) => {
-        /* deconstruct data */
-        const { employees, trainingDistribution } = data;
-
-        /* count the number of employees nominated */
-        const countEmployees = employees.length;
-
-        /* set training distribution status complete or ineligible */
-        const status = countEmployees === 0 ? TrainingDistributionStatus.NOMINATION_INELIGIBLE : TrainingDistributionStatus.NOMINATION_COMPLETED;
-
-        /* edit training distribution status by id */
-        await this.trainingDistributionsService
-          .crud()
-          .transact<TrainingDistribution>(entityManager)
-          .update({
-            updateBy: {
-              id: trainingDistribution,
-            },
-            dto: {
-              status: status,
-            },
-            onError: (error) => {
-              throw error;
-            },
-          });
-
-        /* insert training nominees */
-        await Promise.all(
-          employees.map(async (items) => {
-            return await this.crudService.transact<TrainingNominee>(entityManager).create({
-              dto: {
-                ...items,
-                trainingDistribution: {
-                  id: trainingDistribution,
-                },
-              },
-              onError: (error) => {
-                throw error;
-              },
-            });
-          })
-        );
-
-        return data;
+      const { trainingDistribution, employeeId, nomineeType } = data;
+      return await this.crudService.transact<TrainingNominee>(entityManager).create({
+        dto: {
+          trainingDistribution: {
+            id: trainingDistribution,
+          },
+          employeeId: employeeId,
+          nomineeType: nomineeType,
+        },
+        onError: (error) => {
+          throw error;
+        },
       });
     } catch (error) {
       Logger.error(error);
@@ -83,8 +146,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   }
 
   /* find all training nominee by distribution id (nominee type = nominee or stand-in) */
-  async findAllNomineesByDistributionId(distributionId: string, nomineeType: NomineeType) {
+  async findAllNomineesByDistributionId(data: TrainingNomineeRaw) {
     try {
+      const { trainingId, supervisorId, nomineeType } = data;
       /* find all training training nominee */
       const distribution = (await this.crudService.findAll({
         find: {
@@ -105,8 +169,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           where: {
             nomineeType: nomineeType,
             trainingDistribution: {
-              id: distributionId,
+              supervisorId: supervisorId,
               trainingDetails: {
+                id: trainingId,
                 status: MoreThanOrEqual(TrainingStatus.PENDING),
               },
             },
@@ -117,7 +182,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         },
       })) as Array<TrainingNominee>;
 
-      return await Promise.all(
+      const result = await Promise.all(
         distribution.map(async (items) => {
           /* find employee name by employee id */
           const employeeName = (await this.hrmsEmployeesService.findEmployeesById(items.employeeId)).fullName;
@@ -132,6 +197,10 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           };
         })
       );
+
+      result.sort((a, b) => (a.name > b.name ? 1 : -1));
+
+      return result;
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -161,6 +230,8 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
             employeeId: true,
             status: true,
             nomineeType: true,
+            isReplacedBy: true,
+            isProxyBy: true,
             remarks: true,
           },
           where: {
@@ -179,27 +250,35 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
         },
       })) as Array<TrainingNominee>;
 
-      return await Promise.all(
+      const nominees = await Promise.all(
         distribution.map(async (items) => {
           /* find employee name by employee id */
-          const employeeName = await this.hrmsEmployeesService.findEmployeesById(items.employeeId);
+          const employeeName = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(items.employeeId);
 
           /* find supervisor name by employee id */
           const supervisorName = await this.hrmsEmployeesService.findEmployeesById(items.trainingDistribution.supervisorId);
 
+          const remarks = items.isProxyBy !== null ? 'Replaced ' + (await this.findNomineeDetailsByNomineeId(items.isProxyBy)).name : items.remarks;
+
           return {
             nomineeId: items.id,
             employeeId: items.employeeId,
-            name: employeeName.fullName,
+            companyId: employeeName.companyId,
+            name: employeeName.employeeFullName,
             status: items.status,
-            remarks: items.remarks,
+            remarks: remarks,
+            isReplacedBy: items.isReplacedBy !== null ? true : false,
+            assignment: employeeName.assignment.name,
             supervisor: {
+              distributionId: items.trainingDistribution.id,
               supervisorId: items.trainingDistribution.supervisorId,
               name: supervisorName.fullName,
             },
           };
         })
       );
+
+      return nominees.sort((a, b) => (a.name > b.name ? 1 : -1));
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -257,6 +336,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
               },
             },
           ],
+          order: {
+            status: 'DESC',
+          },
         },
         onError: (error) => {
           throw error;
@@ -475,7 +557,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
           const employees = await Promise.all(
             batchEmployees.map(async (items) => {
               /* find employee name by employee id */
-              const employeeName = (await this.hrmsEmployeesService.findEmployeesById(items.employeeId)).fullName;
+              const employeeName = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(items.employeeId);
 
               /* find supervisor name by employee id */
               const supervisorName = (await this.hrmsEmployeesService.findEmployeesById(items.trainingDistribution.supervisorId)).fullName;
@@ -484,8 +566,9 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
               return {
                 nomineeId: items.id,
                 employeeId: items.employeeId,
-                name: employeeName,
+                name: employeeName.employeeFullName,
                 distributionId: items.trainingDistribution.id,
+                assignment: employeeName.assignment.positionTitle,
                 supervisor: {
                   supervisorId: items.trainingDistribution.supervisorId,
                   name: supervisorName,
@@ -592,6 +675,132 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* find nominee details by nominee id */
+  async findNomineeDetailsByNomineeId(nomineeId: string) {
+    try {
+      const nominee = await this.crudService.findOneBy({
+        findBy: {
+          id: nomineeId,
+        },
+      });
+
+      const name = (await this.hrmsEmployeesService.findEmployeesById(nominee.employeeId)).fullName;
+
+      return {
+        nomineeId: nominee.id,
+        employeeId: nominee.employeeId,
+        name: name,
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* create additional nominee */
+  async createAdditionalNominee(data: CreateAdditionalNomineeDto, entityManager: EntityManager) {
+    try {
+      const { trainingDistributionId, employeeId } = data;
+
+      const nominee = await this.crudService.transact<TrainingNominee>(entityManager).create({
+        dto: {
+          trainingDistribution: {
+            id: trainingDistributionId,
+          },
+          employeeId: employeeId,
+          nomineeType: NomineeType.NOMINEE,
+          status: TrainingNomineeStatus.ACCEPTED,
+          remarks: 'Additional Trainee',
+        },
+        onError: () => {
+          throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+        },
+      });
+
+      return {
+        nomineeId: nominee.id,
+        employeeId: nominee.employeeId,
+        status: nominee.status,
+      };
+    } catch (error) {
+      Logger.error(error);
+      if (error instanceof HttpException) throw error;
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async countNomineeByTrainingId(trainingId: string) {
+    try {
+      return await this.crudService.getRepository().countBy({
+        trainingDistribution: {
+          trainingDetails: {
+            id: trainingId,
+          },
+        },
+        status: TrainingNomineeStatus.ACCEPTED,
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* update nominee status to no action taken */
+  @Cron('* 59 23 * * *')
+  async updateNomineeStatusNoActionTaken() {
+    try {
+      const currentDate = new Date();
+
+      Logger.log('------ update nominee status to no action taken -----------');
+
+      return await this.crudService.update({
+        updateBy: {
+          trainingDistribution: {
+            trainingDetails: {
+              trainingStart: currentDate,
+            },
+          },
+        },
+        dto: {
+          status: TrainingNomineeStatus.NO_ACTION,
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request, no nominee status update', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async updateNomineeStatusNoActionTakenByTrainingId(trainingId: string, entityManager: EntityManager) {
+    try {
+      const nominess = await this.findAllNomineeByTrainingId(
+        trainingId,
+        TrainingStatus.ON_GOING_NOMINATION,
+        NomineeType.NOMINEE,
+        TrainingNomineeStatus.PENDING
+      );
+
+      return await Promise.all(
+        nominess.map(async (items) => {
+          return await this.crudService.transact<TrainingNominee>(entityManager).update({
+            updateBy: {
+              id: items.nomineeId,
+            },
+            dto: {
+              status: TrainingNomineeStatus.NO_ACTION,
+            },
+          });
+        })
+      );
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad request, no nominee status update', HttpStatus.BAD_REQUEST);
     }
   }
 }

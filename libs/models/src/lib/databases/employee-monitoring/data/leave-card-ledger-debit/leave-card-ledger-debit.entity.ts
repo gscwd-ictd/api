@@ -5,6 +5,7 @@ import { PassSlip } from '../pass-slip';
 import { DailyTimeRecord } from '../daily-time-record';
 import { LeaveBenefits } from '../leave-benefits';
 import { LeaveCreditDeductions } from '../leave-credit-deductions';
+import { DtrDeductionType } from '@gscwd-api/utils';
 
 @Entity()
 export class LeaveCardLedgerDebit extends DatabaseEntity implements IEntity {
@@ -29,4 +30,7 @@ export class LeaveCardLedgerDebit extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'debit_value', type: 'decimal', scale: 3, precision: 6 })
   debitValue: number;
+
+  @Column({ name: 'dtr_deduction_type', type: 'enum', nullable: true, enum: DtrDeductionType })
+  dtrDeductionType: DtrDeductionType;
 }

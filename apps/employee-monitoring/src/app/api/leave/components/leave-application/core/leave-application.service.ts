@@ -6,6 +6,8 @@ import {
   LeaveApplicationStatus,
   LeaveApplicationType,
   LeaveDayStatus,
+  LeaveLedger,
+  MonetizationType,
   SickLeaveDetails,
   StudyLeaveDetails,
   VacationLeaveDetails,
@@ -17,6 +19,8 @@ import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
 import dayjs = require('dayjs');
 import { EmployeesService } from '../../../../employees/core/employees.service';
+import { OfficerOfTheDayService } from '../../../../officer-of-the-day/core/officer-of-the-day.service';
+import { LeaveMonetizationService } from '../../leave-monetization/core/leave-monetization.service';
 
 @Injectable()
 export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
@@ -25,15 +29,20 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     private readonly dataSource: DataSource,
     private readonly client: MicroserviceClient,
     private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
-    private readonly employeesService: EmployeesService
+    private readonly employeesService: EmployeesService,
+    private readonly officerOfTheDayService: OfficerOfTheDayService,
+    private readonly leaveMonetizationService: LeaveMonetizationService
   ) {
     super(crudService);
   }
 
   async createLeaveApplicationTransaction(transactionEntityManager: EntityManager, createLeaveApplicationDto: CreateLeaveApplicationDto) {
     const { leaveApplicationDates, ...rest } = createLeaveApplicationDto;
+    console.log('transaction create leave');
+    const referenceNo = (await this.rawQuery(`SELECT generate_leave_application_reference_number() referenceNo;`))[0].referenceNo;
+    console.log(referenceNo);
     return await this.crudService.transact<LeaveApplication>(transactionEntityManager).create({
-      dto: rest,
+      dto: { ...rest, referenceNo },
       onError: ({ error }) => {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
@@ -59,19 +68,36 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const result = this.dataSource.transaction(async (transactionEntityManager) => {
       const { leaveApplicationDates, ...rest } = createLeaveApplication;
 
-      const supervisorId = (await this.client.call<string, string, string>({
-        action: 'send',
-        payload: rest.employeeId,
-        pattern: 'get_employee_supervisor_id',
-        onError: (error) => new NotFoundException(error),
-      })) as string;
+      const companyId = await this.employeesService.getCompanyId(rest.employeeId);
+      let supervisorId = null;
+
+      /* UNCOMMENT IF rules change again regarding officer of the day approval
+      const employeeAssignmentId = (await this.employeesService.getEmployeeDetails(rest.employeeId)).assignment.id;
+
+      supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
+      */
+
+      //supervisorId of hrd manager for gm leave application;
+      const employeePosition = (await this.employeesService.getEmployeeDetails(rest.employeeId)).assignment.positionTitle;
+
+      if (employeePosition === 'OIC-General Manager' || employeePosition === 'General Manager A')
+        supervisorId = await this.employeesService.getHrdManagerId();
+
+      if (supervisorId === null) {
+        supervisorId = (await this.client.call<string, string, string>({
+          action: 'send',
+          payload: rest.employeeId,
+          pattern: 'get_employee_supervisor_id',
+          onError: (error) => new NotFoundException(error),
+        })) as string;
+      }
 
       const leaveApplication = await this.createLeaveApplicationTransaction(transactionEntityManager, {
         ...rest,
         supervisorId,
         dateOfFiling: new Date(now),
-        status: LeaveApplicationStatus.FOR_HRMO_APPROVAL,
-        forMonetization: false,
+        status: LeaveApplicationStatus.FOR_HRMO_CREDIT_CERTIFICATION,
+        forMonetization: typeof rest.leaveMonetization === 'undefined' ? false : true,
         leaveApplicationDates,
       });
 
@@ -86,16 +112,75 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             });
           })
         );
+
+        const leaveName = (
+          await this.rawQuery(`SELECT leave_name leaveName FROM leave_benefits WHERE leave_benefits_id = ?`, [leaveApplication.leaveBenefitsId])
+        )[0].leaveName;
+        if (leaveName === 'Terminal Leave') {
+          const terminalLeaveDay = leaveApplicationDates[0];
+          const salaryGradeAmount = (await this.employeesService.getSalaryGradeOrDailyRateByEmployeeId(rest.employeeId)).salaryGradeAmount;
+
+          const excessDates = parseInt(dayjs(terminalLeaveDay).format('DD'));
+          const { dailyLeaveCredit, monetizationConstant } = (
+            await this.rawQuery(
+              `SELECT (SELECT value FROM ems_settings WHERE name= 'daily_leave_credit') dailyLeaveCredit, (SELECT value FROM ems_settings WHERE name= 'monetization_constant') monetizationConstant;`
+            )
+          )[0] as { dailyLeaveCredit: number; monetizationConstant: number };
+
+          const excessCreditEarnings = excessDates * dailyLeaveCredit;
+          const employeeLeaveLedger = (
+            await this.rawQuery(`CALL sp_generate_leave_ledger_view(?,?)`, [rest.employeeId, companyId])
+          )[0] as LeaveLedger[];
+          const finalBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
+
+          const monetizedAmount: number =
+            Math.trunc(
+              (parseFloat(finalBalance.vacationLeaveBalance.toString()) +
+                parseFloat(finalBalance.sickLeaveBalance.toString()) +
+                excessCreditEarnings * 2) *
+                (salaryGradeAmount * monetizationConstant) *
+                100
+            ) / 100;
+          //console.log(monetizAmount);
+          const leaveMonetization = await this.leaveMonetizationService.createLeaveMonetization(
+            transactionEntityManager,
+            {
+              convertedSl: excessCreditEarnings + parseFloat(finalBalance.sickLeaveBalance.toString()),
+              convertedVl: excessCreditEarnings + parseFloat(finalBalance.vacationLeaveBalance.toString()),
+              monetizationType: MonetizationType.TERMINAL,
+              monetizedAmount,
+            },
+            leaveApplication
+          );
+        }
       } else {
-        const { from, to } = leaveApplicationDates;
-        leaveApplicationDatesResult = (
-          await transactionEntityManager.query(`CALL sp_generate_date_range(?,?,?,?);`, [leaveApplication.employeeId, leaveApplication.id, from, to])
-        )[0];
+        if (leaveApplicationDates !== null) {
+          const { from, to } = leaveApplicationDates;
+          leaveApplicationDatesResult = (
+            await transactionEntityManager.query(`CALL sp_generate_date_range(?,?,?,?);`, [
+              leaveApplication.employeeId,
+              leaveApplication.id,
+              from,
+              to,
+            ])
+          )[0];
+        } else {
+          const {
+            leaveMonetization: { convertedSl, convertedVl, monetizationType, monetizedAmount },
+          } = rest;
+
+          const leaveMonetization = await this.leaveMonetizationService.createLeaveMonetization(
+            transactionEntityManager,
+            { convertedSl, convertedVl, monetizationType, monetizedAmount },
+            leaveApplication
+          );
+          console.log(leaveMonetization);
+        }
       }
       return {
         leaveApplication,
         leaveApplicationDates: leaveApplicationDatesResult,
-        numberOfDays: leaveApplicationDatesResult.length,
+        numberOfDays: leaveApplicationDates !== null ? leaveApplicationDatesResult.length : null,
       };
     });
     return result;
@@ -113,7 +198,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         completed: [...approved, ...disapproved, ...cancelled],
       };
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -121,34 +206,53 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     try {
       const leaveApplications = await this.rawQuery<string, LeaveApplicationType[]>(
         `SELECT
-        la.leave_application_id id,
-        la.is_late_filing isLateFiling,
-        lb.leave_name leaveName,
-        lb.leave_types leaveType,
-        DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
-        la.status \`status\`,
-        lb.maximum_credits maximumCredits,
-        DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d %H:%i%:%s') hrmoApprovalDate,
-        DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d %H:%i%:%s') supervisorApprovalDate,
-        la.supervisor_disapproval_remarks supervisorDisapprovalRemarks,
-        DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
-        la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
-        la.cancel_reason cancelReason,
-        la.supervisor_id_fk supervisorId,
-        get_leave_date_cancellation_status(la.leave_application_id) leaveDateStatus,
-        DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i:%s') cancelDate,
-        get_leave_date_cancellation_remarks(la.leave_application_id) leaveDateCancellationRemarks 
+                la.employee_id_fk employeeId,
+                la.leave_application_id id,
+                if(la.is_late_filing=1,'true','false') isLateFiling,
+                lb.leave_name leaveName,
+                lb.leave_types leaveType,
+                la.reference_no referenceNo,
+                DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
+                la.status \`status\`,
+                la.reference_no referenceNo,
+                lb.maximum_credits maximumCredits,
+                la.hrmo_approved_by hrmoApprovedBy,
+                la.hrdm_approved_by hrdmApprovedBy,
+                DATE_FORMAT(la.hrmo_approval_date, '%Y-%m-%d %H:%i%:%s') hrmoApprovalDate,
+                DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
+                DATE_FORMAT(la.supervisor_approval_date, '%Y-%m-%d %H:%i%:%s') supervisorApprovalDate,
+                la.supervisor_disapproval_remarks supervisorDisapprovalRemarks,
+                DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
+                la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
+                la.cancel_reason cancelReason,
+                la.supervisor_id_fk supervisorId,
+                get_leave_date_cancellation_status(la.leave_application_id) leaveDateStatus,
+                DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i:%s') cancelDate,
+                get_leave_date_cancellation_remarks(la.leave_application_id) leaveDateCancellationRemarks 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
           WHERE la.leave_application_id = ? 
           ORDER BY la.date_of_filing DESC;`,
         [id]
       );
-
       const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue`, [id]))[0];
 
       const leaveApplicationsWithDates = await Promise.all(
         leaveApplications.map(async (leaveApplication) => {
+          const {
+            hrdmApprovedBy,
+            hrmoApprovedBy,
+            hrdmApprovalDate,
+            hrmoApprovalDate,
+            employeeId,
+            supervisorApprovalDate,
+            ...restOfLeaveApplication
+          } = leaveApplication;
+
+          const hrdmDetails = hrdmApprovedBy === null ? null : await this.employeesService.getEmployeeDetailsWithSignature(hrdmApprovedBy);
+          //const hrdmSignature = hrdmApprovedBy ===
+          const hrmoDetails = hrmoApprovedBy === null ? null : await this.employeesService.getEmployeeDetailsWithSignature(hrmoApprovedBy);
+
           const leaveDates = await this.rawQuery<string, { leaveDate: string }[]>(
             `
               SELECT DATE_FORMAT(leave_date,'%Y-%m-%d') leaveDate FROM leave_application_dates WHERE leave_application_id_fk = ? ORDER BY leave_date ASC; 
@@ -156,7 +260,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             [leaveApplication.id]
           );
 
-          const supervisorName = (await this.employeesService.getEmployeeDetails(leaveApplication.supervisorId)).employeeFullName;
+          const employeeDetails = await this.employeesService.getEmployeeDetailsWithSignature(employeeId);
+
+          const supervisorDetails = await this.employeesService.getEmployeeDetailsWithSignature(leaveApplication.supervisorId);
 
           const forCancellationLeaveDates = (
             (await this.leaveApplicationDatesService.getLeaveDatesByLeaveApplicationIdAndStatus(
@@ -172,8 +278,18 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           ).map((ld) => ld.leaveDate);
 
           return {
-            supervisorName,
-            ...leaveApplication,
+            employeeName: employeeDetails.employeeFullName,
+            employeeSignature: employeeDetails.signatureUrl,
+            hrdmApprovedByName: hrdmApprovedBy !== null ? hrdmDetails.employeeFullName : null,
+            hrdmSignature: hrdmApprovedBy !== null ? hrdmDetails.signatureUrl : null,
+            hrdmApprovalDate,
+            hrmoApprovalDate,
+            hrmoApprovedByName: hrmoApprovedBy !== null ? hrmoDetails.employeeFullName : null,
+            hrmoSignature: hrmoApprovedBy !== null ? hrmoDetails.signatureUrl : null,
+            supervisorName: supervisorDetails.employeeFullName,
+            supervisorApprovalDate,
+            supervisorSignature: supervisorDetails.signatureUrl,
+            ...restOfLeaveApplication,
             debitValue,
             leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
             forCancellationLeaveDates,
@@ -183,7 +299,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       );
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -193,10 +309,14 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         `SELECT
             la.leave_application_id id,
             lb.leave_name leaveName,
+            la.reference_no referenceNo,
+            la.for_monetization forMonetization,
             DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
+            la.is_late_filing isLateFiling,
             la.status \`status\`,
             la.cancel_reason cancelReason,
-            DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i:%s') cancelDate 
+            DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i:%s') cancelDate,
+            la.for_monetization forMonetization
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
           WHERE la.employee_id_fk = ? AND la.status <> 'approved' AND la.status NOT LIKE '%disapproved%' AND la.status <> 'cancelled' 
@@ -212,13 +332,35 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           `,
             [leaveApplication.id]
           );
-          return { ...leaveApplication, leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)) };
+          let monetizationDetails = null;
+          if (leaveApplication.leaveName === 'Monetization') {
+            monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
+              find: {
+                select: {
+                  id: true,
+                  convertedSl: true,
+                  monetizedAmount: true,
+                  convertedVl: true,
+                  monetizationType: true,
+                  leaveApplicationId: { id: true },
+                },
+                where: { leaveApplicationId: { id: leaveApplication.id } },
+              },
+            });
+          }
+
+          return {
+            ...leaveApplication,
+            ...monetizationDetails,
+            id: leaveApplication.id,
+            leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
+          };
         })
       );
 
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -231,6 +373,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             DATE_FORMAT(la.date_of_filing, '%Y-%m-%d %H:%i:%s') dateOfFiling,
             la.status \`status\`,
             la.cancel_reason cancelReason,
+            la.reference_no referenceNo,
+            la.is_late_filing isLateFiling,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
@@ -250,16 +394,15 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           return { ...leaveApplication, leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)) };
         })
       );
-
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
   async getLeaveApplicationByEmployeeIdStatus(employeeId: string, status: LeaveApplicationStatus) {
     try {
-      const leaveApplications = await this.rawQuery<string, LeaveApplicationType[]>(
+      const leaveApplications = (await this.rawQuery<string, LeaveApplicationType[]>(
         `SELECT
             la.leave_application_id id,
             lb.leave_name leaveName,
@@ -271,13 +414,16 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             DATE_FORMAT(la.hrdm_approval_date, '%Y-%m-%d %H:%i%:%s') hrdmApprovalDate,
             la.hrdm_disapproval_remarks hrdmDisapprovalRemarks,
             la.cancel_reason cancelReason,
+            la.for_monetization forMonetization,
+            la.reference_no referenceNo,
+            la.is_late_filing isLateFiling,
             DATE_FORMAT(la.cancel_date,'%Y-%m-%d %H:%i%:%s') cancelDate 
             FROM leave_application la 
               INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
           WHERE la.employee_id_fk = ? AND la.status = ? 
           ORDER BY la.date_of_filing DESC;`,
         [employeeId, status]
-      );
+      )) as LeaveApplicationType[];
 
       const leaveApplicationsWithDates = await Promise.all(
         leaveApplications.map(async (leaveApplication) => {
@@ -287,13 +433,37 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           `,
             [leaveApplication.id]
           );
-          return { ...leaveApplication, leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)) };
+
+          let monetizationDetails = null;
+          if (leaveApplication.leaveName === 'Monetization') {
+            monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
+              find: {
+                select: {
+                  id: true,
+                  convertedSl: true,
+                  monetizedAmount: true,
+                  convertedVl: true,
+                  monetizationType: true,
+                  leaveApplicationId: { id: true },
+                },
+                where: { leaveApplicationId: { id: leaveApplication.id } },
+              },
+            });
+          }
+
+          return {
+            ...leaveApplication,
+            leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
+            ...monetizationDetails,
+            id: leaveApplication.id,
+            //leaveMonetizationId: monetizationDetails.id,
+          };
         })
       );
 
       return leaveApplicationsWithDates;
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -309,7 +479,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return vacationLeaveDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -328,7 +498,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return sickLeaveDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -347,7 +517,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return studyLeaveDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -362,7 +532,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return specialLeaveBenefitsForWomenDetails[0];
     } catch (error) {
       if (isRPC) throw new RpcException(error.message);
-      throw new HttpException(error.message, error.status);
+      throw new NotFoundException(error.message);
     }
   }
 
@@ -403,23 +573,100 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     } else if (leaveName === 'Special Leave Benefits for Women') {
       const leaveApplicationDetails = await this.getSpecialLeaveBenefitsForWomenDetails(leaveApplicationId);
       return { employeeDetails, leaveApplicationBasicInfo, leaveApplicationDetails };
+    } else if (leaveName === 'Monetization') {
+      const leaveApplicationDetails = await this.getFormattedMonetizationDetails(leaveApplicationId);
+      return { employeeDetails, leaveApplicationBasicInfo, leaveApplicationDetails };
+    } else if (leaveName === 'Terminal Leave') {
+      const leaveApplicationDetails = await this.getTerminalLeaveDetails(leaveApplicationId);
+      return { employeeDetails, leaveApplicationBasicInfo, leaveApplicationDetails };
     } else {
       return { employeeDetails, leaveApplicationBasicInfo };
     }
   }
 
+  async getTerminalLeaveDetails(leaveApplicationId: string) {
+    const monetizationDetails = await this.getMonetizationDetails(leaveApplicationId);
+    const leaveApplication = await this.crud().findOne({ find: { select: { id: true, employeeId: true }, where: { id: leaveApplicationId } } });
+    const leaveApplicationDate = await this.leaveApplicationDatesService
+      .crud()
+      .findOne({ find: { select: { id: true, leaveDate: true }, where: { leaveApplicationId: leaveApplication } } });
+    const { dailyLeaveCredit } = (await this.rawQuery(`SELECT value dailyLeaveCredit FROM ems_settings WHERE name= 'daily_leave_credit';`))[0] as {
+      dailyLeaveCredit: number;
+    };
+    const excessCreditEarnings = parseFloat(dailyLeaveCredit.toString()) * parseInt(dayjs(leaveApplicationDate.leaveDate).format('DD'));
+
+    const { convertedSl, convertedVl, monetizedAmount } = monetizationDetails;
+    const formattedMonetizedAmount = Math.trunc(parseFloat(monetizedAmount.toString()) * 100) / 100;
+    return {
+      monetizedAmount:
+        '₱ ' +
+        formattedMonetizedAmount.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+      slBalance: {
+        beforeTerminalLeave: Math.trunc((parseFloat(convertedSl.toString()) - excessCreditEarnings) * 100) / 100,
+        afterTerminalLeave: parseFloat(convertedSl.toString()),
+      },
+      vlBalance: {
+        beforeTerminalLeave: Math.trunc((parseFloat(convertedVl.toString()) - excessCreditEarnings) * 100) / 100,
+        afterTerminalLeave: parseFloat(convertedVl.toString()),
+      },
+    };
+  }
+
+  async getFormattedMonetizationDetails(leaveApplicationId: string) {
+    const { convertedSl, convertedVl, monetizedAmount } = await this.getMonetizationDetails(leaveApplicationId);
+    const formattedMonetizedAmount = Math.trunc(parseFloat(monetizedAmount.toString()) * 100) / 100;
+    return {
+      monetizedAmount:
+        '₱ ' +
+        formattedMonetizedAmount.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+      convertedSl,
+      convertedVl,
+    };
+  }
+
+  async getMonetizationDetails(leaveApplicationId: string) {
+    return await this.leaveMonetizationService.crud().findOne({
+      find: {
+        select: { convertedSl: true, id: true, convertedVl: true, leaveApplicationId: { id: true }, monetizedAmount: true, monetizationType: true },
+        where: { leaveApplicationId: { id: leaveApplicationId } },
+      },
+    });
+  }
+
   async getUnavailableDates(employeeId: string) {
+    /*
+     return await this.rawQuery(
+      `
+      SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type 
+      FROM 
+      ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
+        INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
+        WHERE la.employee_id_fk = ? AND (la.status = 'approved' OR la.status='for hrmo credit certification' OR la.status='for hrdm approval' or la.status='for supervisor approval'
+        ))
+      UNION 
+      (SELECT DATE_FORMAT(holiday_date, '%Y-%m-%d') unavailableDate,'Holiday' AS type FROM holidays 
+      WHERE holiday_date BETWEEN DATE_SUB(DATE_SUB(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY) AND DATE_ADD(DATE_ADD(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY))) AS unavailableDates 
+      ORDER BY unavailableDates.unavailableDate ASC`,
+      [employeeId]
+    );
+    */
     return await this.rawQuery(
       `
       SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type 
       FROM 
       ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
         INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
-        WHERE la.employee_id_fk = ? AND (la.status = 'approved' OR la.status='for hrmo approval' OR la.status='for hrmd approval' or la.status='for supervisor approval'))
+        WHERE la.employee_id_fk = ? AND ( (la.status = 'approved' AND lad.status = 'approved') OR (la.status = 'approved' AND lad.status = 'for cancellation') OR la.status='for hrmo credit certification' OR la.status='for hrdm approval' or la.status='for supervisor approval'))
       UNION 
       (SELECT DATE_FORMAT(holiday_date, '%Y-%m-%d') unavailableDate,'Holiday' AS type FROM holidays 
       WHERE holiday_date BETWEEN DATE_SUB(DATE_SUB(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY) AND DATE_ADD(DATE_ADD(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY))) AS unavailableDates 
-      ORDER BY unavailableDates.unavailableDate ASC`,
+      ORDER BY unavailableDates.unavailableDate ASC;`,
       [employeeId]
     );
   }
@@ -454,6 +701,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           inPhilippines: true,
           supervisorId: true,
           studyLeaveOther: true,
+          referenceNo: true,
           isTerminalLeave: true,
           outPatient: true,
           cancelDate: true,
@@ -576,22 +824,138 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           isLateFiling: true,
           supervisorId: true,
           studyLeaveOther: true,
+          hrdmApprovedBy: true,
+          hrmoApprovedBy: true,
           outPatient: true,
           cancelDate: true,
           cancelReason: true,
+          referenceNo: true,
           requestedCommutation: true,
           splWomen: true,
           leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
           status: true,
         },
         relations: { leaveBenefitsId: true },
-        where: [{ status: LeaveApplicationStatus.FOR_HRDM_APPROVAL }, { status: LeaveApplicationStatus.APPROVED }],
+        where: [
+          { status: LeaveApplicationStatus.FOR_HRDM_APPROVAL },
+          { status: LeaveApplicationStatus.APPROVED },
+          { status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM },
+        ],
         order: { dateOfFiling: 'DESC' },
       },
     });
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
+        const { employeeId, supervisorId, hrmoApprovedBy, hrmoApprovalDate, hrdmApprovedBy, hrdmApprovalDate, leaveBenefitsId, ...rest } = leave;
+        const employeeSupervisorNames = (await this.client.call<
+          string,
+          { employeeId: string; supervisorId: string },
+          { employeeName: string; supervisorName: string }
+        >({
+          action: 'send',
+          payload: { employeeId, supervisorId },
+          pattern: 'get_employee_supervisor_names',
+          onError: (error) => new NotFoundException(error),
+        })) as { employeeName: string; supervisorName: string };
+
+        //console.log('employee: ', employeeId, ' super: ', supervisorId);
+        // console.log('HRMO approved by', hrmoApprovedBy);
+        const _hrmoApprovedBy = (await this.employeesService.getBasicEmployeeDetails(hrmoApprovedBy)).employeeFullName;
+
+        //console.log('employee id', employeeId);
+        const employeeDetails = await this.employeesService.getBasicEmployeeDetails(employeeId);
+
+        const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
+          find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
+        })) as LeaveApplicationDates[];
+
+        const _leaveDates = await Promise.all(
+          leaveDates.map(async (leaveDate) => {
+            return leaveDate.leaveDate;
+          })
+        );
+        let monetizationDetails = null;
+        let terminalLeaveDetails = null;
+
+        if (leaveBenefitsId.leaveName === 'Monetization') monetizationDetails = await this.getFormattedMonetizationDetails(leave.id);
+        if (leaveBenefitsId.leaveName === 'Terminal Leave') terminalLeaveDetails = await this.getTerminalLeaveDetails(leave.id);
+
+        const { employeeName, supervisorName } = employeeSupervisorNames;
+        return {
+          ...rest,
+          leaveBenefitsId: leaveBenefitsId.id,
+          leaveName: leaveBenefitsId.leaveName,
+          hrmoApprovedBy: _hrmoApprovedBy,
+          hrmoApprovalDate,
+          hrdmApprovedBy,
+          hrdmApprovalDate,
+          ...monetizationDetails,
+          ...terminalLeaveDetails,
+          id: rest.id,
+          employee: { employeeId, employeeName, companyId: employeeDetails.companyId },
+          supervisor: { supervisorId, supervisorName },
+          leaveDates: _leaveDates,
+        };
+      })
+    );
+    return leavesDetails;
+  }
+
+  async getLeavesByYearMonth(yearMonth: string) {
+    const _yearMonth = dayjs(yearMonth + '-01').format('YYYY-MM');
+
+    const leaves = (
+      (await this.rawQuery(
+        `
+      SELECT 
+          leave_application.created_at createdAt, 
+            leave_application.updated_at updatedAt, 
+            leave_application.deleted_at deletedAt, 
+            leave_application_id id,
+            abroad,
+            date_of_filing dateOfFiling,
+            employee_id_fk employeeId,
+            for_bar_board_review forBarBoardReview,
+            date_of_filing dateOfFiling,
+            for_masters_completion forMastersCompletion,
+            for_monetization forMonetization,
+            DATE_FORMAT(hrdm_approval_date, '%Y-%m-%d %H:%i:%s') hrdmApprovalDate,
+            hrdm_disapproval_remarks hrdmDisapprovalRemarks,
+            DATE_FORMAT(hrmo_approval_date, '%Y-%m-%d %H:%i:%s') hrmoApprovalDate,
+            DATE_FORMAT(supervisor_approval_date, '%Y-%m-%d %H:%i:%s') supervisorApprovalDate,
+            in_hospital inHospital,
+            in_philippines inPhilippines,
+            is_terminal_leave isTerminalLeave,
+            IF(is_late_filing=1,'true','false') isLateFiling,
+            supervisor_id_fk supervisorId,
+            reference_no referenceNo,
+            study_leave_other studyLeaveOther,
+            out_patient outPatient,
+            DATE_FORMAT(cancel_date, '%Y-%m-%d %H:%i:%s') cancelDate,
+            cancel_reason cancelReason,
+            requested_commutation requestedCommutation,
+            spl_women splWomen,
+            leave_benefits_id_fk leaveBenefitsId,
+            leave_name leaveName, leave_types leaveType,
+            status 
+        FROM leave_application INNER JOIN leave_benefits ON leave_application.leave_benefits_id_fk = leave_benefits_id
+        WHERE DATE_FORMAT(date_of_filing, '%Y-%m') = ? ORDER BY date_of_filing DESC;  
+    `,
+        [_yearMonth]
+      )) as LeaveApplication[]
+    ).map((la) => {
+      const { dateOfFiling, cancelDate, ...restOfLeave } = la;
+      return {
+        isLateFiling: restOfLeave.isLateFiling,
+        dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
+        cancelDate: cancelDate === null ? null : dayjs(cancelDate).format('YYYY-MM-DD'),
+        ...restOfLeave,
+      };
+    });
+
+    const leavesDetails = await Promise.all(
+      leaves.map(async (leave, idx) => {
         const { employeeId, supervisorId, leaveBenefitsId, ...rest } = leave;
         const employeeSupervisorNames = (await this.client.call<
           string,
@@ -614,10 +978,31 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           })
         );
         const { employeeName, supervisorName } = employeeSupervisorNames;
+
+        let monetizationDetails = null;
+
+        if (leaveBenefitsId.leaveName === 'Monetization') {
+          monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
+            find: {
+              select: {
+                convertedSl: true,
+                convertedVl: true,
+                id: true,
+                leaveApplicationId: { id: true },
+                monetizationType: true,
+                monetizedAmount: true,
+              },
+              where: { leaveApplicationId: { id: leave.id } },
+            },
+          });
+        }
+
         return {
           ...rest,
-          leaveBenefitsId: leaveBenefitsId.id,
-          leaveName: leaveBenefitsId.leaveName,
+          // leaveBenefitsId: leaveBenefitsId.id,
+          // leaveName: leaveBenefitsId.leaveName,
+          ...monetizationDetails,
+          id: rest.id,
           employee: { employeeId, employeeName },
           supervisor: { supervisorId, supervisorName },
           //leaveName: leaveBenefitsId.leaveName,
@@ -649,6 +1034,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             isTerminalLeave: true,
             isLateFiling: true,
             supervisorId: true,
+            referenceNo: true,
             studyLeaveOther: true,
             outPatient: true,
             cancelDate: true,
@@ -673,7 +1059,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave, idx) => {
-        console.log(idx, ' ', leave);
         const { employeeId, supervisorId, leaveBenefitsId, ...rest } = leave;
         const employeeSupervisorNames = (await this.client.call<
           string,
@@ -696,10 +1081,32 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           })
         );
         const { employeeName, supervisorName } = employeeSupervisorNames;
+
+        let monetizationDetails = null;
+
+        if (leaveBenefitsId.leaveName === 'Monetization') {
+          monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
+            find: {
+              select: {
+                convertedSl: true,
+                convertedVl: true,
+                id: true,
+                leaveApplicationId: { id: true },
+                monetizationType: true,
+                monetizedAmount: true,
+              },
+              where: { leaveApplicationId: { id: leave.id } },
+            },
+          });
+          console.log('test');
+        }
+
         return {
           ...rest,
           leaveBenefitsId: leaveBenefitsId.id,
           leaveName: leaveBenefitsId.leaveName,
+          ...monetizationDetails,
+          id: rest.id,
           employee: { employeeId, employeeName },
           supervisor: { supervisorId, supervisorName },
           //leaveName: leaveBenefitsId.leaveName,
@@ -723,6 +1130,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           forMonetization: true,
           hrdmApprovalDate: true,
           hrdmDisapprovalRemarks: true,
+          referenceNo: true,
           hrmoApprovalDate: true,
           supervisorApprovalDate: true,
           supervisorDisapprovalRemarks: true,
@@ -733,6 +1141,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           isTerminalLeave: true,
           outPatient: true,
           requestedCommutation: true,
+          isLateFiling: true,
           cancelDate: true,
           cancelReason: true,
           splWomen: true,
@@ -799,6 +1208,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           supervisorId: true,
           studyLeaveOther: true,
           isTerminalLeave: true,
+          referenceNo: true,
           isLateFiling: true,
           outPatient: true,
           cancelDate: true,
@@ -820,6 +1230,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
         const { employeeId, leaveBenefitsId, ...rest } = leave;
+        const companyId = (await this.employeesService.getBasicEmployeeDetails(employeeId)).companyId;
         const employeeSupervisorNames = (await this.client.call<
           string,
           { employeeId: string; supervisorId: string },
@@ -839,12 +1250,21 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           [leave.id]
         );
 
+        let monetizationDetails = null;
+        let terminalLeaveDetails = null;
+
+        if (leaveBenefitsId.leaveName === 'Monetization') monetizationDetails = await this.getFormattedMonetizationDetails(leave.id);
+        if (leaveBenefitsId.leaveName === 'Terminal Leave') terminalLeaveDetails = await this.getTerminalLeaveDetails(leave.id);
+
         return {
           ...rest,
           leaveBenefitsId: leaveBenefitsId.id,
           leaveName: leaveBenefitsId.leaveName,
+          ...terminalLeaveDetails,
+          ...monetizationDetails,
+          id: rest.id,
           leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
-          employee: { employeeId, employeeName },
+          employee: { employeeId, companyId, employeeName },
           supervisor: { supervisorId, supervisorName },
         };
 
@@ -879,6 +1299,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           studyLeaveOther: true,
           isTerminalLeave: true,
           isLateFiling: true,
+          referenceNo: true,
           outPatient: true,
           cancelDate: true,
           cancelReason: true,
@@ -943,11 +1364,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             });
             break;
         }
-
-        // return {
-        //   cancelled,
-        //   disapproved,
-        // };
       })
     );
     return { cancelled, disapproved };
@@ -988,6 +1404,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           inHospital: true,
           inPhilippines: true,
           isTerminalLeave: true,
+          referenceNo: true,
           isLateFiling: true,
           outPatient: true,
           requestedCommutation: true,
@@ -1032,6 +1449,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
           employee: { employeeId, employeeName },
           supervisor: { supervisorId, supervisorName },
+          details: (await this.getLeaveApplicationDetails(rest.id, employeeId)).leaveApplicationDetails,
         };
       })
     );

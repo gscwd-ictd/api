@@ -17,6 +17,7 @@ export class FindAllTrainingInterceptor implements NestInterceptor {
               id: trainingItems.id,
               courseTitle: trainingItems.courseTitle || trainingItems.trainingDesign.courseTitle,
               numberOfParticipants: trainingItems.numberOfParticipants,
+              numberOfHours: trainingItems.numberOfHours,
               location: trainingItems.location,
               trainingStart: trainingItems.trainingStart,
               trainingEnd: trainingItems.trainingEnd,

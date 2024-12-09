@@ -30,3 +30,4 @@ export * from './data/officer-of-the-day';
 export * from './data/dtr-correction';
 export * from './data/events-announcements';
 export * from './data/work-suspension';
+export * from './data/leave-monetization';
