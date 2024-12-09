@@ -48,6 +48,22 @@ export class EmployeesService {
     return employees;
   }
 
+  async getImmediateEmployeesUnderSupervisor(employeeId: string) {
+    //get_employee_under_supervisor
+    const employees = (await this.client.call<string, string, object>({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_subordinates_with_company_id',
+      onError: (error) => new NotFoundException(error),
+    })) as {
+      companyId: string;
+      fullName: string;
+      employeeId: string;
+    }[];
+
+    return employees;
+  }
+
   async getEmployeeAssignment(employeeId: string) {
     const assignment = (await this.client.call<string, string, object>({
       action: 'send',
