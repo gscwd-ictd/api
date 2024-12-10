@@ -4,7 +4,7 @@ import { DailyTimeRecordService } from './daily-time-record.service';
 
 @Controller({ version: '1', path: 'daily-time-record' })
 export class DailyTimeRecordController {
-  constructor(private readonly dailyTimeRecordService: DailyTimeRecordService) {}
+  constructor(private readonly dailyTimeRecordService: DailyTimeRecordService) { }
 
   @Get()
   async getAllRecords() {

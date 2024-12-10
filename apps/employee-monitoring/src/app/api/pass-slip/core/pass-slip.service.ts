@@ -28,6 +28,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     private readonly client: MicroserviceClient,
     private readonly employeeService: EmployeesService,
     private readonly officerOfTheDayService: OfficerOfTheDayService,
+    private readonly dailyTimeRecordService: DailyTimeRecordService,
+    private readonly employeeScheduleService: EmployeeScheduleService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -713,15 +715,20 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
   @Cron('0 57 23 * * 0-6')
   async updatePassSlipStatusCron() {
+    await this.updatePassSlipStatusByDate(dayjs().format('YYYY-MM-DD'));
+  }
+
+  async updatePassSlipStatusByDate(dateString: string) {
     //1. fetch approved pass slips from yesterday (Personal Business Only)
-    const passSlips = (await this.rawQuery(`
+    const passSlips = (await this.rawQuery(
+      `
         SELECT 
             ps.pass_slip_id id, 
             employee_id_fk employeeId, 
             date_of_application dateOfApplication, 
             nature_of_business natureOfBusiness,
             time_in timeIn,
-            time_out timeOut,
+            time_out timeOut,                                                                                               
             encoded_time_in encodedTimeIn,
             encoded_time_out encodedTimeOut,
             ps.ob_transportation obTransportation,
@@ -736,9 +743,11 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             ps.is_dispute_approved disputeApproved
           FROM pass_slip ps 
           INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
-        WHERE DATE_FORMAT(date_of_application,'%Y-%m-%d') = DATE_FORMAT(now(),'%Y-%m-%d') 
+        WHERE DATE_FORMAT(date_of_application,'%Y-%m-%d') = DATE_FORMAT(?,'%Y-%m-%d') 
         AND (psa.status = 'approved' OR psa.status = 'for supervisor approval' OR psa.status='for hrmo approval'); 
-    `)) as PassSlipForLedger[];
+    `,
+      [dateString]
+    )) as PassSlipForLedger[];
 
     //2. check time in and time out
     const passSlipsToLedger = await Promise.all(
@@ -1467,9 +1476,9 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
     const supervisorAndOfficerOfTheDayArray =
       officerOfTheDayId !== null
         ? [
-            { label: officerOfTheDayName, value: officerOfTheDayId },
-            { label: employeeSupervisorName, value: employeeSupervisorId },
-          ]
+          { label: officerOfTheDayName, value: officerOfTheDayId },
+          { label: employeeSupervisorName, value: employeeSupervisorId },
+        ]
         : [{ label: employeeSupervisorName, value: employeeSupervisorId }];
     const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown(employeeData.employeeId);
     const result = [
