@@ -91,6 +91,20 @@ export class EmployeesService {
     })) as EmployeeDetails;
     return employeeDetails;
   }
+  //get_basic_employee_details_with_signature
+  async getBasicEmployeeDetailsWithSignature(employeeId: string) {
+    //find_employee_details
+    const employeeDetails = (await this.client.call({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_basic_employee_details_with_signature',
+      onError: (error) => {
+        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
+        throw new NotFoundException(error);
+      },
+    })) as EmployeeDetails;
+    return employeeDetails;
+  }
 
   async getEmployeeDetailsWithSignature(employeeId: string) {
     //find_employee_details

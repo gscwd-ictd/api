@@ -42,7 +42,7 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
 
   @Cron('0 59 23 * * 1-5')
   async addBackLeaveOnWorkSuspension() {
-    const dayNow = dayjs('2024-07-22');
+    const dayNow = dayjs();
 
     const suspensionHrs = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(dayNow.toDate());
 
