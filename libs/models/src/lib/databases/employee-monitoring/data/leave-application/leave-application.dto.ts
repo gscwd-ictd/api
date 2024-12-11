@@ -89,7 +89,7 @@ export class CreateLeaveApplicationDto {
   isLateFiling: boolean;
 
   @IsOptional()
-  lateFilingJustification: string;
+  lateFilingJustification?: string;
 
   @IsOptional()
   leaveApplicationDates?: Date[] | { from: Date; to: Date };

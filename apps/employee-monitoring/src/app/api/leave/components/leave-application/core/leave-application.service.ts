@@ -808,7 +808,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
   }
 
   async getLeavesForHrdmV2() {
-    //
     const leaves = <LeaveApplication[]>await this.crud().findAll({
       find: {
         select: {
@@ -825,6 +824,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           supervisorApprovalDate: true,
           supervisorDisapprovalRemarks: true,
           inHospital: true,
+          lateFilingJustification: true,
           inPhilippines: true,
           isTerminalLeave: true,
           isLateFiling: true,
@@ -865,12 +865,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           onError: (error) => new NotFoundException(error),
         })) as { employeeName: string; supervisorName: string };
 
-        //console.log('employee: ', employeeId, ' super: ', supervisorId);
-        // console.log('HRMO approved by', hrmoApprovedBy);
         const _hrmoApprovedBy = (await this.employeesService.getBasicEmployeeDetails(hrmoApprovedBy)).employeeFullName;
 
-        //console.log('employee id', employeeId);
-        const employeeDetails = await this.employeesService.getBasicEmployeeDetails(employeeId);
+        const employeeDetails = await this.employeesService.getBasicEmployeeDetailsWithSignature(employeeId);
 
         const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
           find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
@@ -899,7 +896,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           ...monetizationDetails,
           ...terminalLeaveDetails,
           id: rest.id,
-          employee: { employeeId, employeeName, companyId: employeeDetails.companyId },
+          employee: { employeeId, employeeName, companyId: employeeDetails.companyId, signatureUrl: employeeDetails.signatureUrl },
           supervisor: { supervisorId, supervisorName },
           leaveDates: _leaveDates,
         };
@@ -1239,7 +1236,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
         const { employeeId, leaveBenefitsId, ...rest } = leave;
+        const employeeDetails = await this.employeesService.getBasicEmployeeDetailsWithSignature(employeeId);
         const companyId = (await this.employeesService.getBasicEmployeeDetails(employeeId)).companyId;
+
         const employeeSupervisorNames = (await this.client.call<
           string,
           { employeeId: string; supervisorId: string },
@@ -1273,14 +1272,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           ...monetizationDetails,
           id: rest.id,
           leaveDates: await Promise.all(leaveDates.map(async (leaveDateItem) => leaveDateItem.leaveDate)),
-          employee: { employeeId, companyId, employeeName },
+          employee: { employeeId, companyId, employeeName, signatureUrl: employeeDetails.signatureUrl },
           supervisor: { supervisorId, supervisorName },
         };
-
-        // return {
-        //   cancelled,
-        //   disapproved,
-        // };
       })
     );
     return leavesDetails;
