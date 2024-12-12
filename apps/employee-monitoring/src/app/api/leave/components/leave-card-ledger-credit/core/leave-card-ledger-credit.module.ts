@@ -30,4 +30,4 @@ import { LeaveCreditEarningsModule } from '../../leave-credit-earnings/core/leav
   controllers: [LeaveCardLedgerCreditController],
   exports: [LeaveCardLedgerCreditService, MicroserviceClient],
 })
-export class LeaveCardLedgerCreditModule {}
+export class LeaveCardLedgerCreditModule { }

@@ -5,7 +5,7 @@ import { stringify } from 'querystring';
 
 @Injectable()
 export class EmployeesService {
-  constructor(private readonly client: MicroserviceClient) {}
+  constructor(private readonly client: MicroserviceClient) { }
 
   async getAllPermanentEmployeeIds() {
     const employees = (await this.client.call<string, object, []>({
@@ -81,7 +81,7 @@ export class EmployeesService {
       payload: employeeId,
       pattern: 'get_employee_details',
       onError: (error) => {
-        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
+        console.log('getEmployeeDetails Function Employee ID Error', employeeId);
         throw new NotFoundException(error);
       },
     })) as EmployeeDetails;
@@ -94,7 +94,7 @@ export class EmployeesService {
       payload: employeeId,
       pattern: 'get_basic_employee_details',
       onError: (error) => {
-        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
+        console.log('getBasicEmployeeDetails Employee ID Error', employeeId);
         throw new NotFoundException(error);
       },
     })) as EmployeeDetails;
@@ -108,7 +108,7 @@ export class EmployeesService {
       payload: employeeId,
       pattern: 'get_basic_employee_details_with_signature',
       onError: (error) => {
-        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
+        console.log('getBasicEmployeeDetailsWithSignature Employee ID Error', employeeId);
         throw new NotFoundException(error);
       },
     })) as EmployeeDetails;

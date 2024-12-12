@@ -43,10 +43,10 @@ const redisClientHrms = redis.createClient({
 
 redisClientHrms.connect().catch(console.error);
 
-const redisClientPortal = redis.createClient({
-  url: `redis://localhost:6379`,
-});
-redisClientPortal.connect().catch(console.error);
+// const redisClientPortal = redis.createClient({
+//   url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:6479`,
+// });
+// redisClientPortal.connect().catch(console.error);
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

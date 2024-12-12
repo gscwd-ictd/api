@@ -17,8 +17,8 @@ import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { OfficerOfTheDayService } from '../../officer-of-the-day/core/officer-of-the-day.service';
-import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
+import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -29,8 +29,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     private readonly client: MicroserviceClient,
     private readonly employeeService: EmployeesService,
     private readonly officerOfTheDayService: OfficerOfTheDayService,
-    private readonly dailyTimeRecordService: DailyTimeRecordService,
     private readonly employeeScheduleService: EmployeeScheduleService,
+    private readonly dailyTimeRecordService: DailyTimeRecordService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -1458,9 +1458,9 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
     const supervisorAndOfficerOfTheDayArray =
       officerOfTheDayId !== null
         ? [
-            { label: officerOfTheDayName, value: officerOfTheDayId },
-            { label: employeeSupervisorName, value: employeeSupervisorId },
-          ]
+          { label: officerOfTheDayName, value: officerOfTheDayId },
+          { label: employeeSupervisorName, value: employeeSupervisorId },
+        ]
         : [{ label: employeeSupervisorName, value: employeeSupervisorId }];
     const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown(employeeData.employeeId);
     const result = [
