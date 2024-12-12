@@ -20,6 +20,7 @@ import { LeaveCreditEarningsService } from '../../leave-credit-earnings/core/lea
         options: {
           host: process.env.EMPLOYEE_REDIS_HOST,
           port: parseInt(process.env.EMPLOYEE_REDIS_PORT),
+          password: process.env.EMPLOYEE_REDIS_PASSWORD,
         },
       },
     ]),
@@ -30,4 +31,4 @@ import { LeaveCreditEarningsService } from '../../leave-credit-earnings/core/lea
   controllers: [LeaveCardLedgerCreditController],
   exports: [LeaveCardLedgerCreditService, MicroserviceClient],
 })
-export class LeaveCardLedgerCreditModule {}
+export class LeaveCardLedgerCreditModule { }

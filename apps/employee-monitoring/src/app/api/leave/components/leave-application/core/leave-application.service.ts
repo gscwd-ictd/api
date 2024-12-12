@@ -889,7 +889,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           ...monetizationDetails,
           ...terminalLeaveDetails,
           id: rest.id,
-          employee: { employeeId, employeeName, companyId: employeeDetails.companyId, signature: employeeDetails.signatureUrl },
+          employee: { employeeId, employeeName, companyId: employeeDetails.companyId, signatureUrl: employeeDetails.signatureUrl },
           supervisor: { supervisorId, supervisorName },
           leaveDates: _leaveDates,
         };

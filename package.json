@@ -19,6 +19,7 @@
     "@nestjs/platform-express": "^10.3.10",
     "@nestjs/schedule": "^4.1.0",
     "@nestjs/swagger": "7.0.12",
+    "@nestjs/throttler": "^6.2.1",
     "@nestjs/typeorm": "^10.0.0",
     "argon2": "^0.30.3",
     "axios": "^1.6.7",

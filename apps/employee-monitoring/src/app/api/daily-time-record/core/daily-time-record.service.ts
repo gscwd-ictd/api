@@ -11,7 +11,6 @@ import { HolidaysService } from '../../holidays/core/holidays.service';
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
 import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
-import { Console } from 'console';
 
 @Injectable()
 export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
@@ -70,7 +69,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     }
   }
 
-  async generateAllEmployeeDtrByMonthAndYear() {}
+  async generateAllEmployeeDtrByMonthAndYear() { }
 
   async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number) {
     const daysInMonth = dayjs(year + '-' + month + '-' + '01').daysInMonth();
@@ -272,23 +271,23 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       const lateMorning = isWithLunch
         ? dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
-            dayjs('2024-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
-            'm'
-          )
+          dayjs('2024-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
+          'm'
+        )
         : dayjs('2024-01-01 ' + dtr.timeIn).isAfter(restHourEnd)
-        ? dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm:00')).diff(dayjs(restHourEnd).format('YYYY-MM-DD HH:mm:00'), 'm')
-        : dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
+          ? dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm:00')).diff(dayjs(restHourEnd).format('YYYY-MM-DD HH:mm:00'), 'm')
+          : dayjs(dayjs('2024-01-01 ' + dtr.timeIn).format('YYYY-MM-DD HH:mm')).diff(
             dayjs('2024-01-01 ' + schedule.timeIn).format('YYYY-MM-DD HH:mm'),
             'm'
           );
 
       const lateAfternoon = isWithLunch
         ? dayjs(dayjs('2024-01-01 ' + dtr.lunchIn).format('YYYY-MM-DD HH:mm')).diff(
-            dayjs('2024-01-01' + schedule.lunchIn)
-              .add(29, 'minute')
-              .format('YYYY-MM-DD HH:mm'),
-            'm'
-          )
+          dayjs('2024-01-01' + schedule.lunchIn)
+            .add(29, 'minute')
+            .format('YYYY-MM-DD HH:mm'),
+          'm'
+        )
         : 0;
 
       if (lateMorning > 0) {
@@ -458,9 +457,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       minutesUndertime =
         !timeOutWithinRestHours && suspensionHours <= 0
           ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
-              dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
-              'm'
-            )
+            dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+            'm'
+          )
           : 0;
 
       //minutesUndertime if there is work suspension;
@@ -481,9 +480,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       if (dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).isBefore(workSuspensionStart)) {
         minutesUndertime = !timeOutWithinRestHours
           ? dayjs(dayjs(workSuspensionStart).format('YYYY-MM-DD HH:mm')).diff(
-              dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
-              'm'
-            )
+            dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+            'm'
+          )
           : 0;
         noOfUndertimes = 1;
       }

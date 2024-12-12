@@ -17,7 +17,6 @@ import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { OfficerOfTheDayService } from '../../officer-of-the-day/core/officer-of-the-day.service';
-import { weightSrvRecords } from 'ioredis/built/cluster/util';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -28,8 +27,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     private readonly client: MicroserviceClient,
     private readonly employeeService: EmployeesService,
     private readonly officerOfTheDayService: OfficerOfTheDayService,
-    private readonly dailyTimeRecordService: DailyTimeRecordService,
-    private readonly employeeScheduleService: EmployeeScheduleService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);

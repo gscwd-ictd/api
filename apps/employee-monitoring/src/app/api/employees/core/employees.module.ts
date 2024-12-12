@@ -12,6 +12,7 @@ import { EmployeesService } from './employees.service';
         options: {
           host: process.env.EMPLOYEE_REDIS_HOST,
           port: parseInt(process.env.EMPLOYEE_REDIS_PORT),
+          password: process.env.EMPLOYEE_REDIS_PASSWORD,
         },
       },
     ]),
@@ -19,4 +20,4 @@ import { EmployeesService } from './employees.service';
   providers: [EmployeesService, MicroserviceClient],
   exports: [EmployeesService, MicroserviceClient],
 })
-export class EmployeesModule {}
+export class EmployeesModule { }

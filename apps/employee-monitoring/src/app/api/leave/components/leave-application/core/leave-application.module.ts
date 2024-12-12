@@ -35,4 +35,4 @@ import { LeaveMonetizationModule } from '../../leave-monetization/core/leave-mon
   controllers: [LeaveApplicationController],
   exports: [LeaveApplicationService, MicroserviceClient],
 })
-export class LeaveApplicationModule {}
+export class LeaveApplicationModule { }

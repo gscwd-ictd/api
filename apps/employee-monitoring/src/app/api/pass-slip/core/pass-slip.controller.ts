@@ -12,7 +12,7 @@ import { Throttle } from '@nestjs/throttler';
 
 @Controller({ version: '1', path: 'pass-slip' })
 export class PassSlipController {
-  constructor(private readonly passSlipService: PassSlipService, private readonly passSlipApprovalService: PassSlipApprovalService) {}
+  constructor(private readonly passSlipService: PassSlipService, private readonly passSlipApprovalService: PassSlipApprovalService) { }
 
   @Throttle({ default: { limit: 1, ttl: 3000 } })
   @Post()
