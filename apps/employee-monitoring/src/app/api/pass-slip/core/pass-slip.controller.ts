@@ -91,4 +91,9 @@ export class PassSlipController {
   async passSlipToLedger(@Param('date_applied') dateApplied: string) {
     return await this.passSlipService.addPassSlipsToLedgerManually(dateApplied);
   }
+
+  @Post('update-pass-slip-by-date/:date')
+  async updatePassSlipStatusByDate(@Param('date') date: string) {
+    return await this.passSlipService.updatePassSlipStatusByDate(date);
+  }
 }

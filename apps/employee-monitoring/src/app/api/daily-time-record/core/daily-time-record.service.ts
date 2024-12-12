@@ -2,7 +2,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { CreateDtrRemarksDto, DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto, UpdateDtrRemarksDto } from '@gscwd-api/models';
-import { DtrPayload, IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType, DtrDeductionType } from '@gscwd-api/utils';
+import { IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType, DtrDeductionType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
@@ -1118,7 +1118,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
         const { time } = ivmsEntryItem;
-        console.log('asd', time);
         if (
           dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 11:59:59')) &&
           (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-02 ' + timeOut).subtract(suspensionHours, 'hour')) ||
@@ -1163,8 +1162,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
 
-    console.log('date tomorrow', dayjs(dayjs(ivmsEntry[0].date).add(1, 'day').toDate()).format('YYYY-MM-DD'));
-
     const ivmsEntryTomorrow = (await this.client.call<string, { companyId: string; date: Date }, IvmsEntry[]>({
       action: 'send',
       payload: { companyId: companyId.replace('-', ''), date: dayjs(dayjs(ivmsEntry[0].date).format('YYYY-MM-DD')).add(1, 'day').toDate() },
@@ -1174,13 +1171,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       },
     })) as IvmsEntry[];
 
-    console.log('kinabukasan ', ivmsEntryTomorrow);
-
     const { timeIn, timeOut } = schedule;
     const resultToday = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
         const { time } = ivmsEntryItem;
-        //.console.log('asd', time);
         if (
           dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 11:59:59')) &&
           (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-02 ' + timeOut).subtract(suspensionHours, 'hour')) ||

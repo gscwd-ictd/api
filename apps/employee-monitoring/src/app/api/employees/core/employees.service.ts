@@ -42,7 +42,6 @@ export class EmployeesService {
       fullName: string;
       employeeId: string;
     }[];
-
     return employees;
   }
 
@@ -82,7 +81,7 @@ export class EmployeesService {
       payload: employeeId,
       pattern: 'get_employee_details',
       onError: (error) => {
-        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
+        console.log('getEmployeeDetails Function Employee ID Error', employeeId);
         throw new NotFoundException(error);
       },
     })) as EmployeeDetails;
@@ -95,7 +94,7 @@ export class EmployeesService {
       payload: employeeId,
       pattern: 'get_basic_employee_details',
       onError: (error) => {
-        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
+        console.log('getBasicEmployeeDetails Employee ID Error', employeeId);
         throw new NotFoundException(error);
       },
     })) as EmployeeDetails;
@@ -103,12 +102,13 @@ export class EmployeesService {
   }
 
   async getBasicEmployeeDetailsWithSignature(employeeId: string) {
+    //find_employee_details
     const employeeDetails = (await this.client.call({
       action: 'send',
       payload: employeeId,
       pattern: 'get_basic_employee_details_with_signature',
       onError: (error) => {
-        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
+        console.log('getBasicEmployeeDetailsWithSignature Employee ID Error', employeeId);
         throw new NotFoundException(error);
       },
     })) as EmployeeDetails;

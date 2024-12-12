@@ -224,7 +224,6 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
     });
   }
 
-  //@Cron('0 0 0 1 * *')
   async creditCumulativeLeaves() {
     const employees = await this.employeeService.getAllPermanentEmployeeIds();
     //select all cumulative and val

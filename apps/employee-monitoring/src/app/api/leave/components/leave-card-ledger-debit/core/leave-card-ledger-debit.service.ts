@@ -133,23 +133,6 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     return vlDeductions;
   }
 
-  async deductRehabilitationLeave() {
-    //get this month's approved rehabilitation leave
-    const hrdmApprovalDate = dayjs().format('YYYY-MM');
-    const leaveBenefitsId = '29086442-1e52-43d8-a537-f26dadda5305'; //id of rehabilitation leave
-    const rehabs = await this.rawQuery(
-      `
-        SELECT leave_application_id FROM leave_application WHERE DATE_FORMAT('hrdm_approval_date','%Y-%m')=? AND leave_benefits_id_fk=?
-      `,
-      [hrdmApprovalDate, leaveBenefitsId]
-    );
-    // const rehabs = await this.
-    //   .where(`DATE_FORMAT('hrdm_approval_date','%Y-%m')=:hrdmApprovalDate`, { hrdmApprovalDate })
-    //   .andWhere(`leave_benefits_id_fk=:leaveBenefitsId`, { leaveBenefitsId })
-    //   .getMany();
-    console.log(rehabs);
-  }
-
   @Cron('0 57 23 5-10 12 *')
   async forfeitureOfForcedLeave() {
     const novemberLastWeekDay = await this.holidaysService.getLastWeekDayOfTheMonth(dayjs().format('YYYY') + '-11-30');
