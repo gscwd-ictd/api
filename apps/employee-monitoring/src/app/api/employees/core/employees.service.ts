@@ -5,7 +5,7 @@ import { stringify } from 'querystring';
 
 @Injectable()
 export class EmployeesService {
-  constructor(private readonly client: MicroserviceClient) { }
+  constructor(private readonly client: MicroserviceClient) {}
 
   async getAllPermanentEmployeeIds() {
     const employees = (await this.client.call<string, object, []>({
@@ -42,7 +42,6 @@ export class EmployeesService {
       fullName: string;
       employeeId: string;
     }[];
-
     return employees;
   }
 
@@ -103,6 +102,7 @@ export class EmployeesService {
   }
 
   async getBasicEmployeeDetailsWithSignature(employeeId: string) {
+    //find_employee_details
     const employeeDetails = (await this.client.call({
       action: 'send',
       payload: employeeId,

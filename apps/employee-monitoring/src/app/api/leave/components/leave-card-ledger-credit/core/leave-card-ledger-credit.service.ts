@@ -314,7 +314,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
               )) as { noOfDays: string }[];
 
               let lwopValue = 0;
-              if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.0416667;
+              if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.04166666666667;
 
               const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
                 {

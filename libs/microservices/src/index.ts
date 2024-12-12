@@ -11,4 +11,3 @@ export * from './clients/hrms-client.module';
 export * from './clients/finance.module';
 export * from './clients/lms-client.module';
 export * from './clients/portal-client.module';
-export * from './clients/sms-client.module';
