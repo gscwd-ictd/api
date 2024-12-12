@@ -40,20 +40,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const { natureOfBusiness } = passSlipDto;
     const passSlip = await this.dataSource.transaction(async (transactionEntityManager) => {
       const { approval, supervisorId, isMedical, ...rest } = passSlipDto;
-
-      //const employeeAssignmentId = (await this.employeeService.getEmployeeDetails(rest.employeeId)).assignment.id;
       const employeeDetails = await this.employeeService.getEmployeeDetails(rest.employeeId);
-      //const natureOfAppointment = ;
-      //let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
-
-      // if (supervisorId === null) {
-      //   supervisorId = (await this.client.call<string, string, string>({
-      //     action: 'send',
-      //     payload: rest.employeeId,
-      //     pattern: 'get_employee_supervisor_id',
-      //     onError: (error) => new NotFoundException(error),
-      //   })) as string;
-      // }
       //check leave ledger
       const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(rest.employeeId);
 
@@ -920,7 +907,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           AND company_id_fk = ?;`,
           [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
         );
-        //SELECT (TIMESTAMPDIFF(MINUTE,CONCAT('2023-01-01 ',timeOut(11:23)),CONCAT('2023-01-01 ',timeIn(12:30))))/480 INTO debitValue;
         const restHourStart = restDays[0].restHourStart;
         const restHourEnd = restDays[0].restHourEnd;
 
@@ -952,9 +938,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
               await this.crud().update({ dto: { timeIn: scheduleTimeOut }, updateBy: { id } });
             }
           }
-
           const passSlipUpdated = await this.crudService.findOne({ find: { select: { timeIn: true, updatedAt: true }, where: { id } } });
-
           const passSlipTimeOut = '2024-01-01 ' + timeOut;
           const passSlipTimeIn = '2024-01-01 ' + passSlipUpdated.timeIn;
           const scheduleRestStart = '2024-01-01 ' + restHourStart;
@@ -1008,7 +992,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             }
           }
           //2.2. INSERT TO LEDGER
-          //const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [passSlip.id]))[0];
           if (debitValueMinutes > 0) {
             if (passSlip.status === PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE) {
               await this.passSlipApprovalService
@@ -1117,12 +1100,9 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           AND company_id_fk = ?;`,
           [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
         );
-        //SELECT (TIMESTAMPDIFF(MINUTE,CONCAT('2023-01-01 ',timeOut(11:23)),CONCAT('2023-01-01 ',timeIn(12:30))))/480 INTO debitValue;
         const restHourStart = restDays[0].restHourStart;
         const restHourEnd = restDays[0].restHourEnd;
-
         let debitValueMinutes = 0;
-        //
         const employeeAssignment = await this.getEmployeeAssignment(employeeId);
         const { scheduleTimeOut } = (
           await this.rawQuery(
@@ -1314,7 +1294,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
           AND company_id_fk = ?;`,
           [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
         );
-        //SELECT (TIMESTAMPDIFF(MINUTE,CONCAT('2023-01-01 ',timeOut(11:23)),CONCAT('2023-01-01 ',timeIn(12:30))))/480 INTO debitValue;
         const restHourStart = restDays[0].restHourStart;
         const restHourEnd = restDays[0].restHourEnd;
 
@@ -1401,7 +1380,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
             }
           }
           //2.2. INSERT TO LEDGER
-          //const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [passSlip.id]))[0];
           if (debitValueMinutes > 0) {
             if (passSlip.status === PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE) {
               await this.passSlipApprovalService
@@ -1473,12 +1451,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
       const supervisorOrgId = (await this.employeeService.getEmployeeDetails(supervisorId)).assignment.id;
       officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(supervisorOrgId);
     }
-
-    /*
-    -- af7bbec8-b26e-11ed-a79b-000c29f95a80
--- Charlene Marie D. Pe 
-    
-    */
     let officerOfTheDayName: string;
     if (officerOfTheDayId) officerOfTheDayName = (await this.employeeService.getEmployeeDetails(officerOfTheDayId)).employeeFullName;
     const employeeSupervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);

@@ -8,7 +8,6 @@ export class EmployeesService {
   constructor(private readonly client: MicroserviceClient) {}
 
   async getAllPermanentEmployeeIds() {
-    //get_all_regular_employee_ids
     const employees = (await this.client.call<string, object, []>({
       action: 'send',
       pattern: 'get_all_regular_employee_ids',
@@ -33,7 +32,20 @@ export class EmployeesService {
   }
 
   async getEmployeesUnderSupervisor(employeeId: string) {
-    //get_employee_under_supervisor
+    const employees = (await this.client.call<string, string, object>({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_subordinates_with_company_id',
+      onError: (error) => new NotFoundException(error),
+    })) as {
+      companyId: string;
+      fullName: string;
+      employeeId: string;
+    }[];
+    return employees;
+  }
+
+  async getImmediateEmployeesUnderSupervisor(employeeId: string) {
     const employees = (await this.client.call<string, string, object>({
       action: 'send',
       payload: employeeId,
@@ -64,7 +76,6 @@ export class EmployeesService {
   }
 
   async getEmployeeDetails(employeeId: string) {
-    //find_employee_details
     const employeeDetails = (await this.client.call({
       action: 'send',
       payload: employeeId,
@@ -77,9 +88,7 @@ export class EmployeesService {
     return employeeDetails;
   }
 
-  //get_basic_employee_details
   async getBasicEmployeeDetails(employeeId: string) {
-    //find_employee_details
     const employeeDetails = (await this.client.call({
       action: 'send',
       payload: employeeId,
@@ -91,7 +100,7 @@ export class EmployeesService {
     })) as EmployeeDetails;
     return employeeDetails;
   }
-  //get_basic_employee_details_with_signature
+
   async getBasicEmployeeDetailsWithSignature(employeeId: string) {
     //find_employee_details
     const employeeDetails = (await this.client.call({
@@ -107,7 +116,6 @@ export class EmployeesService {
   }
 
   async getEmployeeDetailsWithSignature(employeeId: string) {
-    //find_employee_details
     const employeeDetails = (await this.client.call({
       action: 'send',
       payload: employeeId,
@@ -117,10 +125,6 @@ export class EmployeesService {
 
     return employeeDetails;
   }
-
-  // async getEmployeesUnderOrganizationId(orgId: string){
-
-  // }
 
   async getEmployeeAndSupervisorName(employeeId: string, supervisorId: string) {
     return (await this.client.call<string, { employeeId: string; supervisorId: string }, { employeeName: string; supervisorName: string }>({
@@ -140,7 +144,6 @@ export class EmployeesService {
     })) as string;
   }
 
-  //get_monthly_hourly_rate_by_employee_id
   async getMonthlyHourlyRateByEmployeeId(employeeId: string) {
     return await this.client.call<string, string, { monthlyRate: number; hourlyRate: number }>({
       action: 'send',
@@ -187,7 +190,6 @@ export class EmployeesService {
   }
 
   async getEmployeesByOrgIdAlone(orgId: string) {
-    //get_employees_by_org_id_alone
     return (await this.client.call<string, string, { value: string; label: string }[]>({
       action: 'send',
       payload: orgId,
@@ -196,7 +198,6 @@ export class EmployeesService {
   }
 
   async getAllPermanentCasualEmployees() {
-    //get_all_permanent_casual_employees
     return (await this.client.call<string, object, { value: string; label: string }[]>({
       action: 'send',
       payload: {},
@@ -205,7 +206,6 @@ export class EmployeesService {
   }
 
   async getAllPermanentCasualEmployees2() {
-    //get_all_permanent_casual_employees
     return (await this.client.call<string, object, { value: string; label: string }[]>({
       action: 'send',
       payload: {},
@@ -214,7 +214,6 @@ export class EmployeesService {
   }
 
   async getCompanyId(employeeId: string) {
-    //get_company_id_by_employee_id
     return (
       (await this.client.call<string, string, { companyId: string }>({
         action: 'send',
@@ -249,8 +248,7 @@ export class EmployeesService {
     })) as { label: string; value: string }[];
   }
 
-  //get_salary_grade_or_daily_rate_by_employee_id
-  async getSalaryGradeOrDailyRateByEmployeeId(employeeId) {
+  async getSalaryGradeOrDailyRateByEmployeeId(employeeId: string) {
     return (await this.client.call<string, string, object>({
       action: 'send',
       pattern: 'get_salary_grade_or_daily_rate_by_employee_id',
@@ -258,7 +256,6 @@ export class EmployeesService {
     })) as { salaryGradeAmount: number; amount: number; dailyRate: number };
   }
 
-  //get_hrd_manager
   async getHrdManagerId() {
     return (await this.client.call<string, object, string>({
       action: 'send',
