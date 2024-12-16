@@ -253,7 +253,7 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
             benchmarkParticipants: items.benchmarkParticipants,
             employeeId: items.employeeId,
             name: items.name,
-            learningApplicationPlan: requirements,
+            learnersJournal: requirements,
           };
         })
       );
@@ -297,7 +297,7 @@ export class BenchmarkService extends CrudHelper<Benchmark> {
   }
 
   /* scheduler update other training status  */
-  @Cron('* 59 23 * * *')
+  //@Cron('* 59 23 * * *')
   async updateBenchmarkStatus() {
     try {
       const currentDate = new Date();

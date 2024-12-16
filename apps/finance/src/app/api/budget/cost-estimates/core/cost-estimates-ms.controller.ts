@@ -6,7 +6,7 @@ import { FindAllProjectsInterceptor } from '../misc/interceptors/find-all-projec
 
 @Controller()
 export class CostEstimateMicroserviceController {
-  constructor(private readonly costEstimateService: CostEstimateService) {}
+  constructor(private readonly costEstimateService: CostEstimateService) { }
 
   @UseInterceptors(FindAllProjectsInterceptor)
   @MessagePattern(CostEstimatePatterns.FIND_ALL)

@@ -2,7 +2,7 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { EmployeeSchedule, CreateEmployeeScheduleDto, CreateEmployeeScheduleByGroupDto, DeleteEmployeeScheduleDto } from '@gscwd-api/models';
 import { EmployeeDetails, EmployeeScheduleType, ScheduleType } from '@gscwd-api/utils';
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { DataSource, EntityManager } from 'typeorm';
 import { CustomGroupMembersService } from '../../../../custom-groups/components/custom-group-members/core/custom-group-members.service';
@@ -78,48 +78,52 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
   }
 
   async getAllEmployeeSchedules(employeeId: string) {
-    const schedule = await this.rawQuery<string, EmployeeScheduleType[]>(
-      `
-    SELECT DISTINCT 
-        s.schedule_id id,
-        es.date_from esDateFrom,
-        es.date_to esDateTo,
-        s.name scheduleName, 
-        s.schedule_type scheduleType, 
-        s.time_in timeIn,
-        s.lunch_out lunchOut,
-        s.lunch_in lunchIn, 
-        s.time_out timeOut, 
-        s.shift shift,
-        s.schedule_base scheduleBase,
-        DATE_FORMAT(emr.date_from,'%Y-%m-%d') dateFrom,
-        DATE_FORMAT(emr.date_to,'%Y-%m-%d') dateTo,
-        concat(DATE_FORMAT(emr.date_from,'%Y-%m-%d'),'-',DATE_FORMAT(emr.date_to,'%Y-%m-%d')) scheduleRange,
-        GROUP_CONCAT(emrs.rest_day SEPARATOR ', ') restDaysNumbers,
-        GROUP_CONCAT(get_weekday((emrs.rest_day - 1)) SEPARATOR ', ') restDaysNames 
-    FROM employee_schedule es 
-    INNER JOIN schedule s ON s.schedule_id = es.schedule_id_fk 
-    LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
-    INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
-    WHERE emr.employee_id_fk = ? AND emr.date_from = es.date_from AND emr.date_to = es.date_to 
-    GROUP BY s.schedule_id,es.created_at,emr.employee_rest_day_id,scheduleRange 
-    ORDER BY DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC;`,
-      [employeeId]
-    );
+    try {
+      const schedule = await this.rawQuery<string, EmployeeScheduleType[]>(
+        `
+      SELECT DISTINCT 
+          s.schedule_id id,
+          es.date_from esDateFrom,
+          es.date_to esDateTo,
+          s.name scheduleName, 
+          s.schedule_type scheduleType, 
+          s.time_in timeIn,
+          s.lunch_out lunchOut,
+          s.lunch_in lunchIn, 
+          s.time_out timeOut, 
+          s.shift shift,
+          s.schedule_base scheduleBase,
+          DATE_FORMAT(emr.date_from,'%Y-%m-%d') dateFrom,
+          DATE_FORMAT(emr.date_to,'%Y-%m-%d') dateTo,
+          concat(DATE_FORMAT(emr.date_from,'%Y-%m-%d'),'-',DATE_FORMAT(emr.date_to,'%Y-%m-%d')) scheduleRange,
+          GROUP_CONCAT(emrs.rest_day SEPARATOR ', ') restDaysNumbers,
+          GROUP_CONCAT(get_weekday((emrs.rest_day - 1)) SEPARATOR ', ') restDaysNames 
+      FROM employee_schedule es 
+      INNER JOIN schedule s ON s.schedule_id = es.schedule_id_fk 
+      LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
+      INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
+      WHERE emr.employee_id_fk = ? AND emr.date_from = es.date_from AND emr.date_to = es.date_to 
+      GROUP BY s.schedule_id,es.created_at,emr.employee_rest_day_id,scheduleRange 
+      ORDER BY DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC;`,
+        [employeeId]
+      );
 
-    const convertedSchedule = await Promise.all(
-      schedule.map(async (scheduleItem) => {
-        const { restDaysNumbers, ...rest } = scheduleItem;
-        const _restDays = restDaysNumbers.split(',');
-        const convertedRestDays = await Promise.all(
-          _restDays.map(async (_restDay) => {
-            return parseInt(_restDay);
-          })
-        );
-        return { restDays: convertedRestDays, ...rest };
-      })
-    );
-    return convertedSchedule;
+      const convertedSchedule = await Promise.all(
+        schedule.map(async (scheduleItem) => {
+          const { restDaysNumbers, ...rest } = scheduleItem;
+          const _restDays = restDaysNumbers.split(',');
+          const convertedRestDays = await Promise.all(
+            _restDays.map(async (_restDay) => {
+              return parseInt(_restDay);
+            })
+          );
+          return { restDays: convertedRestDays, ...rest };
+        })
+      );
+      return convertedSchedule;
+    } catch (err) {
+      throw new InternalServerErrorException(err);
+    }
   }
 
   async getEmployeeScheduleByDtrDate(employeeId: string, dtrDate: Date) {
@@ -165,58 +169,28 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
         )
       )[0];
       const { withLunch, ...restSchedule } = schedule;
-
       return { employeeName: employeeName.fullName, schedule: { withLunch: withLunch === 'true' ? true : false, ...restSchedule } };
     } catch (error) {
-      const schedule = (
-        await this.rawQuery<string, EmployeeScheduleType>(
-          `
-      SELECT DISTINCT 
-        s.schedule_id id,
-        es.date_from esDateFrom,
-        es.date_to esDateTo,
-        s.name scheduleName, 
-        s.schedule_type scheduleType, 
-        s.time_in timeIn,
-        s.lunch_out lunchOut,
-        s.lunch_in lunchIn, 
-        s.time_out timeOut, 
-        s.shift shift,
-        s.schedule_base scheduleBase,
-        IF(s.is_with_lunch = 1,'true','false') withLunch,
-        DATE_FORMAT(emr.date_from,'%Y-%m-%d') dateFrom,
-        DATE_FORMAT(emr.date_to,'%Y-%m-%d') dateTo,
-        concat(DATE_FORMAT(emr.date_from,'%Y-%m-%d'),'-',DATE_FORMAT(emr.date_to,'%Y-%m-%d')) scheduleRange,
-        GROUP_CONCAT(emrs.rest_day SEPARATOR ', ') restDaysNumbers,
-        GROUP_CONCAT(get_weekday((emrs.rest_day - 1)) SEPARATOR ', ') restDaysNames 
-    FROM employee_schedule es 
-    INNER JOIN schedule s ON s.schedule_id = es.schedule_id_fk 
-    LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
-    INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
-    WHERE emr.employee_id_fk = ? AND ( ? BETWEEN emr.date_from AND emr.date_to ) AND ( ? BETWEEN es.date_from AND es.date_to ) 
-    GROUP BY s.schedule_id,es.created_at,dateFrom, dateTo,scheduleRange,es.date_from,es.date_to ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, DATE_FORMAT(es.date_to,'%Y-%m-%d') DESC,DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC LIMIT 1`,
-          [employeeId, currDateString, currDateString]
-        )
-      )[0];
-      return { employeeName: employeeName.fullName, ...schedule };
+      return { employeeName: employeeName.fullName, schedule: { restDaysNumbers: '' } };
     }
   }
 
   async getEmployeeScheduleByScheduleId(employeeId: string, scheduleId: string, dtrDate: Date) {
-    const currDate = dayjs(dtrDate).toDate();
+    try {
+      const currDate = dayjs(dtrDate).toDate();
 
-    const currDateString = currDate.getFullYear() + '-' + (currDate.getMonth() + 1).toString() + '-' + currDate.getDate();
+      const currDateString = currDate.getFullYear() + '-' + (currDate.getMonth() + 1).toString() + '-' + currDate.getDate();
 
-    const employeeName = (await this.client.call<string, string, { fullName: string }>({
-      action: 'send',
-      payload: employeeId,
-      pattern: 'get_employee_name',
-      onError: (error) => new NotFoundException(error),
-    })) as { fullName: string };
+      const employeeName = (await this.client.call<string, string, { fullName: string }>({
+        action: 'send',
+        payload: employeeId,
+        pattern: 'get_employee_name',
+        onError: (error) => new NotFoundException(error),
+      })) as { fullName: string };
 
-    const schedule = (
-      await this.rawQuery<string, EmployeeScheduleType>(
-        `
+      const schedule = (
+        await this.rawQuery<string, EmployeeScheduleType>(
+          `
     SELECT DISTINCT 
         es.created_at createdAt,
         es.date_from esDateFrom,
@@ -243,60 +217,67 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     WHERE s.schedule_id = ? AND ( ? BETWEEN emr.date_from AND emr.date_to ) AND ( ? BETWEEN es.date_from AND es.date_to ) 
     GROUP BY s.schedule_id,es.created_at,dateFrom,dateTo,scheduleRange,es.date_from,es.date_to ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, 
     DATE_FORMAT(es.date_to,'%Y-%m-%d') ASC LIMIT 1`,
-        [scheduleId, currDateString, currDateString]
-      )
-    )[0];
-    return { employeeName: employeeName.fullName, schedule: { ...schedule } };
+          [scheduleId, currDateString, currDateString]
+        )
+      )[0];
+      return { employeeName: employeeName.fullName, schedule: { ...schedule } };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
   }
 
   async getEmployeeSchedule(employeeId: string) {
-    const employeeName = (await this.client.call<string, string, { fullName: string }>({
-      action: 'send',
-      payload: employeeId,
-      pattern: 'get_employee_name',
-      onError: (error) => new NotFoundException(error),
-    })) as { fullName: string };
+    try {
+      const employeeName = (await this.client.call<string, string, { fullName: string }>({
+        action: 'send',
+        payload: employeeId,
+        pattern: 'get_employee_name',
+        onError: (error) => new NotFoundException(error),
+      })) as { fullName: string };
 
-    const schedule = (
-      await this.rawQuery<
-        string,
-        {
-          id: string;
-          scheduleName: string;
-          scheduleType: ScheduleType;
-          timeIn: string;
-          lunchOut: string;
-          lunchIn: string;
-          timeOut: string;
-          scheduleBase: string;
-          restDaysNumbers: string;
-          restDaysNames: string;
-        }
-      >(
-        `SELECT 
-        s.schedule_id id,
-        s.name scheduleName, 
-        s.schedule_type scheduleType, 
-        s.time_in timeIn,
-        s.lunch_out lunchOut,
-        s.lunch_in lunchIn, 
-        s.time_out timeOut, 
-        s.shift shift,
-        s.schedule_base scheduleBase,
-        DATE_FORMAT(emr.date_from,'%Y-%m-%d') dateFrom,
-        DATE_FORMAT(emr.date_to,'%Y-%m-%d') dateTo,
-        GROUP_CONCAT(emrs.rest_day SEPARATOR ', ') restDaysNumbers,
-        GROUP_CONCAT(get_weekday((emrs.rest_day - 1)) SEPARATOR ', ') restDaysNames 
-    FROM employee_schedule es 
-    INNER JOIN schedule s ON s.schedule_id = es.schedule_id_fk 
-    LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
-    INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
-    WHERE emr.employee_id_fk = ? GROUP BY s.schedule_id,es.created_at,dateFrom,dateTo ORDER BY DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC LIMIT 1`,
-        [employeeId]
-      )
-    )[0];
+      const schedule = (
+        await this.rawQuery<
+          string,
+          {
+            id: string;
+            scheduleName: string;
+            scheduleType: ScheduleType;
+            timeIn: string;
+            lunchOut: string;
+            lunchIn: string;
+            timeOut: string;
+            scheduleBase: string;
+            restDaysNumbers: string;
+            restDaysNames: string;
+          }
+        >(
+          `SELECT 
+          s.schedule_id id,
+          s.name scheduleName, 
+          s.schedule_type scheduleType, 
+          s.time_in timeIn,
+          s.lunch_out lunchOut,
+          s.lunch_in lunchIn, 
+          s.time_out timeOut, 
+          s.shift shift,
+          s.schedule_base scheduleBase,
+          DATE_FORMAT(emr.date_from,'%Y-%m-%d') dateFrom,
+          DATE_FORMAT(emr.date_to,'%Y-%m-%d') dateTo,
+          GROUP_CONCAT(emrs.rest_day SEPARATOR ', ') restDaysNumbers,
+          GROUP_CONCAT(get_weekday((emrs.rest_day - 1)) SEPARATOR ', ') restDaysNames 
+      FROM employee_schedule es 
+      INNER JOIN schedule s ON s.schedule_id = es.schedule_id_fk 
+      LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
+      INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
+      WHERE emr.employee_id_fk = ? GROUP BY s.schedule_id,es.created_at,dateFrom,dateTo ORDER BY DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC LIMIT 1`,
+          [employeeId]
+        )
+      )[0];
 
-    return { employeeName: employeeName.fullName, schedule: { ...schedule } };
+      return { employeeName: employeeName.fullName, schedule: { ...schedule } };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
   }
 
   async deleteEmployeeSchedule(employeeScheduleDto: DeleteEmployeeScheduleDto) {

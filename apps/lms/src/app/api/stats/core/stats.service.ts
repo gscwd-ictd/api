@@ -63,6 +63,11 @@ export class StatsService {
                 .countBy({
                   employeeId: items.value,
                   status: TrainingNomineeStatus.ACCEPTED,
+                  trainingDistribution: {
+                    trainingDetails: {
+                      status: TrainingStatus.COMPLETED,
+                    },
+                  },
                   updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
                 });
             })
@@ -137,6 +142,11 @@ export class StatsService {
         .getRepository()
         .countBy({
           status: TrainingNomineeStatus.ACCEPTED,
+          trainingDistribution: {
+            trainingDetails: {
+              status: TrainingStatus.COMPLETED,
+            },
+          },
           updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
         });
 
@@ -145,6 +155,11 @@ export class StatsService {
         .getRepository()
         .countBy({
           status: TrainingNomineeStatus.DECLINED,
+          trainingDistribution: {
+            trainingDetails: {
+              status: TrainingStatus.COMPLETED,
+            },
+          },
           updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
         });
 

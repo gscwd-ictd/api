@@ -8,12 +8,12 @@ import { TrainingRequirementsDto } from '../training-requirements';
 export class OtherTrainingDto {
   @IsNotEmpty()
   @IsString({ message: 'other training title must be a string' })
-  @Length(1, 300, { message: 'other training title must be between 1 to 300 characters' })
+  @Length(1, 1000, { message: 'other training title must be between 1 to 1000 characters' })
   title: string;
 
   @IsNotEmpty()
   @IsString({ message: 'other training description must be a string' })
-  @Length(1, 500, { message: 'other training description must be between 1 to 500 characters' })
+  @Length(1, 1000, { message: 'other training description must be between 1 to 1000 characters' })
   description: string;
 
   @IsNotEmpty()
@@ -26,7 +26,7 @@ export class OtherTrainingDto {
 
   @IsNotEmpty()
   @IsString({ message: 'other training location must be a string' })
-  @Length(1, 500, { message: 'other training location must be between 1 to 500 characters' })
+  @Length(1, 1000, { message: 'other training location must be between 1 to 1000 characters' })
   location: string;
 
   @IsNotEmpty()

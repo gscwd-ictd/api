@@ -56,9 +56,10 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
     return { ...overtime, approvedBy: _approvedBy };
   }
 
-  async getOvertimeApplicationsByEmployeeIds(employeeIds: string[]) {
+  async getOvertimeApplicationsByEmployeeIds(employeeIds: string[], managerId: string) {
     //!TODO INVESTIGATE LATER
     //RIGHT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
+
     const employees = (await this.rawQuery(
       `
         SELECT DISTINCT overtime_application_id overtimeApplicationId, COALESCE(ois.employee_id_fk, oa.manager_id_fk) employeeId, planned_date plannedDate, estimated_hours estimatedHours, purpose, oa.status status,oapp.date_approved dateApproved,oapp.remarks remarks 
@@ -68,7 +69,7 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
         LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
         WHERE oe.employee_id_fk IN (?) ORDER BY planned_date DESC;
     `,
-      [employeeIds]
+      [employeeIds, managerId]
     )) as {
       overtimeApplicationId: string;
       employeeId: string;
@@ -78,7 +79,6 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
       purpose: string;
       status: string;
     }[];
-
     return employees;
   }
 

@@ -5,14 +5,14 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller({ version: '1', path: 'dtr-correction' })
 export class DtrCorrectionController {
-  constructor(private readonly dtrCorrectionService: DtrCorrectionService) {}
+  constructor(private readonly dtrCorrectionService: DtrCorrectionService) { }
 
   @Post()
   async addDtrCorrection(@Body() createDtrCorrectionDto: CreateDtrCorrectionDto) {
     return await this.dtrCorrectionService.addDtrCorrection(createDtrCorrectionDto);
   }
 
-  @MessagePattern('get_all_dtr_corrections')
+  //@MessagePattern('get_all_dtr_corrections')
   async getAllDtrCorrections(@Payload() employeeId: string) {
     return await this.dtrCorrectionService.getDtrCorrections(employeeId);
   }

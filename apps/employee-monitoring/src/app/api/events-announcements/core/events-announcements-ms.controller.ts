@@ -4,9 +4,9 @@ import { MessagePattern } from '@nestjs/microservices';
 
 @Controller()
 export class EventsAnnouncementsMsController {
-  constructor(private readonly eventsAnnouncementService: EventsAnnouncementsService) {}
+  constructor(private readonly eventsAnnouncementService: EventsAnnouncementsService) { }
 
-  @MessagePattern('get_events_announcements')
+  //@MessagePattern('get_events_announcements')
   async getEventsAnnouncements() {
     return await this.eventsAnnouncementService.getEventsAnnouncements();
   }

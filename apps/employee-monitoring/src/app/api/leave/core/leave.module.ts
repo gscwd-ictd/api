@@ -11,6 +11,7 @@ import { LeaveCreditEarningsModule } from '../components/leave-credit-earnings/c
 import { LeaveController } from './leave.controller';
 import { LeaveService } from './leave.service';
 import { LeaveMsController } from './leave-ms.controller';
+import { LeaveMonetizationModule } from '../components/leave-monetization/core/leave-monetization.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { LeaveMsController } from './leave-ms.controller';
     LeaveCardLedgerCreditModule,
     LeaveAddBackModule,
     EmployeesModule,
+    LeaveMonetizationModule,
   ],
   providers: [LeaveService],
   controllers: [LeaveController, LeaveMsController],

@@ -4,14 +4,14 @@ import { OvertimeService } from './overtime.service';
 
 @Controller('overtime')
 export class OvertimeMSController {
-  constructor(private readonly overtimeService: OvertimeService) {}
+  constructor(private readonly overtimeService: OvertimeService) { }
 
-  @MessagePattern('get_overtime_immediate_supervisor')
+  //@MessagePattern('get_overtime_immediate_supervisor')
   async getOvertimeImmediateSupervisorByEmployeeId(@Payload() employeeId: string) {
     return await this.overtimeService.getOvertimeImmediateSupervisorByEmployeeId(employeeId);
   }
 
-  @MessagePattern('get_overtime_approvals_count')
+  //@MessagePattern('get_overtime_approvals_count')
   async getOvertimeApprovalsCount(@Payload() managerId: string) {
     return await this.overtimeService.getOvertimeApplicationsForManagerApprovalCount(managerId);
   }

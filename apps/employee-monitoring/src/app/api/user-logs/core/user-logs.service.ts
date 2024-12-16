@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateUserLogsDto, UserLogs } from '@gscwd-api/models';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { EmployeesService } from '../../employees/core/employees.service';
 
 @Injectable()
@@ -10,35 +10,67 @@ export class UserLogsService extends CrudHelper<UserLogs> {
   }
 
   async addLogs(createUserLogsDto: CreateUserLogsDto) {
-    const { body, method, route, userId } = createUserLogsDto;
+    try {
+      const { body, method, route, userId } = createUserLogsDto;
 
-    await this.rawQuery(`INSERT INTO user_logs(user_log_id, route, method, body, user_id_fk) VALUES (uuid(),?,?,?,?);`, [
-      route,
-      method,
-      body,
-      userId,
-    ]);
+      await this.rawQuery(`INSERT INTO user_logs(user_log_id, route, method, body, user_id_fk) VALUES (uuid(),?,?,?,?);`, [
+        route,
+        method,
+        body,
+        userId,
+      ]);
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async getLogs() {
-    const logs = (await this.crud().findAll({ find: { order: { createdAt: 'DESC' } } })) as UserLogs[];
-    const logsDetailed = await Promise.all(
-      logs.map(async (log) => {
-        const { body, id, method, route, userId, createdAt } = log;
-        let userFullName = 'Super User';
-        if (userId !== '') userFullName = await this.employeeService.getEmployeeName(userId);
+    try {
+      const logs = (await this.crud().findAll({ find: { order: { createdAt: 'DESC' } } })) as UserLogs[];
+      const logsDetailed = await Promise.all(
+        logs.map(async (log) => {
+          const { body, id, method, route, userId, createdAt } = log;
+          let userFullName = 'Super User';
+          if (userId !== '') userFullName = await this.employeeService.getEmployeeName(userId);
 
-        return { id, dateLogged: createdAt, userFullName };
-      })
-    );
-    return logsDetailed;
+          return { id, dateLogged: createdAt, userFullName };
+        })
+      );
+      return logsDetailed;
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
+  }
+
+  async getLogsByYearMonth(yearMonth: string) {
+    try {
+      const logs = await this.queryBuilder()
+        .where(`DATE_FORMAT(created_at, '%Y-%m' ) = :yearMonth`, { yearMonth })
+        .orderBy('created_at', 'DESC')
+        .getMany();
+      const logsDetailed = await Promise.all(
+        logs.map(async (log) => {
+          const { body, id, method, route, userId, createdAt } = log;
+          let userFullName = 'Super User';
+          if (userId !== '') userFullName = await this.employeeService.getEmployeeName(userId);
+          return { id, dateLogged: createdAt, userFullName };
+        })
+      );
+      return logsDetailed;
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 
   async getLogById(_id: string) {
-    const log = await this.crud().findOne({ find: { where: { id: _id } } });
-    const { body, createdAt, method, id, route, userId } = log;
-    let userFullName = 'Super User';
-    if (userId !== '') userFullName = await this.employeeService.getEmployeeName(userId);
-    return { id, dateLogged: createdAt, userFullName, body, method, route };
+    try {
+      const log = await this.crud().findOne({ find: { where: { id: _id } } });
+      const { body, createdAt, method, id, route, userId } = log;
+      let userFullName = 'Super User';
+      if (userId !== '') userFullName = await this.employeeService.getEmployeeName(userId);
+      return { id, dateLogged: createdAt, userFullName, body, method, route };
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 }

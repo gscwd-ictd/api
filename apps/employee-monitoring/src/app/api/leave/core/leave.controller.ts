@@ -17,6 +17,11 @@ import { AuthenticatedUser } from '@gscwd-api/utils';
 export class LeaveController {
   constructor(private readonly leaveService: LeaveService) {}
 
+  @Get('hrmo/:year_month')
+  async getLeavesForHrApprovalByYearMonth(@Param('year_month') yearMonth: string) {
+    return await this.leaveService.getLeavesForHrmoApprovalByYearMonth(yearMonth);
+  }
+
   @Get('hrmo/')
   async getLeavesForHrApproval() {
     return await this.leaveService.getLeavesForHrmoApproval();
@@ -61,7 +66,6 @@ export class LeaveController {
     });
   }
 
-  //TODO: guard check if logged in is employee status is set for cancellation, if logged in is manager status is set to cancelled
   @Patch('employee/leave-date-cancellation/')
   async cancelLeaveDate(@Body() LeaveDateCancellationDto: LeaveDateCancellationDto) {
     return await this.leaveService.cancelLeaveDate(LeaveDateCancellationDto);

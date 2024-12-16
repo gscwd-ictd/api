@@ -27,7 +27,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
     });
   }
 
-  @Cron('0 0 0 1 1 *')
+  //@Cron('0 0 0 1 1 *')
   async creditRecurringLeaves() {
     const employees = await this.employeeService.getAllPermanentEmployeeIds();
     //select all cumulative and val
@@ -77,7 +77,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
     console.log('Annual Leave Credit Earnings Addition executed');
   }
 
-  @Cron('0 57 23 31 11 *')
+  //@Cron('0 57 23 31 12 *')
   async creditBeginningBalance() {
     //
     const employees = await this.employeeService.getAllPermanentEmployeeIds();
@@ -272,7 +272,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
     console.log('Monthly Leave Credit Earnings Addition executed');
   }
 
-  @Cron('0 57 23 28-31 * *')
+  //@Cron('0 57 23 28-31 * *')
   async creditCumulativeLeavesManuallyCron() {
     if (dayjs().format('YYYY-MM-DD') === dayjs().endOf('month').format('YYYY-MM-DD'))
       return await this.creditCumulativeLeavesManually(dayjs().toDate());
@@ -303,18 +303,18 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
               const lwopsForTheMonth = (await this.rawQuery(
                 `
               SELECT DISTINCT 
-                get_num_of_leave_days(la.leave_application_id) noOfDays
+                get_num_of_leave_days_by_year_month(la.leave_application_id,?) noOfDays
               FROM leave_application la 
                 INNER JOIN leave_application_dates lad ON la.leave_application_id = lad.leave_application_id_fk
                   INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
               WHERE la.employee_id_fk = ? AND lb.leave_name = 'Leave Without Pay' 
               AND DATE_FORMAT(lad.leave_date,'%Y') = DATE_FORMAT(CONCAT(?,'-01'),'%Y') AND month(lad.leave_date) = DATE_FORMAT(CONCAT(?,'-01'),'%m');
                 `,
-                [employeeId, monthYear, monthYear]
+                [monthYear, employeeId, monthYear, monthYear]
               )) as { noOfDays: string }[];
 
               let lwopValue = 0;
-              if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.042;
+              if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.0416667;
 
               const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
                 {

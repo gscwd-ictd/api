@@ -5,7 +5,7 @@ import { ProjectDetailsPatterns } from '@gscwd-api/microservices';
 
 @Controller()
 export class ProjectDetailsMicroserviceController {
-  constructor(private readonly projectDetailsService: ProjectDetailsService) {}
+  constructor(private readonly projectDetailsService: ProjectDetailsService) { }
 
   @MessagePattern(ProjectDetailsPatterns.FIND_BY_ID)
   async findProjectById(@Payload('id') id: string) {

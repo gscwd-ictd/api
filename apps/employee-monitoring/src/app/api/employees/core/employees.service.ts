@@ -70,6 +70,22 @@ export class EmployeesService {
       payload: employeeId,
       pattern: 'get_employee_details',
       onError: (error) => {
+        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
+        throw new NotFoundException(error);
+      },
+    })) as EmployeeDetails;
+    return employeeDetails;
+  }
+
+  //get_basic_employee_details
+  async getBasicEmployeeDetails(employeeId: string) {
+    //find_employee_details
+    const employeeDetails = (await this.client.call({
+      action: 'send',
+      payload: employeeId,
+      pattern: 'get_basic_employee_details',
+      onError: (error) => {
+        console.log('EMPLOYEE ID NA GA ERROR ', employeeId);
         throw new NotFoundException(error);
       },
     })) as EmployeeDetails;
@@ -145,6 +161,14 @@ export class EmployeesService {
       action: 'send',
       payload: orgId,
       pattern: 'get_employees_by_org_id',
+    })) as { value: string; label: string }[];
+  }
+
+  async getEmployeesByOrgIdForOt(orgId: string) {
+    return (await this.client.call<string, string, { value: string; label: string }[]>({
+      action: 'send',
+      payload: orgId,
+      pattern: 'get_employees_by_org_id_for_ot',
     })) as { value: string; label: string }[];
   }
 

@@ -18,7 +18,6 @@ export class TagsService extends CrudHelper<Tag> {
     try {
       /* count all tags that have been used by employees */
       const countTag = await this.hrmsEmployeeTagsService.countEmployeeTags(id);
-
       /* count the number of tags that have been used */
       if (countTag === '0' || countTag === null) {
         /* remove tag */

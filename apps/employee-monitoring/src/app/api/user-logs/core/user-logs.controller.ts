@@ -16,6 +16,11 @@ export class UserLogsController {
     return await this.userLogsService.getLogs();
   }
 
+  @Get('year-month/:yearmonth')
+  async getLogsByYearMonth(@Param('yearmonth') yearMonth: string) {
+    return await this.userLogsService.getLogsByYearMonth(yearMonth);
+  }
+
   @Get(':id')
   async getLogById(@Param('id') id: string) {
     return await this.userLogsService.getLogById(id);

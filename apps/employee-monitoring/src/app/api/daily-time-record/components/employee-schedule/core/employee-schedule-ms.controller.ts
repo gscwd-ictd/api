@@ -5,14 +5,14 @@ import { EmployeeScheduleService } from './employee-schedule.service';
 
 @Controller('employee-schedule')
 export class EmployeeScheduleMsController {
-  constructor(private readonly employeeScheduleService: EmployeeScheduleService) {}
+  constructor(private readonly employeeScheduleService: EmployeeScheduleService) { }
 
-  @MessagePattern('add_employee_schedule')
+  //@MessagePattern('add_employee_schedule')
   async addEmployeeSchedule(@Payload() employeeScheduleDto: CreateEmployeeScheduleDto) {
     return await this.employeeScheduleService.addEmployeeSchedule(employeeScheduleDto);
   }
 
-  @MessagePattern('get_employee_schedule')
+  //@MessagePattern('get_employee_schedule')
   async getEmployeeSchedule(@Payload() employeeId: string) {
     return await this.employeeScheduleService.getEmployeeSchedule(employeeId);
   }
