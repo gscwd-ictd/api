@@ -58,11 +58,6 @@ export class OvertimeController {
     return await this.overtimeService.getOvertimeAccomplishmentByEmployeeId(employeeId);
   }
 
-  @Get('/employees/:employee_id/accomplishments/asd/asd/asd/asd/')
-  async getOvertimeAccomplishmentByEmployeeIdasd(@Param('employee_id') employeeId: string) {
-    return await this.overtimeService.getOvertimeAccomplishmentByEmployeeId(employeeId);
-  }
-
   @Get('/employees/:employee_id/list')
   async getOvertimesByEmployeeId(@Param('employee_id') employeeId: string) {
     return await this.overtimeService.getOvertimesByEmployeeId(employeeId);

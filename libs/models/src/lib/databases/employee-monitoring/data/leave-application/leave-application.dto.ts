@@ -89,12 +89,15 @@ export class CreateLeaveApplicationDto {
   isLateFiling: boolean;
 
   @IsOptional()
+  lateFilingJustification?: string;
+
+  @IsOptional()
   leaveApplicationDates?: Date[] | { from: Date; to: Date };
 
   @IsOptional()
   leaveMonetization?: CreateLeaveMonetizationDto;
 }
-export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) {}
+export class UpdateLeaveApplicationDto extends PartialType(CreateLeaveApplicationDto) { }
 
 export class UpdateLeaveApplicationHrmoStatusDto extends PickType(CreateLeaveApplicationDto, ['status', 'hrmoApprovalDate']) {
   id: string;

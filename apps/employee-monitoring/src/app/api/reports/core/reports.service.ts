@@ -86,7 +86,7 @@ export class ReportsService {
     const leaveDetails = await Promise.all(
       leaveApplications.map(async (leaveApplication) => {
         const { employeeId } = leaveApplication;
-        const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
+        const employeeDetails = await this.employeesService.getBasicEmployeeDetails(employeeId);
         const employeeName = await this.employeesService.getEmployeeName(employeeId);
         const period = (
           await this.dtrService.rawQuery(
@@ -100,12 +100,7 @@ export class ReportsService {
         )[0].period;
 
         const sickLeaveBalance = (
-          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_range(?,?,?,?);`, [
-            employeeId,
-            employeeDetails.companyId,
-            period,
-            period,
-          ])
+          await this.dtrService.rawQuery(`CALL  sp_get_employee_ledger_by_range(?,?,?,?);`, [employeeId, employeeDetails.companyId, period, period])
         )[0];
 
         return {

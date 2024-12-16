@@ -13,6 +13,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         options: {
           host: process.env.EMPLOYEE_REDIS_HOST,
           port: parseInt(process.env.EMPLOYEE_REDIS_PORT),
+          password: process.env.EMPLOYEE_REDIS_PASSWORD,
         },
       },
     ]),

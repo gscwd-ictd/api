@@ -749,7 +749,11 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
   }
 
   /* update nominee status to no action taken */
+<<<<<<< HEAD
   //@Cron('* 59 23 * * *')
+=======
+  @Cron('* 59 23 * * *')
+>>>>>>> 61a0e1c189a241e7bf5887a37d9b32b3dddef213
   async updateNomineeStatusNoActionTaken() {
     try {
       const currentDate = new Date();
