@@ -20,6 +20,7 @@ import { EmployeeRestDaysModule } from '../components/employee-rest-day/componen
         options: {
           host: process.env.EMPLOYEE_REDIS_HOST,
           port: parseInt(process.env.EMPLOYEE_REDIS_PORT),
+          password: process.env.EMPLOYEE_REDIS_PASSWORD,
         },
       },
     ]),

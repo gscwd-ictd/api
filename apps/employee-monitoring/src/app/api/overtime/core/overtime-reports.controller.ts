@@ -4,7 +4,7 @@ import { OvertimeService } from './overtime.service';
 
 @Controller({ version: '1', path: 'overtime/reports' })
 export class OvertimeReportsController {
-  constructor(private overtimeService: OvertimeService) {}
+  constructor(private overtimeService: OvertimeService) { }
 
   @Get(':overtime_application_id/:immediate_supervisor_employee_id')
   async getOvertimeAuthorization(
@@ -32,4 +32,6 @@ export class OvertimeReportsController {
   ) {
     return await this.overtimeService.getIndividualOvertimeAccomplishment(overtimeApplicationId, employeeId);
   }
+
+
 }

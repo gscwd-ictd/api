@@ -35,7 +35,6 @@ import { DocumentsModule } from './api/training/components/documents';
 import { OtherTrainingParticipantsRequirementsModule } from './api/others/components/other-training-participants-requirements';
 import { ReportsModule } from './api/reports';
 import { TrainingHistoryModule } from './api/training-history';
-import { SmsModule } from './services/sms';
 
 @Module({
   imports: [
@@ -66,9 +65,6 @@ import { SmsModule } from './services/sms';
 
     /* portal microservices */
     PortalEmployeesModule,
-
-    /* sms microservices */
-    SmsModule,
 
     /* trainings */
     TrainingSourcesModule,

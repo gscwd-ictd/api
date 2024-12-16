@@ -10,6 +10,8 @@ import { PassSlipController } from './pass-slip.controller';
 import { PassSlipService } from './pass-slip.service';
 import { PassSlipControllerMs } from './pass-slip-ms.controller';
 import { OfficerOfTheDayModule } from '../../officer-of-the-day/core/officer-of-the-day.module';
+import { DailyTimeRecordModule } from '../../daily-time-record/core/daily-time-record.module';
+import { EmployeeScheduleModule } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.module';
 
 @Module({
   imports: [
@@ -22,12 +24,15 @@ import { OfficerOfTheDayModule } from '../../officer-of-the-day/core/officer-of-
         options: {
           host: process.env.EMPLOYEE_REDIS_HOST,
           port: parseInt(process.env.EMPLOYEE_REDIS_PORT),
+          password: process.env.EMPLOYEE_REDIS_PASSWORD,
         },
       },
     ]),
     LeaveCardLedgerDebitModule,
     EmployeesModule,
     OfficerOfTheDayModule,
+    DailyTimeRecordModule,
+    EmployeeScheduleModule,
   ],
   providers: [PassSlipService, MicroserviceClient],
   controllers: [PassSlipController, PassSlipControllerMs],

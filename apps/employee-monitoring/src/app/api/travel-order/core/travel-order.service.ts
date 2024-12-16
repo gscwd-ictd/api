@@ -47,7 +47,6 @@ export class TravelOrderService extends CrudHelper<TravelOrder> {
   async getTravelOrdersByYearMonth(yearMonth: string) {
     const dateFrom = dayjs(yearMonth + '-01').format('YYYY-MM-DD');
     const dateTo = dayjs(yearMonth + '-' + dayjs(dateFrom).daysInMonth()).format('YYYY-MM-DD');
-    console.log(dateFrom, ' ', dateTo);
     const travelOrders = (await this.rawQuery<string, TravelOrder[]>(
       `
       SELECT 

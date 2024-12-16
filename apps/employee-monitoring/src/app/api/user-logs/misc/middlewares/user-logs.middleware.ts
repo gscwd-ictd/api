@@ -11,7 +11,6 @@ export class UserlogsMiddleware implements NestMiddleware {
 
     if (origin === 'http://' + process.env.DB_HOST + ':3005') {
       if (req.method !== 'GET') {
-        console.log('request', req.originalUrl);
         const currentSession = req.session as typeof req.session & { user: { employeeId: string; isSuperUser?: boolean } };
         let employeeId = '';
         if (!currentSession.user.isSuperUser) {
