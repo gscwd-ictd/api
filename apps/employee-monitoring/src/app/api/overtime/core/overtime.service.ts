@@ -783,7 +783,7 @@ export class OvertimeService {
             employees.map(async (employee) => {
               const { employeeId } = employee;
 
-              const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
+              const employeeDetails = await this.employeeService.getBasicEmployeeDetails(employeeId);
 
               const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
 

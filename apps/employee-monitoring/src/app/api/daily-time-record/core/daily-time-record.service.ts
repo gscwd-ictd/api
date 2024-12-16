@@ -1120,7 +1120,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
         const { time } = ivmsEntryItem;
-        console.log('asd', time);
         if (
           dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 11:59:59')) &&
           (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-02 ' + timeOut).subtract(suspensionHours, 'hour')) ||

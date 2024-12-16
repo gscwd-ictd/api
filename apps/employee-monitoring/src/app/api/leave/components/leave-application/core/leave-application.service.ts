@@ -897,7 +897,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           onError: (error) => new NotFoundException(error),
         })) as { employeeName: string; supervisorName: string };
 
-        const _hrmoApprovedBy = hrmoApprovedBy === null ? null : (await this.employeesService.getEmployeeDetails(hrmoApprovedBy)).employeeFullName;
+        const _hrmoApprovedBy = hrmoApprovedBy === null ? null : (await this.employeesService.getBasicEmployeeDetails(hrmoApprovedBy)).employeeFullName;
 
         const employeeDetails = await this.employeesService.getBasicEmployeeDetails(employeeId);
 
