@@ -1292,10 +1292,11 @@ export class OvertimeService {
         INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id 
       WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND date_format(planned_date,'%d') IN (?) 
       AND ois.employee_id_fk = ? 
-      AND oacc.status = 'approved'
+      AND oacc.status IN ('approved','pending') 
     ;`,
       [year, _month, days, immediateSupervisorEmployeeId]
     )) as { employeeId: string; salaryGradeAmount: number; dailyRate: number }[];
+
     const employeeDetails = await Promise.all(
       employees.map(async (employee) => {
         let totalRegularOTHoursRendered = 0;
@@ -1308,11 +1309,7 @@ export class OvertimeService {
         )
           return null;
         const details = await this.employeeService.getEmployeeDetails(employee.employeeId);
-        //revise hourlyMonthlyRate get from overtime employee
-        // const hourlyMonthlyRate = (await this.employeeService.getMonthlyHourlyRateByEmployeeId(employee.employeeId)) as {
-        //   monthlyRate: number;
-        //   hourlyRate: number;
-        // };
+
         const hourlyMonthlyRate = {
           hourlyRate:
             _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount / 22 / 8 : employee.dailyRate / 8,
@@ -1335,7 +1332,7 @@ export class OvertimeService {
               INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
               INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id 
               WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND  date_format(planned_date,'%d') = ? 
-              AND oe.employee_id_fk = ? AND oacc.status = 'approved' ORDER BY \`day\` ASC;
+              AND oe.employee_id_fk = ? AND oacc.status IN ('approved','pending') ORDER BY \`day\` ASC;
               `,
                 [year, _month, _day, employee.employeeId]
               )) as {
@@ -1445,7 +1442,7 @@ export class OvertimeService {
       })
     );
 
-    const preparedByPosition = (await this.employeeService.getEmployeeDetails(immediateSupervisorEmployeeId)).assignment.positionTitle;
+    const preparedByPosition = (await this.employeeService.getBasicEmployeeDetails(immediateSupervisorEmployeeId)).assignment.positionTitle;
 
     const notedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(immediateSupervisorEmployeeId);
     const approvedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(notedByEmployeeId.toString());
@@ -1453,9 +1450,9 @@ export class OvertimeService {
     const preparedByAndNotedBy = await this.employeeService.getEmployeeAndSupervisorName(immediateSupervisorEmployeeId, notedByEmployeeId.toString());
     const approvedBy = await this.employeeService.getEmployeeAndSupervisorName(notedByEmployeeId.toString(), approvedByEmployeeId.toString());
 
-    const notedByPosition = (await this.employeeService.getEmployeeDetails(notedByEmployeeId.toString())).assignment.positionTitle;
-    const approvedByPosition = (await this.employeeService.getEmployeeDetails(approvedByEmployeeId.toString())).assignment.positionTitle;
-    const assignedTo = (await this.employeeService.getEmployeeDetails(immediateSupervisorEmployeeId)).assignment.name;
+    const notedByPosition = (await this.employeeService.getBasicEmployeeDetails(notedByEmployeeId.toString())).assignment.positionTitle;
+    const approvedByPosition = (await this.employeeService.getBasicEmployeeDetails(approvedByEmployeeId.toString())).assignment.positionTitle;
+    const assignedTo = (await this.employeeService.getBasicEmployeeDetails(immediateSupervisorEmployeeId)).assignment.name;
 
     const { employeeName, employeeSignature, supervisorName, supervisorSignature } = preparedByAndNotedBy;
 
