@@ -38,12 +38,11 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
   async createLeaveApplicationTransaction(transactionEntityManager: EntityManager, createLeaveApplicationDto: CreateLeaveApplicationDto) {
     const { leaveApplicationDates, ...rest } = createLeaveApplicationDto;
-    console.log('transaction create leave');
     const referenceNo = (await this.rawQuery(`SELECT generate_leave_application_reference_number() referenceNo;`))[0].referenceNo;
-    console.log(referenceNo);
     return await this.crudService.transact<LeaveApplication>(transactionEntityManager).create({
       dto: { ...rest, referenceNo },
       onError: ({ error }) => {
+        console.log('createLeaveApplicationTransaction');
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
@@ -138,10 +137,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
               (parseFloat(finalBalance.vacationLeaveBalance.toString()) +
                 parseFloat(finalBalance.sickLeaveBalance.toString()) +
                 excessCreditEarnings * 2) *
-                (salaryGradeAmount * monetizationConstant) *
-                100
+              (salaryGradeAmount * monetizationConstant) *
+              100
             ) / 100;
-          //console.log(monetizAmount);
+
           const leaveMonetization = await this.leaveMonetizationService.createLeaveMonetization(
             transactionEntityManager,
             {
@@ -174,7 +173,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             { convertedSl, convertedVl, monetizationType, monetizedAmount },
             leaveApplication
           );
-          console.log(leaveMonetization);
         }
       }
       return {
@@ -1019,41 +1017,41 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
   async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
     const leaves = ((<LeaveApplication[]>await this.crud().findAll({
-        find: {
-          select: {
-            id: true,
-            abroad: true,
-            dateOfFiling: true,
-            employeeId: true,
-            forBarBoardReview: true,
-            forMastersCompletion: true,
-            forMonetization: true,
-            hrdmApprovalDate: true,
-            hrdmDisapprovalRemarks: true,
-            hrmoApprovalDate: true,
-            supervisorApprovalDate: true,
-            supervisorDisapprovalRemarks: true,
-            inHospital: true,
-            inPhilippines: true,
-            isTerminalLeave: true,
-            isLateFiling: true,
-            supervisorId: true,
-            referenceNo: true,
-            studyLeaveOther: true,
-            lateFilingJustification: true,
-            outPatient: true,
-            cancelDate: true,
-            cancelReason: true,
-            requestedCommutation: true,
-            splWomen: true,
-            leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
-            status: true,
-          },
-          relations: { leaveBenefitsId: true },
-          where: { status: leaveApplicationStatus },
-          order: { dateOfFiling: 'DESC' },
+      find: {
+        select: {
+          id: true,
+          abroad: true,
+          dateOfFiling: true,
+          employeeId: true,
+          forBarBoardReview: true,
+          forMastersCompletion: true,
+          forMonetization: true,
+          hrdmApprovalDate: true,
+          hrdmDisapprovalRemarks: true,
+          hrmoApprovalDate: true,
+          supervisorApprovalDate: true,
+          supervisorDisapprovalRemarks: true,
+          inHospital: true,
+          inPhilippines: true,
+          isTerminalLeave: true,
+          isLateFiling: true,
+          supervisorId: true,
+          referenceNo: true,
+          studyLeaveOther: true,
+          lateFilingJustification: true,
+          outPatient: true,
+          cancelDate: true,
+          cancelReason: true,
+          requestedCommutation: true,
+          splWomen: true,
+          leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
+          status: true,
         },
-      })) as LeaveApplication[]).map((la) => {
+        relations: { leaveBenefitsId: true },
+        where: { status: leaveApplicationStatus },
+        order: { dateOfFiling: 'DESC' },
+      },
+    })) as LeaveApplication[]).map((la) => {
       const { dateOfFiling, cancelDate, ...restOfLeave } = la;
       return {
         dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
@@ -1103,7 +1101,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
               where: { leaveApplicationId: { id: leave.id } },
             },
           });
-          console.log('test');
         }
 
         return {
@@ -1114,7 +1111,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           id: rest.id,
           employee: { employeeId, employeeName },
           supervisor: { supervisorId, supervisorName },
-          //leaveName: leaveBenefitsId.leaveName,
           leaveDates: _leaveDates,
         };
       })

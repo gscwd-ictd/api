@@ -36,7 +36,7 @@ export class LeaveService {
     private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
     private readonly leaveMonetizationService: LeaveMonetizationService,
     private readonly dataSource: DataSource
-  ) {}
+  ) { }
 
   async getLeavesUnderSupervisor(supervisorId: string) {
     return await this.leaveApplicationService.getLeavesUnderSupervisor(supervisorId);
@@ -173,6 +173,8 @@ export class LeaveService {
             });
           }
 
+          //!todo add condition for rehabilitation leave
+
           if (leaveName === 'Monetization' || leaveName === 'Terminal Leave') {
             //leaveApplicationId.
 
@@ -266,11 +268,11 @@ export class LeaveService {
                   leaveName === 'Monetization'
                     ? `VL deduction from monetization`
                     : `VL deduction from Terminal Leave` +
-                      ` (` +
-                      dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
-                      `/₱ ` +
-                      monetizedAmount +
-                      `)`,
+                    ` (` +
+                    dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
+                    `/₱ ` +
+                    monetizedAmount +
+                    `)`,
                 employeeId: leaveApplicationId.employeeId,
               },
             });
@@ -287,11 +289,11 @@ export class LeaveService {
                   leaveName === 'Monetization'
                     ? `SL deduction from monetization`
                     : `SL deduction from Terminal Leave` +
-                      ` (` +
-                      dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
-                      `/₱ ` +
-                      monetizedAmount +
-                      `)`,
+                    ` (` +
+                    dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
+                    `/₱ ` +
+                    monetizedAmount +
+                    `)`,
                 employeeId: leaveApplicationId.employeeId,
               },
             });

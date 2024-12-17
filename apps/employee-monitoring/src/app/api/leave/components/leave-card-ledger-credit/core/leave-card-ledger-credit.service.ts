@@ -224,7 +224,6 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
     });
   }
 
-  //@Cron('0 0 0 1 * *')
   async creditCumulativeLeaves() {
     const employees = await this.employeeService.getAllPermanentEmployeeIds();
     //select all cumulative and val
@@ -292,36 +291,38 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
       const credits = await Promise.all(
         employees.map(async (employee) => {
           const { employeeId } = employee;
-          //dayjs(day).add(2, 'hours').hour() + ':' + dayjs().minute() + ':' + dayjs().second()
           const createdAt = dayjs(day).add(2, 'hour').toDate();
-
           const leaveCredits = await Promise.all(
             leaveBenefits.map(async (leaveBenefit) => {
               const monthYear = dayjs(day).format('YYYY-MM');
 
-              //get lwop for the month
               const lwopsForTheMonth = (await this.rawQuery(
                 `
-              SELECT DISTINCT 
-                get_num_of_leave_days_by_year_month(la.leave_application_id,?) noOfDays
-              FROM leave_application la 
-                INNER JOIN leave_application_dates lad ON la.leave_application_id = lad.leave_application_id_fk
-                  INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
-              WHERE la.employee_id_fk = ? AND lb.leave_name = 'Leave Without Pay' 
-              AND DATE_FORMAT(lad.leave_date,'%Y') = DATE_FORMAT(CONCAT(?,'-01'),'%Y') AND month(lad.leave_date) = DATE_FORMAT(CONCAT(?,'-01'),'%m');
+                  SELECT 
+                    SUM(get_num_of_leave_days_by_year_month_hrdm_approval_date(la.leave_application_id, ?))
+                  noOfDays
+                  FROM leave_application la 
+                    INNER JOIN leave_application_dates lad ON la.leave_application_id = lad.leave_application_id_fk
+                    INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
+                  WHERE la.employee_id_fk = ? 
+                  AND lb.leave_name = 'Leave Without Pay' AND la.hrdm_approval_date IS NOT NULL 
+                  AND DATE_FORMAT(la.hrdm_approval_date,'%Y') = DATE_FORMAT(CONCAT(?,'-01'),'%Y') 
+                  AND DATE_FORMAT(la.hrdm_approval_date,'%m') = DATE_FORMAT(CONCAT(?,'-01'),'%m')
+                  AND la.status = 'approved' AND lad.status='approved';
                 `,
                 [monthYear, employeeId, monthYear, monthYear]
               )) as { noOfDays: string }[];
 
               let lwopValue = 0;
-              if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.04166666666667;
-
+              let rehabValue = parseFloat((await this.rawQuery(`CALL get_rehabilitation_leaves_count_by_year_month(?,?);`, [monthYear, employeeId]))[0][0].rehabCount);
+              rehabValue = rehabValue * 0.041666666666667;
+              if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.041666666666667;
               const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
                 {
                   createdAt,
                   employeeId,
                   creditDate,
-                  creditValue: parseFloat(leaveBenefit.accumulatedCredits) - lwopValue,
+                  creditValue: parseFloat(leaveBenefit.accumulatedCredits) - lwopValue - rehabValue,
                   leaveBenefitsId: leaveBenefit.leaveBenefitsId,
                   remarks: '',
                 },

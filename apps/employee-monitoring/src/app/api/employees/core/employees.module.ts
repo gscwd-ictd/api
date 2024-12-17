@@ -20,4 +20,4 @@ import { EmployeesService } from './employees.service';
   providers: [EmployeesService, MicroserviceClient],
   exports: [EmployeesService, MicroserviceClient],
 })
-export class EmployeesModule {}
+export class EmployeesModule { }
