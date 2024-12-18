@@ -9,7 +9,7 @@ import {
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
-import { OvertimeHrsRendered, OvertimeStatus, OvertimeSummaryHalf, ScheduleBase } from '@gscwd-api/utils';
+import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { Between, DataSource, EntityManager, EntityMetadata, } from 'typeorm';
@@ -1268,13 +1268,13 @@ export class OvertimeService {
     immediateSupervisorEmployeeId: string,
     year: number,
     month: number,
-    half: OvertimeSummaryHalf,
+    half: ReportHalf,
     _natureOfAppointment: string
   ) {
     try {
       const numOfDays = dayjs(year + '-' + month + '-1').daysInMonth();
       const days =
-        half === OvertimeSummaryHalf.FIRST_HALF ? getDayRange1stHalf() : half === OvertimeSummaryHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
+        half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
       const _month = ('0' + month).slice(-2);
       const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
 
@@ -1339,7 +1339,7 @@ export class OvertimeService {
     immediateSupervisorEmployeeId: string,
     year: number,
     month: number,
-    half: OvertimeSummaryHalf,
+    half: ReportHalf,
     _natureOfAppointment: string
   ) {
     const numOfDays = dayjs(year + '-' + month + '-1').daysInMonth();
@@ -1353,7 +1353,7 @@ export class OvertimeService {
     let overallSubstituteDutyOTAmount = 0;
 
     const days =
-      half === OvertimeSummaryHalf.FIRST_HALF ? getDayRange1stHalf() : half === OvertimeSummaryHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
+      half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
 
     const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
     const employees = (await this.overtimeApplicationService.rawQuery(

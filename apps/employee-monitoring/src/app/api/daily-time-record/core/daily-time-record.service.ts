@@ -2,7 +2,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { CreateDtrRemarksDto, DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto, UpdateDtrRemarksDto } from '@gscwd-api/models';
-import { IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType, DtrDeductionType } from '@gscwd-api/utils';
+import { IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType, DtrDeductionType, ReportHalf, getDayRange1stHalf, getDayRange2ndHalf } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
@@ -71,14 +71,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   async generateAllEmployeeDtrByMonthAndYear() { }
 
-  async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number) {
+  async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number, half: ReportHalf) {
     const daysInMonth = dayjs(year + '-' + month + '-' + '01').daysInMonth();
-
     const dayRange = this.getDayRange(daysInMonth);
-
+    const days =
+      half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(daysInMonth) : typeof half === 'undefined' || half === '' ? dayRange : [];
     //#region for map
     const dtrDays: MonthlyDtrItemType[] = (await Promise.all(
-      dayRange.map(async (dtrDay, idx) => {
+      days.map(async (dtrDay, idx) => {
         const currDate = dayjs(year + '-' + month + '-' + dtrDay).toDate();
         const holidayType = await this.holidayService.getHolidayTypeByDate(currDate);
 
