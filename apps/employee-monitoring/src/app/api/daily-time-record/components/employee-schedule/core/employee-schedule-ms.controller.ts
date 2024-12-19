@@ -23,7 +23,7 @@ export class EmployeeScheduleMsController {
   @MessagePattern('get_employee_schedule')
   async getEmployeeSchedule(@Payload() employeeId: string) {
     try {
-      await this.employeeScheduleService.getEmployeeSchedule(employeeId);
+      return await this.employeeScheduleService.getEmployeeSchedule(employeeId);
     }
     catch (error) {
       throw new RpcException(error.message);

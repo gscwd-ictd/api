@@ -273,10 +273,9 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
           [employeeId]
         )
       )[0];
-
       return { employeeName: employeeName.fullName, schedule: { ...schedule } };
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      throw new NotFoundException(error);
     }
   }
 

@@ -24,7 +24,7 @@ import { LeaveMonetizationModule } from '../../leave-monetization/core/leave-mon
           host: process.env.EMPLOYEE_REDIS_HOST,
           port: parseInt(process.env.EMPLOYEE_REDIS_PORT),
           //!TODO CHECK THIS ON PROD
-          password: process.env.EMPLOYEE_REDIS_PASSWORD,
+          //password: process.env.EMPLOYEE_REDIS_PASSWORD,
         },
       },
     ]),

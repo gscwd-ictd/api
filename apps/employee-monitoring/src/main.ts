@@ -12,6 +12,7 @@ import * as redis from 'redis';
 import RedisStore from 'connect-redis';
 
 import { AppModule } from './app/app.module';
+import { HttpExceptionFilter } from '@gscwd-api/utils';
 
 const whitelist = [
   'http://192.168.137.249:4103',
@@ -104,7 +105,7 @@ async function bootstrap() {
     options: {
       host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
       port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
-      password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
+      //password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
     },
   });
 
@@ -115,7 +116,7 @@ async function bootstrap() {
   //     port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
   //   }
   // })
-
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.startAllMicroservices();
   //app.useGlobalPipes(new ValidationPipe({ enableDebugMessages: true }));
   app.enableCors({

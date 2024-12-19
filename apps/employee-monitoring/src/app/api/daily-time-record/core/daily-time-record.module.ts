@@ -41,4 +41,4 @@ import { WorkSuspensionModule } from '../../work-suspension/core/work-suspension
   controllers: [DailyTimeRecordController],
   exports: [DailyTimeRecordService],
 })
-export class DailyTimeRecordModule {}
+export class DailyTimeRecordModule { }
