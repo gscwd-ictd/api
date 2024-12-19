@@ -133,7 +133,7 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     return vlDeductions;
   }
 
-  @Cron('0 57 23 5-10 12 *')
+  //@Cron('0 57 23 5-10 12 *')
   async forfeitureOfForcedLeave() {
     const novemberLastWeekDay = await this.holidaysService.getLastWeekDayOfTheMonth(dayjs().format('YYYY') + '-11-30');
     const finalWorkingDay = await this.holidaysService.getTheNextWorkingDayByDays(dayjs(novemberLastWeekDay).toDate(), 5);

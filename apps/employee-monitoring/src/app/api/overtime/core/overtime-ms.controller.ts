@@ -7,8 +7,8 @@ import { MsExceptionFilter } from '@gscwd-api/utils';
 export class OvertimeMSController {
   constructor(private readonly overtimeService: OvertimeService) { }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('get_overtime_immediate_supervisor')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('get_overtime_immediate_supervisor')
   async getOvertimeImmediateSupervisorByEmployeeId(@Payload() employeeId: string) {
     try {
       return await this.overtimeService.getOvertimeImmediateSupervisorByEmployeeId(employeeId);
@@ -19,8 +19,8 @@ export class OvertimeMSController {
 
   }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('get_overtime_approvals_count')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('get_overtime_approvals_count')
   async getOvertimeApprovalsCount(@Payload() managerId: string) {
     try {
       return await this.overtimeService.getOvertimeApplicationsForManagerApprovalCount(managerId);

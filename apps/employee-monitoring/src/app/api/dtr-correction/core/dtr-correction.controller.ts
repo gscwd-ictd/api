@@ -13,8 +13,8 @@ export class DtrCorrectionController {
     return await this.dtrCorrectionService.addDtrCorrection(createDtrCorrectionDto);
   }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('get_all_dtr_corrections')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('get_all_dtr_corrections')
   async getAllDtrCorrections(@Payload() employeeId: string) {
     return await this.dtrCorrectionService.getDtrCorrections(employeeId);
   }

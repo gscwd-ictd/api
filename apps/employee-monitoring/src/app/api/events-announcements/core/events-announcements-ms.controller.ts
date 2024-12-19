@@ -7,8 +7,8 @@ import { MsExceptionFilter } from '@gscwd-api/utils';
 export class EventsAnnouncementsMsController {
   constructor(private readonly eventsAnnouncementService: EventsAnnouncementsService) { }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('get_events_announcements')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('get_events_announcements')
   async getEventsAnnouncements() {
     try {
       return await this.eventsAnnouncementService.getEventsAnnouncements();

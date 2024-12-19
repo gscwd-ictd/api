@@ -797,7 +797,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     console.log('-------------- PASS SLIP CRON JOB DONE --------------------');
   }
 
-  @Cron('0 50 23 * * 0-6')
+  //@Cron('0 50 23 * * 0-6')
   async updateMedicalPassSlips() {
     const passSlips = (await this.rawQuery(`
     SELECT 
@@ -1030,7 +1030,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     console.log('-------------- PASS SLIP CRON JOB DONE --------------------');
   }
 
-  @Cron('0 57 23 * * 0-6')
+  //@Cron('0 57 23 * * 0-6')
   async addPassSlipsToLedger() {
     //1. fetch approved pass slips from 2 days ago (Personal Business Only/Undertime/HalfDay)
     const passSlips = (await this.rawQuery(`

@@ -6,8 +6,8 @@ import { MsExceptionFilter } from '@gscwd-api/utils';
 @Controller()
 export class DtrCorrectionMsController {
   constructor(private readonly dtrCorrectionService: DtrCorrectionService) { }
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('get_pending_dtr_corrections_for_approval')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('get_pending_dtr_corrections_for_approval')
   async getPendingDtrCorrectionsCount(@Payload() employeeId: string) {
     try {
       return await this.dtrCorrectionService.getPendingDtrCorrections(employeeId);

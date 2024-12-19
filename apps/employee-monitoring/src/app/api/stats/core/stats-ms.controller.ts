@@ -7,8 +7,8 @@ import { MsExceptionFilter } from '@gscwd-api/utils';
 export class StatsMsController {
   constructor(private statsService: StatsService) { }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('get_all_ems_applications_per_manager')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('get_all_ems_applications_per_manager')
   async countAllPendingApplicationsForManager(@Payload() employeeId: string) {
     try {
       return await this.statsService.countAllPendingApplicationsForManager(employeeId);

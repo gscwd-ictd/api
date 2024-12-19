@@ -9,8 +9,8 @@ import { MsExceptionFilter } from '@gscwd-api/utils';
 export class LeaveMsController {
   constructor(private readonly leaveService: LeaveService) { }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('get_leave_for_hrdm_approval')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('get_leave_for_hrdm_approval')
   async getForHrdmApprovalCount() {
     try {
       return await this.leaveService.getForHrdmApprovalCount();
@@ -20,8 +20,8 @@ export class LeaveMsController {
     }
   }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('update_hrdm_leave_approval_status')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('update_hrdm_leave_approval_status')
   async updateHrdmLeaveApprovalStatus(@Payload() updateLeaveApplicationStatus: UpdateLeaveApplicationHrdmStatusDto) {
     try {
       return await this.leaveService.updateLeaveStatus({ ...updateLeaveApplicationStatus, hrdmApprovalDate: dayjs().toDate() });

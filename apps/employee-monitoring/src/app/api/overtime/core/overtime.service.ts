@@ -1195,7 +1195,7 @@ export class OvertimeService {
 
       return { forApproval: pendingResult, completed: approvedResult };
     } catch (error) {
-      throw new HttpException(error, error.message);
+      throw new HttpException(error, error.status);
     }
   }
 

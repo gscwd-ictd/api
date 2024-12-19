@@ -13,7 +13,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         options: {
           host: process.env.EMPLOYEE_REDIS_HOST,
           port: parseInt(process.env.EMPLOYEE_REDIS_PORT),
-          password: process.env.EMPLOYEE_REDIS_PASSWORD,
+          //password: process.env.EMPLOYEE_REDIS_PASSWORD,
         },
       },
     ]),
@@ -21,4 +21,4 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
   providers: [UserRolesService, MicroserviceClient],
   controllers: [UserRolesController],
 })
-export class UserRolesModule {}
+export class UserRolesModule { }

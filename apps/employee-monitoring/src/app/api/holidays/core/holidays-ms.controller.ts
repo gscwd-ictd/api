@@ -8,8 +8,8 @@ import { MsExceptionFilter } from '@gscwd-api/utils';
 export class HolidaysMsController {
   constructor(private readonly holidaysService: HolidaysService) { }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('add_holiday')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('add_holiday')
   async addHoliday(holidaysDto: HolidaysDto) {
     try {
       return await this.holidaysService.addHoliday(holidaysDto);
@@ -21,8 +21,8 @@ export class HolidaysMsController {
   }
 
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern({ msg: 'get_holidays_for_the_year' })
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern({ msg: 'get_holidays_for_the_year' })
   async getHoliday() {
     try {
       return await this.holidaysService.getHolidaysForTheCurrentYear();

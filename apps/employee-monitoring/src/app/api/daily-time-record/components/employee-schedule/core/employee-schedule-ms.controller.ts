@@ -8,8 +8,8 @@ import { MsExceptionFilter } from '@gscwd-api/utils';
 export class EmployeeScheduleMsController {
   constructor(private readonly employeeScheduleService: EmployeeScheduleService) { }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('add_employee_schedule')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('add_employee_schedule')
   async addEmployeeSchedule(@Payload() employeeScheduleDto: CreateEmployeeScheduleDto) {
     try {
       return await this.employeeScheduleService.addEmployeeSchedule(employeeScheduleDto);
@@ -19,8 +19,8 @@ export class EmployeeScheduleMsController {
     }
   }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('get_employee_schedule')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('get_employee_schedule')
   async getEmployeeSchedule(@Payload() employeeId: string) {
     try {
       await this.employeeScheduleService.getEmployeeSchedule(employeeId);

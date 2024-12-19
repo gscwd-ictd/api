@@ -7,8 +7,8 @@ import { MsExceptionFilter } from '@gscwd-api/utils';
 export class OfficerOfTheDayMsController {
   constructor(private readonly officerOfTheDayService: OfficerOfTheDayService) { }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('get_officer_of_the_day_orgs')
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('get_officer_of_the_day_orgs')
   async getOfficerOfTheDayOrgs(@Payload() employeeId: string) {
     try {
       return await this.officerOfTheDayService.getOfficerOfTheDayOrgs(employeeId);
