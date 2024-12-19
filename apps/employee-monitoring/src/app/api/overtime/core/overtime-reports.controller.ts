@@ -1,4 +1,4 @@
-import { OvertimeSummaryHalf } from '@gscwd-api/utils';
+import { ReportHalf } from '@gscwd-api/utils';
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { OvertimeService } from './overtime.service';
 
@@ -19,7 +19,7 @@ export class OvertimeReportsController {
     @Param('immediate_supervisor_employee_id') immediateSupervisorEmployeeId: string,
     @Param('year') year: number,
     @Param('month') month: number,
-    @Query('half') half: OvertimeSummaryHalf,
+    @Query('half') half: ReportHalf,
     @Query('nature_of_appointment') natureOfAppointment: string
   ) {
     return await this.overtimeService.getOvertimeSummaryRegular(immediateSupervisorEmployeeId, year, month, half, natureOfAppointment);
@@ -33,5 +33,14 @@ export class OvertimeReportsController {
     return await this.overtimeService.getIndividualOvertimeAccomplishment(overtimeApplicationId, employeeId);
   }
 
-
+  @Get('/accomplishment/authorization/summary/:immediate_supervisor_employee_id/:year/:month/')
+  async getOvertimeAuthorizationAccomplishmentSummary(
+    @Param('immediate_supervisor_employee_id') immediateSupervisorEmployeeId: string,
+    @Param('year') year: number,
+    @Param('month') month: number,
+    @Query('half') half: ReportHalf,
+    @Query('nature_of_appointment') natureOfAppointment: string
+  ) {
+    return await this.overtimeService.getOvertimeAuthorizationAccomplishmentSummary(immediateSupervisorEmployeeId, year, month, half, natureOfAppointment);
+  }
 }
