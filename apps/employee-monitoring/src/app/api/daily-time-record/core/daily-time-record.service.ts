@@ -2,7 +2,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { CreateDtrRemarksDto, DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto, UpdateDtrRemarksDto } from '@gscwd-api/models';
-import { IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType, DtrDeductionType } from '@gscwd-api/utils';
+import { IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType, DtrDeductionType, ReportHalf, getDayRange1stHalf, getDayRange2ndHalf } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
@@ -71,14 +71,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   async generateAllEmployeeDtrByMonthAndYear() { }
 
-  async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number) {
+  async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number, half: ReportHalf) {
     const daysInMonth = dayjs(year + '-' + month + '-' + '01').daysInMonth();
-
     const dayRange = this.getDayRange(daysInMonth);
-
+    const days =
+      half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(daysInMonth) : typeof half === 'undefined' || half === '' ? dayRange : [];
     //#region for map
     const dtrDays: MonthlyDtrItemType[] = (await Promise.all(
-      dayRange.map(async (dtrDay, idx) => {
+      days.map(async (dtrDay, idx) => {
         const currDate = dayjs(year + '-' + month + '-' + dtrDay).toDate();
         const holidayType = await this.holidayService.getHolidayTypeByDate(currDate);
 
@@ -825,7 +825,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           } else return await this.updateRegularWithOutLunch(currEmployeeDtr, ivmsEntry, schedule);
         case 'night':
           return await this.updateNightScheduleDtr(currEmployeeDtr.companyId, ivmsEntry, schedule);
-        //return '';
         default:
           break;
       }
@@ -1110,7 +1109,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
   //#region add functionalities for different kinds of schedule
   async addNightScheduleDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
-    //GABI!
     let _timeIn = null;
     let _timeOut = null;
 
@@ -1158,7 +1156,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   async updateNightScheduleDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
-    //GABI!
     let _timeIn = null;
     let _timeOut = null;
 
@@ -1192,6 +1189,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       })
     );
 
+    //timeout (silip next day morning kay nagtabok ug adlaw) 
     const resultTomorrow = await Promise.all(
       ivmsEntryTomorrow.map(async (ivmsEntryItem, idx) => {
         const { time } = ivmsEntryItem;
@@ -1201,44 +1199,23 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           timeScan.isAfter(timeOutSchedule.subtract(suspensionHours, 'hour')) ||
           timeScan.isSame(timeOutSchedule.subtract(suspensionHours, 'hour'))
         ) {
-          _timeOut = time;
+          if (_timeOut === null)
+            _timeOut = time;
         }
-        //.console.log('asd', time);
-        // if (
-        //   dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 11:59:59')) &&
-        //   (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-02 ' + timeOut).subtract(suspensionHours, 'hour')) ||
-        //     dayjs('2023-01-01 ' + time).isAfter(dayjs('2023-01-01 ' + timeIn)))
-        // ) {
-        //   if (_timeIn === null) {
-        //     _timeIn = time;
-        //   }
-        // } else {
-        //   //out sa previous day
-        //   _timeOut = time;
-        // }
       })
     );
-    //insert sa karon na (in)
-    // await this.crudService.create({ dto: { companyId, timeIn: _timeIn, scheduleId: schedule, dtrDate: ivmsEntry[0].date } });
-    // //insert or update sa kagahapon na sched (out)
-    // //what if kagahapon lahi iyang schedule?
-    // const yesterday = dayjs(ivmsEntry[0].date).subtract(1, 'day');
-    // const yesterdayDtr = await this.crudService.findOneOrNull({
-    //   find: { where: { companyId, dtrDate: yesterday.toDate() } },
-    //   onError: (error) => new InternalServerErrorException(error),
-    // });
 
-    // if (yesterdayDtr !== null)
-    //   await this.crudService.create({
-    //     dto: { companyId, timeOut: _timeOut, dtrDate: yesterday.toDate(), id: yesterdayDtr.id },
-    //     onError: (error) => new InternalServerErrorException(error),
-    //   });
-    // else
-    //   await this.crudService.create({
-    //     dto: { companyId, timeOut: _timeOut, dtrDate: yesterday.toDate() },
-    //     onError: (error) => new InternalServerErrorException(error),
-    //   });
-    return '';
+    const dtrId = await this.crudService.findOneOrNull({
+      find: { where: { companyId, dtrDate: ivmsEntry[0].date } },
+      onError: (error) => new InternalServerErrorException(error),
+    });
+
+    const result = await this.crudService.create({
+      dto: { companyId, timeIn: _timeIn, timeOut: _timeOut, dtrDate: ivmsEntry[0].date, id: dtrId.id },
+      onError: (error) => new InternalServerErrorException(error),
+    });
+    console.log('Nigth DTR', _timeIn, _timeOut);
+    return result;
   }
 
   async addFrontlineShiftBDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
