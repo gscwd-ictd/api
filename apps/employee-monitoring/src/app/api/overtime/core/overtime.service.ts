@@ -1284,6 +1284,7 @@ export class OvertimeService {
               hris_prod.get_employee_fullname2(oe.employee_id_fk) employeeName,
               hris_prod.get_employee_assignment(oe.employee_id_fk) assignment,
               DATE_FORMAT(oappl.planned_date, '%Y-%m-%d') plannedDate,
+              DATE_FORMAT(oappl.created_at, '%Y-%m-%d') applicationDate,
               oappl.purpose purpose,
               oacc.accomplishments accomplishments,
               oappl.estimated_hours estimatedHours,

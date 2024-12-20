@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveApplicationDto, LeaveApplicationDates, UpdateLeaveApplicationDto } from '@gscwd-api/models';
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveApplication } from '@gscwd-api/models';
 import {
   LeaveApplicationStatus,
@@ -30,7 +30,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     private readonly client: MicroserviceClient,
     private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
     private readonly employeesService: EmployeesService,
-    private readonly officerOfTheDayService: OfficerOfTheDayService,
     private readonly leaveMonetizationService: LeaveMonetizationService
   ) {
     super(crudService);
@@ -42,14 +41,30 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     return await this.crudService.transact<LeaveApplication>(transactionEntityManager).create({
       dto: { ...rest, referenceNo },
       onError: ({ error }) => {
-        console.log('createLeaveApplicationTransaction');
+        console.log('createLeaveApplicationTransaction', error);
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
   }
 
   async createLeaveApplication(createLeaveApplication: CreateLeaveApplicationDto) {
-    //! -- DEPRECATED; CHANGE ;
+
+    const { leaveBenefitId, employeeId } = createLeaveApplication;
+
+    const pendingSameLeaveType = await this.crud().findOneOrNull({
+      find: {
+        where: [
+          { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_HRDM_APPROVAL, employeeId },
+          { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_HRMO_CREDIT_CERTIFICATION, employeeId },
+          { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_SUPERVISOR_APPROVAL, employeeId }
+        ]
+      }
+    });
+
+    if (pendingSameLeaveType !== null)
+      throw new ForbiddenException("You still have a pending Leave Application of the same Leave Type");
+    console.log('Leave Application: ', pendingSameLeaveType);
+
     const monthNow = new Date(Date.now()).getMonth() + 1;
     const now =
       new Date(Date.now()).getFullYear().toString() +
