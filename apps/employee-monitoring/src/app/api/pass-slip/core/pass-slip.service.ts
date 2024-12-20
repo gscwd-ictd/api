@@ -1468,7 +1468,7 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Officia
 
   async getAssignableSupervisorForPassSlip(employeeData: { orgId: string; employeeId: string }) {
     let officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeData.orgId);
-    const employeeAssignment = (await this.employeeService.getEmployeeAssignment(employeeData.employeeId)).assignment.name;
+    const employeeAssignment = (await this.employeeService.getBasicEmployeeDetails(employeeData.employeeId)).assignment.name;
     const userRole = (await this.employeeService.getEmployeeDetails(employeeData.employeeId)).userRole;
     if (userRole === 'division_manager' || userRole === 'department_manager' || userRole === 'assistant_general_manager') {
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);
@@ -1495,6 +1495,8 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Officia
       } : null,
       { label: 'Pe, Charlene Marie D. ', value: 'af7bbec8-b26e-11ed-a79b-000c29f95a80' },
     ];
-    return result.filter((value, index, self) => index === self.findIndex((item) => item.label === value.label && item.value === value.value)).filter(n => n);
+    return result
+      .filter((n) => n)
+      .filter((value, index, self) => index === self.findIndex((item) => item.label === value.label && item.value === value.value));
   }
 }
