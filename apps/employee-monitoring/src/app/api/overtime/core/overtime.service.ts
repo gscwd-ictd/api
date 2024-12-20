@@ -1286,6 +1286,7 @@ export class OvertimeService {
               hris_prod.get_employee_fullname2(oe.employee_id_fk) employeeName,
               hris_prod.get_employee_assignment(oe.employee_id_fk) assignment,
               DATE_FORMAT(oappl.planned_date, '%Y-%m-%d') plannedDate,
+              DATE_FORMAT(oappl.created_at, '%Y-%m-%d') applicationDate,
               oappl.purpose purpose,
               oacc.accomplishments accomplishments,
               oappl.estimated_hours estimatedHours,
@@ -1309,7 +1310,9 @@ export class OvertimeService {
         `, [immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, year, _month, days, _natureOfAppointment]);
 
 
-      const preparedByPosition = (await this.employeeService.getBasicEmployeeDetails(immediateSupervisorEmployeeId)).assignment.positionTitle;
+      const preparedByDetails = await this.employeeService.getBasicEmployeeDetails(immediateSupervisorEmployeeId);
+      const preparedByPosition = preparedByDetails.assignment.positionTitle;
+      const orgName = preparedByDetails.assignment.name;
 
       const notedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(immediateSupervisorEmployeeId);
       const approvedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(notedByEmployeeId.toString());
@@ -1324,6 +1327,7 @@ export class OvertimeService {
 
       return {
         periodCovered,
+        orgName,
         summary: result,
         signatories: {
           preparedBy: { name: employeeName, signature: employeeSignature, position: preparedByPosition },
