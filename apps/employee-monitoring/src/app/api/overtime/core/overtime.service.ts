@@ -1308,7 +1308,9 @@ export class OvertimeService {
         `, [immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, year, _month, days, _natureOfAppointment]);
 
 
-      const preparedByPosition = (await this.employeeService.getBasicEmployeeDetails(immediateSupervisorEmployeeId)).assignment.positionTitle;
+      const preparedByDetails = await this.employeeService.getBasicEmployeeDetails(immediateSupervisorEmployeeId);
+      const preparedByPosition = preparedByDetails.assignment.positionTitle;
+      const orgName = preparedByDetails.assignment.name;
 
       const notedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(immediateSupervisorEmployeeId);
       const approvedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(notedByEmployeeId.toString());
@@ -1323,6 +1325,7 @@ export class OvertimeService {
 
       return {
         periodCovered,
+        orgName,
         summary: result,
         signatories: {
           preparedBy: { name: employeeName, signature: employeeSignature, position: preparedByPosition },
