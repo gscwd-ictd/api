@@ -740,7 +740,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     //2. check time in and time out
     const passSlipsToLedger = await Promise.all(
       passSlips.map(async (passSlip) => {
-        console.log('PASS SLIP: ', passSlip);
         const { id, timeIn, timeOut, natureOfBusiness, employeeId, dateOfApplication, status } = passSlip;
         //2.1 if time in is null and time out is null update status to unused;
         if (
@@ -1458,9 +1457,9 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
     const supervisorAndOfficerOfTheDayArray =
       officerOfTheDayId !== null
         ? [
-          { label: officerOfTheDayName, value: officerOfTheDayId },
-          { label: employeeSupervisorName, value: employeeSupervisorId },
-        ]
+            { label: officerOfTheDayName, value: officerOfTheDayId },
+            { label: employeeSupervisorName, value: employeeSupervisorId },
+          ]
         : [{ label: employeeSupervisorName, value: employeeSupervisorId }];
     const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown(employeeData.employeeId);
     const result = [
