@@ -511,63 +511,77 @@ export class OvertimeService {
   }
 
   async getOvertimeApplicationsByManagerId(managerId: string) {
-    const employeeId = await this.overtimeApplicationService.crud().findOneOrNull({ find: { select: { managerId: true }, where: { managerId } } });
 
-    if (employeeId.managerId === null) throw new NotFoundException();
+    try {
+      const employeeId = await this.overtimeApplicationService.crud().findOneOrNull({ find: { select: { managerId: true }, where: { managerId } } });
 
-    const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId.managerId);
+      if (employeeId.managerId === null) throw new NotFoundException();
 
-    const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
+      const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId.managerId);
 
-    const approvedOvertimes = await this.getOvertimeApplicationsByManagerIdAndStatus(managerId, OvertimeStatus.APPROVED);
+      const supervisorName = (await this.employeeService.getEmployeeDetails(supervisorId)).employeeFullName;
 
-    const forApprovalOvertimes = await this.getOvertimeApplicationsByManagerIdAndStatus(managerId, OvertimeStatus.PENDING);
+      const approvedOvertimes = await this.getOvertimeApplicationsByManagerIdAndStatus(managerId, OvertimeStatus.APPROVED);
 
-    const cancelledOvertimes = await this.getOvertimeApplicationsByManagerIdAndStatus(managerId, OvertimeStatus.CANCELLED);
+      const forApprovalOvertimes = await this.getOvertimeApplicationsByManagerIdAndStatus(managerId, OvertimeStatus.PENDING);
 
-    const disapprovedOvertimes = await this.getOvertimeApplicationsByManagerIdAndStatus(managerId, OvertimeStatus.DISAPPROVED);
+      const cancelledOvertimes = await this.getOvertimeApplicationsByManagerIdAndStatus(managerId, OvertimeStatus.CANCELLED);
 
-    const completedOvertimes = [...approvedOvertimes, ...cancelledOvertimes, ...disapprovedOvertimes].sort((a, b) =>
-      a.plannedDate > b.plannedDate ? -1 : a.plannedDate < b.plannedDate ? 1 : 0
-    );
+      const disapprovedOvertimes = await this.getOvertimeApplicationsByManagerIdAndStatus(managerId, OvertimeStatus.DISAPPROVED);
 
-    const approvedOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(completedOvertimes);
-    const forApprovalOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(forApprovalOvertimes);
+      const completedOvertimes = [...approvedOvertimes, ...cancelledOvertimes, ...disapprovedOvertimes].sort((a, b) =>
+        a.plannedDate > b.plannedDate ? -1 : a.plannedDate < b.plannedDate ? 1 : 0
+      );
 
-    return {
-      supervisorName,
-      completed: approvedOvertimesWithEmployees,
-      forApproval: forApprovalOvertimesWithEmployees,
-    };
+      const approvedOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(completedOvertimes);
+      const forApprovalOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(forApprovalOvertimes);
+
+      return {
+        supervisorName,
+        overtimes: [...approvedOvertimesWithEmployees, ...forApprovalOvertimesWithEmployees].sort((a, b) =>
+          a.status > b.status ? -1 : a.status < b.status ? 1 : 0
+        )
+      };
+    }
+    catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 
   async getOvertimeApplicationsByImmediateSupervisorId(id: string) {
-    const employeeId = await this.overtimeImmediateSupervisorService.crud().findOne({ find: { select: { employeeId: true }, where: { id } } });
+    try {
+      const employeeId = await this.overtimeImmediateSupervisorService.crud().findOne({ find: { select: { employeeId: true }, where: { id } } });
 
-    const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId.employeeId);
+      const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId.employeeId);
 
-    const supervisorName = (await this.employeeService.getBasicEmployeeDetails(supervisorId)).employeeFullName;
+      const supervisorName = (await this.employeeService.getBasicEmployeeDetails(supervisorId)).employeeFullName;
 
-    const approvedOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.APPROVED);
+      const approvedOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.APPROVED);
 
-    const forApprovalOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.PENDING);
+      const forApprovalOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.PENDING);
 
-    const cancelledOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.CANCELLED);
+      const cancelledOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.CANCELLED);
 
-    const disapprovedOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.DISAPPROVED);
+      const disapprovedOvertimes = await this.getOvertimeApplicationsBySupervisorIdAndStatus(id, OvertimeStatus.DISAPPROVED);
 
-    const completedOvertimes = [...approvedOvertimes, ...cancelledOvertimes, ...disapprovedOvertimes].sort((a, b) =>
-      a.plannedDate > b.plannedDate ? -1 : a.plannedDate < b.plannedDate ? 1 : 0
-    );
+      const completedOvertimes = [...approvedOvertimes, ...cancelledOvertimes, ...disapprovedOvertimes].sort((a, b) =>
+        a.plannedDate > b.plannedDate ? -1 : a.plannedDate < b.plannedDate ? 1 : 0
+      );
 
-    const approvedOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(completedOvertimes);
-    const forApprovalOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(forApprovalOvertimes);
+      const approvedOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(completedOvertimes);
+      const forApprovalOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(forApprovalOvertimes);
 
-    return {
-      supervisorName,
-      completed: approvedOvertimesWithEmployees,
-      forApproval: forApprovalOvertimesWithEmployees,
-    };
+      return {
+        supervisorName,
+        overtimes: [...approvedOvertimesWithEmployees, ...forApprovalOvertimesWithEmployees].sort((a, b) =>
+          a.status > b.status ? -1 : a.status < b.status ? 1 : 0
+        )
+      };
+    }
+    catch (error) {
+      throw new NotFoundException(error.message);
+    }
+
   }
 
   async getOvertimeApplications() {
