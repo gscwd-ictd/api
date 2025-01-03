@@ -19,7 +19,6 @@ import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
 import dayjs = require('dayjs');
 import { EmployeesService } from '../../../../employees/core/employees.service';
-import { OfficerOfTheDayService } from '../../../../officer-of-the-day/core/officer-of-the-day.service';
 import { LeaveMonetizationService } from '../../leave-monetization/core/leave-monetization.service';
 
 @Injectable()
@@ -63,7 +62,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     if (pendingSameLeaveType !== null)
       throw new ForbiddenException("You still have a pending Leave Application of the same Leave Type");
-    console.log('Leave Application: ', pendingSameLeaveType);
 
     const monthNow = new Date(Date.now()).getMonth() + 1;
     const now =

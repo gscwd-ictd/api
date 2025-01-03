@@ -1289,7 +1289,7 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Officia
           await this.rawQuery(`SELECT count(*) passSlipCount FROM employee_monitoring.leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [id])
         )[0];
 
-        const employeeCompanyId = (await this.employeeService.getEmployeeDetails(employeeId)).companyId;
+        const employeeCompanyId = (await this.employeeService.getBasicEmployeeDetails(employeeId)).companyId;
 
         const dtr = (await this.rawQuery(
           `SELECT daily_time_record_id dtrId,s.time_out scheduleTimeOut, dtr.time_out timeOut

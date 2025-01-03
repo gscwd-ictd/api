@@ -693,8 +693,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             )
           )[0].passSlipCount;
 
-          console.log('pass slip count', typeof passSlipCount, passSlipCount);
-
           if (passSlipCount === '0') {
             if (!leaveCardItem) {
               await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
