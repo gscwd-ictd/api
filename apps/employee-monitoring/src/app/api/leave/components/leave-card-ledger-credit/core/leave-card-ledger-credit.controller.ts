@@ -1,5 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { LeaveCardLedgerCreditService } from './leave-card-ledger-credit.service';
+import dayjs = require('dayjs');
 
 @Controller('leave-card-ledger-credit')
 export class LeaveCardLedgerCreditController {
@@ -8,8 +9,11 @@ export class LeaveCardLedgerCreditController {
   @Get('test')
   async test() {
     await this.leaveCardLedgerCreditService.creditBeginningBalance();
-    await this.leaveCardLedgerCreditService.creditRecurringLeaves();
-    await this.leaveCardLedgerCreditService.creditCumulativeLeaves();
+    //await this.leaveCardLedgerCreditService.creditRecurringLeaves();
+    //await this.leaveCardLedgerCreditService.creditCumulativeLeavesManually(dayjs('2025-01-01').toDate());
+    await this.leaveCardLedgerCreditService.creditCumulativeLeavesManuallyWithValue(dayjs('2025-01-01').toDate(), 0);
+    //await this.leaveCardLedgerCreditService.creditCumulativeLeavesManuallyWithValue(dayjs('2025-01-02').toDate(), 1.25);
+    //await this.leaveCardLedgerCreditService.creditCumulativeLeaves();
   }
 
   @Get('credit-cumulative/:date')

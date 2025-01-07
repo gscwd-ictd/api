@@ -48,7 +48,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
   }
 
   async createLeaveApplication(createLeaveApplication: CreateLeaveApplicationDto) {
-
     const { leaveBenefitId, employeeId } = createLeaveApplication;
 
     const pendingSameLeaveType = await this.crud().findOneOrNull({
@@ -56,13 +55,12 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         where: [
           { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_HRDM_APPROVAL, employeeId },
           { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_HRMO_CREDIT_CERTIFICATION, employeeId },
-          { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_SUPERVISOR_APPROVAL, employeeId }
-        ]
-      }
+          { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_SUPERVISOR_APPROVAL, employeeId },
+        ],
+      },
     });
 
-    if (pendingSameLeaveType !== null)
-      throw new ForbiddenException("You still have a pending Leave Application of the same Leave Type");
+    if (pendingSameLeaveType !== null) throw new ForbiddenException('You still have a pending Leave Application of the same Leave Type');
     console.log('Leave Application: ', pendingSameLeaveType);
 
     const monthNow = new Date(Date.now()).getMonth() + 1;
@@ -152,8 +150,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
               (parseFloat(finalBalance.vacationLeaveBalance.toString()) +
                 parseFloat(finalBalance.sickLeaveBalance.toString()) +
                 excessCreditEarnings * 2) *
-              (salaryGradeAmount * monetizationConstant) *
-              100
+                (salaryGradeAmount * monetizationConstant) *
+                100
             ) / 100;
 
           const leaveMonetization = await this.leaveMonetizationService.createLeaveMonetization(
@@ -614,7 +612,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const excessCreditEarnings = parseFloat(dailyLeaveCredit.toString()) * parseInt(dayjs(leaveApplicationDate.leaveDate).format('DD'));
 
     const { convertedSl, convertedVl, monetizedAmount } = monetizationDetails;
-    const formattedMonetizedAmount = Math.trunc(parseFloat(monetizedAmount.toString()) * 100) / 100;
+
+    const formattedMonetizedAmount = Math.trunc(parseFloat(monetizedAmount.toString()) * 1000) / 1000;
+    console.log(formattedMonetizedAmount);
     return {
       monetizedAmount:
         '₱ ' +
@@ -635,7 +635,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
   async getFormattedMonetizationDetails(leaveApplicationId: string) {
     const { convertedSl, convertedVl, monetizedAmount } = await this.getMonetizationDetails(leaveApplicationId);
-    const formattedMonetizedAmount = Math.trunc(parseFloat(monetizedAmount.toString()) * 100) / 100;
+    console.log(monetizedAmount);
+    const formattedMonetizedAmount = Math.trunc(parseFloat(monetizedAmount.toString()) * 1000) / 1000;
     return {
       monetizedAmount:
         '₱ ' +
@@ -1032,41 +1033,41 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
   async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
     const leaves = ((<LeaveApplication[]>await this.crud().findAll({
-      find: {
-        select: {
-          id: true,
-          abroad: true,
-          dateOfFiling: true,
-          employeeId: true,
-          forBarBoardReview: true,
-          forMastersCompletion: true,
-          forMonetization: true,
-          hrdmApprovalDate: true,
-          hrdmDisapprovalRemarks: true,
-          hrmoApprovalDate: true,
-          supervisorApprovalDate: true,
-          supervisorDisapprovalRemarks: true,
-          inHospital: true,
-          inPhilippines: true,
-          isTerminalLeave: true,
-          isLateFiling: true,
-          supervisorId: true,
-          referenceNo: true,
-          studyLeaveOther: true,
-          lateFilingJustification: true,
-          outPatient: true,
-          cancelDate: true,
-          cancelReason: true,
-          requestedCommutation: true,
-          splWomen: true,
-          leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
-          status: true,
+        find: {
+          select: {
+            id: true,
+            abroad: true,
+            dateOfFiling: true,
+            employeeId: true,
+            forBarBoardReview: true,
+            forMastersCompletion: true,
+            forMonetization: true,
+            hrdmApprovalDate: true,
+            hrdmDisapprovalRemarks: true,
+            hrmoApprovalDate: true,
+            supervisorApprovalDate: true,
+            supervisorDisapprovalRemarks: true,
+            inHospital: true,
+            inPhilippines: true,
+            isTerminalLeave: true,
+            isLateFiling: true,
+            supervisorId: true,
+            referenceNo: true,
+            studyLeaveOther: true,
+            lateFilingJustification: true,
+            outPatient: true,
+            cancelDate: true,
+            cancelReason: true,
+            requestedCommutation: true,
+            splWomen: true,
+            leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
+            status: true,
+          },
+          relations: { leaveBenefitsId: true },
+          where: { status: leaveApplicationStatus },
+          order: { dateOfFiling: 'DESC' },
         },
-        relations: { leaveBenefitsId: true },
-        where: { status: leaveApplicationStatus },
-        order: { dateOfFiling: 'DESC' },
-      },
-    })) as LeaveApplication[]).map((la) => {
+      })) as LeaveApplication[]).map((la) => {
       const { dateOfFiling, cancelDate, ...restOfLeave } = la;
       return {
         dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
