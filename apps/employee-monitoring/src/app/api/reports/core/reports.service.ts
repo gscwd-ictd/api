@@ -7,7 +7,7 @@ import { last } from 'rxjs';
 
 @Injectable()
 export class ReportsService {
-  constructor(private readonly employeesService: EmployeesService, private readonly dtrService: DailyTimeRecordService) { }
+  constructor(private readonly employeesService: EmployeesService, private readonly dtrService: DailyTimeRecordService) {}
 
   async generateReportOnAttendance(dateFrom: Date, dateTo: Date) {
     const employees = await this.employeesService.getAllPermanentCasualEmployees2();
@@ -18,6 +18,9 @@ export class ReportsService {
         const name = employee.label;
 
         const report = (await this.dtrService.rawQuery(`CALL sp_generate_report_on_attendance(?,?,?);`, [companyId, dateFrom, dateTo]))[0][0];
+
+        console.log(report);
+        //return { companyId, name };
         return { companyId, name, ...report };
       })
     );
