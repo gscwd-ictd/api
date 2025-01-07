@@ -612,9 +612,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const excessCreditEarnings = parseFloat(dailyLeaveCredit.toString()) * parseInt(dayjs(leaveApplicationDate.leaveDate).format('DD'));
 
     const { convertedSl, convertedVl, monetizedAmount } = monetizationDetails;
-
     const formattedMonetizedAmount = Math.trunc(parseFloat(monetizedAmount.toString()) * 1000) / 1000;
-    console.log(formattedMonetizedAmount);
     return {
       monetizedAmount:
         '₱ ' +
@@ -635,7 +633,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
   async getFormattedMonetizationDetails(leaveApplicationId: string) {
     const { convertedSl, convertedVl, monetizedAmount } = await this.getMonetizationDetails(leaveApplicationId);
-    console.log(monetizedAmount);
     const formattedMonetizedAmount = Math.trunc(parseFloat(monetizedAmount.toString()) * 1000) / 1000;
     return {
       monetizedAmount:

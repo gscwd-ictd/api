@@ -79,9 +79,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
 
   @Cron('0 57 23 31 12 *')
   async creditBeginningBalance() {
-    //
     const employees = await this.employeeService.getAllPermanentEmployeeIds();
-
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       const credits = await Promise.all(
         employees.map(async (employee, idx) => {
@@ -106,7 +104,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
             (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Vacation Leave' AND deleted_at IS NULL LIMIT 1) vacationLeaveId,
             (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Special Privilege Leave' AND deleted_at IS NULL LIMIT 1) specialPrivilegeLeaveId;`)
             )[0];
-            //}
+
             const { forcedLeaveId, sickLeaveId, vacationLeaveId, specialPrivilegeLeaveId } = leaveBenefits;
             const creditDate = dayjs(dayjs().add(0, 'year').year() + '-01-01').toDate();
             const createdAt = dayjs(
@@ -321,16 +319,15 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
 
               let lwopValue = 0;
 
-              let rehabValue = 0;
-              // let rehabValue = parseFloat(
-              //   (await this.rawQuery(`CALL get_rehabilitation_leaves_count_by_year_month(?,?);`, [monthYear, employeeId]))[0][0].rehabCount
-              // );
+              let rehabValue = parseFloat(
+                (await this.rawQuery(`CALL get_rehabilitation_leaves_count_by_year_month(?,?);`, [monthYear, employeeId]))[0][0].rehabCount
+              );
 
               rehabValue = rehabValue * 0.041666666666667;
 
               console.log('REHAB VALUE:', rehabValue);
 
-              //if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.041666666666667;
+              if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.041666666666667;
               const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
                 {
                   createdAt,
