@@ -1425,7 +1425,7 @@ export class OvertimeService {
               AND oe.employee_id_fk = ? AND oacc.status IN ('approved','pending') AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?) 
               ORDER BY \`day\` ASC;
               `,
-                [year, _month, _day, employee.employeeId, employee.employeeId, employee.employeeId]
+                [year, _month, _day, employee.employeeId, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId]
               )) as {
                 day: number;
                 overtimeApplicationId: string;
