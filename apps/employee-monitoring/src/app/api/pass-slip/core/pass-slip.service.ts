@@ -59,7 +59,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           isDeductibleToPay = true;
         } else {
           const employeeLeaveLedger = (
-            await this.rawQuery(`CALL sp_generate_leave_ledger_view(?,?)`, [rest.employeeId, employeeDetails.companyId])
+            await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [rest.employeeId, employeeDetails.companyId, dayjs().year()])
           )[0] as LeaveLedger[];
           const { sickLeaveBalance, vacationLeaveBalance } = employeeLeaveLedger[employeeLeaveLedger.length - 1];
 
