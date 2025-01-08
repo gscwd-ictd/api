@@ -50,18 +50,18 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const { leaveBenefitId, employeeId } = createLeaveApplication;
 
-    const pendingSameLeaveType = await this.crud().findOneOrNull({
-      find: {
-        where: [
-          { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_HRDM_APPROVAL, employeeId },
-          { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_HRMO_CREDIT_CERTIFICATION, employeeId },
-          { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_SUPERVISOR_APPROVAL, employeeId }
-        ]
-      }
-    });
+    // const pendingSameLeaveType = await this.crud().findOneOrNull({
+    //   find: {
+    //     where: [
+    //       { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_HRDM_APPROVAL, employeeId },
+    //       { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_HRMO_CREDIT_CERTIFICATION, employeeId },
+    //       { leaveBenefitsId: leaveBenefitId, status: LeaveApplicationStatus.FOR_SUPERVISOR_APPROVAL, employeeId }
+    //     ]
+    //   }
+    // });
 
-    if (pendingSameLeaveType !== null)
-      throw new ForbiddenException("You still have a pending Leave Application of the same Leave Type");
+    // if (pendingSameLeaveType !== null)
+    //   throw new ForbiddenException("You still have a pending Leave Application of the same Leave Type");
 
     const monthNow = new Date(Date.now()).getMonth() + 1;
     const now =
