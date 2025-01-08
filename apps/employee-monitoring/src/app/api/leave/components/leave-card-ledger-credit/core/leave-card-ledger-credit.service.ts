@@ -84,7 +84,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
       const credits = await Promise.all(
         employees.map(async (employee, idx) => {
           const { employeeId, companyId } = employee;
-          const employeeLeaveLedger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?)`, [employeeId, companyId]))[0] as LeaveLedger[];
+          const employeeLeaveLedger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs().year()]))[0] as LeaveLedger[];
           const beginningBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
 
           try {
