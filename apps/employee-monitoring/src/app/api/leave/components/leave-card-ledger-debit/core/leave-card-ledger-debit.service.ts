@@ -143,7 +143,7 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
       const result = await Promise.all(
         employees.map(async (employee) => {
           const { companyId, employeeId } = employee;
-          const employeeLeaveLedger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?)`, [employeeId, companyId]))[0] as LeaveLedger[];
+          const employeeLeaveLedger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs().year()]))[0] as LeaveLedger[];
 
           const currentForcedLeaveBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].forcedLeaveBalance;
           const currentVLBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].vacationLeaveBalance;

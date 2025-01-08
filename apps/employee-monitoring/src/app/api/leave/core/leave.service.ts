@@ -62,8 +62,8 @@ export class LeaveService {
     return await this.leaveApplicationService.getLeavesForHrdmV2();
   }
 
-  async getLeaveLedger(employeeId: string, companyId: string) {
-    const ledger = (await this.leaveApplicationService.crud().getRepository().query(`CALL sp_get_employee_ledger(?,?);`, [employeeId, companyId]))[0];
+  async getLeaveLedger(employeeId: string, companyId: string, year: number) {
+    const ledger = (await this.leaveApplicationService.crud().getRepository().query(`CALL sp_get_employee_ledger(?,?,?);`, [employeeId, companyId, year]))[0];
     return ledger;
   }
 
@@ -195,7 +195,7 @@ export class LeaveService {
             if (leaveName === 'Terminal Leave') {
               const companyId = await this.employeesService.getCompanyId(leaveApplicationId.employeeId);
               const employeeLeaveLedger = (
-                await this.leaveApplicationService.rawQuery(`CALL sp_generate_leave_ledger_view(?,?)`, [leaveApplicationId.employeeId, companyId])
+                await this.leaveApplicationService.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [leaveApplicationId.employeeId, companyId, dayjs().year()])
               )[0] as LeaveLedger[];
               const finalBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
               const { vacationLeaveBalance, sickLeaveBalance, forcedLeaveBalance, specialPrivilegeLeaveBalance } = finalBalance;
