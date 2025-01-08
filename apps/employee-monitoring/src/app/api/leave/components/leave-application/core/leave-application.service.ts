@@ -141,7 +141,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
           const excessCreditEarnings = excessDates * dailyLeaveCredit;
           const employeeLeaveLedger = (
-            await this.rawQuery(`CALL sp_generate_leave_ledger_view(?,?)`, [rest.employeeId, companyId])
+            await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [rest.employeeId, companyId, dayjs().year()])
           )[0] as LeaveLedger[];
           const finalBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
 
