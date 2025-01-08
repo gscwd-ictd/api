@@ -15,7 +15,7 @@ import { AuthenticatedUser } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'leave' })
 export class LeaveController {
-  constructor(private readonly leaveService: LeaveService) {}
+  constructor(private readonly leaveService: LeaveService) { }
 
   @Get('hrmo/:year_month')
   async getLeavesForHrApprovalByYearMonth(@Param('year_month') yearMonth: string) {
@@ -71,9 +71,9 @@ export class LeaveController {
     return await this.leaveService.cancelLeaveDate(LeaveDateCancellationDto);
   }
 
-  @Get('ledger/:employee_id/:company_id')
-  async getLeaveLedger(@Param('employee_id') employeeId: string, @Param('company_id') companyId: string) {
-    return await this.leaveService.getLeaveLedger(employeeId, companyId);
+  @Get('ledger/:employee_id/:company_id/:year')
+  async getLeaveLedger(@Param('employee_id') employeeId: string, @Param('company_id') companyId: string, @Param('year') year: number) {
+    return await this.leaveService.getLeaveLedger(employeeId, companyId, year);
   }
 
   @Patch('employee')
