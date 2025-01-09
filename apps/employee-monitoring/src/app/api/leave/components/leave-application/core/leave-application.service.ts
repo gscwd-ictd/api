@@ -60,8 +60,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     //   }
     // });
 
+    // console.log('test create leave: ', pendingSameLeaveType);
     // if (pendingSameLeaveType !== null)
     //   throw new ForbiddenException("You still have a pending Leave Application of the same Leave Type");
+    // console.log('Leave Application: ', pendingSameLeaveType);
 
     const monthNow = new Date(Date.now()).getMonth() + 1;
     const now =
@@ -145,7 +147,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           const finalBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
 
           const monetizedAmount: number =
-            Math.trunc(
+            Math.round(
               (parseFloat(finalBalance.vacationLeaveBalance.toString()) +
                 parseFloat(finalBalance.sickLeaveBalance.toString()) +
                 excessCreditEarnings * 2) *
