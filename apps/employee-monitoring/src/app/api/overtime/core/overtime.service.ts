@@ -1377,13 +1377,13 @@ export class OvertimeService {
       `
       SELECT DISTINCT oe.employee_id_fk employeeId, oe.salary_grade_amount salaryGradeAmount,oe.daily_rate dailyRate FROM overtime_employee oe 
         INNER JOIN overtime_application oa ON oa.overtime_application_id = oe.overtime_application_id_fk 
-        INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
+        LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
         INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id 
       WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND date_format(planned_date,'%d') IN (?) 
-      AND ois.employee_id_fk = ? 
+      AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?) 
       AND oacc.status IN ('approved','pending') 
     ;`,
-      [year, _month, days, immediateSupervisorEmployeeId]
+      [year, _month, days, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId]
     )) as { employeeId: string; salaryGradeAmount: number; dailyRate: number }[];
 
     const employeeDetails = await Promise.all(
@@ -1401,7 +1401,7 @@ export class OvertimeService {
 
         const hourlyMonthlyRate = {
           hourlyRate:
-            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount / 22 / 8 : employee.dailyRate / 8,
+            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? Math.round((employee.salaryGradeAmount / 22 / 8) * 100) / 100 : Math.round((employee.dailyRate / 8) * 100) / 100,
           monthlyRate:
             _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate * 22,
         };
