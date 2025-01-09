@@ -24,12 +24,18 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
   }
 
   async createApplicationDatesTransaction(transactionEntityManager: EntityManager, createLeaveApplicationDatesDto: CreateLeaveApplicationDatesDto) {
-    return await this.crudService.transact<LeaveApplicationDates>(transactionEntityManager).create({
-      dto: createLeaveApplicationDatesDto,
-      onError: ({ error }) => {
-        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
-      },
-    });
+    try {
+      return await this.crudService.transact<LeaveApplicationDates>(transactionEntityManager).create({
+        dto: createLeaveApplicationDatesDto,
+        // onError: ({ error }) => {
+        //   console.log({ error });
+        //   return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+        // },
+      });
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(error.message, error.status);
+    }
   }
 
   async cancelLeaveDateTransaction(transactionEntityManager: EntityManager, leaveDateCancellationDto: LeaveDateCancellationDto) {
