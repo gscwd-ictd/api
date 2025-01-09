@@ -1397,7 +1397,7 @@ export class OvertimeService {
 
         const hourlyMonthlyRate = {
           hourlyRate:
-            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount / 22 / 8 : employee.dailyRate / 8,
+            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? Math.round((employee.salaryGradeAmount / 22 / 8) * 100) / 100 : Math.round((employee.dailyRate / 8) * 100) / 100,
           monthlyRate:
             _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate * 22,
         };
