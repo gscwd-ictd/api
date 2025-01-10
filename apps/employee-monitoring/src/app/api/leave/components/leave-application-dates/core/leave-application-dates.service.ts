@@ -28,13 +28,13 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
       return await this.crudService.transact<LeaveApplicationDates>(transactionEntityManager).create({
         dto: createLeaveApplicationDatesDto,
         // onError: ({ error }) => {
-        //   console.log({ error });
-        //   return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+        //   //console.log(error);
+        //   throw new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
         // },
       });
     } catch (error) {
       console.log(error);
-      throw new HttpException(error.message, error.status);
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
