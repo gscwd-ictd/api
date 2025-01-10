@@ -24,12 +24,19 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
   }
 
   async createApplicationDatesTransaction(transactionEntityManager: EntityManager, createLeaveApplicationDatesDto: CreateLeaveApplicationDatesDto) {
-    return await this.crudService.transact<LeaveApplicationDates>(transactionEntityManager).create({
-      dto: createLeaveApplicationDatesDto,
-      onError: ({ error }) => {
-        return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
-      },
-    });
+    try {
+      return await this.crudService.transact<LeaveApplicationDates>(transactionEntityManager).create({
+        dto: createLeaveApplicationDatesDto,
+        // onError: ({ error }) => {
+        //   //console.log(error);
+        //   throw new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
+        // },
+      });
+    }
+    catch (error) {
+      console.log(error)
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   async cancelLeaveDateTransaction(transactionEntityManager: EntityManager, leaveDateCancellationDto: LeaveDateCancellationDto) {
@@ -94,7 +101,7 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
 
             const leaveAddBackId = await this.leaveAddBackService.addLeaveAddBackTransaction(
               {
-                creditValue: 1,
+                creditValue: leaveName !== 'Leave Without Pay' ? 1 : 0,
                 leaveApplicationDatesId,
                 reason: 'Cancelled Leave Date',
               },

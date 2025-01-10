@@ -336,7 +336,7 @@ export class LeaveService {
 
             const leaveAddBack = await this.leaveAddBackService.addLeaveAddBackTransaction(
               {
-                creditValue: 1,
+                creditValue: leaveName !== 'Leave Without Pay' ? 1 : 0,
                 leaveApplicationDatesId: leaveApplicationDate,
                 reason,
               },
