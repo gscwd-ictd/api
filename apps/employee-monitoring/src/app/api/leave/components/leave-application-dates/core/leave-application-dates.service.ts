@@ -100,7 +100,7 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
 
             const leaveAddBackId = await this.leaveAddBackService.addLeaveAddBackTransaction(
               {
-                creditValue: 1,
+                creditValue: leaveName !== 'Leave Without Pay' ? 1 : 0,
                 leaveApplicationDatesId,
                 reason: 'Cancelled Leave Date',
               },

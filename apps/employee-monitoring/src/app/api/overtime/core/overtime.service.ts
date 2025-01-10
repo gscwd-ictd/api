@@ -1397,7 +1397,9 @@ export class OvertimeService {
 
         const hourlyMonthlyRate = {
           hourlyRate:
-            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? Math.round((employee.salaryGradeAmount / 22 / 8) * 100) / 100 : Math.round((employee.dailyRate / 8) * 100) / 100,
+            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual'
+              ? Math.round((employee.salaryGradeAmount / 22 / 8) * 100) / 100
+              : Math.round((employee.dailyRate / 8) * 100) / 100,
           monthlyRate:
             _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate * 22,
         };
@@ -1411,15 +1413,15 @@ export class OvertimeService {
             try {
               const overtime = (await this.overtimeApplicationService.rawQuery(
                 `
-              SELECT date_format(planned_date,'%d') \`day\`,
-              oa.overtime_application_id overtimeApplicationId
-                FROM overtime_application oa 
-              INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
-              INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id 
-              INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
-              WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND  date_format(planned_date,'%d') = ? 
-              AND oe.employee_id_fk = ? AND oacc.status IN ('approved','pending') AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?)
-              ORDER BY \`day\` ASC;
+                  SELECT date_format(planned_date,'%d') \`day\`,
+                  oa.overtime_application_id overtimeApplicationId
+                    FROM overtime_application oa 
+                  INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
+                  INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id 
+                  LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
+                  WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND  date_format(planned_date,'%d') = ? 
+                  AND oe.employee_id_fk = ? AND oacc.status IN ('approved','pending') AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?)
+                  ORDER BY \`day\` ASC;
               `,
                 [year, _month, _day, employee.employeeId, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId]
               )) as {
