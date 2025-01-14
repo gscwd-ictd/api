@@ -64,7 +64,8 @@ export class OvertimeService {
         const approval = await this.overtimeApprovalService.createOvertimeApproval(
           {
             overtimeApplicationId: application,
-            managerId: dmanagerId,
+            //managerId: dmanagerId,
+            managerId: null,
           },
           entityManager
         );
@@ -1029,7 +1030,6 @@ export class OvertimeService {
       dto: { accomplishments },
       updateBy: { overtimeEmployeeId: { id: overtimeEmployeeId.id } },
     });
-
     if (result.affected > 0) return updateOvertimeAccomplishmentByEmployeeDto;
   }
 
@@ -1081,7 +1081,6 @@ export class OvertimeService {
 
   async getOvertimeAccomplishmentByEmployeeId(employeeId: string) {
     //!TODO refactor this
-
     try {
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
 
@@ -1415,6 +1414,9 @@ export class OvertimeService {
           days.map(async (_day) => {
             const empSched = await this.isRegularOvertimeDay(employee.employeeId, year, month, _day);
             //!TODO get every overtime of the employee on specific year and month on specified days in the half chosen
+            const filterForEmployeeRate = _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? `AND oe.salary_grade_amount = ? AND oe.daily_rate IS NULL ` :
+              `AND oe.salary_grade_amount IS NULL AND oe.daily_rate = ? `;
+            const employeeRate = _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate;
             try {
               const overtime = (await this.overtimeApplicationService.rawQuery(
                 `
@@ -1426,9 +1428,10 @@ export class OvertimeService {
               LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
               WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND  date_format(planned_date,'%d') = ? 
               AND oe.employee_id_fk = ? AND oacc.status IN ('approved','pending') AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?) 
+              `+ filterForEmployeeRate + `
               ORDER BY \`day\` ASC;
               `,
-                [year, _month, _day, employee.employeeId, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId]
+                [year, _month, _day, employee.employeeId, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, employeeRate]
               )) as {
                 day: number;
                 overtimeApplicationId: string;

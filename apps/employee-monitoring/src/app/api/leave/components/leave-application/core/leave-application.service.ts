@@ -637,9 +637,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
   }
 
   async getFormattedMonetizationDetails(leaveApplicationId: string) {
-    const { convertedSl, convertedVl, monetizedAmount } = await this.getMonetizationDetails(leaveApplicationId);
+    const { convertedSl, convertedVl, monetizedAmount, monetizationType } = await this.getMonetizationDetails(leaveApplicationId);
     const formattedMonetizedAmount = Math.trunc(parseFloat(monetizedAmount.toString()) * 1000) / 1000;
     return {
+      monetizationType,
       monetizedAmount:
         '₱ ' +
         formattedMonetizedAmount.toLocaleString(undefined, {
