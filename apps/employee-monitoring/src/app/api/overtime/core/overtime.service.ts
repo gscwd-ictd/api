@@ -64,7 +64,8 @@ export class OvertimeService {
         const approval = await this.overtimeApprovalService.createOvertimeApproval(
           {
             overtimeApplicationId: application,
-            managerId: dmanagerId,
+            //managerId: dmanagerId,
+            managerId: null,
           },
           entityManager
         );
@@ -1022,7 +1023,6 @@ export class OvertimeService {
       dto: { accomplishments },
       updateBy: { overtimeEmployeeId: { id: overtimeEmployeeId.id } },
     });
-
     if (result.affected > 0) return updateOvertimeAccomplishmentByEmployeeDto;
   }
 
@@ -1074,7 +1074,6 @@ export class OvertimeService {
 
   async getOvertimeAccomplishmentByEmployeeId(employeeId: string) {
     //!TODO refactor this
-
     try {
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
 
