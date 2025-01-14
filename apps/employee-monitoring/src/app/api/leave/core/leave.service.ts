@@ -97,6 +97,7 @@ export class LeaveService {
           dateOfFiling: true,
           employeeId: true,
           forBarBoardReview: true,
+          referenceNo: true,
           forMastersCompletion: true,
           forMonetization: true,
           inHospital: true,
@@ -266,7 +267,7 @@ export class LeaveService {
                 leaveBenefitsId: vlLeaveBenefitsId,
                 remarks:
                   leaveName === 'Monetization'
-                    ? `VL deduction from monetization`
+                    ? `VL deduction from monetization | ` + leaveApplicationId.referenceNo
                     : `VL deduction from Terminal Leave` +
                     ` (` +
                     dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
@@ -287,7 +288,7 @@ export class LeaveService {
                 leaveBenefitsId: slLeaveBenefitsId,
                 remarks:
                   leaveName === 'Monetization'
-                    ? `SL deduction from monetization`
+                    ? `SL deduction from monetization | ` + leaveApplicationId.referenceNo
                     : `SL deduction from Terminal Leave` +
                     ` (` +
                     dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
