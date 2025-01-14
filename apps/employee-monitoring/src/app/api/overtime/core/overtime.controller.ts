@@ -5,13 +5,12 @@ import {
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { OvertimeService } from './overtime.service';
 
-//@UseInterceptors(UserLogsInterceptor)
 @Controller({ version: '1', path: 'overtime' })
 export class OvertimeController {
-  constructor(private readonly overtimeService: OvertimeService) {}
+  constructor(private readonly overtimeService: OvertimeService) { }
 
   @Post()
   async createOvertime(@Body() createOverTimeDto: CreateOvertimeDto) {
