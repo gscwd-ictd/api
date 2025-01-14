@@ -75,9 +75,12 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
         INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk 
         INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
         LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
-        WHERE oe.employee_id_fk IN (?) AND (ois.employee_id_fk <> ? OR oa.manager_id_fk <> ?) ORDER BY planned_date DESC;
+        WHERE oe.employee_id_fk IN (?) AND (ois.employee_id_fk <> ? OR oa.manager_id_fk <> ?) 
+        AND (oapp.manager_id_fk = ? 
+        OR oapp.manager_id_fk IS NULL) 
+        ORDER BY planned_date DESC;
     `,
-      [employeeIds, managerId, managerId]
+      [employeeIds, managerId, managerId, managerId]
     )) as {
       overtimeApplicationId: string;
       employeeId: string;
