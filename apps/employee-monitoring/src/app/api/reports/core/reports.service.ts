@@ -285,7 +285,7 @@ export class ReportsService {
         const employeeDetails = await this.employeesService.getEmployeeDetails(value);
         const { companyId } = employeeDetails;
         const leaveDetails = (
-          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
+          await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear])
         )[0];
         const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
 
@@ -320,7 +320,7 @@ export class ReportsService {
         const employeeDetails = await this.employeesService.getEmployeeDetails(value);
         const { companyId } = employeeDetails;
         const leaveDetails = (
-          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
+          await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear])
         )[0];
         const year = dayjs(monthYear + '-01').year();
         const { sickLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
