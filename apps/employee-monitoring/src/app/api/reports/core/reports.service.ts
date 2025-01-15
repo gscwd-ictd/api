@@ -7,7 +7,7 @@ import { last } from 'rxjs';
 
 @Injectable()
 export class ReportsService {
-  constructor(private readonly employeesService: EmployeesService, private readonly dtrService: DailyTimeRecordService) {}
+  constructor(private readonly employeesService: EmployeesService, private readonly dtrService: DailyTimeRecordService) { }
 
   async generateReportOnAttendance(dateFrom: Date, dateTo: Date) {
     const employees = await this.employeesService.getAllPermanentCasualEmployees2();
@@ -322,33 +322,35 @@ export class ReportsService {
         const leaveDetails = (
           await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
         )[0];
+        const year = dayjs(monthYear + '-01').year();
         const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
-        const monthlyRate = ((await this.employeesService.getMonthlyHourlyRateByEmployeeId(value)) as { monthlyRate: number }).monthlyRate;
+        //const monthlyRate = ((await this.employeesService.getMonthlyHourlyRateByEmployeeId(value)) as { monthlyRate: number }).monthlyRate;
+        const monthlyRate = (await this.dtrService.rawQuery(`get_salary_grade_amount_by_employee_id_year(?,?) amount;`, [value, year])[0].amount);
         const totalVacationLeave = parseFloat(
           parseFloat(vacationLeaveBalance).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
           })
         );
 
         return {
           companyId,
           name: label,
-          vacationLeaveBalance: totalVacationLeave.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          vacationLeaveBalance: totalVacationLeave.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
           sickLeaveBalance: sickLeaveBalance.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
           }),
           totalLeaveBalance: (totalVacationLeave + parseFloat(sickLeaveBalance)).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
           }),
           monthlyRate: monthlyRate.toLocaleString(),
           conversion: (parseFloat((monthlyRate * (totalVacationLeave + parseFloat(sickLeaveBalance))).toString()) * 0.0481927).toLocaleString(
             undefined,
             {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
+              minimumFractionDigits: 3,
+              maximumFractionDigits: 3,
             }
           ),
         };
