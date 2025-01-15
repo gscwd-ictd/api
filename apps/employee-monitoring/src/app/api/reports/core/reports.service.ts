@@ -259,17 +259,17 @@ export class ReportsService {
         const employeeDetails = await this.employeesService.getEmployeeDetails(value);
         const { companyId } = employeeDetails;
         const leaveDetails = (
-          await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
+          await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear])
         )[0];
         const { forcedLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
         return {
           companyId,
           name: label,
           forcedLeaveBalance: parseFloat(forcedLeaveBalance).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
           }),
-          vacationLeaveBalance: parseFloat(vacationLeaveBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          vacationLeaveBalance: parseFloat(vacationLeaveBalance).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
         };
       })
     );
@@ -287,7 +287,7 @@ export class ReportsService {
         const leaveDetails = (
           await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear])
         )[0];
-        const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
+        const { sickLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
 
         const totalVacationLeave = parseFloat(
           parseFloat(vacationLeaveBalance).toLocaleString(undefined, {
@@ -324,7 +324,7 @@ export class ReportsService {
         )[0];
         const year = dayjs(monthYear + '-01').year();
         const { sickLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
-        //const monthlyRate = ((await this.employeesService.getMonthlyHourlyRateByEmployeeId(value)) as { monthlyRate: number }).monthlyRate;
+
         const monthlyRate = (await this.dtrService.rawQuery(`SELECT get_salary_grade_amount_by_employee_id_year(?,?) amount;`, [value, year]))[0]
           .amount as number;
 
