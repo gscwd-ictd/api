@@ -291,19 +291,19 @@ export class ReportsService {
 
         const totalVacationLeave = parseFloat(
           parseFloat(vacationLeaveBalance).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
           })
         );
 
         return {
           companyId,
           name: label,
-          sickLeaveBalance: parseFloat(sickLeaveBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          vacationLeaveBalance: totalVacationLeave.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          sickLeaveBalance: parseFloat(sickLeaveBalance).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+          vacationLeaveBalance: totalVacationLeave.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
           totalLeaveBalance: (totalVacationLeave + parseFloat(sickLeaveBalance)).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
           }),
         };
       })
@@ -323,9 +323,11 @@ export class ReportsService {
           await this.dtrService.rawQuery(`CALL sp_generate_leave_ledger_view_by_month_year(?,?,?);`, [value, companyId, monthYear])
         )[0];
         const year = dayjs(monthYear + '-01').year();
-        const { sickLeaveBalance, vacationLeaveBalance, forcedLeaveBalance } = leaveDetails[leaveDetails.length - 1];
+        const { sickLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
         //const monthlyRate = ((await this.employeesService.getMonthlyHourlyRateByEmployeeId(value)) as { monthlyRate: number }).monthlyRate;
-        const monthlyRate = (await this.dtrService.rawQuery(`get_salary_grade_amount_by_employee_id_year(?,?) amount;`, [value, year])[0].amount);
+        const monthlyRate = (await this.dtrService.rawQuery(`SELECT get_salary_grade_amount_by_employee_id_year(?,?) amount;`, [value, year]))[0]
+          .amount as number;
+
         const totalVacationLeave = parseFloat(
           parseFloat(vacationLeaveBalance).toLocaleString(undefined, {
             minimumFractionDigits: 3,
