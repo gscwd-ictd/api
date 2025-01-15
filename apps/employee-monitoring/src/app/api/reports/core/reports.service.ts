@@ -348,13 +348,13 @@ export class ReportsService {
             maximumFractionDigits: 3,
           }),
           monthlyRate: monthlyRate.toLocaleString(),
-          conversion: ((Math.round(parseFloat((monthlyRate * (totalVacationLeave + parseFloat(sickLeaveBalance))).toString()) * 0.0481927) * 100) / 100).toLocaleString(
-            undefined,
-            {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }
-          ),
+          conversion: (
+            (parseFloat((monthlyRate * (totalVacationLeave + parseFloat(sickLeaveBalance))).toString()) * 0.0481927 * 100) /
+            100
+          ).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
         };
       })
     );
