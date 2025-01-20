@@ -7,21 +7,25 @@ import { last } from 'rxjs';
 
 @Injectable()
 export class ReportsService {
-  constructor(private readonly employeesService: EmployeesService, private readonly dtrService: DailyTimeRecordService) { }
+  constructor(private readonly employeesService: EmployeesService, private readonly dtrService: DailyTimeRecordService) {}
 
   async generateReportOnAttendance(dateFrom: Date, dateTo: Date) {
-    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+    try {
+      const employees = await this.employeesService.getAllPermanentCasualEmployees2();
 
-    const employeeAttendance = await Promise.all(
-      employees.map(async (employee) => {
-        const companyId = await this.employeesService.getCompanyId(employee.value);
-        const name = employee.label;
+      const employeeAttendance = await Promise.all(
+        employees.map(async (employee) => {
+          const companyId = await this.employeesService.getCompanyId(employee.value);
+          const name = employee.label;
 
-        const report = (await this.dtrService.rawQuery(`CALL sp_generate_report_on_attendance(?,?,?);`, [companyId, dateFrom, dateTo]))[0][0];
-        return { companyId, name, ...report };
-      })
-    );
-    return employeeAttendance;
+          const report = (await this.dtrService.rawQuery(`CALL sp_generate_report_on_attendance(?,?,?);`, [companyId, dateFrom, dateTo]))[0][0];
+          return { companyId, name, ...report };
+        })
+      );
+      return employeeAttendance;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async generateReportOnPersonalPassSlip(dateFrom: Date, dateTo: Date) {
@@ -258,9 +262,7 @@ export class ReportsService {
         const { value, label } = employee;
         const employeeDetails = await this.employeesService.getEmployeeDetails(value);
         const { companyId } = employeeDetails;
-        const leaveDetails = (
-          await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear])
-        )[0];
+        const leaveDetails = (await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear]))[0];
         const { forcedLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
         return {
           companyId,
@@ -284,9 +286,7 @@ export class ReportsService {
         const { value, label } = employee;
         const employeeDetails = await this.employeesService.getEmployeeDetails(value);
         const { companyId } = employeeDetails;
-        const leaveDetails = (
-          await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear])
-        )[0];
+        const leaveDetails = (await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear]))[0];
         const { sickLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
 
         const totalVacationLeave = parseFloat(
@@ -319,9 +319,7 @@ export class ReportsService {
         const { value, label } = employee;
         const employeeDetails = await this.employeesService.getEmployeeDetails(value);
         const { companyId } = employeeDetails;
-        const leaveDetails = (
-          await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear])
-        )[0];
+        const leaveDetails = (await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear]))[0];
         const year = dayjs(monthYear + '-01').year();
         const { sickLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
 
