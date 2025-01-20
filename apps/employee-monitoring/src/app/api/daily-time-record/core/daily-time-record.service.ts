@@ -2,7 +2,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { CreateDtrRemarksDto, DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto, UpdateDtrRemarksDto } from '@gscwd-api/models';
-import { DtrPayload, IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType, DtrDeductionType } from '@gscwd-api/utils';
+import { IvmsEntry, EmployeeScheduleType, MonthlyDtrItemType, DtrDeductionType } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
@@ -11,7 +11,6 @@ import { HolidaysService } from '../../holidays/core/holidays.service';
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
 import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
-import { Console } from 'console';
 
 @Injectable()
 export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
@@ -682,7 +681,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           const leaveCardItem = await this.leaveCardLedgerDebitService
             .crud()
             .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.HALFDAY } } });
-          let debitValue = 0;
           const passSlipCount = (
             await this.rawQuery(
               `SELECT COUNT(pass_slip_id) passSlipCount FROM pass_slip ps
@@ -1475,4 +1473,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     const dtrRemarksResult = await this.crud().update({ dto: { remarks: updateDtrRemarksDto.remarks }, updateBy: { id: updateDtrRemarksDto.dtrId } });
     if (dtrRemarksResult.affected > 0) return updateDtrRemarksDto;
   }
+
+  //12 midnight
+  @Cron('0 59 23 * *')
+  async sendNotifDayShiftNoTimeOut() {}
+
+  //12 noon
+  @Cron('0 0 12 * *')
+  async sendNotifNightShiftNoTimeOut() {}
 }
