@@ -154,8 +154,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
                 parseFloat(finalBalance.sickLeaveBalance.toString()) +
                 excessCreditEarnings * 2) *
               (salaryGradeAmount * monetizationConstant) *
-              100
-            ) / 100;
+              1000
+            ) / 1000;
 
           const leaveMonetization = await this.leaveMonetizationService.createLeaveMonetization(
             transactionEntityManager,
@@ -163,7 +163,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
               convertedSl: excessCreditEarnings + parseFloat(finalBalance.sickLeaveBalance.toString()),
               convertedVl: excessCreditEarnings + parseFloat(finalBalance.vacationLeaveBalance.toString()),
               monetizationType: MonetizationType.TERMINAL,
-              monetizedAmount,
+              monetizedAmount: Math.round(monetizedAmount * 100) / 100,
             },
             leaveApplication
           );
