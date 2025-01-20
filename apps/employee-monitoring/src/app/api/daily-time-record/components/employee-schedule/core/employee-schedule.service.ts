@@ -8,6 +8,7 @@ import { DataSource, EntityManager } from 'typeorm';
 import { CustomGroupMembersService } from '../../../../custom-groups/components/custom-group-members/core/custom-group-members.service';
 import { EmployeeRestDaysService } from '../components/employee-rest-day/components/employee-rest-days/core/employee-rest-days.service';
 import { EmployeeRestDayService } from '../components/employee-rest-day/core/employee-rest-day.service';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
@@ -141,30 +142,33 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
       const schedule = (
         await this.rawQuery<string, EmployeeScheduleType>(
           `
-    SELECT DISTINCT 
-        s.schedule_id id,
-        es.date_from esDateFrom,
-        es.date_to esDateTo,
-        s.name scheduleName, 
-        s.schedule_type scheduleType, 
-        s.time_in timeIn,
-        s.lunch_out lunchOut,
-        s.lunch_in lunchIn, 
-        s.time_out timeOut, 
-        s.shift shift,
-        s.schedule_base scheduleBase,
-        IF(s.is_with_lunch = 1,'true','false') withLunch,
-        DATE_FORMAT(emr.date_from,'%Y-%m-%d') dateFrom,
-        DATE_FORMAT(emr.date_to,'%Y-%m-%d') dateTo,
-        concat(DATE_FORMAT(emr.date_from,'%Y-%m-%d'),'-',DATE_FORMAT(emr.date_to,'%Y-%m-%d')) scheduleRange,
-        GROUP_CONCAT(emrs.rest_day SEPARATOR ', ') restDaysNumbers,
-        GROUP_CONCAT(get_weekday((emrs.rest_day - 1)) SEPARATOR ', ') restDaysNames 
-    FROM employee_schedule es 
-    INNER JOIN schedule s ON s.schedule_id = es.schedule_id_fk 
-    LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
-    INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
-    WHERE emr.employee_id_fk = ? AND ( ? BETWEEN emr.date_from AND emr.date_to ) AND ( ? BETWEEN es.date_from AND es.date_to ) 
-    GROUP BY s.schedule_id,es.created_at,dateFrom, dateTo,scheduleRange,es.date_from,es.date_to ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, DATE_FORMAT(es.date_to,'%Y-%m-%d') DESC,DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC LIMIT 1`,
+            SELECT DISTINCT 
+                s.schedule_id id,
+                es.date_from esDateFrom,
+                es.date_to esDateTo,
+                s.name scheduleName, 
+                s.schedule_type scheduleType, 
+                s.time_in timeIn,
+                s.lunch_out lunchOut,
+                s.lunch_in lunchIn, 
+                s.time_out timeOut, 
+                s.shift shift,
+                s.schedule_base scheduleBase,
+                IF(s.is_with_lunch = 1,'true','false') withLunch,
+                DATE_FORMAT(emr.date_from,'%Y-%m-%d') dateFrom,
+                DATE_FORMAT(emr.date_to,'%Y-%m-%d') dateTo,
+                concat(DATE_FORMAT(emr.date_from,'%Y-%m-%d'),'-',DATE_FORMAT(emr.date_to,'%Y-%m-%d')) scheduleRange,
+                GROUP_CONCAT(emrs.rest_day SEPARATOR ', ') restDaysNumbers,
+                GROUP_CONCAT(get_weekday((emrs.rest_day - 1)) SEPARATOR ', ') restDaysNames 
+            FROM employee_schedule es 
+            INNER JOIN schedule s ON s.schedule_id = es.schedule_id_fk 
+            LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
+            INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk 
+            WHERE emr.employee_id_fk = ? AND ( ? BETWEEN emr.date_from AND emr.date_to ) AND ( ? BETWEEN es.date_from AND es.date_to ) 
+            GROUP BY s.schedule_id,es.created_at,dateFrom, dateTo,scheduleRange,es.date_from,es.date_to 
+            ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, 
+            DATE_FORMAT(es.date_to,'%Y-%m-%d') DESC, 
+            DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC LIMIT 1`,
           [employeeId, currDateString, currDateString]
         )
       )[0];
@@ -276,7 +280,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
 
       return { employeeName: employeeName.fullName, schedule: { ...schedule } };
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 

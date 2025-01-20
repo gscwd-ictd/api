@@ -53,7 +53,6 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
   }
 
   async getWorkSuspensionHoursBySuspensionDateAndScheduleTimeOut(scheduleTimeOut: string, dtrDate: Date) {
-    //SELECT get_work_suspension_hours_by_date_and_schedule_time_out('2024-07-22', '21:00');
     return (
       await this.rawQuery(
         `
