@@ -13,7 +13,7 @@ import {
   VacationLeaveDetails,
 } from '@gscwd-api/utils';
 import { RpcException } from '@nestjs/microservices';
-import { DataSource, EntityManager } from 'typeorm';
+import { Between, DataSource, EntityManager } from 'typeorm';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
@@ -857,9 +857,24 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         },
         relations: { leaveBenefitsId: true },
         where: [
-          { status: LeaveApplicationStatus.FOR_HRDM_APPROVAL },
-          { status: LeaveApplicationStatus.APPROVED },
-          { status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM },
+          {
+            status: LeaveApplicationStatus.FOR_HRDM_APPROVAL, dateOfFiling: Between(
+              dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
+              dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
+            )
+          },
+          {
+            status: LeaveApplicationStatus.APPROVED, dateOfFiling: Between(
+              dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
+              dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
+            )
+          },
+          {
+            status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM, dateOfFiling: Between(
+              dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
+              dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
+            )
+          },
         ],
         order: { dateOfFiling: 'DESC' },
       },
