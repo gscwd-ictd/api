@@ -37,15 +37,16 @@ const whitelist = [
 ];
 //${process.env.EMPLOYEE_MONITORING_REDIS_HOST}
 const redisClientHrms = redis.createClient({
-  url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:6479`,
+  url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:${process.env.RSP_AUTH_PORT}`,
+  //password: process.env.RSP_AUTH_PASSWORD,
 });
 
 redisClientHrms.connect().catch(console.error);
 
-const redisClientPortal = redis.createClient({
-  url: `redis://localhost:6379`,
-});
-redisClientPortal.connect().catch(console.error);
+// const redisClientPortal = redis.createClient({
+//   url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:6479`,
+// });
+// redisClientPortal.connect().catch(console.error);
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -100,6 +101,7 @@ async function bootstrap() {
     options: {
       host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
       port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
+      password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
     },
   });
 
@@ -107,7 +109,7 @@ async function bootstrap() {
   //   transport: Transport.REDIS,
   //   options:{
   //     host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
-  //     port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT)
+  //     port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
   //   }
   // })
 

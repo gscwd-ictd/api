@@ -62,14 +62,25 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
 
     const employees = (await this.rawQuery(
       `
-        SELECT DISTINCT overtime_application_id overtimeApplicationId, COALESCE(ois.employee_id_fk, oa.manager_id_fk) employeeId, planned_date plannedDate, estimated_hours estimatedHours, purpose, oa.status status,oapp.date_approved dateApproved,oapp.remarks remarks 
+        SELECT DISTINCT 
+        overtime_application_id overtimeApplicationId, 
+        COALESCE(ois.employee_id_fk, oa.manager_id_fk) employeeId, 
+        planned_date plannedDate, 
+        estimated_hours estimatedHours, 
+        purpose, 
+        oa.status status,
+        oapp.date_approved dateApproved,
+        oapp.remarks remarks 
           FROM overtime_application oa 
         INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk 
         INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
         LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
-        WHERE oe.employee_id_fk IN (?) AND oa.manager_id_fk<>? ORDER BY planned_date DESC;
+        WHERE oe.employee_id_fk IN (?) AND (ois.employee_id_fk <> ? OR oa.manager_id_fk <> ?) 
+        AND (oapp.manager_id_fk = ? 
+        OR oapp.manager_id_fk IS NULL) 
+        ORDER BY planned_date DESC;
     `,
-      [employeeIds, managerId]
+      [employeeIds, managerId, managerId, managerId]
     )) as {
       overtimeApplicationId: string;
       employeeId: string;

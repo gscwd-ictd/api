@@ -1,13 +1,21 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UseFilters } from '@nestjs/common';
 import { OfficerOfTheDayService } from './officer-of-the-day.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+import { MsExceptionFilter } from '@gscwd-api/utils';
 
 @Controller()
 export class OfficerOfTheDayMsController {
-  constructor(private readonly officerOfTheDayService: OfficerOfTheDayService) {}
+  constructor(private readonly officerOfTheDayService: OfficerOfTheDayService) { }
 
+  @UseFilters(new MsExceptionFilter())
   @MessagePattern('get_officer_of_the_day_orgs')
   async getOfficerOfTheDayOrgs(@Payload() employeeId: string) {
-    return await this.officerOfTheDayService.getOfficerOfTheDayOrgs(employeeId);
+    try {
+      return await this.officerOfTheDayService.getOfficerOfTheDayOrgs(employeeId);
+    }
+    catch (error) {
+      throw new RpcException(error.message);
+    }
+
   }
 }

@@ -36,7 +36,7 @@ export class LeaveService {
     private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
     private readonly leaveMonetizationService: LeaveMonetizationService,
     private readonly dataSource: DataSource
-  ) {}
+  ) { }
 
   async getLeavesUnderSupervisor(supervisorId: string) {
     return await this.leaveApplicationService.getLeavesUnderSupervisor(supervisorId);
@@ -62,8 +62,8 @@ export class LeaveService {
     return await this.leaveApplicationService.getLeavesForHrdmV2();
   }
 
-  async getLeaveLedger(employeeId: string, companyId: string) {
-    const ledger = (await this.leaveApplicationService.crud().getRepository().query(`CALL sp_get_employee_ledger(?,?);`, [employeeId, companyId]))[0];
+  async getLeaveLedger(employeeId: string, companyId: string, year: number) {
+    const ledger = (await this.leaveApplicationService.crud().getRepository().query(`CALL sp_get_employee_ledger(?,?,?);`, [employeeId, companyId, year]))[0];
     return ledger;
   }
 
@@ -97,6 +97,7 @@ export class LeaveService {
           dateOfFiling: true,
           employeeId: true,
           forBarBoardReview: true,
+          referenceNo: true,
           forMastersCompletion: true,
           forMonetization: true,
           inHospital: true,
@@ -173,6 +174,8 @@ export class LeaveService {
             });
           }
 
+          //!todo add condition for rehabilitation leave
+
           if (leaveName === 'Monetization' || leaveName === 'Terminal Leave') {
             //leaveApplicationId.
 
@@ -193,7 +196,7 @@ export class LeaveService {
             if (leaveName === 'Terminal Leave') {
               const companyId = await this.employeesService.getCompanyId(leaveApplicationId.employeeId);
               const employeeLeaveLedger = (
-                await this.leaveApplicationService.rawQuery(`CALL sp_generate_leave_ledger_view(?,?)`, [leaveApplicationId.employeeId, companyId])
+                await this.leaveApplicationService.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [leaveApplicationId.employeeId, companyId, dayjs().year()])
               )[0] as LeaveLedger[];
               const finalBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
               const { vacationLeaveBalance, sickLeaveBalance, forcedLeaveBalance, specialPrivilegeLeaveBalance } = finalBalance;
@@ -264,13 +267,13 @@ export class LeaveService {
                 leaveBenefitsId: vlLeaveBenefitsId,
                 remarks:
                   leaveName === 'Monetization'
-                    ? `VL deduction from monetization`
+                    ? `VL deduction from monetization | ` + leaveApplicationId.referenceNo
                     : `VL deduction from Terminal Leave` +
-                      ` (` +
-                      dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
-                      `/₱ ` +
-                      monetizedAmount +
-                      `)`,
+                    ` (` +
+                    dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
+                    `/₱ ` +
+                    monetizedAmount +
+                    `)`,
                 employeeId: leaveApplicationId.employeeId,
               },
             });
@@ -285,13 +288,13 @@ export class LeaveService {
                 leaveBenefitsId: slLeaveBenefitsId,
                 remarks:
                   leaveName === 'Monetization'
-                    ? `SL deduction from monetization`
+                    ? `SL deduction from monetization | ` + leaveApplicationId.referenceNo
                     : `SL deduction from Terminal Leave` +
-                      ` (` +
-                      dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
-                      `/₱ ` +
-                      monetizedAmount +
-                      `)`,
+                    ` (` +
+                    dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
+                    `/₱ ` +
+                    monetizedAmount +
+                    `)`,
                 employeeId: leaveApplicationId.employeeId,
               },
             });
@@ -334,7 +337,7 @@ export class LeaveService {
 
             const leaveAddBack = await this.leaveAddBackService.addLeaveAddBackTransaction(
               {
-                creditValue: 1,
+                creditValue: leaveName !== 'Leave Without Pay' ? 1 : 0,
                 leaveApplicationDatesId: leaveApplicationDate,
                 reason,
               },

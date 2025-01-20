@@ -12,7 +12,7 @@ import { Throttle } from '@nestjs/throttler';
 
 @Controller({ version: '1', path: 'pass-slip' })
 export class PassSlipController {
-  constructor(private readonly passSlipService: PassSlipService, private readonly passSlipApprovalService: PassSlipApprovalService) {}
+  constructor(private readonly passSlipService: PassSlipService, private readonly passSlipApprovalService: PassSlipApprovalService) { }
 
   @Throttle({ default: { limit: 1, ttl: 3000 } })
   @Post()
@@ -90,5 +90,10 @@ export class PassSlipController {
   @Post('pass-slip-to-ledger/:date_applied')
   async passSlipToLedger(@Param('date_applied') dateApplied: string) {
     return await this.passSlipService.addPassSlipsToLedgerManually(dateApplied);
+  }
+
+  @Post('update-pass-slip-by-date/:date')
+  async updatePassSlipStatusByDate(@Param('date') date: string) {
+    return await this.passSlipService.updatePassSlipStatusByDate(date);
   }
 }

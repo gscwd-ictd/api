@@ -10,14 +10,15 @@ import {
 } from '@gscwd-api/models';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { LeaveLedger, NatureOfBusiness, ObTransportation, PassSlipApprovalStatus, PassSlipForDispute, PassSlipForLedger } from '@gscwd-api/utils';
+import { abbreviate, LeaveLedger, NatureOfBusiness, ObTransportation, PassSlipApprovalStatus, PassSlipForDispute, PassSlipForLedger } from '@gscwd-api/utils';
 import { Between, DataSource, IsNull, Not } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { OfficerOfTheDayService } from '../../officer-of-the-day/core/officer-of-the-day.service';
-import { weightSrvRecords } from 'ioredis/built/cluster/util';
+import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
+import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -28,8 +29,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     private readonly client: MicroserviceClient,
     private readonly employeeService: EmployeesService,
     private readonly officerOfTheDayService: OfficerOfTheDayService,
-    private readonly dailyTimeRecordService: DailyTimeRecordService,
     private readonly employeeScheduleService: EmployeeScheduleService,
+    private readonly dailyTimeRecordService: DailyTimeRecordService,
     private readonly dataSource: DataSource
   ) {
     super(crudService);
@@ -39,20 +40,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const { natureOfBusiness } = passSlipDto;
     const passSlip = await this.dataSource.transaction(async (transactionEntityManager) => {
       const { approval, supervisorId, isMedical, ...rest } = passSlipDto;
-
-      //const employeeAssignmentId = (await this.employeeService.getEmployeeDetails(rest.employeeId)).assignment.id;
       const employeeDetails = await this.employeeService.getEmployeeDetails(rest.employeeId);
-      //const natureOfAppointment = ;
-      //let supervisorId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeAssignmentId);
-
-      // if (supervisorId === null) {
-      //   supervisorId = (await this.client.call<string, string, string>({
-      //     action: 'send',
-      //     payload: rest.employeeId,
-      //     pattern: 'get_employee_supervisor_id',
-      //     onError: (error) => new NotFoundException(error),
-      //   })) as string;
-      // }
       //check leave ledger
       const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(rest.employeeId);
 
@@ -63,7 +51,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           isDeductibleToPay = true;
         } else {
           const employeeLeaveLedger = (
-            await this.rawQuery(`CALL sp_generate_leave_ledger_view(?,?)`, [rest.employeeId, employeeDetails.companyId])
+            await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [rest.employeeId, employeeDetails.companyId, dayjs().year()])
           )[0] as LeaveLedger[];
           const { sickLeaveBalance, vacationLeaveBalance } = employeeLeaveLedger[employeeLeaveLedger.length - 1];
 
@@ -628,7 +616,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       ...rest,
       employee: { name: employeeName, signature: employeeSignature },
       supervisor: { name: supervisorName, signature: supervisorSignature },
-      assignment: this.abbreviate(employeeAssignment.assignment.name),
+      assignment: abbreviate(employeeAssignment.assignment.name),
     };
   }
 
@@ -646,19 +634,6 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         return new HttpException(error, HttpStatus.BAD_REQUEST, { cause: error as Error });
       },
     });
-  }
-
-  //ilipat sa utils;
-  private abbreviate(word: string) {
-    const words = word.split(' ');
-    let abbreviation = '';
-
-    const capitalPattern = new RegExp('[A-Z]');
-
-    words.map((_word) => {
-      if (capitalPattern.test(_word[0])) abbreviation += _word[0];
-    });
-    return abbreviation;
   }
 
   async updatePassSlipTimeRecord(updatePassSlipTimeRecordDto: UpdatePassSlipTimeRecordDto) {
@@ -779,20 +754,29 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             //2.2.1 set time out to scheduled time out;
             //get employee current schedule schedule from dtr
             const employeeAssignment = await this.getEmployeeAssignment(employeeId);
-            const { scheduleTimeOut } = (
-              await this.rawQuery(
-                `
-                SELECT s.time_out scheduleTimeOut 
-                FROM daily_time_record dtr INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
+            const dtr = (await this.rawQuery(
+              `SELECT daily_time_record_id dtrId,s.time_out scheduleTimeOut 
+                FROM daily_time_record dtr 
+                  INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
                 WHERE dtr_date = ? AND dtr.company_id_fk= ?;`,
-                [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeAssignment.companyId]
-              )
-            )[0];
-            await this.crud().update({ dto: { timeIn: scheduleTimeOut }, updateBy: { id } });
-            await this.rawQuery(
-              `UPDATE daily_time_record SET time_out = ?,has_correction = 1 WHERE company_id_fk = ? AND date_format(?,'%Y-%m-%d') = ? `,
-              [timeOut, employeeAssignment.companyId, dayjs(dateOfApplication).format('YYYY-MM-DD')]
-            );
+              [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeAssignment.companyId]
+            )) as { dtrId: string; scheduleTimeOut: Date }[];
+
+            const employeeSchedule = await this.employeeScheduleService.getEmployeeSchedule(employeeId);
+            const { schedule } = employeeSchedule;
+
+            await this.crud().update({ dto: { timeIn: dtr.length > 0 ? dtr[0].scheduleTimeOut : schedule.timeOut }, updateBy: { id } });
+            //!TODO get employee schedule insert new dtr record
+            if (dtr.length === 0) {
+              await this.dailyTimeRecordService.crud().create({
+                dto: { companyId: employeeAssignment.companyId, dtrDate: dateString, scheduleId: schedule.id, timeOut, hasCorrection: true },
+              });
+            } else {
+              await this.rawQuery(
+                `UPDATE daily_time_record SET time_out = ?, has_correction = 1 WHERE company_id_fk = ? AND date_format(?,'%Y-%m-%d') = ? `,
+                [timeOut, employeeAssignment.companyId, dayjs(dateOfApplication).format('YYYY-MM-DD')]
+              );
+            }
           }
         }
       })
@@ -843,33 +827,33 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlips = (await this.rawQuery(
       `
     SELECT 
-    ps.pass_slip_id id, 
-    employee_id_fk employeeId, 
-    date_of_application dateOfApplication, 
-    nature_of_business natureOfBusiness,
-    time_in timeIn,
-    time_out timeOut,
-    ps.is_medical isMedical,
-    encoded_time_in encodedTimeIn,
-    encoded_time_out encodedTimeOut,
-    ps.ob_transportation obTransportation,
-    ps.estimate_hours estimateHours,
-    ps.purpose_destination purposeDestination,
-    ps.is_cancelled isCancelled,
-    ps.dispute_remarks disputeRemarks,
-    ps.created_at createdAt,
-    psa.status status,
-    ps.updated_at updatedAt,
-    ps.deleted_at deletedAt,
-    ps.is_dispute_approved disputeApproved,
-    ps.is_deductible_to_pay isDeductibleToPay
-  FROM pass_slip ps 
-  INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
-WHERE get_date_after_num_of_working_days(date_of_application, 2) = DATE_FORMAT(?,'%Y-%m-%d') AND (ps.is_deductible_to_pay = 0 OR ps.is_deductible_to_pay IS NULL) AND (
-psa.status = 'approved' 
-OR psa.status = 'approved without medical certificate' OR psa.status = 'approved without medical certificate'
-) 
-AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
+        ps.pass_slip_id id, 
+        employee_id_fk employeeId, 
+        date_of_application dateOfApplication, 
+        nature_of_business natureOfBusiness,
+        time_in timeIn,
+        time_out timeOut,
+        ps.is_medical isMedical,
+        encoded_time_in encodedTimeIn,
+        encoded_time_out encodedTimeOut,
+        ps.ob_transportation obTransportation,
+        ps.estimate_hours estimateHours,
+        ps.purpose_destination purposeDestination,
+        ps.is_cancelled isCancelled,
+        ps.dispute_remarks disputeRemarks,
+        ps.created_at createdAt,
+        psa.status status,
+        ps.updated_at updatedAt,
+        ps.deleted_at deletedAt,
+        ps.is_dispute_approved disputeApproved,
+        ps.is_deductible_to_pay isDeductibleToPay
+      FROM pass_slip ps 
+      INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
+    WHERE get_date_after_num_of_working_days(date_of_application, 2) = DATE_FORMAT(?,'%Y-%m-%d') AND (ps.is_deductible_to_pay = 0 OR ps.is_deductible_to_pay IS NULL) AND (
+    psa.status = 'approved' 
+    OR psa.status = 'approved without medical certificate' OR psa.status = 'approved without medical certificate'
+    ) 
+    AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
     `,
       [passSlipDate]
     )) as PassSlipForLedger[];
@@ -910,12 +894,11 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
           AND company_id_fk = ?;`,
           [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
         );
-        //SELECT (TIMESTAMPDIFF(MINUTE,CONCAT('2023-01-01 ',timeOut(11:23)),CONCAT('2023-01-01 ',timeIn(12:30))))/480 INTO debitValue;
         const restHourStart = restDays[0].restHourStart;
         const restHourEnd = restDays[0].restHourEnd;
 
         let debitValueMinutes = 0;
-        //
+
         const employeeAssignment = await this.getEmployeeAssignment(employeeId);
         const { scheduleTimeOut } = (
           await this.rawQuery(
@@ -942,9 +925,7 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
               await this.crud().update({ dto: { timeIn: scheduleTimeOut }, updateBy: { id } });
             }
           }
-
           const passSlipUpdated = await this.crudService.findOne({ find: { select: { timeIn: true, updatedAt: true }, where: { id } } });
-
           const passSlipTimeOut = '2024-01-01 ' + timeOut;
           const passSlipTimeIn = '2024-01-01 ' + passSlipUpdated.timeIn;
           const scheduleRestStart = '2024-01-01 ' + restHourStart;
@@ -998,7 +979,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
             }
           }
           //2.2. INSERT TO LEDGER
-          //const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [passSlip.id]))[0];
           if (debitValueMinutes > 0) {
             if (passSlip.status === PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE) {
               await this.passSlipApprovalService
@@ -1068,7 +1048,7 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
     psa.status = 'approved' 
     OR psa.status = 'approved without medical certificate' OR psa.status = 'approved with medical certificate'
     ) 
-    AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
+    AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Official Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
     `)) as PassSlipForLedger[];
     //2. check time in and time out
     const passSlipsToLedger = await Promise.all(
@@ -1093,11 +1073,30 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
           deletedAt,
           isDeductibleToPay,
         } = passSlip;
-        const { passSlipCount } = (
-          await this.rawQuery(`SELECT count(*) passSlipCount FROM employee_monitoring.leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [id])
+        const { passSlipCountInLedger } = (
+          await this.rawQuery(`SELECT count(*) passSlipCountInLedger FROM employee_monitoring.leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [id])
         )[0];
 
         const employeeCompanyId = (await this.employeeService.getEmployeeDetails(employeeId)).companyId;
+
+        const dtr = (await this.rawQuery(
+          `SELECT daily_time_record_id dtrId,s.time_out scheduleTimeOut, dtr.time_out timeOut
+            FROM daily_time_record dtr 
+              INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
+            WHERE dtr_date = ? AND dtr.company_id_fk= ?;`,
+          [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
+        )) as { dtrId: string; scheduleTimeOut: Date, timeOut: Date }[];
+
+        if (dtr.length > 0) {
+          if (dtr[0].timeOut === null && (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS || natureOfBusiness === NatureOfBusiness.PERSONAL)) {
+            await this.rawQuery(
+              `UPDATE daily_time_record SET time_out = ?, has_correction = 1 WHERE company_id_fk = ? AND date_format(dtr_date,'%Y-%m-%d') = ? `,
+              [dtr[0].scheduleTimeOut, employeeCompanyId, dayjs(dateOfApplication).format('YYYY-MM-DD')]
+            );
+          }
+        }
+
+
         const restDays = await this.rawQuery(
           `
           SELECT addtime(s.time_in, "04:00:00") restHourStart, addtime(s.time_in, "05:00:00") restHourEnd
@@ -1107,12 +1106,9 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
           AND company_id_fk = ?;`,
           [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
         );
-        //SELECT (TIMESTAMPDIFF(MINUTE,CONCAT('2023-01-01 ',timeOut(11:23)),CONCAT('2023-01-01 ',timeIn(12:30))))/480 INTO debitValue;
         const restHourStart = restDays[0].restHourStart;
         const restHourEnd = restDays[0].restHourEnd;
-
         let debitValueMinutes = 0;
-        //
         const employeeAssignment = await this.getEmployeeAssignment(employeeId);
         const { scheduleTimeOut } = (
           await this.rawQuery(
@@ -1123,7 +1119,7 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
             [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeAssignment.companyId]
           )
         )[0];
-        if (passSlipCount === '0') {
+        if (passSlipCountInLedger === '0') {
           if (timeIn === null && timeOut === null && status === PassSlipApprovalStatus.APPROVED) {
             await this.passSlipApprovalService.crud().update({ dto: { status: PassSlipApprovalStatus.UNUSED }, updateBy: { passSlipId: { id } } });
           } else if (timeIn === null && timeOut === null && status === PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL) {
@@ -1194,8 +1190,7 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
             }
           }
           //2.2. INSERT TO LEDGER
-          //const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [passSlip.id]))[0];
-          if (debitValueMinutes > 0) {
+          if (debitValueMinutes > 0 && natureOfBusiness !== NatureOfBusiness.OFFICIAL_BUSINESS) {
             if (passSlip.status === PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE) {
               await this.passSlipApprovalService
                 .crud()
@@ -1263,7 +1258,7 @@ WHERE DATE_FORMAT(date_of_application,'%Y-%m-%d') = ? AND (ps.is_deductible_to_p
 psa.status = 'approved' 
 OR psa.status = 'approved without medical certificate' OR psa.status = 'approved with medical certificate'
 ) 
-AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
+AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Official Business' OR ps.nature_of_business='Half Day' OR ps.nature_of_business = 'Undertime');
     `,
       [date]
     )) as PassSlipForLedger[];
@@ -1295,6 +1290,24 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
         )[0];
 
         const employeeCompanyId = (await this.employeeService.getEmployeeDetails(employeeId)).companyId;
+
+        const dtr = (await this.rawQuery(
+          `SELECT daily_time_record_id dtrId,s.time_out scheduleTimeOut, dtr.time_out timeOut
+            FROM daily_time_record dtr 
+              INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
+            WHERE dtr_date = ? AND dtr.company_id_fk= ?;`,
+          [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
+        )) as { dtrId: string; scheduleTimeOut: Date, timeOut: Date }[];
+
+        if (dtr.length > 0) {
+          if (dtr[0].timeOut === null && (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS || natureOfBusiness === NatureOfBusiness.PERSONAL)) {
+            await this.rawQuery(
+              `UPDATE daily_time_record SET time_out = ?, has_correction = 1 WHERE company_id_fk = ? AND date_format(dtr_date,'%Y-%m-%d') = ? `,
+              [dtr[0].scheduleTimeOut, employeeCompanyId, dayjs(dateOfApplication).format('YYYY-MM-DD')]
+            );
+          }
+        }
+
         const restDays = await this.rawQuery(
           `
           SELECT addtime(s.time_in, "04:00:00") restHourStart, addtime(s.time_in, "05:00:00") restHourEnd
@@ -1304,18 +1317,17 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
           AND company_id_fk = ?;`,
           [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
         );
-        //SELECT (TIMESTAMPDIFF(MINUTE,CONCAT('2023-01-01 ',timeOut(11:23)),CONCAT('2023-01-01 ',timeIn(12:30))))/480 INTO debitValue;
         const restHourStart = restDays[0].restHourStart;
         const restHourEnd = restDays[0].restHourEnd;
 
         let debitValueMinutes = 0;
-        //
+
         const employeeAssignment = await this.getEmployeeAssignment(employeeId);
         const { scheduleTimeOut } = (
           await this.rawQuery(
             `
           SELECT s.time_out scheduleTimeOut 
-          FROM daily_time_record dtr INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
+            FROM daily_time_record dtr INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
           WHERE dtr_date = ? AND dtr.company_id_fk= ?;`,
             [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeAssignment.companyId]
           )
@@ -1391,8 +1403,7 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
             }
           }
           //2.2. INSERT TO LEDGER
-          //const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [passSlip.id]))[0];
-          if (debitValueMinutes > 0) {
+          if (debitValueMinutes > 0 && natureOfBusiness !== NatureOfBusiness.OFFICIAL_BUSINESS) {
             if (passSlip.status === PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE) {
               await this.passSlipApprovalService
                 .crud()
@@ -1457,18 +1468,13 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
 
   async getAssignableSupervisorForPassSlip(employeeData: { orgId: string; employeeId: string }) {
     let officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeData.orgId);
+    const employeeAssignment = (await this.employeeService.getBasicEmployeeDetails(employeeData.employeeId)).assignment.name;
     const userRole = (await this.employeeService.getEmployeeDetails(employeeData.employeeId)).userRole;
     if (userRole === 'division_manager' || userRole === 'department_manager' || userRole === 'assistant_general_manager') {
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);
       const supervisorOrgId = (await this.employeeService.getEmployeeDetails(supervisorId)).assignment.id;
       officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(supervisorOrgId);
     }
-
-    /*
-    -- af7bbec8-b26e-11ed-a79b-000c29f95a80
--- Charlene Marie D. Pe 
-    
-    */
     let officerOfTheDayName: string;
     if (officerOfTheDayId) officerOfTheDayName = (await this.employeeService.getEmployeeDetails(officerOfTheDayId)).employeeFullName;
     const employeeSupervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);
@@ -1484,8 +1490,13 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Half Da
     const result = [
       ...supervisorAndOfficerOfTheDayArray,
       ...supervisoryEmployees,
-      { label: 'Charlene Marie D. Pe', value: 'af7bbec8-b26e-11ed-a79b-000c29f95a80' },
+      employeeAssignment === 'Building and Grounds, Transportation and Water Meter Maintenance Division' ? {
+        label: 'Tampico, Agnes P. , MPA', value: '010a0d3a-5b3d-11ed-a08b-000c29f95a80'
+      } : null,
+      { label: 'Pe, Charlene Marie D. ', value: 'af7bbec8-b26e-11ed-a79b-000c29f95a80' },
     ];
-    return result.filter((value, index, self) => index === self.findIndex((item) => item.label === value.label && item.value === value.value));
+    return result
+      .filter((n) => n)
+      .filter((value, index, self) => index === self.findIndex((item) => item.label === value.label && item.value === value.value));
   }
 }

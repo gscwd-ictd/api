@@ -133,23 +133,6 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     return vlDeductions;
   }
 
-  async deductRehabilitationLeave() {
-    //get this month's approved rehabilitation leave
-    const hrdmApprovalDate = dayjs().format('YYYY-MM');
-    const leaveBenefitsId = '29086442-1e52-43d8-a537-f26dadda5305'; //id of rehabilitation leave
-    const rehabs = await this.rawQuery(
-      `
-        SELECT leave_application_id FROM leave_application WHERE DATE_FORMAT('hrdm_approval_date','%Y-%m')=? AND leave_benefits_id_fk=?
-      `,
-      [hrdmApprovalDate, leaveBenefitsId]
-    );
-    // const rehabs = await this.
-    //   .where(`DATE_FORMAT('hrdm_approval_date','%Y-%m')=:hrdmApprovalDate`, { hrdmApprovalDate })
-    //   .andWhere(`leave_benefits_id_fk=:leaveBenefitsId`, { leaveBenefitsId })
-    //   .getMany();
-    console.log(rehabs);
-  }
-
   @Cron('0 57 23 5-10 12 *')
   async forfeitureOfForcedLeave() {
     const novemberLastWeekDay = await this.holidaysService.getLastWeekDayOfTheMonth(dayjs().format('YYYY') + '-11-30');
@@ -160,7 +143,7 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
       const result = await Promise.all(
         employees.map(async (employee) => {
           const { companyId, employeeId } = employee;
-          const employeeLeaveLedger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?)`, [employeeId, companyId]))[0] as LeaveLedger[];
+          const employeeLeaveLedger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs().year()]))[0] as LeaveLedger[];
 
           const currentForcedLeaveBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].forcedLeaveBalance;
           const currentVLBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].vacationLeaveBalance;
