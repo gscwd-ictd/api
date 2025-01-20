@@ -211,7 +211,14 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       find: {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true, hrmoApprovalDate: true, supervisorApprovalDate: true, hrmoDisapprovalRemarks: true },
-        where: { supervisorId },
+        where: [{
+          supervisorId, passSlipId: {
+            dateOfApplication: Between(
+              dayjs(dayjs().subtract(3, 'month').format('YYYY-MM') + '-01').toDate(),
+              dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
+            )
+          }
+        }],
         order: { passSlipId: { dateOfApplication: 'DESC' } },
       },
       onError: () => new NotFoundException(),
