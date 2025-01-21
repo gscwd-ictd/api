@@ -1025,16 +1025,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const leavesDetails = await Promise.all(
       leaves.map(async (leave, idx) => {
         const { employeeId, supervisorId, employeeName, supervisorName, leaveBenefitsId, ...rest } = leave;
-        // const employeeSupervisorNames = (await this.client.call<
-        //   string,
-        //   { employeeId: string; supervisorId: string },
-        //   { employeeName: string; supervisorName: string }
-        // >({
-        //   action: 'send',
-        //   payload: { employeeId, supervisorId },
-        //   pattern: 'get_employee_supervisor_names',
-        //   onError: (error) => new NotFoundException(error),
-        // })) as { employeeName: string; supervisorName: string };
 
         const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
           find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
@@ -1045,7 +1035,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             return leaveDate.leaveDate;
           })
         );
-        //const { employeeName, supervisorName } = employeeSupervisorNames;
 
         let monetizationDetails = null;
 
@@ -1067,13 +1056,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
         return {
           ...rest,
-          // leaveBenefitsId: leaveBenefitsId.id,
-          // leaveName: leaveBenefitsId.leaveName,
           ...monetizationDetails,
           id: rest.id,
           employee: { employeeId, employeeName },
           supervisor: { supervisorId, supervisorName },
-          //leaveName: leaveBenefitsId.leaveName,
           leaveDates: _leaveDates,
         };
       })
