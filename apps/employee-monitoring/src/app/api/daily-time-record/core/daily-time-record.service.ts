@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { CreateDtrRemarksDto, DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto, UpdateDtrRemarksDto } from '@gscwd-api/models';
@@ -681,7 +680,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           const leaveCardItem = await this.leaveCardLedgerDebitService
             .crud()
             .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.HALFDAY } } });
-
+          const debitValue = 0;
           const passSlipCount = (
             await this.rawQuery(
               `SELECT COUNT(pass_slip_id) passSlipCount FROM pass_slip ps
