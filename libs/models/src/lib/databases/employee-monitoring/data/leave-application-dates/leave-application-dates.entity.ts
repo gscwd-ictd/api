@@ -24,6 +24,6 @@ export class LeaveApplicationDates extends DatabaseEntity implements IEntity {
   @Column({ name: 'for_cancellation_date', type: 'date', nullable: true })
   forCancellationDate: Date;
 
-  @Column({ name: 'cancel_date', type: 'date', nullable: true })
+  @Column({ name: 'cancel_date', type: 'date', nullable: true, default: null })
   cancelDate: Date;
 }

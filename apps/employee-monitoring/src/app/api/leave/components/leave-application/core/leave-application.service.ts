@@ -141,20 +141,20 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             )
           )[0] as { dailyLeaveCredit: number; monetizationConstant: number };
 
-          const excessCreditEarnings = excessDates * dailyLeaveCredit;
+          const excessCreditEarnings = Math.round(excessDates * dailyLeaveCredit * 1000) / 1000;
           const employeeLeaveLedger = (
             await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [rest.employeeId, companyId, dayjs().year()])
           )[0] as LeaveLedger[];
           const finalBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
 
           const monetizedAmount: number =
-            Math.round(
+            Math.trunc(
               (parseFloat(finalBalance.vacationLeaveBalance.toString()) +
-                parseFloat(finalBalance.sickLeaveBalance.toString()) +
-                excessCreditEarnings * 2) *
+                excessCreditEarnings +
+                (parseFloat(finalBalance.sickLeaveBalance.toString()) + excessCreditEarnings)) *
                 (salaryGradeAmount * monetizationConstant) *
-                100
-            ) / 100;
+                1000
+            ) / 1000;
 
           const leaveMonetization = await this.leaveMonetizationService.createLeaveMonetization(
             transactionEntityManager,
@@ -162,7 +162,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
               convertedSl: excessCreditEarnings + parseFloat(finalBalance.sickLeaveBalance.toString()),
               convertedVl: excessCreditEarnings + parseFloat(finalBalance.vacationLeaveBalance.toString()),
               monetizationType: MonetizationType.TERMINAL,
-              monetizedAmount,
+              monetizedAmount: Math.trunc(monetizedAmount * 100) / 100,
             },
             leaveApplication
           );
@@ -611,7 +611,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const { dailyLeaveCredit } = (await this.rawQuery(`SELECT value dailyLeaveCredit FROM ems_settings WHERE name= 'daily_leave_credit';`))[0] as {
       dailyLeaveCredit: number;
     };
-    const excessCreditEarnings = parseFloat(dailyLeaveCredit.toString()) * parseInt(dayjs(leaveApplicationDate.leaveDate).format('DD'));
+    const excessCreditEarnings =
+      Math.round(parseFloat(dailyLeaveCredit.toString()) * parseInt(dayjs(leaveApplicationDate.leaveDate).format('DD')) * 1000) / 1000;
 
     const { convertedSl, convertedVl, monetizedAmount } = monetizationDetails;
     const formattedMonetizedAmount = Math.trunc(parseFloat(monetizedAmount.toString()) * 1000) / 1000;
@@ -623,11 +624,11 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           maximumFractionDigits: 2,
         }),
       slBalance: {
-        beforeTerminalLeave: Math.trunc((parseFloat(convertedSl.toString()) - excessCreditEarnings) * 100) / 100,
+        beforeTerminalLeave: Math.trunc((parseFloat(convertedSl.toString()) - excessCreditEarnings) * 1000) / 1000,
         afterTerminalLeave: parseFloat(convertedSl.toString()),
       },
       vlBalance: {
-        beforeTerminalLeave: Math.trunc((parseFloat(convertedVl.toString()) - excessCreditEarnings) * 100) / 100,
+        beforeTerminalLeave: Math.trunc((parseFloat(convertedVl.toString()) - excessCreditEarnings) * 1000) / 1000,
         afterTerminalLeave: parseFloat(convertedVl.toString()),
       },
     };
@@ -858,22 +859,25 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         relations: { leaveBenefitsId: true },
         where: [
           {
-            status: LeaveApplicationStatus.FOR_HRDM_APPROVAL, dateOfFiling: Between(
+            status: LeaveApplicationStatus.FOR_HRDM_APPROVAL,
+            dateOfFiling: Between(
               dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
               dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
-            )
+            ),
           },
           {
-            status: LeaveApplicationStatus.APPROVED, dateOfFiling: Between(
+            status: LeaveApplicationStatus.APPROVED,
+            dateOfFiling: Between(
               dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
               dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
-            )
+            ),
           },
           {
-            status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM, dateOfFiling: Between(
+            status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM,
+            dateOfFiling: Between(
               dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
               dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
-            )
+            ),
           },
         ],
         order: { dateOfFiling: 'DESC' },
