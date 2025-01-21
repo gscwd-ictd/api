@@ -941,8 +941,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leaves = (
       (await this.rawQuery(
-        `
-         leave_application.created_at createdAt, 
+        `SELECT 
+            leave_application.created_at createdAt, 
             leave_application.updated_at updatedAt, 
             leave_application.deleted_at deletedAt, 
             leave_application_id id,
