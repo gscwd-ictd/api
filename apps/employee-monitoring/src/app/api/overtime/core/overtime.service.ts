@@ -817,7 +817,7 @@ export class OvertimeService {
 
     const overtimeDetails = (await this.overtimeAccomplishmentService.crud().findOne({
       find: {
-        where: { overtimeEmployeeId: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } },
+        where: { overtimeEmployeeId: { employeeId, overtimeApplicationId: { id: overtimeApplicationId, } } },
         relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
       },
     })) as OvertimeAccomplishment;
