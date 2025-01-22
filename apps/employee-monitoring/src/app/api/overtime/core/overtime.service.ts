@@ -174,10 +174,16 @@ export class OvertimeService {
 
     const count = (
       await this.overtimeApplicationService.rawQuery(
-        `SELECT COUNT(DISTINCT oa.overtime_application_id) countForApprovalOT FROM overtime_application oa 
+        `
+        SELECT COUNT(DISTINCT oa.overtime_application_id) countForApprovalOT 
+        FROM overtime_application oa 
           INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
-         WHERE employee_id_fk IN (?) AND status = 'pending' AND oa.manager_id_fk <> ?;`,
-        [employeeIds, managerId]
+        WHERE oa.overtime_application_id 
+        NOT IN (SELECT overtime_application_id FROM overtime_application WHERE manager_id_fk = ? ) 
+        AND oe.employee_id_fk IN (?) 
+        AND oa.status = 'pending' ;
+        `,
+        [managerId, employeeIds]
       )
     )[0].countForApprovalOT;
     return parseInt(count);
