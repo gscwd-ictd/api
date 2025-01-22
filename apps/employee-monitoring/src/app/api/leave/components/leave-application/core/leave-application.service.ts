@@ -944,15 +944,15 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const leaves = (
       (await this.rawQuery(
         `SELECT 
-         leave_application.created_at createdAt, 
+            leave_application.created_at createdAt, 
             leave_application.updated_at updatedAt, 
             leave_application.deleted_at deletedAt, 
             leave_application_id id,
             abroad,
             date_of_filing dateOfFiling,
             employee_id_fk employeeId,
-            hris_dev1.get_employee_fullname2(employee_id_fk) employeeName,
-            hris_dev1.get_employee_fullname2(supervisor_id_fk) supervisorName,
+            hris_prod.get_employee_fullname2(employee_id_fk) employeeName,
+            hris_prod.get_employee_fullname2(supervisor_id_fk) supervisorName,
             for_bar_board_review forBarBoardReview,
             date_of_filing dateOfFiling,
             for_masters_completion forMastersCompletion,
@@ -1027,6 +1027,265 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const leavesDetails = await Promise.all(
       leaves.map(async (leave, idx) => {
         const { employeeId, supervisorId, employeeName, supervisorName, leaveBenefitsId, ...rest } = leave;
+
+        const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
+          find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
+        })) as LeaveApplicationDates[];
+
+        const _leaveDates = await Promise.all(
+          leaveDates.map(async (leaveDate) => {
+            return leaveDate.leaveDate;
+          })
+        );
+
+        let monetizationDetails = null;
+
+        if (leaveBenefitsId.leaveName === 'Monetization') {
+          monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
+            find: {
+              select: {
+                convertedSl: true,
+                convertedVl: true,
+                id: true,
+                leaveApplicationId: { id: true },
+                monetizationType: true,
+                monetizedAmount: true,
+              },
+              where: { leaveApplicationId: { id: leave.id } },
+            },
+          });
+        }
+
+        return {
+          ...rest,
+          ...monetizationDetails,
+          id: rest.id,
+          employee: { employeeId, employeeName },
+          supervisor: { supervisorId, supervisorName },
+          leaveDates: _leaveDates,
+        };
+      })
+    );
+    return leavesDetails;
+  }
+
+  async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
+    // const leaves = ((<LeaveApplication[]>await this.crud().findAll({
+    //   find: {
+    //     select: {
+    //       id: true,
+    //       abroad: true,
+    //       dateOfFiling: true,
+    //       employeeId: true,
+    //       forBarBoardReview: true,
+    //       forMastersCompletion: true,
+    //       forMonetization: true,
+    //       hrdmApprovalDate: true,
+    //       hrdmDisapprovalRemarks: true,
+    //       hrmoApprovalDate: true,
+    //       supervisorApprovalDate: true,
+    //       supervisorDisapprovalRemarks: true,
+    //       inHospital: true,
+    //       inPhilippines: true,
+    //       isTerminalLeave: true,
+    //       isLateFiling: true,
+    //       supervisorId: true,
+    //       referenceNo: true,
+    //       studyLeaveOther: true,
+    //       lateFilingJustification: true,
+    //       outPatient: true,
+    //       cancelDate: true,
+    //       cancelReason: true,
+    //       requestedCommutation: true,
+    //       splWomen: true,
+    //       leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
+    //       status: true,
+    //     },
+    //     relations: { leaveBenefitsId: true },
+    //     where: { status: leaveApplicationStatus },
+    //     order: { dateOfFiling: 'DESC' },
+    //   },
+    // })) as LeaveApplication[]).map((la) => {
+    //   const { dateOfFiling, cancelDate, ...restOfLeave } = la;
+    //   return {
+    //     dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
+    //     cancelDate: cancelDate === null ? null : dayjs(cancelDate).format('YYYY-MM-DD'),
+    //     ...restOfLeave,
+    //   };
+    // });
+    let leaves = (
+      (await this.rawQuery(`
+      SELECT 
+            leave_application.created_at createdAt, 
+            leave_application.updated_at updatedAt, 
+            leave_application.deleted_at deletedAt, 
+            leave_application_id id,
+            abroad,
+            date_of_filing dateOfFiling,
+            employee_id_fk employeeId,
+            hris_dev1.get_employee_fullname2(employee_id_fk) employeeName,
+            hris_dev1.get_employee_fullname2(supervisor_id_fk) supervisorName,
+            for_bar_board_review forBarBoardReview,
+            date_of_filing dateOfFiling,
+            for_masters_completion forMastersCompletion,
+            for_monetization forMonetization,
+            DATE_FORMAT(hrdm_approval_date, '%Y-%m-%d %H:%i:%s') hrdmApprovalDate,
+            hrdm_disapproval_remarks hrdmDisapprovalRemarks,
+            DATE_FORMAT(hrmo_approval_date, '%Y-%m-%d %H:%i:%s') hrmoApprovalDate,
+            DATE_FORMAT(supervisor_approval_date, '%Y-%m-%d %H:%i:%s') supervisorApprovalDate,
+            in_hospital inHospital,
+            in_philippines inPhilippines,
+            is_terminal_leave isTerminalLeave,
+            IF(is_late_filing=1,'true','false') isLateFiling,
+            late_filing_justification lateFilingJustification,
+            supervisor_id_fk supervisorId,
+            reference_no referenceNo,
+            study_leave_other studyLeaveOther,
+            out_patient outPatient,
+            DATE_FORMAT(cancel_date, '%Y-%m-%d %H:%i:%s') cancelDate,
+            cancel_reason cancelReason,
+            requested_commutation requestedCommutation,
+            spl_women splWomen,
+            leave_benefits_id_fk leaveBenefitsId,
+            leave_name leaveName, leave_types leaveType,
+            status 
+        FROM leave_application INNER JOIN leave_benefits ON leave_application.leave_benefits_id_fk = leave_benefits_id 
+      ORDER BY date_of_filing DESC;  
+    `)) as {
+        id: string;
+        employeeId: string;
+        supervisorId: string;
+        leaveBenefitsId: LeaveBenefits;
+        dateOfFiling: Date;
+        inPhilippines: string;
+        abroad: string;
+        inHospital: string;
+        outPatient: string;
+        splWomen: string;
+        forMastersCompletion: boolean;
+        forBarBoardReview: boolean;
+        studyLeaveOther: string;
+        forMonetization: boolean;
+        isTerminalLeave: boolean;
+        requestedCommutation: boolean;
+        status: LeaveApplicationStatus;
+        cancelReason: string;
+        cancelDate: Date;
+        hrmoApprovalDate: Date;
+        hrmoApprovedBy: string;
+        supervisorApprovalDate: Date;
+        supervisorDisapprovalRemarks: string;
+        hrdmApprovalDate: Date;
+        hrdmApprovedBy: string;
+        hrdmDisapprovalRemarks: string;
+        isLateFiling: boolean;
+        lateFilingJustification: string;
+        referenceNo: string;
+        employeeName: string;
+        supervisorName: string;
+        leaveName: string;
+        leaveType: string;
+      }[]
+    ).map((la) => {
+      const { dateOfFiling, cancelDate, ...restOfLeave } = la;
+      return {
+        dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
+        cancelDate: cancelDate === null ? null : dayjs(cancelDate).format('YYYY-MM-DD'),
+        ...restOfLeave,
+      };
+    });
+
+    if (leaveApplicationStatus !== null) {
+      leaves = (
+        (await this.rawQuery(
+          `
+        SELECT 
+              leave_application.created_at createdAt, 
+              leave_application.updated_at updatedAt, 
+              leave_application.deleted_at deletedAt, 
+              leave_application_id id,
+              abroad,
+              date_of_filing dateOfFiling,
+              employee_id_fk employeeId,
+              hris_dev1.get_employee_fullname2(employee_id_fk) employeeName,
+              hris_dev1.get_employee_fullname2(supervisor_id_fk) supervisorName,
+              for_bar_board_review forBarBoardReview,
+              date_of_filing dateOfFiling,
+              for_masters_completion forMastersCompletion,
+              for_monetization forMonetization,
+              DATE_FORMAT(hrdm_approval_date, '%Y-%m-%d %H:%i:%s') hrdmApprovalDate,
+              hrdm_disapproval_remarks hrdmDisapprovalRemarks,
+              DATE_FORMAT(hrmo_approval_date, '%Y-%m-%d %H:%i:%s') hrmoApprovalDate,
+              DATE_FORMAT(supervisor_approval_date, '%Y-%m-%d %H:%i:%s') supervisorApprovalDate,
+              in_hospital inHospital,
+              in_philippines inPhilippines,
+              is_terminal_leave isTerminalLeave,
+              IF(is_late_filing=1,'true','false') isLateFiling,
+              late_filing_justification lateFilingJustification,
+              supervisor_id_fk supervisorId,
+              reference_no referenceNo,
+              study_leave_other studyLeaveOther,
+              out_patient outPatient,
+              DATE_FORMAT(cancel_date, '%Y-%m-%d %H:%i:%s') cancelDate,
+              cancel_reason cancelReason,
+              requested_commutation requestedCommutation,
+              spl_women splWomen,
+              leave_benefits_id_fk leaveBenefitsId,
+              leave_name leaveName, leave_types leaveType,
+              status 
+          FROM leave_application INNER JOIN leave_benefits ON leave_application.leave_benefits_id_fk = leave_benefits_id 
+          WHERE status = ? 
+        ORDER BY date_of_filing DESC;  
+      `,
+          [leaveApplicationStatus]
+        )) as {
+          id: string;
+          employeeId: string;
+          supervisorId: string;
+          leaveBenefitsId: LeaveBenefits;
+          dateOfFiling: Date;
+          inPhilippines: string;
+          abroad: string;
+          inHospital: string;
+          outPatient: string;
+          splWomen: string;
+          forMastersCompletion: boolean;
+          forBarBoardReview: boolean;
+          studyLeaveOther: string;
+          forMonetization: boolean;
+          isTerminalLeave: boolean;
+          requestedCommutation: boolean;
+          status: LeaveApplicationStatus;
+          cancelReason: string;
+          cancelDate: Date;
+          hrmoApprovalDate: Date;
+          hrmoApprovedBy: string;
+          supervisorApprovalDate: Date;
+          supervisorDisapprovalRemarks: string;
+          hrdmApprovalDate: Date;
+          hrdmApprovedBy: string;
+          hrdmDisapprovalRemarks: string;
+          isLateFiling: boolean;
+          lateFilingJustification: string;
+          referenceNo: string;
+          employeeName: string;
+          supervisorName: string;
+          leaveName: string;
+          leaveType: string;
+        }[]
+      ).map((la) => {
+        const { dateOfFiling, cancelDate, ...restOfLeave } = la;
+        return {
+          dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
+          cancelDate: cancelDate === null ? null : dayjs(cancelDate).format('YYYY-MM-DD'),
+          ...restOfLeave,
+        };
+      });
+    }
+
+    const leavesDetails = await Promise.all(
+      leaves.map(async (leave, idx) => {
+        const { employeeId, supervisorId, employeeName, supervisorName, leaveBenefitsId, leaveName, leaveType, ...rest } = leave;
         // const employeeSupervisorNames = (await this.client.call<
         //   string,
         //   { employeeId: string; supervisorId: string },
@@ -1051,7 +1310,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
         let monetizationDetails = null;
 
-        if (leaveBenefitsId.leaveName === 'Monetization') {
+        if (leaveName === 'Monetization') {
           monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
             find: {
               select: {
@@ -1069,112 +1328,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
         return {
           ...rest,
-          // leaveBenefitsId: leaveBenefitsId.id,
-          // leaveName: leaveBenefitsId.leaveName,
-          ...monetizationDetails,
-          id: rest.id,
-          employee: { employeeId, employeeName },
-          supervisor: { supervisorId, supervisorName },
-          //leaveName: leaveBenefitsId.leaveName,
-          leaveDates: _leaveDates,
-        };
-      })
-    );
-    return leavesDetails;
-  }
-
-  async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
-    const leaves = ((<LeaveApplication[]>await this.crud().findAll({
-        find: {
-          select: {
-            id: true,
-            abroad: true,
-            dateOfFiling: true,
-            employeeId: true,
-            forBarBoardReview: true,
-            forMastersCompletion: true,
-            forMonetization: true,
-            hrdmApprovalDate: true,
-            hrdmDisapprovalRemarks: true,
-            hrmoApprovalDate: true,
-            supervisorApprovalDate: true,
-            supervisorDisapprovalRemarks: true,
-            inHospital: true,
-            inPhilippines: true,
-            isTerminalLeave: true,
-            isLateFiling: true,
-            supervisorId: true,
-            referenceNo: true,
-            studyLeaveOther: true,
-            lateFilingJustification: true,
-            outPatient: true,
-            cancelDate: true,
-            cancelReason: true,
-            requestedCommutation: true,
-            splWomen: true,
-            leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
-            status: true,
-          },
-          relations: { leaveBenefitsId: true },
-          where: { status: leaveApplicationStatus },
-          order: { dateOfFiling: 'DESC' },
-        },
-      })) as LeaveApplication[]).map((la) => {
-      const { dateOfFiling, cancelDate, ...restOfLeave } = la;
-      return {
-        dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
-        cancelDate: cancelDate === null ? null : dayjs(cancelDate).format('YYYY-MM-DD'),
-        ...restOfLeave,
-      };
-    });
-
-    const leavesDetails = await Promise.all(
-      leaves.map(async (leave, idx) => {
-        const { employeeId, supervisorId, leaveBenefitsId, ...rest } = leave;
-        const employeeSupervisorNames = (await this.client.call<
-          string,
-          { employeeId: string; supervisorId: string },
-          { employeeName: string; supervisorName: string }
-        >({
-          action: 'send',
-          payload: { employeeId, supervisorId },
-          pattern: 'get_employee_supervisor_names',
-          onError: (error) => new NotFoundException(error),
-        })) as { employeeName: string; supervisorName: string };
-
-        const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
-          find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
-        })) as LeaveApplicationDates[];
-
-        const _leaveDates = await Promise.all(
-          leaveDates.map(async (leaveDate) => {
-            return leaveDate.leaveDate;
-          })
-        );
-        const { employeeName, supervisorName } = employeeSupervisorNames;
-
-        let monetizationDetails = null;
-
-        if (leaveBenefitsId.leaveName === 'Monetization') {
-          monetizationDetails = await this.leaveMonetizationService.crud().findOneOrNull({
-            find: {
-              select: {
-                convertedSl: true,
-                convertedVl: true,
-                id: true,
-                leaveApplicationId: { id: true },
-                monetizationType: true,
-                monetizedAmount: true,
-              },
-              where: { leaveApplicationId: { id: leave.id } },
-            },
-          });
-        }
-
-        return {
-          ...rest,
-          leaveBenefitsId: leaveBenefitsId.id,
-          leaveName: leaveBenefitsId.leaveName,
+          leaveBenefitsId: leaveBenefitsId,
+          leaveName: leaveName,
           ...monetizationDetails,
           id: rest.id,
           employee: { employeeId, employeeName },
