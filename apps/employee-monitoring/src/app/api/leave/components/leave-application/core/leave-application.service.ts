@@ -1069,49 +1069,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
   }
 
   async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
-    // const leaves = ((<LeaveApplication[]>await this.crud().findAll({
-    //   find: {
-    //     select: {
-    //       id: true,
-    //       abroad: true,
-    //       dateOfFiling: true,
-    //       employeeId: true,
-    //       forBarBoardReview: true,
-    //       forMastersCompletion: true,
-    //       forMonetization: true,
-    //       hrdmApprovalDate: true,
-    //       hrdmDisapprovalRemarks: true,
-    //       hrmoApprovalDate: true,
-    //       supervisorApprovalDate: true,
-    //       supervisorDisapprovalRemarks: true,
-    //       inHospital: true,
-    //       inPhilippines: true,
-    //       isTerminalLeave: true,
-    //       isLateFiling: true,
-    //       supervisorId: true,
-    //       referenceNo: true,
-    //       studyLeaveOther: true,
-    //       lateFilingJustification: true,
-    //       outPatient: true,
-    //       cancelDate: true,
-    //       cancelReason: true,
-    //       requestedCommutation: true,
-    //       splWomen: true,
-    //       leaveBenefitsId: { id: true, leaveName: true, leaveType: true },
-    //       status: true,
-    //     },
-    //     relations: { leaveBenefitsId: true },
-    //     where: { status: leaveApplicationStatus },
-    //     order: { dateOfFiling: 'DESC' },
-    //   },
-    // })) as LeaveApplication[]).map((la) => {
-    //   const { dateOfFiling, cancelDate, ...restOfLeave } = la;
-    //   return {
-    //     dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
-    //     cancelDate: cancelDate === null ? null : dayjs(cancelDate).format('YYYY-MM-DD'),
-    //     ...restOfLeave,
-    //   };
-    // });
+
     let leaves = ((await this.rawQuery(`
       SELECT 
             leave_application.created_at createdAt, 
