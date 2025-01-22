@@ -43,33 +43,18 @@ export class StatsService {
           `
             SELECT count(DISTINCT oe.overtime_employee_id) overtimeAccomplishmentApprovalCount 
             FROM overtime_application oa
+              INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
               INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk
               INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id
-              INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
             WHERE 
-            oe.employee_id_fk IN (?) 
-            AND oacc.accomplishments IS NOT NULL AND encoded_time_in IS NOT NULL AND encoded_time_out IS NOT NULL 
-            AND oacc.status = ?;
+            oacc.accomplishments IS NOT NULL AND encoded_time_in IS NOT NULL AND encoded_time_out IS NOT NULL 
+            AND oacc.status = ? AND oapp.manager_id_fk = ?;
       `,
-          [employeeIds, OvertimeStatus.PENDING]
+          [OvertimeStatus.PENDING, employeeId]
         )
       )[0].overtimeAccomplishmentApprovalCount;
 
       const pendingOvertimesCount = await this.overtimeService.getOvertimeApplicationsForManagerApprovalCount(employeeId);
-
-      // (
-      //   await this.passSlipService.rawQuery(
-      //     `
-      //       SELECT count(DISTINCT oa.overtime_application_id) overtimeApplicationCount
-      //       FROM overtime_application oa
-      //         INNER JOIN overtime_employee oe ON oa.overtime_application_id = oe.overtime_application_id_fk
-      //         INNER JOIN overtime_approval oapp ON oapp.overtime_application_id_fk = oa.overtime_application_id
-      //         INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
-      //       WHERE oe.employee_id_fk IN (?) AND status = ?
-      // `,
-      //     [employeeIds, OvertimeStatus.PENDING]
-      //   )
-      // )[0].overtimeApplicationCount;
 
       const pendingLeavesCount = (
         await this.passSlipService.rawQuery(
