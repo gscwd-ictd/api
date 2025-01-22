@@ -1,5 +1,5 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
-import { CreateLeaveApplicationDto, LeaveApplicationDates, UpdateLeaveApplicationDto } from '@gscwd-api/models';
+import { CreateLeaveApplicationDto, LeaveApplicationDates, LeaveBenefits, UpdateLeaveApplicationDto } from '@gscwd-api/models';
 import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveApplication } from '@gscwd-api/models';
 import {
@@ -943,15 +943,16 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leaves = (
       (await this.rawQuery(
-        `
-      SELECT 
-          leave_application.created_at createdAt, 
+        `SELECT 
+         leave_application.created_at createdAt, 
             leave_application.updated_at updatedAt, 
             leave_application.deleted_at deletedAt, 
             leave_application_id id,
             abroad,
             date_of_filing dateOfFiling,
             employee_id_fk employeeId,
+            hris_dev1.get_employee_fullname2(employee_id_fk) employeeName,
+            hris_dev1.get_employee_fullname2(supervisor_id_fk) supervisorName,
             for_bar_board_review forBarBoardReview,
             date_of_filing dateOfFiling,
             for_masters_completion forMastersCompletion,
@@ -980,7 +981,39 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         WHERE DATE_FORMAT(date_of_filing, '%Y-%m') = ? ORDER BY date_of_filing DESC;  
     `,
         [_yearMonth]
-      )) as LeaveApplication[]
+      )) as {
+        id: string;
+        employeeId: string;
+        supervisorId: string;
+        leaveBenefitsId: LeaveBenefits;
+        dateOfFiling: Date;
+        inPhilippines: string;
+        abroad: string;
+        inHospital: string;
+        outPatient: string;
+        splWomen: string;
+        forMastersCompletion: boolean;
+        forBarBoardReview: boolean;
+        studyLeaveOther: string;
+        forMonetization: boolean;
+        isTerminalLeave: boolean;
+        requestedCommutation: boolean;
+        status: LeaveApplicationStatus;
+        cancelReason: string;
+        cancelDate: Date;
+        hrmoApprovalDate: Date;
+        hrmoApprovedBy: string;
+        supervisorApprovalDate: Date;
+        supervisorDisapprovalRemarks: string;
+        hrdmApprovalDate: Date;
+        hrdmApprovedBy: string;
+        hrdmDisapprovalRemarks: string;
+        isLateFiling: boolean;
+        lateFilingJustification: string;
+        referenceNo: string;
+        employeeName: string;
+        supervisorName: string;
+      }[]
     ).map((la) => {
       const { dateOfFiling, cancelDate, ...restOfLeave } = la;
       return {
@@ -993,17 +1026,17 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave, idx) => {
-        const { employeeId, supervisorId, leaveBenefitsId, ...rest } = leave;
-        const employeeSupervisorNames = (await this.client.call<
-          string,
-          { employeeId: string; supervisorId: string },
-          { employeeName: string; supervisorName: string }
-        >({
-          action: 'send',
-          payload: { employeeId, supervisorId },
-          pattern: 'get_employee_supervisor_names',
-          onError: (error) => new NotFoundException(error),
-        })) as { employeeName: string; supervisorName: string };
+        const { employeeId, supervisorId, employeeName, supervisorName, leaveBenefitsId, ...rest } = leave;
+        // const employeeSupervisorNames = (await this.client.call<
+        //   string,
+        //   { employeeId: string; supervisorId: string },
+        //   { employeeName: string; supervisorName: string }
+        // >({
+        //   action: 'send',
+        //   payload: { employeeId, supervisorId },
+        //   pattern: 'get_employee_supervisor_names',
+        //   onError: (error) => new NotFoundException(error),
+        // })) as { employeeName: string; supervisorName: string };
 
         const leaveDates = (await this.leaveApplicationDatesService.crud().findAll({
           find: { where: { leaveApplicationId: { id: leave.id } }, select: { leaveDate: true }, order: { leaveDate: 'ASC' } },
@@ -1014,7 +1047,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             return leaveDate.leaveDate;
           })
         );
-        const { employeeName, supervisorName } = employeeSupervisorNames;
+        //const { employeeName, supervisorName } = employeeSupervisorNames;
 
         let monetizationDetails = null;
 
