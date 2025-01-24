@@ -23,7 +23,7 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
             suspension_hours suspensionHours 
         FROM work_suspension
         WHERE suspension_date 
-        BETWEEN NOW() - INTERVAL 6 month AND NOW();
+	> (NOW() - INTERVAL 6 month) AND year(suspension_date) <= year(NOW()) ORDER BY suspension_date DESC;
     `)) as WorkSuspension[]
     ).map((ws) => {
       const { suspensionHours, ...rest } = ws;
