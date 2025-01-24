@@ -812,6 +812,101 @@ export class OvertimeService {
     return employeeList;
   }
 
+  async getOvertimeDetailsForSummary(employeeId: string, companyId: string, overtimeApplicationId: string) {
+    try {
+      const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
+
+      const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
+      const restDays = employeeSchedules !== null ? employeeSchedules[0].restDays : null;
+
+      const overtimeDetails = (await this.overtimeAccomplishmentService.crud().findOne({
+        find: {
+          where: { overtimeEmployeeId: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } },
+          relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
+        },
+      })) as OvertimeAccomplishment;
+
+      const { createdAt, updatedAt, deletedAt, ...rest } = overtimeDetails;
+      const { id, ...restOfOvertimeApplication } = overtimeDetails.overtimeEmployeeId.overtimeApplicationId;
+
+      let didFaceScan = null;
+      let dtr = null;
+
+      dtr = await this.dailyTimeRecordService.getDtrByCompanyIdAndDay({
+        companyId: companyId,
+        date: dayjs(overtimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate).toDate(),
+      });
+
+      if (scheduleBase === ScheduleBase.OFFICE) {
+        didFaceScan = await this.dailyTimeRecordService.getHasIvms({
+          companyId: companyId.replace('-', ''),
+          entryDate: rest.overtimeEmployeeId.overtimeApplicationId.plannedDate,
+        });
+        if (didFaceScan) {
+          dtr = await this.dailyTimeRecordService.getDtrByCompanyIdAndDay({
+            companyId: companyId,
+            date: dayjs(overtimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate).toDate(),
+          });
+        }
+      }
+
+      const updatedOvertimeDetails = (await this.overtimeAccomplishmentService.crud().findOne({
+        find: {
+          select: {
+            id: true,
+            encodedTimeIn: true,
+            encodedTimeOut: true,
+            accomplishments: true,
+            actualHrs: true,
+            approvedBy: true,
+            status: true,
+            remarks: true,
+            overtimeEmployeeId: { id: true, overtimeApplicationId: { estimatedHours: true, plannedDate: true } },
+          },
+          where: { overtimeEmployeeId: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } },
+          relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
+        },
+      })) as OvertimeAccomplishment;
+      const { overtimeEmployeeId, ...restOfUpdatedOvertime } = updatedOvertimeDetails;
+      const estimatedHours = overtimeEmployeeId.overtimeApplicationId.estimatedHours;
+
+      let computedEncodedHours = null;
+      const plannedDate = updatedOvertimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate;
+
+      if (updatedOvertimeDetails.encodedTimeIn !== null && updatedOvertimeDetails.encodedTimeOut !== null) {
+        if (dayjs(plannedDate).day() in restDays) {
+          computedEncodedHours =
+            ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(updatedOvertimeDetails.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
+            100;
+          computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
+        } else {
+          //get overtime after schedule
+          computedEncodedHours =
+            ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(updatedOvertimeDetails.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
+            100;
+
+          computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
+        }
+        if (computedEncodedHours > 4) {
+          computedEncodedHours =
+            dtr.schedule.lunchOut !== null
+              ? (this.getComputedHours(computedEncodedHours) * 100) / 100
+              : (this.getComputedHours(computedEncodedHours) * 100) / 100;
+        }
+      }
+
+      return {
+        ...restOfUpdatedOvertime,
+        plannedDate,
+        didFaceScan,
+        estimatedHours: estimatedHours === null ? null : estimatedHours,
+        computedEncodedHours: computedEncodedHours > 0 ? computedEncodedHours : 0,
+      };
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
+  }
+
   async getOvertimeDetails(employeeId: string, overtimeApplicationId: string) {
     const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
 
@@ -1299,8 +1394,8 @@ export class OvertimeService {
       const result = await this.overtimeApplicationService.rawQuery(`
           SELECT DISTINCT 
             emp.company_id companyId,
-              hris_prod.get_employee_fullname2(oe.employee_id_fk) employeeName,
-              hris_prod.get_employee_assignment(oe.employee_id_fk) assignment,
+              ${process.env.HRMS_DB_NAME}get_employee_fullname2(oe.employee_id_fk) employeeName,
+              ${process.env.HRMS_DB_NAME}get_employee_assignment(oe.employee_id_fk) assignment,
               DATE_FORMAT(oappl.planned_date, '%Y-%m-%d') plannedDate,
               DATE_FORMAT(oappl.created_at, '%Y-%m-%d') applicationDate,
               oappl.purpose purpose,
@@ -1313,8 +1408,8 @@ export class OvertimeService {
               INNER JOIN overtime_approval oappr ON oappr.overtime_application_id_fk = oappl.overtime_application_id
               INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oappl.overtime_application_id
               INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id
-              INNER JOIN hris_prod.employees emp ON emp._id = oe.employee_id_fk
-              INNER JOIN hris_prod.plantilla_positions pp ON pp.employee_id_fk = emp._id
+              INNER JOIN ${process.env.HRMS_DB_NAME}employees emp ON emp._id = oe.employee_id_fk
+              INNER JOIN ${process.env.HRMS_DB_NAME}plantilla_positions pp ON pp.employee_id_fk = emp._id
               LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oappl.overtime_immediate_supervisor_id_fk
           WHERE oappl.status <> 'cancelled' 
               AND (ois.employee_id_fk = ? OR oappl.manager_id_fk = ?)
@@ -1322,9 +1417,8 @@ export class OvertimeService {
               AND date_format(planned_date,'%m') = ? 
               AND date_format(planned_date,'%d') IN (?) 
               AND pp.nature_of_appointment = ?
-          ORDER BY plannedDate ASC, otStatus ASC, accomplishmentStatus ASC; 
+          ORDER BY plannedDate ASC, employeeName ASC; 
         `, [immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, year, _month, days, _natureOfAppointment]);
-
 
       const preparedByDetails = await this.employeeService.getBasicEmployeeDetails(immediateSupervisorEmployeeId);
       const preparedByPosition = preparedByDetails.assignment.positionTitle;
@@ -1379,7 +1473,11 @@ export class OvertimeService {
     const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
     const employees = (await this.overtimeApplicationService.rawQuery(
       `
-      SELECT DISTINCT oe.employee_id_fk employeeId, oe.salary_grade_amount salaryGradeAmount,oe.daily_rate dailyRate FROM overtime_employee oe 
+      SELECT 
+       DISTINCT oe.employee_id_fk employeeId, 
+       ${process.env.HRMS_DB_NAME}get_employee_fullname2(oe.employee_id_fk) employeeName,
+       ${process.env.HRMS_DB_NAME}get_company_id_by_employee_id(oe.employee_id_fk) companyId,
+       ${process.env.HRMS_DB_NAME}get_nature_of_appointment_by_employee_id(oe.employee_id_fk) natureOfAppointment, oe.salary_grade_amount salaryGradeAmount,oe.daily_rate dailyRate FROM overtime_employee oe 
         INNER JOIN overtime_application oa ON oa.overtime_application_id = oe.overtime_application_id_fk 
         LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
         INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id 
@@ -1388,20 +1486,26 @@ export class OvertimeService {
       AND oacc.status IN ('approved','pending') 
     ;`,
       [year, _month, days, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId]
-    )) as { employeeId: string; salaryGradeAmount: number; dailyRate: number }[];
+    )) as {
+      employeeId: string;
+      salaryGradeAmount: number;
+      dailyRate: number;
+      employeeName: string;
+      natureOfAppointment: string;
+      companyId: string;
+    }[];
 
     const employeeDetails = await Promise.all(
       employees.map(async (employee) => {
         let totalRegularOTHoursRendered = 0;
         let totalOffOTHoursRendered = 0;
         //check if regular employee
-        const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(employee.employeeId);
+        const { natureOfAppointment } = employee;
         if (
           natureOfAppointment !== _natureOfAppointment
           //&& natureOfAppointment !== 'casual'
         )
           return null;
-        const details = await this.employeeService.getEmployeeDetails(employee.employeeId);
 
         const hourlyMonthlyRate = {
           hourlyRate:
@@ -1410,11 +1514,9 @@ export class OvertimeService {
             _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate * 22,
         };
 
-        const { employeeFullName, userId, assignment } = details;
-        const { positionId } = assignment;
         const overtimes = await Promise.all(
           days.map(async (_day) => {
-            const empSched = await this.isRegularOvertimeDay(employee.employeeId, year, month, _day);
+            //const empSched = await this.isRegularOvertimeDay(employee.employeeId, year, month, _day);
             //!TODO get every overtime of the employee on specific year and month on specified days in the half chosen
             const filterForEmployeeRate =
               _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual'
@@ -1435,7 +1537,7 @@ export class OvertimeService {
               AND oe.employee_id_fk = ? AND oacc.status IN ('approved','pending') AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?) 
               ` +
                 filterForEmployeeRate +
-                `
+                ` 
               ORDER BY \`day\` ASC;
               `,
                 [year, _month, _day, employee.employeeId, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, employeeRate]
@@ -1448,7 +1550,7 @@ export class OvertimeService {
                 overtime.map(async (overtimeDetail) => {
                   const { overtimeApplicationId } = overtimeDetail;
 
-                  return { day: _day, ...(await this.getOvertimeDetails(employee.employeeId, overtimeApplicationId)) };
+                  return { day: _day, ...(await this.getOvertimeDetailsForSummary(employee.employeeId, employee.companyId, overtimeApplicationId)) };
                 })
               );
 
@@ -1458,13 +1560,9 @@ export class OvertimeService {
                 createdAt,
                 deletedAt,
                 didFaceScan,
-                employeeName,
-                employeeSignature,
                 plannedDate,
                 remarks,
                 status,
-                supervisorSignature,
-                supervisorName,
                 updatedAt,
                 id,
                 encodedTimeIn,
@@ -1520,9 +1618,7 @@ export class OvertimeService {
         overallTotalOTAmount += totalOvertimeAmount;
 
         return {
-          employeeFullName,
-          userId,
-          positionId,
+          employeeFullName: employee.employeeName,
           overtimes,
           monthlyRate:
             _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual'
