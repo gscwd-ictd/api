@@ -1374,8 +1374,7 @@ export class OvertimeService {
     let overallTotalOTAmount = 0;
     let overallSubstituteDutyOTAmount = 0;
 
-    const days =
-      half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
+    const days = half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
 
     const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
     const employees = (await this.overtimeApplicationService.rawQuery(
@@ -1406,7 +1405,7 @@ export class OvertimeService {
 
         const hourlyMonthlyRate = {
           hourlyRate:
-            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? Math.round((employee.salaryGradeAmount / 22 / 8) * 100) / 100 : Math.round((employee.dailyRate / 8) * 100) / 100,
+            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount / 22 / 8 : employee.dailyRate / 8,
           monthlyRate:
             _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate * 22,
         };
@@ -1417,9 +1416,12 @@ export class OvertimeService {
           days.map(async (_day) => {
             const empSched = await this.isRegularOvertimeDay(employee.employeeId, year, month, _day);
             //!TODO get every overtime of the employee on specific year and month on specified days in the half chosen
-            const filterForEmployeeRate = _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? `AND oe.salary_grade_amount = ? AND oe.daily_rate IS NULL ` :
-              `AND oe.salary_grade_amount IS NULL AND oe.daily_rate = ? `;
-            const employeeRate = _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate;
+            const filterForEmployeeRate =
+              _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual'
+                ? `AND oe.salary_grade_amount = ? AND oe.daily_rate IS NULL `
+                : `AND oe.salary_grade_amount IS NULL AND oe.daily_rate = ? `;
+            const employeeRate =
+              _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate;
             try {
               const overtime = (await this.overtimeApplicationService.rawQuery(
                 `
@@ -1431,7 +1433,9 @@ export class OvertimeService {
               LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
               WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND  date_format(planned_date,'%d') = ? 
               AND oe.employee_id_fk = ? AND oacc.status IN ('approved','pending') AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?) 
-              `+ filterForEmployeeRate + `
+              ` +
+                filterForEmployeeRate +
+                `
               ORDER BY \`day\` ASC;
               `,
                 [year, _month, _day, employee.employeeId, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, employeeRate]
@@ -1520,7 +1524,14 @@ export class OvertimeService {
           userId,
           positionId,
           overtimes,
-          ...hourlyMonthlyRate,
+          monthlyRate:
+            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual'
+              ? employee.salaryGradeAmount
+              : (Math.trunc(employee.dailyRate * 22 * 100) / 100).toFixed(2),
+          hourlyRate:
+            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual'
+              ? (Math.trunc((employee.salaryGradeAmount / 22 / 8) * 100) / 100).toFixed(2)
+              : (Math.trunc((employee.dailyRate / 8) * 100) / 100).toFixed(2),
           totalOTHoursRendered,
           totalRegularOTHoursRendered,
           totalOffOTHoursRendered,
@@ -1559,7 +1570,9 @@ export class OvertimeService {
     return {
       periodCovered,
       assignedTo,
-      summary: filteredEmployeeDetails,
+      summary: filteredEmployeeDetails.sort((a, b) =>
+        a.employeeFullName < b.employeeFullName ? -1 : a.employeeFullName > b.employeeFullName ? 1 : 0
+      ),
       signatories: {
         preparedBy: { name: employeeName, signature: employeeSignature, position: preparedByPosition },
         notedBy: { name: supervisorName, signature: supervisorSignature, position: notedByPosition },
