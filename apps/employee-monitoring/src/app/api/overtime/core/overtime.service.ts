@@ -732,7 +732,7 @@ export class OvertimeService {
             },
           })) as { employeeId: string }[];
 
-          const _approvedBy = approvedBy === null ? null : (await this.employeeService.getEmployeeDetails(approvedBy)).employeeFullName;
+          const _approvedBy = approvedBy === null ? null : (await this.employeeService.getBasicEmployeeDetails(approvedBy)).employeeFullName;
 
           const _immediateSupervisorId = overtimeImmediateSupervisorId === null ? overtime.managerId : overtimeImmediateSupervisorId.employeeId;
 
@@ -1411,7 +1411,7 @@ export class OvertimeService {
               AND date_format(planned_date,'%m') = ? 
               AND date_format(planned_date,'%d') IN (?) 
               AND pp.nature_of_appointment = ?
-          ORDER BY plannedDate ASC, employeeName;
+          ORDER BY plannedDate ASC, employeeName ASC; 
         `,
         [immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, year, _month, days, _natureOfAppointment]
       );
@@ -1533,6 +1533,9 @@ export class OvertimeService {
               LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
               WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND  date_format(planned_date,'%d') = ? 
               AND oe.employee_id_fk = ? AND oacc.status IN ('approved','pending') AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?) 
+              ` +
+                  filterForEmployeeRate +
+                  ` 
               ` +
                   filterForEmployeeRate +
                   ` 
