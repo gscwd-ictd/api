@@ -900,7 +900,7 @@ export class OvertimeService {
         plannedDate,
         didFaceScan,
         estimatedHours: estimatedHours === null ? null : estimatedHours,
-        computedEncodedHours: updatedOvertimeDetails.status === 'approved' ? computedEncodedHours > 0 ? computedEncodedHours : 0 : null,
+        computedEncodedHours: computedEncodedHours > 0 ? computedEncodedHours : 0,
       };
     } catch (error) {
       throw new NotFoundException(error.message);
@@ -1572,7 +1572,9 @@ export class OvertimeService {
                 ...restOfOvertime
               } = overtimeDetails[0];
 
-              const hoursRendered = await this.getComputedHrs(restOfOvertime);
+
+
+              const hoursRendered = status === 'approved' ? await this.getComputedHrs(restOfOvertime) : 0;
 
               const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(
                 dayjs(year + '-' + month + '-' + day).toDate()
