@@ -737,7 +737,7 @@ export class OvertimeService {
             },
           })) as { employeeId: string }[];
 
-          const _approvedBy = approvedBy === null ? null : (await this.employeeService.getEmployeeDetails(approvedBy)).employeeFullName;
+          const _approvedBy = approvedBy === null ? null : (await this.employeeService.getBasicEmployeeDetails(approvedBy)).employeeFullName;
 
           const _immediateSupervisorId = overtimeImmediateSupervisorId === null ? overtime.managerId : overtimeImmediateSupervisorId.employeeId;
 
