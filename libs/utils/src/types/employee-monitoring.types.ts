@@ -312,3 +312,39 @@ export type DtrCorrectionsType = {
   status: DtrCorrectionStatus;
   remarks: string;
 };
+
+export type HrmoLeaveApplicationListItem = {
+  id: string;
+  employeeId: string;
+  supervisorId: string;
+  leaveBenefitsId: string;
+  dateOfFiling: Date;
+  inPhilippines: string;
+  abroad: string;
+  inHospital: string;
+  outPatient: string;
+  splWomen: string;
+  forMastersCompletion: boolean;
+  forBarBoardReview: boolean;
+  studyLeaveOther: string;
+  forMonetization: boolean;
+  isTerminalLeave: boolean;
+  requestedCommutation: boolean;
+  status: LeaveApplicationStatus;
+  cancelReason: string;
+  cancelDate: Date;
+  hrmoApprovalDate: Date;
+  hrmoApprovedBy: string;
+  supervisorApprovalDate: Date;
+  supervisorDisapprovalRemarks: string;
+  hrdmApprovalDate: Date;
+  hrdmApprovedBy: string;
+  hrdmDisapprovalRemarks: string;
+  isLateFiling: boolean;
+  lateFilingJustification: string;
+  referenceNo: string;
+  employeeName: string;
+  supervisorName: string;
+  leaveName: string;
+  leaveType: string;
+}

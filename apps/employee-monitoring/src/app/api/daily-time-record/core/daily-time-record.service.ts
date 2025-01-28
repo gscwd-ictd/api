@@ -76,8 +76,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     }
   }
 
-  async generateAllEmployeeDtrByMonthAndYear() {}
-
   async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number, half: ReportHalf) {
     const daysInMonth = dayjs(year + '-' + month + '-' + '01').daysInMonth();
     const dayRange = this.getDayRange(daysInMonth);
@@ -547,7 +545,17 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
       const id = data.companyId.replace('-', '');
 
-      const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
+      //const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
+      const employeeDetails = (
+        (await this.rawQuery(
+          `SELECT _id userId,user_role userRole, company_id companyId FROM ${process.env.HRMS_DB_NAME}employees emp WHERE emp.company_id = ?`,
+          [data.companyId]
+        )) as {
+          userId: string;
+          userRole: string;
+          companyId: string;
+        }[]
+      )[0];
 
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
 
