@@ -1573,7 +1573,9 @@ export class OvertimeService {
                 ...restOfOvertime
               } = overtimeDetails[0];
 
-              const hoursRendered = await this.getComputedHrs(restOfOvertime);
+
+
+              const hoursRendered = status === 'approved' ? await this.getComputedHrs(restOfOvertime) : 0;
 
               const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(
                 dayjs(year + '-' + month + '-' + day).toDate()
