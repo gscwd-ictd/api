@@ -900,7 +900,7 @@ export class OvertimeService {
         plannedDate,
         didFaceScan,
         estimatedHours: estimatedHours === null ? null : estimatedHours,
-        computedEncodedHours: computedEncodedHours > 0 ? computedEncodedHours : 0,
+        computedEncodedHours: updatedOvertimeDetails.status === 'approved' ? computedEncodedHours > 0 ? computedEncodedHours : 0 : null,
       };
     } catch (error) {
       throw new NotFoundException(error.message);
