@@ -46,7 +46,8 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
     */
     const assignedMembers = (await this.rawQuery(
       `
-      SELECT DISTINCT es.employee_id_fk employeeId 
+      SELECT DISTINCT es.employee_id_fk employeeId, 
+      ${process.env.HRMS_DB_NAME}get_employee_fullname2(es.employee_id_fk) employeeName
         FROM employee_schedule es 
        INNER JOIN custom_groups cg ON cg.custom_group_id = es.custom_group_id_fk
        WHERE date_from=? AND date_to=? AND schedule_id_fk=? AND es.custom_group_id_fk = ?
