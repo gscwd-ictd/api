@@ -739,7 +739,7 @@ export class OvertimeService {
             },
           })) as { employeeId: string }[];
 
-          const _approvedBy = approvedBy === null ? null : (await this.employeeService.getEmployeeDetails(approvedBy)).employeeFullName;
+          const _approvedBy = approvedBy === null ? null : (await this.employeeService.getBasicEmployeeDetails(approvedBy)).employeeFullName;
 
           const _immediateSupervisorId = overtimeImmediateSupervisorId === null ? overtime.managerId : overtimeImmediateSupervisorId.employeeId;
 
@@ -1541,7 +1541,7 @@ export class OvertimeService {
               ` +
                 filterForEmployeeRate +
                 ` 
-              ORDER BY \`day\` ASC;
+              ORDER BY \`day\` ASC; 
               `,
                 [year, _month, _day, employee.employeeId, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, employeeRate]
               )) as {
@@ -1575,7 +1575,12 @@ export class OvertimeService {
                 ...restOfOvertime
               } = overtimeDetails[0];
 
-              const hoursRendered = await this.getComputedHrs(restOfOvertime);
+              const hoursRendered =
+                status === 'approved'
+                  ? Math.trunc((await this.getComputedHrs(restOfOvertime)) * 100) / 100
+                  : (await this.getComputedHrs(restOfOvertime)) !== null
+                    ? 0
+                    : null;
 
               const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(
                 dayjs(year + '-' + month + '-' + day).toDate()
@@ -1684,6 +1689,7 @@ export class OvertimeService {
       overallTotalOTAmount,
     };
   }
+
 
   async getIndividualOvertimeAccomplishment(overtimeApplicationId: string, employeeId: string) {
     const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
