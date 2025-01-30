@@ -1538,7 +1538,7 @@ export class OvertimeService {
               ` +
                 filterForEmployeeRate +
                 ` 
-              ORDER BY \`day\` ASC;
+              ORDER BY \`day\` ASC; 
               `,
                 [year, _month, _day, employee.employeeId, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, employeeRate]
               )) as {
