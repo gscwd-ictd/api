@@ -51,6 +51,9 @@ async function bootstrap() {
     'http://172.20.110.45:3007',
     'http://172.20.10.57:3008',
     'http://172.20.110.60:3007',
+    'http://172.20.110.45:3002',
+    'http://172.20.110.60:3002',
+    'https://portal.gscwd.app',
   ];
 
   app.use(
