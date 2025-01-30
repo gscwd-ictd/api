@@ -29,14 +29,17 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
     const result = await this.dataSource.transaction(async (entityManager) => {
       let employeeSchedule: EmployeeSchedule;
       if (!Array.isArray(dtrDates)) {
-        const { dateFrom, dateTo } = dtrDates as { dateFrom: Date, dateTo: Date };
-        employeeSchedule = await this.crud().transact<EmployeeSchedule>(entityManager).create({
-          dto: {
-            ...restOfEmployeeSchedules,
-            dateFrom,
-            dateTo
-          },
-        });
+        const { dateFrom, dateTo } = dtrDates as { dateFrom: Date; dateTo: Date };
+        employeeSchedule = await this.crud()
+          .transact<EmployeeSchedule>(entityManager)
+          .create({
+            dto: {
+              ...restOfEmployeeSchedules,
+              dateFrom,
+              dateTo,
+              employeeId,
+            },
+          });
         //#region 2. Set Rest Days
         const employeeRestDay = await this.employeeRestDayService.addEmployeeRestDayTransaction(
           {
@@ -49,27 +52,30 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
         );
         //#endregion 2. Set Rest Days
         return { ...employeeSchedule, employeeRestDay };
-
       } else {
+        const arrayOfSchedulesAndRestDays = await Promise.all(
+          dtrDates.map(async (dtrDate) => {
+            employeeSchedule = await this.crud()
+              .transact<EmployeeSchedule>(entityManager)
+              .create({
+                dto: { ...restOfEmployeeSchedules, dateFrom: dtrDate, dateTo: dtrDate, employeeId },
+              });
 
-        await Promise.all(dtrDates.map(async dtrDate => {
-          employeeSchedule = await this.crud().transact<EmployeeSchedule>(entityManager).create({
-            dto: { ...restOfEmployeeSchedules, dateFrom: dtrDate, dateTo: dtrDate },
-          });
-
-          //#region 2. Set Rest Days
-          const employeeRestDay = await this.employeeRestDayService.addEmployeeRestDayTransaction(
-            {
-              employeeId,
-              dateFrom: dayjs(dtrDate).toDate(),
-              dateTo: dayjs(dtrDate).toDate(),
-              restDays,
-            },
-            entityManager
-          );
-          //#endregion 2. Set Rest Days
-          return { ...employeeSchedule, employeeRestDay };
-        }))
+            //#region 2. Set Rest Days
+            const employeeRestDay = await this.employeeRestDayService.addEmployeeRestDayTransaction(
+              {
+                employeeId,
+                dateFrom: dayjs(dtrDate).toDate(),
+                dateTo: dayjs(dtrDate).toDate(),
+                restDays,
+              },
+              entityManager
+            );
+            //#endregion 2. Set Rest Days
+            return { ...employeeSchedule, employeeRestDay };
+          })
+        );
+        return arrayOfSchedulesAndRestDays;
       }
       //#endregion 1. Create Employee Schedule
     });
