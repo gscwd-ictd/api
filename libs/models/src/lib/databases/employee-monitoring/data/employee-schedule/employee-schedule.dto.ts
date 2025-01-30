@@ -1,4 +1,4 @@
-import { CustomGroups, EmployeeSchedule, Schedule } from '@gscwd-api/models';
+import { CustomGroups, Schedule } from '@gscwd-api/models';
 import { RestDays } from '@gscwd-api/utils';
 import { PickType } from '@nestjs/swagger';
 import { IsArray, IsDateString, IsOptional, IsUUID } from 'class-validator';
@@ -18,6 +18,9 @@ export class CreateEmployeeScheduleDto {
   dateFrom?: Date;
 
   @IsOptional()
+  dtrDates?: { dateTo: Date; dateFrom: Date } | string[];
+
+  @IsOptional()
   customGroupId?: CustomGroups;
 
   @IsArray()
@@ -32,4 +35,4 @@ export class CreateEmployeeScheduleByGroupDto extends PickType(CreateEmployeeSch
   employees: { employeeId: string; restDays: RestDays[] }[];
 }
 
-export class DeleteEmployeeScheduleDto extends PickType(CreateEmployeeScheduleDto, ['dateFrom', 'dateTo', 'employeeId']) {}
+export class DeleteEmployeeScheduleDto extends PickType(CreateEmployeeScheduleDto, ['dateFrom', 'dateTo', 'employeeId']) { }
