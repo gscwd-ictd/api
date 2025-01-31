@@ -261,10 +261,10 @@ export class ReportsService {
       SELECT 
           pass_slip_id passSlipId,
           ${process.env.HRMS_DB_NAME}get_company_id_by_employee_id(employee_id_fk) companyId,
-          ${process.env.HRMS_DB_NAME}get_employee_fullname2(employee_id_fk) fullName,
+          ${process.env.HRMS_DB_NAME}get_employee_fullname2(employee_id_fk) name,
           date_format(ps.created_at, '%Y-%m-%d %H:%i:%s') dateApplied,
           ${process.env.HRMS_DB_NAME}get_employee_fullname2(supervisor_id_fk) approvedBy,
-          date_format(psa.supervisor_approval_date, '%Y-%m-%d %H:%i:%s') supervisorApprovalDate,
+          date_format(psa.supervisor_approval_date, '%Y-%m-%d %H:%i:%s') dateApproved,
           nature_of_business natureOfBusiness,
           purpose_destination purpose,
           status
