@@ -124,6 +124,7 @@ export enum Report {
   REPORT_ON_SUMMARY_OF_SICK_LEAVE = 'report on summary of sick leave',
   REPORT_ON_REHABILITATION_LEAVE = 'report on summary of rehabilitation leave',
   REPORT_ON_PASS_SLIP_DEDUCTIBLE_TO_PAY = 'report on pass slip deductible to pay',
+  REPORT_ON_UNUSED_PASS_SLIP = 'report on unused pass slip',
 }
 
 export enum NatureOfAppointment {
