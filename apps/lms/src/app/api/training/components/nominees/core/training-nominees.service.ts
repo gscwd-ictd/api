@@ -779,22 +779,25 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
 
   async updateNomineeStatusNoActionTakenByTrainingId(trainingId: string, entityManager: EntityManager) {
     try {
-      return await this.crudService.transact<TrainingNominee>(entityManager).update({
-        updateBy: {
-          trainingDistribution: {
-            trainingDetails: {
-              id: trainingId,
+      const nominess = await this.findAllNomineeByTrainingId(
+        trainingId,
+        TrainingStatus.ON_GOING_NOMINATION,
+        NomineeType.NOMINEE,
+        TrainingNomineeStatus.PENDING
+      );
+
+      return await Promise.all(
+        nominess.map(async (items) => {
+          return await this.crudService.transact<TrainingNominee>(entityManager).update({
+            updateBy: {
+              id: items.nomineeId,
             },
-          },
-          status: TrainingNomineeStatus.PENDING,
-        },
-        dto: {
-          status: TrainingNomineeStatus.NO_ACTION,
-        },
-        onError: (error) => {
-          throw error;
-        },
-      });
+            dto: {
+              status: TrainingNomineeStatus.NO_ACTION,
+            },
+          });
+        })
+      );
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad request, no nominee status update', HttpStatus.BAD_REQUEST);
