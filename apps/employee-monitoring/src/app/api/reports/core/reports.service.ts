@@ -730,7 +730,6 @@ export class ReportsService {
         },
       };
     } catch (error) {
-      console.log(error);
       throw new NotFoundException(error.message);
     }
   }
