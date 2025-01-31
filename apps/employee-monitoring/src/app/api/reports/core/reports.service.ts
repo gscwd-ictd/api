@@ -252,7 +252,6 @@ export class ReportsService {
   }
 
   async generateReportOnUnusedPassSlips(dateFrom: Date, dateTo: Date, natureOfBusiness: NatureOfBusiness) {
-    console.log('test')
     const result = (await this.dtrService.rawQuery(`
       SELECT 
           pass_slip_id passSlipId,
@@ -275,7 +274,6 @@ export class ReportsService {
     `, [natureOfBusiness, dateFrom, dateTo])) as {
       passSlipId: string, companyId: string, fullName: string, dateApplied: Date, approvedBy: string, natureOfBusiness: NatureOfBusiness, purpose: string
     }[];
-    console.log(result);
     return result;
   }
 
