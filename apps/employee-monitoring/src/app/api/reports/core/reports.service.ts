@@ -1,9 +1,10 @@
 import { ForbiddenException, HttpException, Injectable, Next, NotFoundException } from '@nestjs/common';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
-import { NatureOfAppointment, Report, User } from '@gscwd-api/utils';
+import { NatureOfAppointment, NatureOfBusiness, Report, User } from '@gscwd-api/utils';
 import dayjs = require('dayjs');
 import { last } from 'rxjs';
+import { PassSlip } from '@gscwd-api/models';
 
 @Injectable()
 export class ReportsService {
@@ -248,6 +249,32 @@ export class ReportsService {
       }
       return 0;
     });
+  }
+
+  async generateReportOnUnusedPassSlips(dateFrom: Date, dateTo: Date, natureOfBusiness: NatureOfBusiness) {
+    const result = (await this.dtrService.rawQuery(`
+      SELECT 
+          pass_slip_id passSlipId,
+          ${process.env.HRMS_DB_NAME}get_company_id_by_employee_id(employee_id_fk) companyId,
+          ${process.env.HRMS_DB_NAME}get_employee_fullname2(employee_id_fk) name,
+          date_format(ps.created_at, '%Y-%m-%d %H:%i:%s') dateApplied,
+          ${process.env.HRMS_DB_NAME}get_employee_fullname2(supervisor_id_fk) approvedBy,
+          date_format(psa.supervisor_approval_date, '%Y-%m-%d %H:%i:%s') dateApproved,
+          nature_of_business natureOfBusiness,
+          purpose_destination purpose,
+          status
+        FROM
+            pass_slip ps
+                INNER JOIN
+            pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id
+      WHERE
+          psa.status = 'unused' AND nature_of_business = ? 
+          AND ps.created_at >= ? AND ps.created_at <= ?  
+      ORDER BY ${process.env.HRMS_DB_NAME}get_employee_fullname2(employee_id_fk) ASC;
+    `, [natureOfBusiness, dateFrom, dateTo])) as {
+      passSlipId: string, companyId: string, fullName: string, dateApplied: Date, approvedBy: string, natureOfBusiness: NatureOfBusiness, purpose: string
+    }[];
+    return result;
   }
 
   async generateReportOnEmployeeForcedLeaveCredits(monthYear: string) {
@@ -632,7 +659,7 @@ export class ReportsService {
     }
   }
 
-  async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string, employeeId?: string) {
+  async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string, employeeId?: string, natureOfBusiness?: NatureOfBusiness) {
     try {
       if (user === null) throw new ForbiddenException();
       let reportDetails: object;
@@ -655,6 +682,10 @@ export class ReportsService {
           break;
         case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
           reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo, employeeId);
+          break;
+        case decodeURI(Report.REPORT_ON_UNUSED_PASS_SLIP):
+          console.log(natureOfBusiness);
+          reportDetails = await this.generateReportOnUnusedPassSlips(dateFrom, dateTo, natureOfBusiness);
           break;
         case decodeURI(Report.REPORT_ON_SUMMARY_OF_SICK_LEAVE):
           reportDetails = await this.generateReportOnSummaryOfSickLeave(dateFrom, dateTo, employeeId);

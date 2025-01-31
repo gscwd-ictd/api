@@ -215,7 +215,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           supervisorId, passSlipId: {
             dateOfApplication: Between(
               dayjs(dayjs().subtract(3, 'month').format('YYYY-MM') + '-01').toDate(),
-              dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
+              dayjs(dayjs().add(1, 'day').format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
             )
           }
         }],
