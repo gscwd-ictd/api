@@ -31,78 +31,152 @@ export class CustomGroupMembersService extends CrudHelper<CustomGroupMembers> {
   }
 
   async getCustomGroupMembersDetails(scheduleId: string, dateFrom: Date, dateTo: Date, customGroupId: string) {
-    //es.employee_id_fk = cgm.employee_id_fk
-
-    /*
-     SELECT es.employee_id_fk employeeId 
-      FROM employee_schedule es 
-     INNER JOIN custom_group_members cgm ON cgm.custom_group_id_fk = es.custom_group_id_fk
-
-
-     SELECT DISTINCT es.employee_id_fk employeeId 
-      FROM employee_schedule es 
-     INNER JOIN custom_groups cgm ON cgm.custom_group_id = es.custom_group_id_fk
-    
-    */
     const assignedMembers = (await this.rawQuery(
       `
-      SELECT DISTINCT es.employee_id_fk employeeId, 
-      ${process.env.HRMS_DB_NAME}get_employee_fullname2(es.employee_id_fk) employeeName
-        FROM employee_schedule es 
-       INNER JOIN custom_groups cg ON cg.custom_group_id = es.custom_group_id_fk
+      SELECT DISTINCT 
+        es.employee_id_fk employeeId, 
+        emp.company_id companyId,
+        ${process.env.HRMS_DB_NAME}get_employee_fullname2(es.employee_id_fk) fullName,
+        pp.position_title positionTitle,
+        ${process.env.HRMS_DB_NAME}get_employee_assignment(emp._id) assignment 
+          FROM employee_schedule es 
+       INNER JOIN  ${process.env.HRMS_DB_NAME}employees emp ON emp._id = es.employee_id_fk 
+       INNER JOIN  ${process.env.HRMS_DB_NAME}plantilla_positions pp ON  pp.employee_id_fk = emp._id
+       INNER JOIN custom_groups cg ON cg.custom_group_id = es.custom_group_id_fk 
        WHERE date_from=? AND date_to=? AND schedule_id_fk=? AND es.custom_group_id_fk = ?
        `,
       [dateFrom, dateTo, scheduleId, customGroupId]
-    )) as CustomGroupMembers[];
+    )) as {
+      employeeId: string;
+      fullName: string;
+      positionTitle: string;
+      assignment: string;
+      companyId: string;
+    }[];
 
-    const employeeIds = await Promise.all(
-      assignedMembers.map(async (assignedMember) => {
-        return assignedMember.employeeId;
-      })
-    );
+    return assignedMembers;
+  }
 
-    const employees = await this.client.call({
-      action: 'send',
-      payload: employeeIds,
-      pattern: 'get_custom_group_assigned_member',
-      onError: (error) => new NotFoundException(error),
-    });
-    return employees;
+  async getCustomGroupUnassignedRankFileMember(employeeIds: string[]) {
+    let unassignedEmployees;
+    if (employeeIds.length === 0) {
+      unassignedEmployees = await this.rawQuery(
+        `
+        SELECT 
+          emp._id employeeId,
+          emp.company_id companyId,
+          ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) fullName,
+          pp.position_title positionTitle,
+          ${process.env.HRMS_DB_NAME}get_employee_assignment(emp._id) assignment 
+        FROM ${process.env.HRMS_DB_NAME}employees emp INNER JOIN ${process.env.HRMS_DB_NAME}plantilla_positions pp ON 
+        emp._id = pp.employee_id_fk WHERE nature_of_appointment = 'casual' OR nature_of_appointment = 'permanent' 
+        ORDER BY ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) ASC
+      `
+      );
+    } else
+      unassignedEmployees = await this.rawQuery(
+        `
+      SELECT 
+        emp._id employeeId,
+        emp.company_id companyId,
+        ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) fullName,
+        pp.position_title positionTitle,
+        ${process.env.HRMS_DB_NAME}get_employee_assignment(emp._id) assignment 
+      FROM ${process.env.HRMS_DB_NAME}employees emp INNER JOIN ${process.env.HRMS_DB_NAME}plantilla_positions pp ON 
+      emp._id = pp.employee_id_fk WHERE emp._id NOT IN (?) AND (nature_of_appointment = 'casual' OR nature_of_appointment = 'permanent') 
+      ORDER BY ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) ASC
+    `,
+        [employeeIds]
+      );
+    return unassignedEmployees;
+  }
+
+  async getCustomUnassignedJobOrderCosMember(employeeIds: string[]) {
+    let unassignedEmployees;
+    if (employeeIds.length === 0) {
+      unassignedEmployees = await this.rawQuery(
+        `
+        SELECT 
+          emp._id employeeId,
+          emp.company_id companyId,
+          ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) fullName,
+          pp.position_title positionTitle,
+          ${process.env.HRMS_DB_NAME}get_employee_assignment(emp._id) assignment 
+        FROM ${process.env.HRMS_DB_NAME}employees emp INNER JOIN ${process.env.HRMS_DB_NAME}plantilla_positions pp ON 
+        emp._id = pp.employee_id_fk WHERE nature_of_appointment = 'contract of service' OR nature_of_appointment = 'job order' 
+        ORDER BY ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) ASC
+      `
+      );
+    } else
+      unassignedEmployees = await this.rawQuery(
+        `
+      SELECT 
+        emp._id employeeId,
+        emp.company_id companyId,
+        ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) fullName,
+        pp.position_title positionTitle,
+        ${process.env.HRMS_DB_NAME}get_employee_assignment(emp._id) assignment 
+      FROM ${process.env.HRMS_DB_NAME}employees emp INNER JOIN ${process.env.HRMS_DB_NAME}plantilla_positions pp ON 
+      emp._id = pp.employee_id_fk WHERE emp._id NOT IN (?) AND (nature_of_appointment = 'contract of service' OR nature_of_appointment = 'job order') 
+      ORDER BY ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) ASC
+    `,
+        [employeeIds]
+      );
+    return unassignedEmployees;
+  }
+
+  async getCustomGroupAssignedMember(employeeIds: string[]) {
+    let assignedEmployees;
+    if (employeeIds.length === 0) return [];
+    else
+      assignedEmployees = await this.rawQuery(
+        `
+      SELECT 
+        emp._id employeeId,
+        emp.company_id companyId,
+        ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) fullName,
+        pp.position_title positionTitle,
+        ${process.env.HRMS_DB_NAME}get_employee_assignment(emp._id) assignment 
+      FROM ${process.env.HRMS_DB_NAME}employees emp INNER JOIN ${process.env.HRMS_DB_NAME}plantilla_positions pp ON 
+      emp._id = pp.employee_id_fk WHERE emp._id IN (?) ORDER BY ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) ASC;
+    `,
+        [employeeIds]
+      );
+
+    return assignedEmployees;
   }
 
   async getCustomGroupMembers(customGroupId: string, unassigned: boolean, isRankFile?: boolean) {
     let assignedMembers;
 
-    let pattern = '';
     if (unassigned) {
-      if (isRankFile) pattern = 'get_custom_group_unassigned_rank_file_member';
-      else pattern = 'get_custom_group_unassigned_job_order_cos_member';
       assignedMembers = (await this.crudService.findAll({
         find: { select: { employeeId: true } },
         onError: () => new NotFoundException(),
       })) as CustomGroupMembers[];
-      //pattern = 'get_custom_group_unassigned_rank_file_member';
+
+      const employeeIds = await Promise.all(
+        assignedMembers.map(async (assignedMember) => {
+          return assignedMember.employeeId;
+        })
+      );
+
+      if (isRankFile) {
+        return await this.getCustomGroupUnassignedRankFileMember(employeeIds);
+      } else {
+        return await this.getCustomUnassignedJobOrderCosMember(employeeIds);
+      }
     } else {
       assignedMembers = (await this.crudService.findAll({
         find: { select: { employeeId: true }, where: { customGroupId: { id: customGroupId } } },
         onError: () => new NotFoundException(),
       })) as CustomGroupMembers[];
-      pattern = 'get_custom_group_assigned_member';
+      const employeeIds = await Promise.all(
+        assignedMembers.map(async (assignedMember) => {
+          return assignedMember.employeeId;
+        })
+      );
+      return await this.getCustomGroupAssignedMember(employeeIds);
     }
-
-    const employeeIds = await Promise.all(
-      assignedMembers.map(async (assignedMember) => {
-        return assignedMember.employeeId;
-      })
-    );
-
-    const employees = await this.client.call({
-      action: 'send',
-      payload: employeeIds,
-      pattern,
-      onError: (error) => new NotFoundException(error),
-    });
-
-    return employees;
   }
 }
