@@ -27,7 +27,7 @@ export class CreateEmployeeScheduleDto {
   restDays: RestDays[];
 }
 
-export class CreateEmployeeScheduleByGroupDto extends PickType(CreateEmployeeScheduleDto, ['dateFrom', 'dateTo', 'scheduleId']) {
+export class CreateEmployeeScheduleByGroupDto extends PickType(CreateEmployeeScheduleDto, ['dtrDates', 'scheduleId']) {
   @IsOptional()
   customGroupId?: CustomGroups;
 

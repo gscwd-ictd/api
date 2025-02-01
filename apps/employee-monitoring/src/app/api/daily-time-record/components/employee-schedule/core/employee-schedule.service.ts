@@ -83,12 +83,11 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
   }
 
   async addEmployeeScheduleByGroup(employeeScheduleByGroupDto: CreateEmployeeScheduleByGroupDto) {
-    const { dateFrom, dateTo, scheduleId, customGroupId, employees } = employeeScheduleByGroupDto;
+    const { dtrDates, scheduleId, customGroupId, employees } = employeeScheduleByGroupDto;
     const employeeSchedules = await Promise.all(
       employees.map(async (employee) => {
         return await this.addEmployeeSchedule({
-          dateFrom,
-          dateTo,
+          dtrDates,
           scheduleId,
           customGroupId,
           employeeId: employee.employeeId,
