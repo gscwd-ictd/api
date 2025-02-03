@@ -964,7 +964,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           //check mo kung umaga nag in
           if (
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn)) ||
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + lunchOut))
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + lunchOut)) ||
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(4, 'hours'))
           ) {
             _timeIn = time;
           } else {
@@ -1231,7 +1232,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       dto: { companyId, timeIn: _timeIn, timeOut: _timeOut, dtrDate: ivmsEntry[0].date, id: dtrId.id },
       onError: (error) => new InternalServerErrorException(error),
     });
-    console.log('Nigth DTR', _timeIn, _timeOut);
     return result;
   }
 
