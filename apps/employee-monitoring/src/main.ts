@@ -38,7 +38,7 @@ const whitelist = [
 //${process.env.EMPLOYEE_MONITORING_REDIS_HOST}
 const redisClientHrms = redis.createClient({
   url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:${process.env.RSP_AUTH_PORT}`,
-  //password: process.env.RSP_AUTH_PASSWORD,
+  password: process.env.RSP_AUTH_PASSWORD,
 });
 
 redisClientHrms.connect().catch(console.error);
