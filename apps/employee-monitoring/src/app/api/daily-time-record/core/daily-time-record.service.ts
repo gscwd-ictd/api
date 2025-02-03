@@ -826,7 +826,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       }
     }
   }
-
+  //
   async updateRegularWithOutLunch(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
     let _timeIn = null;
     let _timeOut = null;
@@ -838,7 +838,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         const { time, ...rest } = ivmsEntryItem;
         if (idx === 0) {
           //check mo kung umaga nag in
-          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn))) {
+          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn)) ||
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(4, 'hours'))) {
             _timeIn = time;
           } else {
             //baka halfday lang siya
@@ -942,8 +943,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           //check mo kung umaga nag in
           if (
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn)) ||
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + lunchOut)) ||
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(4, 'hours'))
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + lunchOut))
           ) {
             _timeIn = time;
           } else {
@@ -1058,7 +1058,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         const { time, ...rest } = ivmsEntryItem;
         if (idx === 0) {
           //check mo kung umaga nag in
-          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn))) {
+          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn)) ||
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(4, 'hours'))) {
             _timeIn = time;
           } else {
             //baka halfday lang siya
