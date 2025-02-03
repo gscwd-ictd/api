@@ -17,25 +17,39 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
   }
 
   async addDtrCorrection(createDtrCorrectionDto: CreateDtrCorrectionDto) {
-    const { lunchIn, lunchOut, timeIn, timeOut, companyId, dtrDate, dtrId, } = createDtrCorrectionDto;
-    let _dtrId = null;
-    if (dtrId === null) {
-      _dtrId = await this.dailyTimeRecordService.crud().create({
-        dto: {
-          companyId, timeIn: null, timeOut: null, lunchIn: null, lunchOut: null, dtrDate, hasCorrection: true
-        }
-      })
-    }
+    try {
+      const { lunchIn, lunchOut, timeIn, timeOut, companyId, dtrDate, dtrId, remarks } = createDtrCorrectionDto;
+      let _dtrId = null;
+      console.log(dtrId, companyId, dtrDate);
+      if (dtrId === null) {
+        _dtrId = await this.dailyTimeRecordService.crud().create({
+          dto: {
+            companyId,
+            timeIn: null,
+            timeOut: null,
+            lunchIn: null,
+            lunchOut: null,
+            dtrDate,
+            hasCorrection: true,
+          },
+        });
+      }
 
-    return await this.crudService.create({
-      dto: {
-        timeIn, lunchOut, lunchIn, timeOut, status: DtrCorrectionStatus.FOR_APPROVAL, dtrId: dtrId === null ? _dtrId : dtrId
-      },
-      onError: (error: any) => {
-        if (error.error.driverError.code === 'ER_DUP_ENTRY') throw new HttpException('Time log correction already exists.', 406);
-        throw new InternalServerErrorException();
-      },
-    });
+      return await this.crudService.create({
+        dto: {
+          timeIn,
+          lunchOut,
+          lunchIn,
+          timeOut,
+          remarks,
+          status: DtrCorrectionStatus.FOR_APPROVAL,
+          dtrId: dtrId === null ? _dtrId : dtrId,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async getPendingDtrCorrections(employeeId: string) {
