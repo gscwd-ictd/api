@@ -20,8 +20,10 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
     try {
       const { lunchIn, lunchOut, timeIn, timeOut, companyId, dtrDate, dtrId, remarks } = createDtrCorrectionDto;
       let _dtrId = null;
-      console.log(dtrId, companyId, dtrDate);
-      if (dtrId === null) {
+
+      const dtrIdByCompanyIdAndDate = await this.dailyTimeRecordService.crud().findOneOrNull({ find: { where: { dtrDate, companyId } } });
+
+      if (dtrId === null && dtrIdByCompanyIdAndDate === null) {
         _dtrId = await this.dailyTimeRecordService.crud().create({
           dto: {
             companyId,
@@ -43,7 +45,7 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
           timeOut,
           remarks,
           status: DtrCorrectionStatus.FOR_APPROVAL,
-          dtrId: dtrId === null ? _dtrId : dtrId,
+          dtrId: dtrId === null ? (dtrIdByCompanyIdAndDate === null ? _dtrId : dtrIdByCompanyIdAndDate) : dtrId,
         },
       });
     } catch (error) {
