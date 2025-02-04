@@ -127,22 +127,23 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
           s.schedule_base scheduleBase,
           DATE_FORMAT(emr.date_from,'%Y-%m-%d') dateFrom,
           DATE_FORMAT(emr.date_to,'%Y-%m-%d') dateTo,
-          concat(DATE_FORMAT(emr.date_from,'%Y-%m-%d'),'-',DATE_FORMAT(emr.date_to,'%Y-%m-%d')) scheduleRange,
+          CONCAT(DATE_FORMAT(emr.date_from,'%Y-%m-%d'),'-',DATE_FORMAT(emr.date_to,'%Y-%m-%d')) scheduleRange,
           GROUP_CONCAT(emrs.rest_day SEPARATOR ', ') restDaysNumbers,
-          GROUP_CONCAT(get_weekday((emrs.rest_day - 1)) SEPARATOR ', ') restDaysNames 
+          GROUP_CONCAT(get_weekday((emrs.rest_day - 1)) SEPARATOR ', ') restDaysNames,
+          datediff(es.date_to, es.date_from) duration
       FROM employee_schedule es 
       INNER JOIN schedule s ON s.schedule_id = es.schedule_id_fk 
       LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
       INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk  
       WHERE emr.employee_id_fk = ? AND emr.date_from = es.date_from AND emr.date_to = es.date_to 
       GROUP BY s.schedule_id,es.created_at,emr.employee_rest_day_id,scheduleRange 
-      ORDER BY DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC;`,
+      ORDER BY DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC, duration ASC;`,
         [employeeId]
       );
 
       const convertedSchedule = await Promise.all(
         schedule.map(async (scheduleItem) => {
-          const { restDaysNumbers, ...rest } = scheduleItem;
+          const { restDaysNumbers, duration, ...rest } = scheduleItem;
           const _restDays = restDaysNumbers.split(',');
           const convertedRestDays = await Promise.all(
             _restDays.map(async (_restDay) => {

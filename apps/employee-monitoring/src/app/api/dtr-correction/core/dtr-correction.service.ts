@@ -1,6 +1,6 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { ApproveDtrCorrectionDto, CreateDtrCorrectionDto, DtrCorrection } from '@gscwd-api/models';
-import { DtrCorrectionsType } from '@gscwd-api/utils';
+import { DtrCorrectionStatus, DtrCorrectionsType } from '@gscwd-api/utils';
 import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EmployeesService } from '../../employees/core/employees.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
@@ -17,22 +17,39 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
   }
 
   async addDtrCorrection(createDtrCorrectionDto: CreateDtrCorrectionDto) {
-    /*
-     lunchIn: lunchIn.toString() !== '' ? lunchIn : null,
-        lunchOut: lunchOut.toString() !== '' ? lunchOut : null,
-        timeIn: timeIn.toString() !== '' ? timeIn : null,
-        timeOut: timeOut.toString() !== '' ? timeOut : null,
-        ...restOfDtrCorrection,
-    
-    */
-    const { lunchIn, lunchOut, timeIn, timeOut, ...restOfDtrCorrection } = createDtrCorrectionDto;
-    return await this.crudService.create({
-      dto: createDtrCorrectionDto,
-      onError: (error: any) => {
-        if (error.error.driverError.code === 'ER_DUP_ENTRY') throw new HttpException('Time log correction already exists.', 406);
-        throw new InternalServerErrorException();
-      },
-    });
+    try {
+      const { lunchIn, lunchOut, timeIn, timeOut, companyId, dtrDate, dtrId, remarks } = createDtrCorrectionDto;
+      let _dtrId = null;
+      console.log(dtrId, companyId, dtrDate);
+      if (dtrId === null) {
+        _dtrId = await this.dailyTimeRecordService.crud().create({
+          dto: {
+            companyId,
+            timeIn: null,
+            timeOut: null,
+            lunchIn: null,
+            lunchOut: null,
+            dtrDate,
+            hasCorrection: true,
+          },
+        });
+      }
+
+      return await this.crudService.create({
+        dto: {
+          timeIn,
+          lunchOut,
+          lunchIn,
+          timeOut,
+          remarks,
+          status: DtrCorrectionStatus.FOR_APPROVAL,
+          dtrId: dtrId === null ? _dtrId : dtrId,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async getPendingDtrCorrections(employeeId: string) {
