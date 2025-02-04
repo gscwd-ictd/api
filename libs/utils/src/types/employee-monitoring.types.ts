@@ -183,6 +183,7 @@ export type EmployeeScheduleType = {
   restDaysNumbers: string;
   restDaysNames: string;
   shift: string;
+  duration: number;
 };
 
 export type DailyTimeRecordType = {
