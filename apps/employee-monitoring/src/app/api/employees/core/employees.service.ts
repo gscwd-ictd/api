@@ -20,7 +20,7 @@ export class EmployeesService {
     return employees;
   }
 
-  async getBasicEmployeeDetailsByEmployeeId(employeeId: string) {
+  async getBasicEmployeeDetailsByEmployeeId(employeeId: string): Promise<EmployeeDetails & { employeeFullNameFirst: string, orgStruct: { officeName: string, divisionName: string, departmentName: string } }> {
     try {
       const employeeDetails = await this.dataSource.query(`
           SELECT emp._id userId, 
@@ -51,7 +51,7 @@ export class EmployeesService {
         assignment: { id, name, positionId, positionTitle },
         orgStruct: { officeName, divisionName, departmentName },
         userRole,
-      };
+      } as EmployeeDetails & { employeeFullNameFirst: string, orgStruct: { officeName: string, divisionName: string, departmentName: string } };
     }
     catch (error) {
       throw new NotFoundException(error.message);
