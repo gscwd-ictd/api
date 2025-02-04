@@ -1,11 +1,11 @@
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { EmployeeDetails, NatureOfAppointment } from '@gscwd-api/utils';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { stringify } from 'querystring';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class EmployeesService {
-  constructor(private readonly client: MicroserviceClient) { }
+  constructor(private readonly client: MicroserviceClient, private readonly dataSource: DataSource) { }
 
   async getAllPermanentEmployeeIds() {
     const employees = (await this.client.call<string, object, []>({
@@ -19,6 +19,85 @@ export class EmployeesService {
 
     return employees;
   }
+
+  async getBasicEmployeeDetailsByEmployeeId(employeeId: string) {
+    try {
+      const employeeDetails = await this.dataSource.query(`
+          SELECT emp._id userId, 
+                emp.company_id companyId,
+                ${process.env.HRMS_DB_NAME}get_employee_position_or_oic(emp._id) positionTitle, 
+                ${process.env.HRMS_DB_NAME}get_employee_position_id_or_oic(emp._id) positionId,
+                ${process.env.HRMS_DB_NAME}is_hrm_psb(emp._id) isHRMPSB,
+                ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) employeeFullName,
+                ${process.env.HRMS_DB_NAME}get_employee_fullname(emp._id) employeeFullNameFirst,
+                ${process.env.HRMS_DB_NAME}get_user_role(emp._id) userRole,
+                port_emp.photo_url photoUrl
+          FROM ${process.env.HRMS_DB_NAME}employees emp 
+          INNER JOIN ${process.env.HRMS_DB_NAME}plantilla_positions pp ON pp.employee_id_fk = emp._id
+          INNER JOIN ${process.env.PORTAL_DB_NAME}employees port_emp ON port_emp.user_id_fk = emp._id
+          WHERE emp._id = ?;
+        `, [employeeId]);
+
+      const { id, name, userId, employeeFullName, companyId, positionId, positionTitle, userRole, employeeFullNameFirst, photoUrl } = employeeDetails[0];
+      const { officeName, divisionName, departmentName } = (await this.dataSource.query(`CALL ${process.env.HRMS_DB_NAME}sp_get_office_department_division(?);`, [id]))[0][0];
+
+
+      return {
+        userId,
+        companyId,
+        employeeFullName,
+        employeeFullNameFirst,
+        photoUrl,
+        assignment: { id, name, positionId, positionTitle },
+        orgStruct: { officeName, divisionName, departmentName },
+        userRole,
+      };
+    }
+    catch (error) {
+      throw new NotFoundException(error.message);
+    }
+  }
+
+  /*
+   async getBasicEmployeeDetailsByEmployeeId(employeeId: string) {
+    try {
+       
+      const empPosition = await this.employeeRepository
+        .createQueryBuilder('emp')
+        .select('emp._id', 'userId')
+        .addSelect('emp.company_id', 'companyId')
+        .addSelect('get_employee_position_or_oic(emp._id)', 'positionTitle')
+        .addSelect('get_employee_position_id_or_oic(emp._id)', 'positionId')
+        .addSelect('get_position_assignment_id(get_employee_position_id_or_oic(emp._id))', 'id')
+        .addSelect('get_position_assignment(get_employee_position_id_or_oic(emp._id))', 'name')
+        .addSelect('is_hrm_psb(emp._id)', 'isHRMPSB')
+        .addSelect('get_employee_fullname2(emp._id)', 'employeeFullName')
+        .addSelect('get_employee_fullname(emp._id)', 'employeeFullNameFirst')
+        .addSelect('get_user_role(emp._id)', 'userRole')
+        .innerJoin('plantilla_positions', 'pp', 'pp.employee_id_fk = emp._id')
+        .where('emp._id = :employeeId', { employeeId })
+        .getRawOne();
+
+      const { id, name, userId, employeeFullName, companyId, positionId, positionTitle, userRole, employeeFullNameFirst } = empPosition;
+      const { officeName, divisionName, departmentName } = (await this.entityRepository.query(`CALL sp_get_office_department_division(?);`, [id]))[0][0];
+
+      const photoUrl = await this.getEmployeePhotoUrlFromPortal(employeeId);
+
+      return {
+        userId,
+        companyId,
+        employeeFullName,
+        employeeFullNameFirst,
+        photoUrl,
+        assignment: { id, name, positionId, positionTitle },
+        orgStruct: { officeName, divisionName, departmentName },
+        userRole,
+      };
+    } catch (error) {
+      throw new HttpException(error.status, error.message);
+    }
+  }
+  */
 
   async getEmployeeDetailsByCompanyId(companyId: string) {
     const employeeDetails = (await this.client.call({

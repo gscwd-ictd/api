@@ -230,7 +230,7 @@ export class OvertimeService {
         const employeesWithDetails = await Promise.all(
           employees.map(async (employee) => {
             const { employeeId } = employee;
-            const employeeDetail = await this.employeeService.getBasicEmployeeDetails(employeeId);
+            const employeeDetail = await this.employeeService.getBasicEmployeeDetailsByEmployeeId(employeeId);
 
             const { assignment, employeeFullName, companyId, photoUrl } = employeeDetail;
 
@@ -262,7 +262,6 @@ export class OvertimeService {
         return { id: overtimeApplicationId, ...rest, immediateSupervisorName, employees: employeesWithDetails };
       })
     );
-
     return overtimeApplicationsWithSupervisorName;
   }
 
