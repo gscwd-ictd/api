@@ -58,47 +58,6 @@ export class EmployeesService {
     }
   }
 
-  /*
-   async getBasicEmployeeDetailsByEmployeeId(employeeId: string) {
-    try {
-       
-      const empPosition = await this.employeeRepository
-        .createQueryBuilder('emp')
-        .select('emp._id', 'userId')
-        .addSelect('emp.company_id', 'companyId')
-        .addSelect('get_employee_position_or_oic(emp._id)', 'positionTitle')
-        .addSelect('get_employee_position_id_or_oic(emp._id)', 'positionId')
-        .addSelect('get_position_assignment_id(get_employee_position_id_or_oic(emp._id))', 'id')
-        .addSelect('get_position_assignment(get_employee_position_id_or_oic(emp._id))', 'name')
-        .addSelect('is_hrm_psb(emp._id)', 'isHRMPSB')
-        .addSelect('get_employee_fullname2(emp._id)', 'employeeFullName')
-        .addSelect('get_employee_fullname(emp._id)', 'employeeFullNameFirst')
-        .addSelect('get_user_role(emp._id)', 'userRole')
-        .innerJoin('plantilla_positions', 'pp', 'pp.employee_id_fk = emp._id')
-        .where('emp._id = :employeeId', { employeeId })
-        .getRawOne();
-
-      const { id, name, userId, employeeFullName, companyId, positionId, positionTitle, userRole, employeeFullNameFirst } = empPosition;
-      const { officeName, divisionName, departmentName } = (await this.entityRepository.query(`CALL sp_get_office_department_division(?);`, [id]))[0][0];
-
-      const photoUrl = await this.getEmployeePhotoUrlFromPortal(employeeId);
-
-      return {
-        userId,
-        companyId,
-        employeeFullName,
-        employeeFullNameFirst,
-        photoUrl,
-        assignment: { id, name, positionId, positionTitle },
-        orgStruct: { officeName, divisionName, departmentName },
-        userRole,
-      };
-    } catch (error) {
-      throw new HttpException(error.status, error.message);
-    }
-  }
-  */
-
   async getEmployeeDetailsByCompanyId(companyId: string) {
     const employeeDetails = (await this.client.call({
       action: 'send',
