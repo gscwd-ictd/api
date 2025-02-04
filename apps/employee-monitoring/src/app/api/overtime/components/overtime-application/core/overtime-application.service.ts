@@ -77,8 +77,8 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
         LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
         WHERE oe.employee_id_fk IN (?) AND (ois.employee_id_fk <> ? OR oa.manager_id_fk <> ?) 
         AND (oapp.manager_id_fk = ? 
-        OR oapp.manager_id_fk IS NULL) 
-        ORDER BY planned_date DESC;
+        OR oapp.manager_id_fk IS NULL) AND planned_date >= date_add(NOW(), INTERVAL -60 DAY) 
+        ORDER BY planned_date DESC ;
     `,
       [employeeIds, managerId, managerId, managerId]
     )) as {
