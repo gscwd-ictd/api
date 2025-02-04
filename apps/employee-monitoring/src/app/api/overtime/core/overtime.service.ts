@@ -12,7 +12,7 @@ import {
 import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
-import { Between, DataSource, EntityManager, EntityMetadata, } from 'typeorm';
+import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual, } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
@@ -434,7 +434,7 @@ export class OvertimeService {
           status: true,
           overtimeImmediateSupervisorId: { employeeId: true },
         },
-        where: { overtimeImmediateSupervisorId: { id }, status },
+        where: { overtimeImmediateSupervisorId: { id }, status, plannedDate: MoreThanOrEqual(dayjs().subtract(60, 'day').toDate()) },
         relations: { overtimeImmediateSupervisorId: true },
         order: { plannedDate: 'DESC' },
       },
@@ -480,7 +480,7 @@ export class OvertimeService {
           employees.map(async (employee) => {
             const { employeeId } = employee;
 
-            const employeeDetails = await this.employeeService.getBasicEmployeeDetails(employeeId);
+            const employeeDetails = await this.employeeService.getBasicEmployeeDetailsByEmployeeId(employeeId);
             const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
             const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
 
