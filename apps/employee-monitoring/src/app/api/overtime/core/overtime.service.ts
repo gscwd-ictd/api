@@ -1583,7 +1583,7 @@ export class OvertimeService {
               );
 
               if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) {
-                if (suspensionHours > 0) totalRegularOTHoursRendered += hoursRendered;
+                if (suspensionHours >= 0) totalRegularOTHoursRendered += hoursRendered;
                 else totalOffOTHoursRendered += hoursRendered;
               } else totalOffOTHoursRendered += hoursRendered;
 
