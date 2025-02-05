@@ -884,7 +884,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
-        const { employeeId, supervisorId, hrmoApprovedBy, hrmoApprovalDate, hrdmApprovedBy, hrdmApprovalDate, leaveBenefitsId, ...rest } = leave;
+        const { employeeId, supervisorId, hrmoApprovedBy, hrmoApprovalDate, hrdmApprovedBy, hrdmApprovalDate, leaveBenefitsId, dateOfFiling, ...rest } = leave;
         const employeeSupervisorNames = (await this.client.call<
           string,
           { employeeId: string; supervisorId: string },
@@ -918,6 +918,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         const { employeeName, supervisorName } = employeeSupervisorNames;
         return {
           ...rest,
+          dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
           leaveBenefitsId: leaveBenefitsId.id,
           leaveName: leaveBenefitsId.leaveName,
           hrmoApprovedBy: _hrmoApprovedBy,
@@ -1325,7 +1326,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
-        const { employeeId, leaveBenefitsId, ...rest } = leave;
+        const { employeeId, leaveBenefitsId, dateOfFiling, ...rest } = leave;
         const employeeDetails = await this.employeesService.getBasicEmployeeDetailsWithSignature(employeeId);
         const companyId = (await this.employeesService.getBasicEmployeeDetails(employeeId)).companyId;
 
@@ -1356,6 +1357,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
         return {
           ...rest,
+          dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
           leaveBenefitsId: leaveBenefitsId.id,
           leaveName: leaveBenefitsId.leaveName,
           ...terminalLeaveDetails,

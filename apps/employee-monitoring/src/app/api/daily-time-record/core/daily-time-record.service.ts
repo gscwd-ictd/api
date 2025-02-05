@@ -490,30 +490,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         isHalfDay = false;
       }
 
-      //change undertime logic
-
-      //if(dtr.timeOut)
-
-      /* const undertime = (await this.rawQuery(
-        `
-        SELECT DATE_FORMAT(date_of_application,'%Y-%m-%d') dateOfApplication,ps.time_out undertimeOut FROM pass_slip ps 
-          INNER JOIN pass_slip_approval psa ON ps.pass_slip_id = psa.pass_slip_id_fk 
-        WHERE psa.status = 'used' 
-        AND ps.employee_id_fk = ? 
-        AND date_of_application = ?;
-      `,
-        [employeeId, dayjs(dtr.dtrDate).format('YYYY-MM-DD')]
-      )) as { dateOfApplication: Date; undertimeOut: Date }[];
-      
-      if (undertime.length > 0) {
-        //do the math
-        const { dateOfApplication, undertimeOut } = undertime[0];
-        noOfUndertimes = 1;
-        minutesUndertime = dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
-          dayjs('2023-01-01 ' + undertimeOut).format('YYYY-MM-DD HH:mm'),
-          'm'
-        );
-      }*/
+      if (suspensionHours === 8) {
+        isHalfDay = false;
+        minutesUndertime = 0;
+        minutesLate = 0;
+        noAttendance = 0;
+        noOfLates = 0;
+        noOfUndertimes = 0;
+      }
     }
 
     return {
