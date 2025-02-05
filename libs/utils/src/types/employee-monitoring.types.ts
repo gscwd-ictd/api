@@ -349,4 +349,4 @@ export type HrmoLeaveApplicationListItem = {
   supervisorName: string;
   leaveName: string;
   leaveType: string;
-}
+};
