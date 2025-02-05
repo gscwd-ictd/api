@@ -65,7 +65,7 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
         SELECT DISTINCT 
         overtime_application_id overtimeApplicationId, 
         COALESCE(ois.employee_id_fk, oa.manager_id_fk) employeeId, 
-        planned_date plannedDate, 
+        DATE_FORMAT(planned_date,'%Y-%m-%d') plannedDate, 
         estimated_hours estimatedHours, 
         purpose, 
         oa.status status,
