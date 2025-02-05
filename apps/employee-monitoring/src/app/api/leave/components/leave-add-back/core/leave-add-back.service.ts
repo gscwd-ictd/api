@@ -154,7 +154,7 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
               const leaveCreditEarningIdVl = await this.leaveCreditEarningsService.addLeaveCreditEarnings({
                 leaveBenefitsId: leaveBenefitsIdVl,
                 creditDate: dtrDate,
-                creditValue: suspensionHrs,
+                creditValue: suspensionHrs / 8,
                 remarks: 'Add Back | Work Suspension ' + workSuspensionStart,
                 employeeId: _leaveApplicationDatesId.employeeId,
               });
