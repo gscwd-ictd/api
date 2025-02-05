@@ -78,7 +78,7 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
         WHERE oe.employee_id_fk IN (?) AND (ois.employee_id_fk <> ? OR oa.manager_id_fk <> ?) 
         AND (oapp.manager_id_fk = ? 
         OR oapp.manager_id_fk IS NULL) AND planned_date >= date_add(NOW(), INTERVAL -60 DAY) 
-        ORDER BY planned_date DESC ;
+        ORDER BY DATE_FORMAT(planned_date,'%Y-%m-%d') DESC ;
     `,
       [employeeIds, managerId, managerId, managerId]
     )) as {
