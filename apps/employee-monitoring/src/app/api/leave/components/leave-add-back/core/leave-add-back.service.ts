@@ -82,7 +82,7 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
               dtrDate
             );
 
-            const workSuspensionStart = await this.workSuspensionService.getWorkSuspensionStart(employeeSchedule.schedule.timeOut, dayNow.toDate());
+            const workSuspensionStart = await this.workSuspensionService.getWorkSuspensionStart(employeeSchedule.schedule.timeOut, dtrDate);
             const creditValue = suspensionHrs / 8;
             const leaveApplicationDatesId = _leaveApplicationDatesId.leaveApplicationDatesId;
             const leaveBenefitsId = await this.leaveBenefitsService.crud().findOne({
