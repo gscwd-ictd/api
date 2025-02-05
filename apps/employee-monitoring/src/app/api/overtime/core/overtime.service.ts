@@ -1583,7 +1583,7 @@ export class OvertimeService {
               );
 
               if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) {
-                if (suspensionHours <= 0) totalRegularOTHoursRendered += hoursRendered;
+                if (suspensionHours > 0) totalRegularOTHoursRendered += hoursRendered;
                 else totalOffOTHoursRendered += hoursRendered;
               } else totalOffOTHoursRendered += hoursRendered;
 
@@ -1720,6 +1720,8 @@ export class OvertimeService {
   }
 
   private async isRegularOvertimeDay(employeeId: string, year: number, month: number, day: number) {
+
+    let result = false;
     const employeeSchedule = await this.employeeScheduleService.getEmployeeSchedule(employeeId);
 
     const restDays = employeeSchedule.schedule.restDaysNumbers.toString().split(', ');
@@ -1732,8 +1734,10 @@ export class OvertimeService {
     const dayOfWeek = dayjs(year + '-' + month + '-' + day)
       .day()
       .toString();
-    if (restDays.includes(dayOfWeek) || isHoliday === '1') return false;
-    return true;
+    if (restDays.includes(dayOfWeek) || isHoliday === '1') result = false;
+    else result = true;
+    console.log(result);
+    return result;
   }
 
   async getNotifsOvertimesByEmployeeId(employeeId: string) {
