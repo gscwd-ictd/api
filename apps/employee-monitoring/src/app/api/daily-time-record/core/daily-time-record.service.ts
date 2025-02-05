@@ -489,8 +489,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         isHalfDay = false;
       }
 
-
-
       //change undertime logic
 
       //if(dtr.timeOut)
