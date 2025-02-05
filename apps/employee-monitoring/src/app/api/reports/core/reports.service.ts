@@ -659,6 +659,15 @@ export class ReportsService {
     }
   }
 
+  async generateReportOnLeaveApplicationLateFiling(dateFrom: Date, dateTo: Date) {
+    try {
+      return (await this.dtrService.rawQuery(`CALL sp_get_late_filed_leave_application_by_date_range(?,?);`, [dateFrom, dateTo]))[0];
+    }
+    catch (error) {
+      throw new NotFoundException(error.message);
+    }
+  }
+
   async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string, employeeId?: string, natureOfBusiness?: NatureOfBusiness) {
     try {
       if (user === null) throw new ForbiddenException();
@@ -709,6 +718,9 @@ export class ReportsService {
           break;
         case decodeURI(Report.REPORT_ON_SUMMARY_OF_LEAVE_WITHOUT_PAY):
           if (monthYear) reportDetails = await this.generateReportOnSummaryOfLeaveWithoutPay(monthYear);
+          break;
+        case decodeURI(Report.REPORT_ON_LEAVE_APPLICATION_LATE_FILING):
+          reportDetails = await this.generateReportOnLeaveApplicationLateFiling(dateFrom, dateTo);
           break;
         //#endregion Report About Leaves
         default:
