@@ -727,7 +727,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         isOt,
         hasPendingDtrCorrection,
         dtrCorrection,
-        dtr: { ...dtr, remarks },
+        dtr: { ...dtr, remarks, baseRemarks: dtr.remarks },
         summary,
       };
     } catch (error) {
@@ -775,6 +775,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           timeOut: null,
           updatedAt: null,
           remarks,
+          baseRemarks: remarks
         },
         summary: {
           noOfLates: null,
