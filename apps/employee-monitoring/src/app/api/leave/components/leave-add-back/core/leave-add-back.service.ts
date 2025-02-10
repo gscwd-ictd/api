@@ -40,16 +40,10 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
     return leaveAddBack;
   }
 
-<<<<<<< HEAD
-  //@Cron('0 59 23 * * 1-5')
-  async addBackLeaveOnWorkSuspension() {
-    const dayNow = dayjs();
-=======
   @Cron('0 59 23 * * 1-5')
   async scheduledAddBackLeaveOnWorkSuspension() {
     await this.addBackLeaveOnWorkSuspension(dayjs().toDate());
   }
->>>>>>> 98c03d4f4e49e2fe9494dedd66a7f2896a58451b
 
   async addBackLeaveOnWorkSuspension(dtrDate: Date) {
 
