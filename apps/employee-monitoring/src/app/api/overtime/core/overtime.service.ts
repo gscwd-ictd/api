@@ -1584,7 +1584,7 @@ export class OvertimeService {
 
               if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) {
                 if (suspensionHours >= 0) {
-                  console.log(employeeName, ' overtime');
+                  console.log(employeeName, ' regular overtime');
                   totalRegularOTHoursRendered += hoursRendered;
                 }
                 else totalOffOTHoursRendered += hoursRendered;
@@ -1725,7 +1725,10 @@ export class OvertimeService {
   private async isRegularOvertimeDay(employeeId: string, year: number, month: number, day: number) {
 
     let result = false;
-    const employeeSchedule = await this.employeeScheduleService.getEmployeeSchedule(employeeId);
+    const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(
+      employeeId,
+      dayjs(year + '-' + month + '-' + day).toDate()
+    );
 
     const restDays = employeeSchedule.schedule.restDaysNumbers.toString().split(', ');
     const isHoliday = (
