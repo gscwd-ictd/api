@@ -726,7 +726,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         isOt,
         hasPendingDtrCorrection,
         dtrCorrection,
-        dtr: { ...dtr, remarks },
+        dtr: { ...dtr, remarks, baseRemarks: dtr.remarks },
         summary,
       };
     } catch (error) {
@@ -774,6 +774,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           timeOut: null,
           updatedAt: null,
           remarks,
+          baseRemarks: remarks
         },
         summary: {
           noOfLates: null,
@@ -826,7 +827,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             _timeIn = time;
           } else {
             //baka halfday lang siya
-            if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))) {
+            if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour')) && (
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours'))
+              || (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours'))))) {
               _timeIn = time;
             } else {
               if (
@@ -1046,7 +1049,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             _timeIn = time;
           } else {
             //baka halfday lang siya
-            if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))) {
+            if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour')) && (
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours'))
+              || (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours'))))) {
               _timeIn = time;
             } else {
               if (
