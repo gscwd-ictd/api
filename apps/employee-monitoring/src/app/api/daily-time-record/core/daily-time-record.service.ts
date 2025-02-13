@@ -1221,12 +1221,19 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         const { time } = ivmsEntryItem;
         const timeScan = dayjs('2023-01-01 ' + time);
         const timeOutSchedule = dayjs('2023-01-01 ' + timeOut);
+        const timeScanTimeOfDay = timeScan.format('A');
         if (
           timeScan.isAfter(timeOutSchedule.subtract(suspensionHours, 'hour')) ||
           timeScan.isSame(timeOutSchedule.subtract(suspensionHours, 'hour'))
         ) {
-          if (_timeOut === null)
-            _timeOut = time;
+          const employeeId = await this.employeeService.getEmployeeIdByCompanyId(companyId);
+          const employeeShift = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(ivmsEntry[0].date).subtract(1, 'day').toDate())).schedule.shift;
+
+          if (employeeShift === 'night') {
+            //if (_timeOut === null)
+            if (timeScanTimeOfDay === 'AM')
+              _timeOut = time;
+          }
         }
       })
     );
