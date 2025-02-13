@@ -1115,9 +1115,140 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       onError: () => new InternalServerErrorException(),
     });
   }
-
   //#region add functionalities for different kinds of schedule
   async addNightScheduleDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
+    let _timeIn = null;
+    let _timeOut = null;
+    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const { timeIn, timeOut } = schedule;
+    const result = await Promise.all(
+      ivmsEntry.map(async (ivmsEntryItem, idx) => {
+
+        const { time } = ivmsEntryItem;
+        const scheduleTimeIn = dayjs(ivmsEntry[0].date + ' ' + timeIn).add(1, 'day');
+        const scheduleTimeOut = dayjs(ivmsEntry[0].date + ' ' + timeOut).add(1, 'day').subtract(suspensionHours, 'hour');
+        const currentIvmsDateTime = dayjs(ivmsEntry[0].date + ' ' + time);
+        const timeOfDay = dayjs(ivmsEntry[0].date + ' ' + time).format('A');
+
+        if (
+          (timeOfDay === 'PM') &&
+          (currentIvmsDateTime.isBefore(scheduleTimeOut)) ||
+          (currentIvmsDateTime.isAfter(scheduleTimeIn))
+        ) {
+          if (_timeIn === null) {
+            _timeIn = time;
+          }
+        }
+        else {
+          //this is a time out for yesterday if it is night schedule
+          _timeOut = time;
+        }
+      }));
+    await this.crudService.create({ dto: { companyId, timeIn: _timeIn, scheduleId: schedule, dtrDate: ivmsEntry[0].date } });
+
+    //insert or update sa kagahapon na sched (out)
+
+    const yesterday = dayjs(ivmsEntry[0].date).subtract(1, 'day');
+    const yesterdayDtr = await this.crudService.findOneOrNull({
+      find: { where: { companyId, dtrDate: yesterday.toDate() } },
+      onError: (error) => new InternalServerErrorException(error),
+    });
+
+    //check yesterday's schedule if night shift;
+    const employeeId = await this.employeeService.getEmployeeIdByCompanyId(companyId);
+    const employeeShift = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, yesterday.toDate())).schedule.shift;
+
+    if (employeeShift === 'night') {
+      if (yesterdayDtr !== null)
+        await this.crudService.create({
+          dto: { companyId, timeOut: _timeOut, dtrDate: yesterday.toDate(), id: yesterdayDtr.id },
+          onError: (error) => new InternalServerErrorException(error),
+        });
+      else
+        await this.crudService.create({
+          dto: { companyId, timeOut: _timeOut, dtrDate: yesterday.toDate() },
+          onError: (error) => new InternalServerErrorException(error),
+        });
+    }
+    return '';
+  }
+
+  async updateNightScheduleDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
+    let _timeIn = null;
+    let _timeOut = null;
+
+    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+
+    const ivmsEntryTomorrow = (await this.client.call<string, { companyId: string; date: Date }, IvmsEntry[]>({
+      action: 'send',
+      payload: { companyId: companyId.replace('-', ''), date: dayjs(dayjs(ivmsEntry[0].date).format('YYYY-MM-DD')).add(1, 'day').toDate() },
+      pattern: 'get_dtr_by_company_id_and_date',
+      onError: (error) => {
+        throw new NotFoundException(error);
+      },
+    })) as IvmsEntry[];
+
+    const { timeIn, timeOut } = schedule;
+    const resultToday = await Promise.all(
+      ivmsEntry.map(async (ivmsEntryItem, idx) => {
+        const { time } = ivmsEntryItem;
+        const scheduleTimeIn = dayjs(ivmsEntry[0].date + ' ' + timeIn).add(1, 'day');
+        const scheduleTimeOut = dayjs(ivmsEntry[0].date + ' ' + timeOut).add(1, 'day').subtract(suspensionHours, 'hour');
+        const currentIvmsDateTime = dayjs(ivmsEntry[0].date + ' ' + time);
+        const timeOfDay = dayjs(ivmsEntry[0].date + ' ' + time).format('A');
+
+        if (
+          (timeOfDay === 'PM') &&
+          (currentIvmsDateTime.isBefore(scheduleTimeOut)) ||
+          (currentIvmsDateTime.isAfter(scheduleTimeIn))
+        ) {
+          if (_timeIn === null) {
+            _timeIn = time;
+          }
+        }
+        else {
+          _timeOut = time;
+        }
+      })
+    );
+
+    if (ivmsEntryTomorrow.length === 0) {
+      _timeOut = null;
+    }
+    //timeout (silip next day morning kay nagtabok ug adlaw) 
+    const resultTomorrow = await Promise.all(
+      ivmsEntryTomorrow.map(async (ivmsEntryItem, idx) => {
+        const { time } = ivmsEntryItem;
+        const timeScan = dayjs('2023-01-01 ' + time);
+        const timeOutSchedule = dayjs('2023-01-01 ' + timeOut);
+        if (
+          timeScan.isAfter(timeOutSchedule.subtract(suspensionHours, 'hour')) ||
+          timeScan.isSame(timeOutSchedule.subtract(suspensionHours, 'hour'))
+        ) {
+          if (_timeOut === null)
+            _timeOut = time;
+        }
+      })
+    );
+
+    //get DTR ID for today
+    const dtrId = await this.crudService.findOneOrNull({
+      find: { where: { companyId, dtrDate: ivmsEntry[0].date } },
+      onError: (error) => new InternalServerErrorException(error),
+    });
+
+    //update DTR ID for today
+    const result = await this.crudService.create({
+      dto: { companyId, timeIn: _timeIn, timeOut: _timeOut, dtrDate: ivmsEntry[0].date, id: dtrId.id },
+      onError: (error) => new InternalServerErrorException(error),
+    });
+    return result;
+  }
+
+  /**
+ * @deprecated The method should not be used
+ */
+  async addNightScheduleDtrOld(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
     let _timeIn = null;
     let _timeOut = null;
 
@@ -1164,7 +1295,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     return '';
   }
 
-  async updateNightScheduleDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
+  /**
+* @deprecated The method should not be used
+*/
+  async updateNightScheduleDtrOld(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
     let _timeIn = null;
     let _timeOut = null;
 
@@ -1365,6 +1499,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     if (schedule.schedule.withLunch === 'true' || schedule.schedule.withLunch === true) {
       if (rest.lunchIn === null && rest.lunchOut === null && rest.timeIn === null && rest.timeOut === null) {
         throw new HttpException('Please fill out time scans completely', 406);
+
       }
     }
 
