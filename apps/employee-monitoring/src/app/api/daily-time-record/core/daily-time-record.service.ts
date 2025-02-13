@@ -1208,7 +1208,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           const employeeShift = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(ivmsEntry[0].date).subtract(1, 'day').toDate())).schedule.shift;
 
           if (employeeShift === 'night') {
-            //if (_timeOut === null)
             if (timeScanTimeOfDay === 'AM')
               _timeOut = time;
           }
