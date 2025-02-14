@@ -596,7 +596,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         if (noOfLates > 0 && !latesUndertimesNoAttendance.isHalfDay) {
           //insert to leave card ledger debit;
           //insert only if permanent or casual;
-
           let debitValue = 0;
 
           if (!leaveCardItem) {
@@ -608,6 +607,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               createdAt: dtr.dtrDate,
               dtrDeductionType: DtrDeductionType.TARDINESS,
             });
+          } else {
+            const currentDebitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+            if (currentDebitValue !== leaveCardItem.debitValue) {
+              const { leaveCreditDeductionsId } = leaveCardItem;
+              await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
+              await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+            }
           }
           //1.2 compute undertime by the day
         }
@@ -620,6 +626,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
           }
         }
+
 
         if (!latesUndertimesNoAttendance.isHalfDay) {
           //check for dtr halfdays in ledger
