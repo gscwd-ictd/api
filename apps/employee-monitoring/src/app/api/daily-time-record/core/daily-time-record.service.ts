@@ -1183,33 +1183,21 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const { timeIn, timeOut } = schedule;
     //for current day
-    /*
-    
-    01/01/2025 07:10:05 AM
-    01/01/2025 07:10:07 AM
-    01/02/2025 04:04:30 PM
-    01/02/2025 04:04:33 PM
-    
-    */
     let prevIvmsDateTime = null;
     await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
         const { time } = ivmsEntryItem;
         const scheduleTimeIn = dayjs(ivmsEntry[0].date + ' ' + timeIn).add(1, 'day');
-        const scheduleTimeOut = dayjs(ivmsEntry[0].date + ' ' + timeOut).add(1, 'day').subtract(suspensionHours, 'hour');
+        const scheduleTimeOut = dayjs(ivmsEntry[0].date + ' ' + timeOut)
+          .add(1, 'day')
+          .subtract(suspensionHours, 'hour');
         const currentIvmsDateTime = dayjs(ivmsEntry[0].date + ' ' + time);
         const timeOfDay = dayjs(ivmsEntry[0].date + ' ' + time).format('A');
 
-        if (
-          (timeOfDay === 'PM') &&
-          (currentIvmsDateTime.isBefore(scheduleTimeOut)) ||
-          (currentIvmsDateTime.isAfter(scheduleTimeIn))
-        ) {
+        if ((timeOfDay === 'PM' && currentIvmsDateTime.isBefore(scheduleTimeOut)) || currentIvmsDateTime.isAfter(scheduleTimeIn)) {
           if (_timeIn === null) {
             _timeIn = time;
           }
-        }
-        else {
           if (idx > 0 && prevIvmsDateTime.diff(currentIvmsDateTime) >= 3600000) {
             _timeOut = time;
           }
@@ -1217,17 +1205,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         prevIvmsDateTime = currentIvmsDateTime;
       })
     );
-
-    if (ivmsEntryTomorrow.length === 0) {
-      _timeOut = null;
-    }
     //timeout (silip next day morning kay nagtabok ug adlaw) 
     //result for tomorrow 
     await Promise.all(
       ivmsEntryTomorrow.map(async (ivmsEntryItem) => {
         const { time } = ivmsEntryItem;
-        const timeScan = dayjs(ivmsEntry[0].date + ' ' + time);
-        const timeOutSchedule = dayjs(ivmsEntry[0].date + ' ' + timeOut);
+        const timeScan = dayjs(ivmsEntryItem.date + ' ' + time);
+        const timeOutSchedule = dayjs(ivmsEntryItem.date + ' ' + timeOut);
         const timeScanTimeOfDay = timeScan.format('A');
         if (
           timeScan.isAfter(timeOutSchedule.subtract(suspensionHours, 'hour')) ||
