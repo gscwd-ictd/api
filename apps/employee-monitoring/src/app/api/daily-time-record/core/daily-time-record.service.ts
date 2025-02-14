@@ -1167,8 +1167,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     })) as IvmsEntry[];
 
     const { timeIn, timeOut } = schedule;
-    const resultToday = await Promise.all(
-      ivmsEntry.map(async (ivmsEntryItem, idx) => {
+    //for current day
+    await Promise.all(
+      ivmsEntry.map(async (ivmsEntryItem) => {
         const { time } = ivmsEntryItem;
         const scheduleTimeIn = dayjs(ivmsEntry[0].date + ' ' + timeIn).add(1, 'day');
         const scheduleTimeOut = dayjs(ivmsEntry[0].date + ' ' + timeOut).add(1, 'day').subtract(suspensionHours, 'hour');
@@ -1194,11 +1195,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       _timeOut = null;
     }
     //timeout (silip next day morning kay nagtabok ug adlaw) 
-    const resultTomorrow = await Promise.all(
-      ivmsEntryTomorrow.map(async (ivmsEntryItem, idx) => {
+    //result for tomorrow 
+    await Promise.all(
+      ivmsEntryTomorrow.map(async (ivmsEntryItem) => {
         const { time } = ivmsEntryItem;
-        const timeScan = dayjs('2023-01-01 ' + time);
-        const timeOutSchedule = dayjs('2023-01-01 ' + timeOut);
+        const timeScan = dayjs(ivmsEntry[0].date + ' ' + time);
+        const timeOutSchedule = dayjs(ivmsEntry[0].date + ' ' + timeOut);
         const timeScanTimeOfDay = timeScan.format('A');
         if (
           timeScan.isAfter(timeOutSchedule.subtract(suspensionHours, 'hour')) ||
