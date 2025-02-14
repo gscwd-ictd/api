@@ -647,7 +647,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           //check for dtr halfdays in ledger
           const leaveCardItemHalfDay = await this.leaveCardLedgerDebitService
             .crud()
-            .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
+            .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.HALFDAY } } });
           if (leaveCardItemHalfDay) {
             const { leaveCreditDeductionsId } = leaveCardItemHalfDay;
             await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItemHalfDay.id }, softDelete: false });
@@ -1205,8 +1205,17 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const { timeIn, timeOut } = schedule;
     //for current day
+    /*
+    
+    01/01/2025 07:10:05 AM
+    01/01/2025 07:10:07 AM
+    01/02/2025 04:04:30 PM
+    01/02/2025 04:04:33 PM
+    
+    */
+    let prevIvmsDateTime = null;
     await Promise.all(
-      ivmsEntry.map(async (ivmsEntryItem) => {
+      ivmsEntry.map(async (ivmsEntryItem, idx) => {
         const { time } = ivmsEntryItem;
         const scheduleTimeIn = dayjs(ivmsEntry[0].date + ' ' + timeIn).add(1, 'day');
         const scheduleTimeOut = dayjs(ivmsEntry[0].date + ' ' + timeOut).add(1, 'day').subtract(suspensionHours, 'hour');
@@ -1223,8 +1232,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           }
         }
         else {
-          _timeOut = time;
+          if (idx > 0 && prevIvmsDateTime.diff(currentIvmsDateTime) >= 3600000) {
+            _timeOut = time;
+          }
         }
+        prevIvmsDateTime = currentIvmsDateTime;
       })
     );
 
