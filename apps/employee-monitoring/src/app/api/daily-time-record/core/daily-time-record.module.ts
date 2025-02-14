@@ -13,6 +13,7 @@ import { LeaveCardLedgerCreditModule } from '../../leave/components/leave-card-l
 import { LeaveAddBackModule } from '../../leave/components/leave-add-back/core/leave-add-back.module';
 import { EmployeesModule } from '../../employees/core/employees.module';
 import { WorkSuspensionModule } from '../../work-suspension/core/work-suspension.module';
+import { LeaveCreditDeductionsModule } from '../../leave/components/leave-credit-deductions/core/leave-credit-deductions.module';
 
 @Module({
   imports: [
@@ -36,9 +37,10 @@ import { WorkSuspensionModule } from '../../work-suspension/core/work-suspension
     LeaveAddBackModule,
     EmployeesModule,
     WorkSuspensionModule,
+    LeaveCreditDeductionsModule
   ],
   providers: [DailyTimeRecordService, MicroserviceClient],
   controllers: [DailyTimeRecordController],
   exports: [DailyTimeRecordService],
 })
-export class DailyTimeRecordModule {}
+export class DailyTimeRecordModule { }
