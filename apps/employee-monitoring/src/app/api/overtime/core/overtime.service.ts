@@ -815,11 +815,6 @@ export class OvertimeService {
 
   async getOvertimeDetailsForSummary(employeeId: string, companyId: string, overtimeApplicationId: string) {
     try {
-      const employeeSchedules = await this.employeeScheduleService.getAllEmployeeSchedules(employeeId);
-
-      const scheduleBase = employeeSchedules !== null ? employeeSchedules[0].scheduleBase : null;
-      const restDays = employeeSchedules !== null ? employeeSchedules[0].restDays : null;
-
       const overtimeDetails = (await this.overtimeAccomplishmentService.crud().findOne({
         find: {
           where: { overtimeEmployeeId: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } },
@@ -837,6 +832,15 @@ export class OvertimeService {
         companyId: companyId,
         date: dayjs(overtimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate).toDate(),
       });
+
+      const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(
+        employeeId,
+        dayjs(overtimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate).toDate()
+      );
+
+      const restDays: string[] = employeeSchedule !== null ? employeeSchedule.schedule.restDaysNumbers.split(', ') : [];
+
+      const scheduleBase = employeeSchedule !== null ? employeeSchedule.schedule.scheduleBase : null;
 
       if (scheduleBase === ScheduleBase.OFFICE) {
         didFaceScan = await this.dailyTimeRecordService.getHasIvms({
@@ -875,7 +879,7 @@ export class OvertimeService {
       const plannedDate = updatedOvertimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate;
 
       if (updatedOvertimeDetails.encodedTimeIn !== null && updatedOvertimeDetails.encodedTimeOut !== null) {
-        if (dayjs(plannedDate).day() in restDays) {
+        if (restDays.includes(dayjs(plannedDate).day().toString())) {
           computedEncodedHours =
             ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(updatedOvertimeDetails.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
             100;
@@ -885,7 +889,6 @@ export class OvertimeService {
           computedEncodedHours =
             ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(updatedOvertimeDetails.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
             100;
-
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         }
         if (computedEncodedHours > 4) {
@@ -1587,11 +1590,11 @@ export class OvertimeService {
 
               if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) {
                 if (suspensionHours >= 0) {
-                  console.log(employeeName, ' regular overtime');
                   totalRegularOTHoursRendered += hoursRendered;
-                }
-                else totalOffOTHoursRendered += hoursRendered;
-              } else totalOffOTHoursRendered += hoursRendered;
+                } else totalOffOTHoursRendered += hoursRendered;
+              } else {
+                totalOffOTHoursRendered += hoursRendered;
+              }
 
               return typeof overtime !== 'undefined'
                 ? { day, hoursRendered }
@@ -1726,14 +1729,12 @@ export class OvertimeService {
   }
 
   private async isRegularOvertimeDay(employeeId: string, year: number, month: number, day: number) {
-
     let result = false;
     const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(
       employeeId,
       dayjs(year + '-' + month + '-' + day).toDate()
     );
-
-    const restDays = employeeSchedule.schedule.restDaysNumbers.toString().split(', ');
+    const restDays: string[] = employeeSchedule !== null ? employeeSchedule.schedule.restDaysNumbers.split(', ') : [];
     const isHoliday = (
       await this.employeeScheduleService.rawQuery(
         `SELECT IF(COUNT(holiday_date)>0,true,false) isHoliday FROM holidays WHERE holiday_date = concat(?,'-',?,'-',?);`,
@@ -1745,7 +1746,6 @@ export class OvertimeService {
       .toString();
     if (restDays.includes(dayOfWeek) || isHoliday === '1') result = false;
     else result = true;
-    console.log(result);
     return result;
   }
 
