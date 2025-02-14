@@ -58,6 +58,18 @@ export class EmployeesService {
     }
   }
 
+  async getEmployeeIdByCompanyId(companyId: string) {
+    try {
+      const employee = (await this.dataSource.query(`
+       SELECT _id employeeId 
+        FROM ${process.env.HRMS_DB_NAME}employees WHERE company_id = ? LIMIT 1;`, [companyId])) as { employeeId: string }[];
+      return employee.length > 0 ? employee[0].employeeId : null;
+    }
+    catch (error) {
+      throw new NotFoundException(error.message);
+    }
+  }
+
   async getEmployeeDetailsByCompanyId(companyId: string) {
     const employeeDetails = (await this.client.call({
       action: 'send',
