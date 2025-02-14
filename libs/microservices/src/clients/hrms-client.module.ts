@@ -15,7 +15,7 @@ import { MS_CLIENT } from '../utils/ms-provider';
           options: {
             host: configService.getOrThrow<string>('HRMS_HOST'),
             port: parseInt(configService.getOrThrow<string>('HRMS_PORT')),
-            password: configService.getOrThrow<string>('HRMS_PASS'),
+            //password: configService.getOrThrow<string>('HRMS_PASS'),
           },
         });
       },
@@ -24,4 +24,4 @@ import { MS_CLIENT } from '../utils/ms-provider';
   ],
   exports: [MicroserviceClient],
 })
-export class HrmsMicroserviceClientModule {}
+export class HrmsMicroserviceClientModule { }
