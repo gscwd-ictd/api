@@ -610,7 +610,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //1.1 compute late by the day
       const { noOfLates, noOfUndertimes } = latesUndertimesNoAttendance;
 
-
       if (employeeDetails.userRole !== 'job_order') {
         const leaveCardItem = await this.leaveCardLedgerDebitService
           .crud()
@@ -618,7 +617,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         if (noOfLates > 0 && !latesUndertimesNoAttendance.isHalfDay) {
           //insert to leave card ledger debit;
           //insert only if permanent or casual;
-
           let debitValue = 0;
 
           if (!leaveCardItem) {
@@ -630,16 +628,26 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               createdAt: dtr.dtrDate,
               dtrDeductionType: DtrDeductionType.TARDINESS,
             });
+          } else {
+            const currentDebitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+            if (currentDebitValue !== leaveCardItem.debitValue) {
+              const { leaveCreditDeductionsId } = leaveCardItem;
+              await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
+              await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+            }
           }
           //1.2 compute undertime by the day
-        }
-        else if (noOfLates === 0 && !latesUndertimesNoAttendance.isHalfDay) {
-          //remove debit and deduction 
+        } else if (noOfLates === 0 && !latesUndertimesNoAttendance.isHalfDay) {
+          //remove debit and deduction
           if (leaveCardItem) {
-            //delete the deduction if it exists
-            const { leaveCreditDeductionsId } = leaveCardItem;
-            await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
-            await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+            //delete the deduction if it
+            const currentDebitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+            console.log(currentDebitValue, '!==', leaveCardItem.debitValue);
+            if (currentDebitValue !== leaveCardItem.debitValue) {
+              const { leaveCreditDeductionsId } = leaveCardItem;
+              await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
+              await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+            }
           }
         }
 
@@ -812,7 +820,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           timeOut: null,
           updatedAt: null,
           remarks,
-          baseRemarks: remarks
+          baseRemarks: remarks,
         },
         summary: {
           noOfLates: null,
@@ -860,14 +868,18 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         const { time, ...rest } = ivmsEntryItem;
         if (idx === 0) {
           //check mo kung umaga nag in
-          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn)) ||
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(4, 'hours'))) {
+          if (
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn)) ||
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(4, 'hours'))
+          ) {
             _timeIn = time;
           } else {
             //baka halfday lang siya
-            if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour')) && (
-              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours'))
-              || (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours'))))) {
+            if (
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour')) &&
+              (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours')) ||
+                dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours')))
+            ) {
               _timeIn = time;
             } else {
               if (
@@ -1082,14 +1094,18 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         const { time, ...rest } = ivmsEntryItem;
         if (idx === 0) {
           //check mo kung umaga nag in
-          if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn)) ||
-            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(4, 'hours'))) {
+          if (
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn)) ||
+            dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(4, 'hours'))
+          ) {
             _timeIn = time;
           } else {
             //baka halfday lang siya
-            if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour')) && (
-              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours'))
-              || (dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours'))))) {
+            if (
+              dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour')) &&
+              (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours')) ||
+                dayjs('2023-01-01 ' + time).isSame(dayjs('2023-01-01 ' + timeIn).add(6.5, 'hours')))
+            ) {
               _timeIn = time;
             } else {
               if (
@@ -1138,27 +1154,24 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     const { timeIn, timeOut } = schedule;
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
-
         const { time } = ivmsEntryItem;
         const scheduleTimeIn = dayjs(ivmsEntry[0].date + ' ' + timeIn).add(1, 'day');
-        const scheduleTimeOut = dayjs(ivmsEntry[0].date + ' ' + timeOut).add(1, 'day').subtract(suspensionHours, 'hour');
+        const scheduleTimeOut = dayjs(ivmsEntry[0].date + ' ' + timeOut)
+          .add(1, 'day')
+          .subtract(suspensionHours, 'hour');
         const currentIvmsDateTime = dayjs(ivmsEntry[0].date + ' ' + time);
         const timeOfDay = dayjs(ivmsEntry[0].date + ' ' + time).format('A');
 
-        if (
-          (timeOfDay === 'PM') &&
-          (currentIvmsDateTime.isBefore(scheduleTimeOut)) ||
-          (currentIvmsDateTime.isAfter(scheduleTimeIn))
-        ) {
+        if ((timeOfDay === 'PM' && currentIvmsDateTime.isBefore(scheduleTimeOut)) || currentIvmsDateTime.isAfter(scheduleTimeIn)) {
           if (_timeIn === null) {
             _timeIn = time;
           }
-        }
-        else {
+        } else {
           //this is a time out for yesterday if it is night schedule
           _timeOut = time;
         }
-      }));
+      })
+    );
     await this.crudService.create({ dto: { companyId, timeIn: _timeIn, scheduleId: schedule, dtrDate: ivmsEntry[0].date } });
 
     //insert or update sa kagahapon na sched (out)
@@ -1227,8 +1240,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         prevIvmsDateTime = currentIvmsDateTime;
       })
     );
-    //timeout (silip next day morning kay nagtabok ug adlaw) 
-    //result for tomorrow 
+    //timeout (silip next day morning kay nagtabok ug adlaw)
+    //result for tomorrow
     await Promise.all(
       ivmsEntryTomorrow.map(async (ivmsEntryItem) => {
         const { time } = ivmsEntryItem;
@@ -1240,11 +1253,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           timeScan.isSame(timeOutSchedule.subtract(suspensionHours, 'hour'))
         ) {
           const employeeId = await this.employeeService.getEmployeeIdByCompanyId(companyId);
-          const employeeShift = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(ivmsEntry[0].date).subtract(1, 'day').toDate())).schedule.shift;
+          const employeeShift = (
+            await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(ivmsEntry[0].date).subtract(1, 'day').toDate())
+          ).schedule.shift;
 
           if (employeeShift === 'night') {
-            if (timeScanTimeOfDay === 'AM')
-              _timeOut = time;
+            if (timeScanTimeOfDay === 'AM') _timeOut = time;
           }
         }
       })
@@ -1315,8 +1329,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   /**
-* @deprecated The method should not be used
-*/
+   * @deprecated The method should not be used
+   */
   async updateNightScheduleDtrOld(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
     let _timeIn = null;
     let _timeOut = null;
@@ -1518,7 +1532,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     if (schedule.schedule.withLunch === 'true' || schedule.schedule.withLunch === true) {
       if (rest.lunchIn === null && rest.lunchOut === null && rest.timeIn === null && rest.timeOut === null) {
         throw new HttpException('Please fill out time scans completely', 406);
-
       }
     }
 
