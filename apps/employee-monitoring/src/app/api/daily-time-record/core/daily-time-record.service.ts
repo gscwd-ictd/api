@@ -588,7 +588,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //1.1 compute late by the day
       const { noOfLates, noOfUndertimes } = latesUndertimesNoAttendance;
 
-
       if (employeeDetails.userRole !== 'job_order') {
         const leaveCardItem = await this.leaveCardLedgerDebitService
           .crud()
@@ -616,17 +615,18 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             }
           }
           //1.2 compute undertime by the day
-        }
-        else if (noOfLates === 0 && !latesUndertimesNoAttendance.isHalfDay) {
-          //remove debit and deduction 
+        } else if (noOfLates === 0 && !latesUndertimesNoAttendance.isHalfDay) {
+          //remove debit and deduction
           if (leaveCardItem) {
-            //delete the deduction if it exists
-            const { leaveCreditDeductionsId } = leaveCardItem;
-            await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
-            await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+            //delete if debitvalues dont match
+            const currentDebitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+            if (currentDebitValue !== leaveCardItem.debitValue) {
+              const { leaveCreditDeductionsId } = leaveCardItem;
+              await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
+              await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+            }
           }
         }
-
 
         if (!latesUndertimesNoAttendance.isHalfDay) {
           //check for dtr halfdays in ledger
