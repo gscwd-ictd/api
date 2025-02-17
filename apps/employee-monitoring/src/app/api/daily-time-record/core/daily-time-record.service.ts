@@ -618,13 +618,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         } else if (noOfLates === 0 && !latesUndertimesNoAttendance.isHalfDay) {
           //remove debit and deduction
           if (leaveCardItem) {
-            //delete if debitvalues dont match
-            const currentDebitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
-            if (currentDebitValue !== leaveCardItem.debitValue) {
-              const { leaveCreditDeductionsId } = leaveCardItem;
-              await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
-              await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
-            }
+            const { leaveCreditDeductionsId } = leaveCardItem;
+            await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
+            await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
           }
         }
 
