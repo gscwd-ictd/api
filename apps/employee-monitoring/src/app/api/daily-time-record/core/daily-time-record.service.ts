@@ -10,6 +10,7 @@ import { HolidaysService } from '../../holidays/core/holidays.service';
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
 import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
+import { LeaveCreditDeductionsService } from '../../leave/components/leave-credit-deductions/core/leave-credit-deductions.service';
 
 @Injectable()
 export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
@@ -20,7 +21,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     private readonly holidayService: HolidaysService,
     private readonly leaveCardLedgerDebitService: LeaveCardLedgerDebitService,
     private readonly employeeService: EmployeesService,
-    private readonly workSuspensionService: WorkSuspensionService
+    private readonly workSuspensionService: WorkSuspensionService,
+    private readonly leaveCreditDeductionsService: LeaveCreditDeductionsService
   ) {
     super(crudService);
   }
@@ -580,19 +582,20 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         dtrCorrection = await this.getDtrCorrection(currEmployeeDtr.id);
       }
       const dtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
-      //
+
       const latesUndertimesNoAttendance = await this.getLatesUndertimesNoAttendancePerDay(dtr, schedule, employeeDetails.userId);
-      //const undertimes = await this.getUndertimesPerDay(dtr, schedule);
 
       //1.1 compute late by the day
       const { noOfLates, noOfUndertimes } = latesUndertimesNoAttendance;
+
+
       if (employeeDetails.userRole !== 'job_order') {
+        const leaveCardItem = await this.leaveCardLedgerDebitService
+          .crud()
+          .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
         if (noOfLates > 0 && !latesUndertimesNoAttendance.isHalfDay) {
           //insert to leave card ledger debit;
           //insert only if permanent or casual;
-          const leaveCardItem = await this.leaveCardLedgerDebitService
-            .crud()
-            .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
           let debitValue = 0;
 
           if (!leaveCardItem) {
@@ -604,30 +607,50 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
               createdAt: dtr.dtrDate,
               dtrDeductionType: DtrDeductionType.TARDINESS,
             });
+          } else {
+            const currentDebitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+            if (currentDebitValue !== leaveCardItem.debitValue) {
+              const { leaveCreditDeductionsId } = leaveCardItem;
+              await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
+              await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+            }
           }
           //1.2 compute undertime by the day
         }
+        else if (noOfLates === 0 && !latesUndertimesNoAttendance.isHalfDay) {
+          //remove debit and deduction 
+          if (leaveCardItem) {
+            //delete the deduction if it exists
+            const { leaveCreditDeductionsId } = leaveCardItem;
+            await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
+            await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+          }
+        }
 
-        // if (noOfLates > 0 && latesUndertimesNoAttendance.isHalfDay) {
-        //   //insert to leave card ledger debit;
-        //   //insert only if permanent or casual;
-        //   const leaveCardItem = await this.leaveCardLedgerDebitService
-        //     .crud()
-        //     .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
-        //   let debitValue = 0;
 
-        //   if (!leaveCardItem) {
-        //     debitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
+        if (!latesUndertimesNoAttendance.isHalfDay) {
+          //check for dtr halfdays in ledger
+          const leaveCardItemHalfDay = await this.leaveCardLedgerDebitService
+            .crud()
+            .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.HALFDAY } } });
+          if (leaveCardItemHalfDay) {
+            const { leaveCreditDeductionsId } = leaveCardItemHalfDay;
+            await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItemHalfDay.id }, softDelete: false });
+            await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+          }
+        }
 
-        //     await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
-        //       dailyTimeRecordId: dtr,
-        //       debitValue,
-        //       createdAt: dtr.dtrDate,
-        //       dtrDeductionType: DtrDeductionType.TARDINESS,
-        //     });
-        //   }
-        //   //1.2 compute undertime by the day
-        // }
+        if (noOfUndertimes === 0) {
+          const leaveCardItem = await this.leaveCardLedgerDebitService
+            .crud()
+            .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.UNDERTIME } } });
+
+          if (leaveCardItem) {
+            const { leaveCreditDeductionsId } = leaveCardItem;
+            await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
+            await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+          }
+        }
 
         if (noOfUndertimes > 0) {
           const leaveCardItem = await this.leaveCardLedgerDebitService
@@ -655,7 +678,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
                   dtrDeductionType: DtrDeductionType.UNDERTIME,
                 });
               }
-              //debitValue = (await this.rawQuery(`SELECT get_undertime_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
             }
           }
         }
@@ -1168,39 +1190,35 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const { timeIn, timeOut } = schedule;
     //for current day
+    let prevIvmsDateTime = null;
     await Promise.all(
-      ivmsEntry.map(async (ivmsEntryItem) => {
+      ivmsEntry.map(async (ivmsEntryItem, idx) => {
         const { time } = ivmsEntryItem;
         const scheduleTimeIn = dayjs(ivmsEntry[0].date + ' ' + timeIn).add(1, 'day');
-        const scheduleTimeOut = dayjs(ivmsEntry[0].date + ' ' + timeOut).add(1, 'day').subtract(suspensionHours, 'hour');
+        const scheduleTimeOut = dayjs(ivmsEntry[0].date + ' ' + timeOut)
+          .add(1, 'day')
+          .subtract(suspensionHours, 'hour');
         const currentIvmsDateTime = dayjs(ivmsEntry[0].date + ' ' + time);
         const timeOfDay = dayjs(ivmsEntry[0].date + ' ' + time).format('A');
 
-        if (
-          (timeOfDay === 'PM') &&
-          (currentIvmsDateTime.isBefore(scheduleTimeOut)) ||
-          (currentIvmsDateTime.isAfter(scheduleTimeIn))
-        ) {
+        if ((timeOfDay === 'PM' && currentIvmsDateTime.isBefore(scheduleTimeOut)) || currentIvmsDateTime.isAfter(scheduleTimeIn)) {
           if (_timeIn === null) {
             _timeIn = time;
           }
+          if (idx > 0 && prevIvmsDateTime.diff(currentIvmsDateTime) >= 3600000) {
+            _timeOut = time;
+          }
         }
-        else {
-          _timeOut = time;
-        }
+        prevIvmsDateTime = currentIvmsDateTime;
       })
     );
-
-    if (ivmsEntryTomorrow.length === 0) {
-      _timeOut = null;
-    }
     //timeout (silip next day morning kay nagtabok ug adlaw) 
     //result for tomorrow 
     await Promise.all(
       ivmsEntryTomorrow.map(async (ivmsEntryItem) => {
         const { time } = ivmsEntryItem;
-        const timeScan = dayjs(ivmsEntry[0].date + ' ' + time);
-        const timeOutSchedule = dayjs(ivmsEntry[0].date + ' ' + timeOut);
+        const timeScan = dayjs(ivmsEntryItem.date + ' ' + time);
+        const timeOutSchedule = dayjs(ivmsEntryItem.date + ' ' + timeOut);
         const timeScanTimeOfDay = timeScan.format('A');
         if (
           timeScan.isAfter(timeOutSchedule.subtract(suspensionHours, 'hour')) ||
@@ -1232,8 +1250,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   /**
- * @deprecated The method should not be used
- */
+   * @deprecated The method should not be used
+   */
   async addNightScheduleDtrOld(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
     let _timeIn = null;
     let _timeOut = null;
