@@ -52,9 +52,17 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
         })
       }
 
-      if (overtimeApplication.status === 'approved') {
+      const overtimeAccomplishment = await this.overtimeAccomplishmentService.crud().findOneOrNull({
+        find: {
+          where: {
+            overtimeEmployeeId: overtimeEmployee
+          }
+        }
+      })
+
+      if (overtimeAccomplishment.status === 'approved' && overtimeApplication.status === 'approved') {
         throw new RpcException({
-          message: 'Overtime Application is already approved. Deleting is not allowed.',
+          message: 'Overtime Accomplishment is already approved. Deleting is not allowed.',
         })
       }
 
@@ -70,7 +78,7 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
         let code = 500;
         if (error.message === 'Employee is not found or maybe already deleted.')
           code = 404;
-        if ((error.message === 'Overtime Application is already approved. Deleting is not allowed.')
+        if ((error.message === 'Overtime Accomplishment is already approved. Deleting is not allowed.')
           || (error.message === 'User is not the Immediate Supervisor of the Overtime Application'))
           code = 403;
         throw new RpcException({
