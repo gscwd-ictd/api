@@ -1,7 +1,8 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Delete, Get } from '@nestjs/common';
 import { OvertimeEmployeeService } from './overtime-employee.service';
+import { CreateOvertimeEmployeeDto, DeleteOvertimeEmployeeDto } from '@gscwd-api/models';
 
-@Controller('overtime-employee')
+@Controller({ version: '1', path: 'overtime-employee' })
 export class OvertimeEmployeeController {
-  constructor(private readonly overtimeEmployeeService: OvertimeEmployeeService) {}
+  constructor(private readonly overtimeEmployeeService: OvertimeEmployeeService) { }
 }
