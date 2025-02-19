@@ -55,7 +55,7 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
       const overtimeAccomplishment = await this.overtimeAccomplishmentService.crud().findOneOrNull({
         find: {
           where: {
-            overtimeEmployeeId: overtimeEmployee
+            overtimeEmployeeId: { id: overtimeEmployee.id },
           }
         }
       })
