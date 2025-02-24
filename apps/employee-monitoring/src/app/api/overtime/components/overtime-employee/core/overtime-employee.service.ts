@@ -33,37 +33,41 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
       const { overtimeApplicationId, employeeId, immediateSupervisorEmployeeId } = deleteOvertimeEmployeeDto;
 
       const overtimeApplication = await this.overtimeApplicationService.crud().findOneOrNull({
-        find: { where: { id: overtimeApplicationId.toString() } }
+        find: { where: { id: overtimeApplicationId.toString() } },
       });
 
       const overtimeImmediateSupervisor = await this.overtimeApplicationService.crud().findOneOrNull({
-        find: { where: { id: overtimeApplicationId.toString(), overtimeImmediateSupervisorId: { employeeId: immediateSupervisorEmployeeId } } }
+        find: { where: { id: overtimeApplicationId.toString(), overtimeImmediateSupervisorId: { employeeId: immediateSupervisorEmployeeId } } },
       });
 
       if (!overtimeImmediateSupervisor)
         throw new RpcException({
           message: 'User is not the Immediate Supervisor of the Overtime Application',
-        })
+        });
 
-      const overtimeEmployee = await this.crud().findOneOrNull({ find: { where: { overtimeApplicationId: { id: overtimeApplicationId.toString() }, employeeId } } })
+      const overtimeEmployee = await this.crud().findOneOrNull({
+        find: { where: { overtimeApplicationId: { id: overtimeApplicationId.toString() }, employeeId } },
+      });
       if (!overtimeEmployee) {
         throw new RpcException({
           message: 'Employee is not found or maybe already deleted.',
-        })
+        });
       }
 
       const overtimeAccomplishment = await this.overtimeAccomplishmentService.crud().findOneOrNull({
         find: {
           where: {
-            overtimeEmployeeId: overtimeEmployee
-          }
-        }
-      })
+            overtimeEmployeeId: { id: overtimeEmployee.id },
+          },
+        },
+      });
+
+      console.log(overtimeAccomplishment);
 
       if (overtimeAccomplishment.status === 'approved' && overtimeApplication.status === 'approved') {
         throw new RpcException({
           message: 'Overtime Accomplishment is already approved. Deleting is not allowed.',
-        })
+        });
       }
 
       await this.overtimeAccomplishmentService.crud().delete({ deleteBy: { overtimeEmployeeId: overtimeEmployee }, softDelete: false });
@@ -71,20 +75,20 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
 
       console.log(overtimeEmployee);
       return overtimeEmployee;
-    }
-    catch (error) {
+    } catch (error) {
       console.log(error);
       if (error instanceof RpcException) {
         let code = 500;
-        if (error.message === 'Employee is not found or maybe already deleted.')
-          code = 404;
-        if ((error.message === 'Overtime Accomplishment is already approved. Deleting is not allowed.')
-          || (error.message === 'User is not the Immediate Supervisor of the Overtime Application'))
+        if (error.message === 'Employee is not found or maybe already deleted.') code = 404;
+        if (
+          error.message === 'Overtime Accomplishment is already approved. Deleting is not allowed.' ||
+          error.message === 'User is not the Immediate Supervisor of the Overtime Application'
+        )
           code = 403;
         throw new RpcException({
           message: error.message,
           code,
-          details: 'Overtime Deletion Error'
+          details: 'Overtime Deletion Error',
         });
       }
     }
