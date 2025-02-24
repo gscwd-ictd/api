@@ -38,6 +38,7 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
 
   async deleteOvertimeEmployeeByManager(deleteOvertimeEmployeeByManagerDto: DeleteOvertimeEmployeeByManagerDto) {
     try {
+      console.log(deleteOvertimeEmployeeByManagerDto);
       const { overtimeApplicationId, employeeId, managerId } = deleteOvertimeEmployeeByManagerDto;
 
       const overtimeApproval = await this.overtimeApprovalService
@@ -58,7 +59,9 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
           message: 'Employee is not found or maybe already deleted.',
         });
       }
-      await this.overtimeAccomplishmentService.crud().update({ dto: { status: OvertimeStatus.REMOVED }, updateBy: { overtimeEmployeeId: overtimeEmployee } })
+      await this.overtimeAccomplishmentService
+        .crud()
+        .update({ dto: { status: OvertimeStatus.REMOVED }, updateBy: { overtimeEmployeeId: overtimeEmployee } });
       return overtimeEmployee;
     } catch (error) {
       console.log(error);
