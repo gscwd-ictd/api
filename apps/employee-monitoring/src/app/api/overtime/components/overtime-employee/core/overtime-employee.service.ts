@@ -7,6 +7,7 @@ import { OvertimeApplicationService } from '../../overtime-application/core/over
 import { RpcException } from '@nestjs/microservices';
 import { OvertimeAccomplishmentService } from '../../overtime-accomplishment/core/overtime-accomplishment.service';
 import { OvertimeApprovalService } from '../../overtime-approval/core/overtime-approval.service';
+import { OvertimeStatus } from '@gscwd-api/utils';
 
 @Injectable()
 export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
@@ -48,11 +49,7 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
           message: 'Employee is not found or maybe already deleted.',
         })
       }
-
-      await this.overtimeAccomplishmentService.crud().delete({ deleteBy: { overtimeEmployeeId: overtimeEmployee }, softDelete: false });
-      await this.crud().delete({ deleteBy: { id: overtimeEmployee.id }, softDelete: false });
-
-      console.log(overtimeEmployee);
+      await this.overtimeAccomplishmentService.crud().update({ dto: { status: OvertimeStatus.REMOVED }, updateBy: { overtimeEmployeeId: overtimeEmployee } })
       return overtimeEmployee;
     }
     catch (error) {
