@@ -45,11 +45,11 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
         .crud()
         .findOneOrNull({ find: { where: { managerId, overtimeApplicationId: { id: overtimeApplicationId.toString() } } } });
 
-      if (!overtimeApproval) {
-        throw new RpcException({
-          message: 'Overtime does not exists or user is not the manager of the Overtime Applicant',
-        });
-      }
+      // if (!overtimeApproval) {
+      //   throw new RpcException({
+      //     message: 'Overtime does not exists or user is not the manager of the Overtime Applicant',
+      //   })
+      // }
 
       const overtimeEmployee = await this.crud().findOneOrNull({
         find: { where: { overtimeApplicationId: { id: overtimeApplicationId.toString() }, employeeId } },
