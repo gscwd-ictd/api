@@ -35,25 +35,27 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
     try {
       const { overtimeApplicationId, employeeId, managerId } = deleteOvertimeEmployeeByManagerDto;
 
-      const overtimeApproval = await this.overtimeApprovalService.crud().findOneOrNull({ find: { where: { managerId, overtimeApplicationId: { id: overtimeApplicationId.toString() } } } });
+      const isManager = (await this.rawQuery(`SELECT ${process.env.HRMS_DB_NAME}is_employee_under_manager(?, ?) isManager;`, [employeeId, managerId]))[0].isManager;
 
-      // if (!overtimeApproval) {
-      //   throw new RpcException({
-      //     message: 'Overtime does not exists or user is not the manager of the Overtime Applicant',
-      //   })
-      // }
+      if (isManager === "0") {
+        throw new RpcException({
+          message: 'Overtime does not exists or user is not the manager of the Overtime Applicant',
+        });
+      }
 
       const overtimeEmployee = await this.crud().findOneOrNull({ find: { where: { overtimeApplicationId: { id: overtimeApplicationId.toString() }, employeeId } } })
+
       if (!overtimeEmployee) {
         throw new RpcException({
           message: 'Employee is not found or maybe already deleted.',
         })
       }
-      await this.overtimeAccomplishmentService.crud().update({ dto: { status: OvertimeStatus.REMOVED }, updateBy: { overtimeEmployeeId: overtimeEmployee } })
+
+      await this.overtimeAccomplishmentService.crud().update({ dto: { status: OvertimeStatus.REMOVED }, updateBy: { overtimeEmployeeId: overtimeEmployee } });
       return overtimeEmployee;
+
     }
     catch (error) {
-      console.log(error);
       if (error instanceof RpcException) {
         let code = 500;
         if (error.message === 'Employee is not found or maybe already deleted.')
