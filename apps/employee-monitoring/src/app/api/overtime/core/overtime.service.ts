@@ -145,6 +145,8 @@ export class OvertimeService {
 
         const { isAccomplishmentSubmitted, status, overtimeAccomplishmentId, approvedBy, dateApproved } = overtime;
 
+        const encodedHours = await this.getOvertimeEmployeeEncodedHours(employeeId, overtimeApplicationId);
+
         const _approvedBy =
           approvedBy === null || approvedBy === '' ? null : (await this.employeeService.getEmployeeDetails(approvedBy)).employeeFullName;
 
@@ -158,6 +160,7 @@ export class OvertimeService {
           assignment: assignment.name,
           isAccomplishmentSubmitted,
           accomplishmentStatus: status,
+          encodedHours,
           approvedBy: _approvedBy,
         };
       })
@@ -929,7 +932,6 @@ export class OvertimeService {
       if (computedEncodedHours > 4) {
         computedEncodedHours = (this.getComputedHours(computedEncodedHours) * 100) / 100;
       }
-
       return computedEncodedHours;
     }
     catch (error) {
