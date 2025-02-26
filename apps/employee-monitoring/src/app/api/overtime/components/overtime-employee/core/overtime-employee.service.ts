@@ -38,7 +38,6 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
 
   async deleteOvertimeEmployeeByManager(deleteOvertimeEmployeeByManagerDto: DeleteOvertimeEmployeeByManagerDto) {
     try {
-      console.log(deleteOvertimeEmployeeByManagerDto);
       const { overtimeApplicationId, employeeId, managerId } = deleteOvertimeEmployeeByManagerDto;
 
       const isManager = (
