@@ -237,13 +237,15 @@ export class OvertimeService {
             const { isAccomplishmentSubmitted, status, overtimeAccomplishmentId } = (
               await this.employeeScheduleService.rawQuery(
                 `
-            SELECT oa.overtime_accomplishment overtimeAccomplishmentId,IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted, oa.status status 
+            SELECT oa.overtime_accomplishment overtimeAccomplishmentId, IF(accomplishments IS NOT NULL,true,false) isAccomplishmentSubmitted, oa.status status 
               FROM overtime_accomplishment oa 
               INNER JOIN overtime_employee oe ON oe.overtime_employee_id = oa.overtime_employee_id_fk 
             WHERE oe.employee_id_fk = ? AND oe.overtime_application_id_fk = ?;`,
                 [employeeId, overtimeApplication.overtimeApplicationId]
               )
             )[0];
+
+            const overtimeEmployeeEncodedHours = await this.getOvertimeEmployeeEncodedHours(employeeId, overtimeApplicationId);
 
             return {
               employeeId,
@@ -255,6 +257,7 @@ export class OvertimeService {
               assignment: assignment.name,
               isAccomplishmentSubmitted,
               accomplishmentStatus: status,
+              encodedHours: overtimeEmployeeEncodedHours
             };
           })
         );
@@ -909,6 +912,32 @@ export class OvertimeService {
     } catch (error) {
       throw new NotFoundException(error.message);
     }
+  }
+
+
+  async getOvertimeEmployeeEncodedHours(employeeId: string, overtimeApplicationId: string) {
+    try {
+      const overtimeEmployee = await this.overtimeEmployeeService.crud().findOneOrNull({ find: { where: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } } });
+      const overtimeAccomplishment = await this.overtimeAccomplishmentService.crud().findOneOrNull({ find: { where: { overtimeEmployeeId: { id: overtimeEmployee.id } } } });
+      let computedEncodedHours = null;
+      if (overtimeAccomplishment.encodedTimeIn !== null && overtimeAccomplishment.encodedTimeOut !== null) {
+        computedEncodedHours =
+          ((dayjs(overtimeAccomplishment.encodedTimeOut).diff(dayjs(overtimeAccomplishment.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
+          100;
+        computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
+      }
+
+      if (computedEncodedHours > 4) {
+        computedEncodedHours = (this.getComputedHours(computedEncodedHours) * 100) / 100;
+      }
+
+      return computedEncodedHours;
+    }
+    catch (error) {
+      console.log(error);
+      return null;
+    }
+
   }
 
   async getOvertimeDetails(employeeId: string, overtimeApplicationId: string) {
