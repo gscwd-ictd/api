@@ -260,7 +260,7 @@ export class OvertimeService {
               assignment: assignment.name,
               isAccomplishmentSubmitted,
               accomplishmentStatus: status,
-              encodedHours: overtimeEmployeeEncodedHours
+              encodedHours: overtimeEmployeeEncodedHours,
             };
           })
         );
@@ -898,10 +898,15 @@ export class OvertimeService {
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         }
         if (computedEncodedHours > 4) {
-          computedEncodedHours =
-            dtr.schedule.lunchOut !== null
-              ? (this.getComputedHours(computedEncodedHours) * 100) / 100
-              : (this.getComputedHours(computedEncodedHours) * 100) / 100;
+          //check if overtime is regular working day and after 9 hrs then apply 3-1 rule
+          if (!restDays.includes(dayjs(plannedDate).day().toString())) {
+            computedEncodedHours = this.getRegularOTComputedHours(computedEncodedHours);
+          } else {
+            computedEncodedHours =
+              dtr.schedule.lunchOut !== null
+                ? (this.getComputedHours(computedEncodedHours) * 100) / 100
+                : (this.getComputedHours(computedEncodedHours) * 100) / 100;
+          }
         }
       }
 
@@ -917,11 +922,14 @@ export class OvertimeService {
     }
   }
 
-
   async getOvertimeEmployeeEncodedHours(employeeId: string, overtimeApplicationId: string) {
     try {
-      const overtimeEmployee = await this.overtimeEmployeeService.crud().findOneOrNull({ find: { where: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } } });
-      const overtimeAccomplishment = await this.overtimeAccomplishmentService.crud().findOneOrNull({ find: { where: { overtimeEmployeeId: { id: overtimeEmployee.id } } } });
+      const overtimeEmployee = await this.overtimeEmployeeService
+        .crud()
+        .findOneOrNull({ find: { where: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } } });
+      const overtimeAccomplishment = await this.overtimeAccomplishmentService
+        .crud()
+        .findOneOrNull({ find: { where: { overtimeEmployeeId: { id: overtimeEmployee.id } } } });
       let computedEncodedHours = null;
       if (overtimeAccomplishment.encodedTimeIn !== null && overtimeAccomplishment.encodedTimeOut !== null) {
         computedEncodedHours =
@@ -934,12 +942,10 @@ export class OvertimeService {
         computedEncodedHours = (this.getComputedHours(computedEncodedHours) * 100) / 100;
       }
       return computedEncodedHours;
-    }
-    catch (error) {
+    } catch (error) {
       console.log(error);
       return null;
     }
-
   }
 
   async getOvertimeDetails(employeeId: string, overtimeApplicationId: string) {
@@ -1041,11 +1047,17 @@ export class OvertimeService {
 
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         }
+
         if (computedEncodedHours > 4) {
-          computedEncodedHours =
-            dtr.schedule.lunchOut !== null
-              ? (this.getComputedHours(computedEncodedHours) * 100) / 100
-              : (this.getComputedHours(computedEncodedHours) * 100) / 100;
+          //check if overtime is regular working day and after 9 hrs then apply 3-1 rule
+          if (!restDays.includes(dayjs(plannedDate).day())) {
+            computedEncodedHours = this.getRegularOTComputedHours(computedEncodedHours);
+          } else {
+            computedEncodedHours =
+              dtr.schedule.lunchOut !== null
+                ? (this.getComputedHours(computedEncodedHours) * 100) / 100
+                : (this.getComputedHours(computedEncodedHours) * 100) / 100;
+          }
         }
       }
 
@@ -1860,6 +1872,14 @@ export class OvertimeService {
     let deduction = 0;
     for (let i = 4; i <= hours; i++) {
       if (i % 5 === 0) deduction += 1;
+    }
+    return hours - deduction;
+  }
+
+  private getRegularOTComputedHours(hours: number) {
+    let deduction = 0;
+    for (let i = 4; i <= hours; i++) {
+      if (i % 5 === 0 && i <= 9) deduction += 1;
     }
     return hours - deduction;
   }
