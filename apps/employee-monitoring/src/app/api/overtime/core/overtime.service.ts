@@ -897,12 +897,7 @@ export class OvertimeService {
             100;
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         }
-        if (computedEncodedHours > 4) {
-          computedEncodedHours =
-            dtr.schedule.lunchOut !== null
-              ? (this.getComputedHours(computedEncodedHours) * 100) / 100
-              : (this.getComputedHours(computedEncodedHours) * 100) / 100;
-        }
+        if (computedEncodedHours > 4) computedEncodedHours = this.getComputedHours(computedEncodedHours);
       }
 
       return {
@@ -1042,12 +1037,8 @@ export class OvertimeService {
 
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         }
-        if (computedEncodedHours > 4) {
-          computedEncodedHours =
-            dtr.schedule.lunchOut !== null
-              ? (this.getComputedHours(computedEncodedHours) * 100) / 100
-              : (this.getComputedHours(computedEncodedHours) * 100) / 100;
-        }
+
+        if (computedEncodedHours > 4) computedEncodedHours = this.getComputedHours(computedEncodedHours);
       }
 
       return {
@@ -1861,8 +1852,8 @@ export class OvertimeService {
   private getComputedHours(hours: number) {
     let deduction = 0;
     for (let i = 4; i <= hours; i++) {
-      if (i % 5 === 0) deduction += 1;
+      if (i % 5 === 0 && i > 10) deduction += 1;
     }
-    return hours - deduction;
+    return hours - deduction - 1;
   }
 }
