@@ -12,7 +12,7 @@ import {
 import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
-import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual, } from 'typeorm';
+import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
 import { EmployeesService } from '../../employees/core/employees.service';
@@ -37,7 +37,7 @@ export class OvertimeService {
     private readonly dailyTimeRecordService: DailyTimeRecordService,
     private readonly dataSource: DataSource,
     private readonly workSuspensionService: WorkSuspensionService
-  ) { }
+  ) {}
 
   async createOvertime(createOverTimeDto: CreateOvertimeDto) {
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
@@ -118,8 +118,8 @@ export class OvertimeService {
     const employees = (await this.overtimeEmployeeService
       .crud()
       .findAll({ find: { select: { employeeId: true }, where: { overtimeApplicationId: { id: overtimeApplicationId } } } })) as {
-        employeeId: string;
-      }[];
+      employeeId: string;
+    }[];
 
     const employeesWithDetails = await Promise.all(
       employees.map(async (employee) => {
@@ -260,7 +260,7 @@ export class OvertimeService {
               assignment: assignment.name,
               isAccomplishmentSubmitted,
               accomplishmentStatus: status,
-              encodedHours: overtimeEmployeeEncodedHours
+              encodedHours: overtimeEmployeeEncodedHours,
             };
           })
         );
@@ -307,8 +307,8 @@ export class OvertimeService {
         const employees = (await this.overtimeEmployeeService
           .crud()
           .findAll({ find: { select: { employeeId: true }, where: { overtimeApplicationId: { id: overtimeApplicationId } } } })) as {
-            employeeId: string;
-          }[];
+          employeeId: string;
+        }[];
 
         const employeesWithDetails = await Promise.all(
           employees.map(async (employee) => {
@@ -336,8 +336,8 @@ export class OvertimeService {
         const employees = (await this.overtimeEmployeeService
           .crud()
           .findAll({ find: { select: { employeeId: true }, where: { overtimeApplicationId: { id: overtimeApplicationId } } } })) as {
-            employeeId: string;
-          }[];
+          employeeId: string;
+        }[];
 
         const employeesWithDetails = await Promise.all(
           employees.map(async (employee) => {
@@ -365,8 +365,8 @@ export class OvertimeService {
         const employees = (await this.overtimeEmployeeService
           .crud()
           .findAll({ find: { select: { employeeId: true }, where: { overtimeApplicationId: { id: overtimeApplicationId } } } })) as {
-            employeeId: string;
-          }[];
+          employeeId: string;
+        }[];
 
         const employeesWithDetails = await Promise.all(
           employees.map(async (employee) => {
@@ -404,8 +404,7 @@ export class OvertimeService {
           managerId: true,
         },
         where: { managerId: id, status },
-        relations: {
-        },
+        relations: {},
         order: { plannedDate: 'DESC' },
       },
     })) as OvertimeApplication[];
@@ -522,7 +521,6 @@ export class OvertimeService {
   }
 
   async getOvertimeApplicationsByManagerId(managerId: string) {
-
     try {
       const employeeId = await this.overtimeApplicationService.crud().findOneOrNull({ find: { select: { managerId: true }, where: { managerId } } });
 
@@ -551,10 +549,9 @@ export class OvertimeService {
         supervisorName,
         overtimes: [...approvedOvertimesWithEmployees, ...forApprovalOvertimesWithEmployees].sort((a, b) =>
           a.status > b.status ? -1 : a.status < b.status ? 1 : 0
-        )
+        ),
       };
-    }
-    catch (error) {
+    } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
@@ -586,13 +583,11 @@ export class OvertimeService {
         supervisorName,
         overtimes: [...approvedOvertimesWithEmployees, ...forApprovalOvertimesWithEmployees].sort((a, b) =>
           a.status > b.status ? -1 : a.status < b.status ? 1 : 0
-        )
+        ),
       };
-    }
-    catch (error) {
+    } catch (error) {
       throw new NotFoundException(error.message);
     }
-
   }
 
   async getOvertimeApplications() {
@@ -711,8 +706,14 @@ export class OvertimeService {
               managerId: true,
             },
             where: {
-              createdAt: Between(dayjs(yearMonth + '-01').subtract(1, 'day').toDate(),
-                dayjs(yearMonth + '-' + dayjs(yearMonth + '-01').daysInMonth()).add(1, 'day').toDate()),
+              createdAt: Between(
+                dayjs(yearMonth + '-01')
+                  .subtract(1, 'day')
+                  .toDate(),
+                dayjs(yearMonth + '-' + dayjs(yearMonth + '-01').daysInMonth())
+                  .add(1, 'day')
+                  .toDate()
+              ),
             },
             order: { plannedDate: 'DESC', status: 'DESC' },
             relations: { overtimeImmediateSupervisorId: true },
@@ -896,12 +897,7 @@ export class OvertimeService {
             100;
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         }
-        if (computedEncodedHours > 4) {
-          computedEncodedHours =
-            dtr.schedule.lunchOut !== null
-              ? (this.getComputedHours(computedEncodedHours) * 100) / 100
-              : (this.getComputedHours(computedEncodedHours) * 100) / 100;
-        }
+        if (computedEncodedHours > 4) computedEncodedHours = this.getComputedHours(computedEncodedHours);
       }
 
       return {
@@ -916,11 +912,14 @@ export class OvertimeService {
     }
   }
 
-
   async getOvertimeEmployeeEncodedHours(employeeId: string, overtimeApplicationId: string) {
     try {
-      const overtimeEmployee = await this.overtimeEmployeeService.crud().findOneOrNull({ find: { where: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } } });
-      const overtimeAccomplishment = await this.overtimeAccomplishmentService.crud().findOneOrNull({ find: { where: { overtimeEmployeeId: { id: overtimeEmployee.id } } } });
+      const overtimeEmployee = await this.overtimeEmployeeService
+        .crud()
+        .findOneOrNull({ find: { where: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } } });
+      const overtimeAccomplishment = await this.overtimeAccomplishmentService
+        .crud()
+        .findOneOrNull({ find: { where: { overtimeEmployeeId: { id: overtimeEmployee.id } } } });
       let computedEncodedHours = null;
       if (overtimeAccomplishment.encodedTimeIn !== null && overtimeAccomplishment.encodedTimeOut !== null) {
         computedEncodedHours =
@@ -933,12 +932,10 @@ export class OvertimeService {
         computedEncodedHours = (this.getComputedHours(computedEncodedHours) * 100) / 100;
       }
       return computedEncodedHours;
-    }
-    catch (error) {
+    } catch (error) {
       console.log(error);
       return null;
     }
-
   }
 
   async getOvertimeDetails(employeeId: string, overtimeApplicationId: string) {
@@ -953,12 +950,13 @@ export class OvertimeService {
         find: {
           where: {
             overtimeEmployeeId: {
-              employeeId, overtimeApplicationId: {
+              employeeId,
+              overtimeApplicationId: {
                 id: overtimeApplicationId,
-              }
-            }
+              },
+            },
           },
-          relations: { overtimeEmployeeId: { overtimeApplicationId: true, } },
+          relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
         },
       })) as OvertimeAccomplishment;
 
@@ -1014,7 +1012,9 @@ export class OvertimeService {
       const { overtimeEmployeeId, approvedBy, ...restOfUpdatedOvertime } = updatedOvertimeDetails;
       const estimatedHours = overtimeEmployeeId.overtimeApplicationId.estimatedHours;
       const _approvedBy =
-        approvedBy === null || approvedBy === '' ? null : (await this.employeeService.getBasicEmployeeDetailsByEmployeeId(approvedBy)).employeeFullName;
+        approvedBy === null || approvedBy === ''
+          ? null
+          : (await this.employeeService.getBasicEmployeeDetailsByEmployeeId(approvedBy)).employeeFullName;
       const entries = await this.dailyTimeRecordService.getEntriesTheDayAndTheNext({
         companyId: employeeDetails.companyId,
         date: restOfOvertimeApplication.plannedDate,
@@ -1037,12 +1037,8 @@ export class OvertimeService {
 
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         }
-        if (computedEncodedHours > 4) {
-          computedEncodedHours =
-            dtr.schedule.lunchOut !== null
-              ? (this.getComputedHours(computedEncodedHours) * 100) / 100
-              : (this.getComputedHours(computedEncodedHours) * 100) / 100;
-        }
+
+        if (computedEncodedHours > 4) computedEncodedHours = this.getComputedHours(computedEncodedHours);
       }
 
       return {
@@ -1055,12 +1051,10 @@ export class OvertimeService {
         estimatedHours: estimatedHours === null ? null : estimatedHours,
         computedEncodedHours: computedEncodedHours > 0 ? computedEncodedHours : 0,
       };
-    }
-    catch (error) {
+    } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
-
 
   async updateOvertimeAccomplishment(updateOvertimeAccomplishmentDto: UpdateOvertimeAccomplishmentDto) {
     const { employeeId, overtimeApplicationId, ...overtimeAccomplishmentDto } = updateOvertimeAccomplishmentDto;
@@ -1425,7 +1419,6 @@ export class OvertimeService {
     return { ...overtimeApplication, employees, signatories: { ...supervisorAndManagerNames, supervisorPosition } };
   }
 
-
   async getOvertimeAuthorizationAccomplishmentSummary(
     immediateSupervisorEmployeeId: string,
     year: number,
@@ -1435,12 +1428,12 @@ export class OvertimeService {
   ) {
     try {
       const numOfDays = dayjs(year + '-' + month + '-1').daysInMonth();
-      const days =
-        half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
+      const days = half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
       const _month = ('0' + month).slice(-2);
       const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
 
-      const result = await this.overtimeApplicationService.rawQuery(`
+      const result = await this.overtimeApplicationService.rawQuery(
+        `
           SELECT DISTINCT 
             emp.company_id companyId,
               ${process.env.HRMS_DB_NAME}get_employee_fullname2(oe.employee_id_fk) employeeName,
@@ -1467,7 +1460,9 @@ export class OvertimeService {
               AND date_format(planned_date,'%d') IN (?) 
               AND pp.nature_of_appointment = ?
           ORDER BY plannedDate ASC, employeeName ASC; 
-        `, [immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, year, _month, days, _natureOfAppointment]);
+        `,
+        [immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, year, _month, days, _natureOfAppointment]
+      );
 
       const preparedByDetails = await this.employeeService.getBasicEmployeeDetails(immediateSupervisorEmployeeId);
       const preparedByPosition = preparedByDetails.assignment.positionTitle;
@@ -1476,7 +1471,10 @@ export class OvertimeService {
       const notedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(immediateSupervisorEmployeeId);
       const approvedByEmployeeId = await this.employeeService.getEmployeeSupervisorId(notedByEmployeeId.toString());
 
-      const preparedByAndNotedBy = await this.employeeService.getEmployeeAndSupervisorName(immediateSupervisorEmployeeId, notedByEmployeeId.toString());
+      const preparedByAndNotedBy = await this.employeeService.getEmployeeAndSupervisorName(
+        immediateSupervisorEmployeeId,
+        notedByEmployeeId.toString()
+      );
       const approvedBy = await this.employeeService.getEmployeeAndSupervisorName(notedByEmployeeId.toString(), approvedByEmployeeId.toString());
 
       const notedByPosition = (await this.employeeService.getBasicEmployeeDetails(notedByEmployeeId.toString())).assignment.positionTitle;
@@ -1494,8 +1492,7 @@ export class OvertimeService {
           approvedBy: { name: approvedBy.supervisorName, signature: approvedBy.supervisorSignature, position: approvedByPosition },
         },
       };
-    }
-    catch (error) {
+    } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
@@ -1585,8 +1582,8 @@ export class OvertimeService {
               WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND  date_format(planned_date,'%d') = ? 
               AND oe.employee_id_fk = ? AND oa.status <> 'cancelled' AND oacc.status IN ('approved','pending') AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?) 
               ` +
-                filterForEmployeeRate +
-                ` 
+                  filterForEmployeeRate +
+                  ` 
               ORDER BY \`day\` ASC; 
               `,
                 [year, _month, _day, employee.employeeId, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, employeeRate]
@@ -1625,8 +1622,8 @@ export class OvertimeService {
                 status === 'approved'
                   ? Math.trunc((await this.getComputedHrs(restOfOvertime)) * 100) / 100
                   : (await this.getComputedHrs(restOfOvertime)) !== null
-                    ? 0
-                    : null;
+                  ? 0
+                  : null;
 
               const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(
                 dayjs(year + '-' + month + '-' + day).toDate()
@@ -1643,9 +1640,9 @@ export class OvertimeService {
               return typeof overtime !== 'undefined'
                 ? { day, hoursRendered }
                 : {
-                  day: Number.parseInt(_day.toString()),
-                  hoursRendered: null,
-                };
+                    day: Number.parseInt(_day.toString()),
+                    hoursRendered: null,
+                  };
             } catch {
               return {
                 day: Number.parseInt(_day.toString()),
@@ -1738,7 +1735,6 @@ export class OvertimeService {
       overallTotalOTAmount,
     };
   }
-
 
   async getIndividualOvertimeAccomplishment(overtimeApplicationId: string, employeeId: string) {
     const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
@@ -1855,8 +1851,8 @@ export class OvertimeService {
   private getComputedHours(hours: number) {
     let deduction = 0;
     for (let i = 4; i <= hours; i++) {
-      if (i % 5 === 0) deduction += 1;
+      if (i % 5 === 0 && i > 10) deduction += 1;
     }
-    return hours - deduction;
+    return hours - deduction - 1;
   }
 }
