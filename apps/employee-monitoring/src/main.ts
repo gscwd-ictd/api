@@ -12,6 +12,7 @@ import * as redis from 'redis';
 import RedisStore from 'connect-redis';
 
 import { AppModule } from './app/app.module';
+import helmet from 'helmet';
 
 const whitelist = [
   'http://192.168.137.249:4103',
@@ -123,6 +124,23 @@ async function bootstrap() {
     credentials: true,
     origin: whitelist,
     allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
+  app.use(
+    helmet({
+      xContentTypeOptions: true,
+      xXssProtection: true,
+      hsts: {
+        maxAge: 31536000, // 1 year (in seconds)
+        includeSubDomains: true, // Apply to all subdomains
+        preload: true, // Allow browser preloading
+      },
+    })
+  );
+
+  app.use((req: any, res: { setHeader: (arg0: string, arg1: string) => void }, next: () => void) => {
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
   });
 
   const port = process.env.PORT || 3333;
