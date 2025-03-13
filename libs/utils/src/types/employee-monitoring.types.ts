@@ -266,6 +266,7 @@ export enum OvertimeStatus {
   CANCELLED = 'cancelled',
   PENDING = 'pending',
   FOR_APPROVAL = 'for approval',
+  REMOVED = 'removed by manager'
 }
 
 export enum ReportHalf {
