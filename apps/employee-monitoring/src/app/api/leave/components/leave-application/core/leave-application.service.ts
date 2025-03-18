@@ -675,11 +675,11 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       WHERE holiday_date BETWEEN DATE_SUB(DATE_SUB(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY) AND DATE_ADD(DATE_ADD(now(), INTERVAL 6 MONTH),INTERVAL 1 DAY))) AS unavailableDates 
       ORDER BY unavailableDates.unavailableDate ASC`,
       [employeeId]
-    );
+    );now() dateTimeNow 
     */
-    return await this.rawQuery(
+    const unavailableDates = await this.rawQuery(
       `
-      SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type, now() dateTimeNow 
+      SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type, 
       FROM 
       ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
         INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
@@ -690,6 +690,11 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       ORDER BY unavailableDates.unavailableDate ASC;`,
       [employeeId]
     );
+    const dateTimeNow = await this.rawQuery(`SELECT now() dateTimeNow;`);
+    return {
+      unavailableDates,
+      dateTimeNow,
+    };
   }
 
   async getLeavesForHrApproval() {
