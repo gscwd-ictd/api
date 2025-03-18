@@ -679,7 +679,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     */
     const unavailableDates = await this.rawQuery(
       `
-      SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type, 
+      SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type 
       FROM 
       ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
         INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
