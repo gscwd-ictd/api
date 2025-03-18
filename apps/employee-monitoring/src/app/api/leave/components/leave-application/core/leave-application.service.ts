@@ -693,7 +693,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     const dateTimeNow = await this.rawQuery(`SELECT now() dateTimeNow;`);
     return {
       unavailableDates,
-      dateTimeNow: dateTimeNow[0],
+      dateTimeNow: dateTimeNow[0].dateTimeNow,
     };
   }
 
