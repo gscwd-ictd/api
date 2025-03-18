@@ -49,7 +49,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
   }
 
   async createLeaveApplication(createLeaveApplication: CreateLeaveApplicationDto) {
-
     const { leaveBenefitId, employeeId } = createLeaveApplication;
 
     // const pendingSameLeaveType = await this.crud().findOneOrNull({
@@ -154,8 +153,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
               (parseFloat(finalBalance.vacationLeaveBalance.toString()) +
                 excessCreditEarnings +
                 (parseFloat(finalBalance.sickLeaveBalance.toString()) + excessCreditEarnings)) *
-              (salaryGradeAmount * monetizationConstant) *
-              1000
+                (salaryGradeAmount * monetizationConstant) *
+                1000
             ) / 1000;
 
           const leaveMonetization = await this.leaveMonetizationService.createLeaveMonetization(
@@ -680,7 +679,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     */
     return await this.rawQuery(
       `
-      SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type 
+      SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type, now() dateTimeNow 
       FROM 
       ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
         INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
@@ -861,22 +860,25 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
         relations: { leaveBenefitsId: true },
         where: [
           {
-            status: LeaveApplicationStatus.FOR_HRDM_APPROVAL, dateOfFiling: Between(
+            status: LeaveApplicationStatus.FOR_HRDM_APPROVAL,
+            dateOfFiling: Between(
               dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
               dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
-            )
+            ),
           },
           {
-            status: LeaveApplicationStatus.APPROVED, dateOfFiling: Between(
+            status: LeaveApplicationStatus.APPROVED,
+            dateOfFiling: Between(
               dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
               dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
-            )
+            ),
           },
           {
-            status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM, dateOfFiling: Between(
+            status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM,
+            dateOfFiling: Between(
               dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
               dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
-            )
+            ),
           },
         ],
         order: { dateOfFiling: 'DESC' },
@@ -885,7 +887,17 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
-        const { employeeId, supervisorId, hrmoApprovedBy, hrmoApprovalDate, hrdmApprovedBy, hrdmApprovalDate, leaveBenefitsId, dateOfFiling, ...rest } = leave;
+        const {
+          employeeId,
+          supervisorId,
+          hrmoApprovedBy,
+          hrmoApprovalDate,
+          hrdmApprovedBy,
+          hrdmApprovalDate,
+          leaveBenefitsId,
+          dateOfFiling,
+          ...rest
+        } = leave;
         const employeeSupervisorNames = (await this.client.call<
           string,
           { employeeId: string; supervisorId: string },
@@ -1070,8 +1082,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
   }
 
   async getLeavesByLeaveApplicationStatus(leaveApplicationStatus: LeaveApplicationStatus) {
-
-    let leaves = ((await this.rawQuery(`
+    let leaves = (
+      (await this.rawQuery(`
       SELECT 
             leave_application.created_at createdAt, 
             leave_application.updated_at updatedAt, 
@@ -1108,7 +1120,8 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             status 
         FROM leave_application INNER JOIN leave_benefits ON leave_application.leave_benefits_id_fk = leave_benefits_id 
       ORDER BY date_of_filing DESC;  
-    `)) as HrmoLeaveApplicationListItem[]).map((la) => {
+    `)) as HrmoLeaveApplicationListItem[]
+    ).map((la) => {
       const { dateOfFiling, cancelDate, ...restOfLeave } = la;
       return {
         dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
@@ -1118,7 +1131,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     });
 
     if (leaveApplicationStatus !== null) {
-      leaves = ((await this.rawQuery(`
+      leaves = (
+        (await this.rawQuery(
+          `
         SELECT 
               leave_application.created_at createdAt, 
               leave_application.updated_at updatedAt, 
@@ -1156,7 +1171,10 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           FROM leave_application INNER JOIN leave_benefits ON leave_application.leave_benefits_id_fk = leave_benefits_id 
           WHERE status = ? 
         ORDER BY date_of_filing DESC;  
-      `, [leaveApplicationStatus])) as HrmoLeaveApplicationListItem[]).map((la) => {
+      `,
+          [leaveApplicationStatus]
+        )) as HrmoLeaveApplicationListItem[]
+      ).map((la) => {
         const { dateOfFiling, cancelDate, ...restOfLeave } = la;
         return {
           dateOfFiling: dayjs(dateOfFiling).format('YYYY-MM-DD'),
