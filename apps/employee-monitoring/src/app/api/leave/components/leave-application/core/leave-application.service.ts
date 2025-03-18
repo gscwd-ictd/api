@@ -679,7 +679,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     */
     return await this.rawQuery(
       `
-      SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type 
+      SELECT DISTINCT unavailableDates.unavailableDate \`date\`, type, now() dateTimeNow 
       FROM 
       ((SELECT DATE_FORMAT(leave_date, '%Y-%m-%d') AS unavailableDate,'Leave' AS type FROM leave_application la 
         INNER JOIN leave_application_dates lad ON la.leave_application_id=lad.leave_application_id_fk 
@@ -887,7 +887,17 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const leavesDetails = await Promise.all(
       leaves.map(async (leave) => {
-        const { employeeId, supervisorId, hrmoApprovedBy, hrmoApprovalDate, hrdmApprovedBy, hrdmApprovalDate, leaveBenefitsId, dateOfFiling, ...rest } = leave;
+        const {
+          employeeId,
+          supervisorId,
+          hrmoApprovedBy,
+          hrmoApprovalDate,
+          hrdmApprovedBy,
+          hrdmApprovalDate,
+          leaveBenefitsId,
+          dateOfFiling,
+          ...rest
+        } = leave;
         const employeeSupervisorNames = (await this.client.call<
           string,
           { employeeId: string; supervisorId: string },
