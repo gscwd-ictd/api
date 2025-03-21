@@ -9,7 +9,7 @@ import {
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
-import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase } from '@gscwd-api/utils';
+import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase, ScheduleShift } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual } from 'typeorm';
@@ -1037,10 +1037,30 @@ export class OvertimeService {
 
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         }
+        //1. check if nightshift
+        const shift = employeeSchedules[0].shift;
+        //if nightshift
+        if (shift === ScheduleShift.NIGHT) {
+          //check previous day time out
+          const previousDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(
+            employeeId,
+            dayjs(plannedDate).subtract(1, 'day').toDate()
+          );
+          const previousDayTimeOutDate = dayjs(plannedDate + ' ' + previousDaySchedule.schedule.timeOut);
 
-        if (computedEncodedHours > 4) computedEncodedHours = this.getComputedHours(computedEncodedHours);
+          const encodedTimeInDate = dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn);
+
+          if (computedEncodedHours > 4) {
+            if (encodedTimeInDate.diff(previousDayTimeOutDate, 'minute') < 60) {
+              computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
+            } else {
+              computedEncodedHours = this.getComputedHours(computedEncodedHours);
+            }
+          }
+        } else {
+          if (computedEncodedHours > 4) computedEncodedHours = this.getComputedHours(computedEncodedHours);
+        }
       }
-
       return {
         ...restOfUpdatedOvertime,
         //...supervisorEmployeeSignatures,
@@ -1846,6 +1866,14 @@ export class OvertimeService {
       if (updateOvertimeApprovalResult.affected > 0) return { cancelledOvertimeApplication: id };
     }
     return;
+  }
+
+  private getComputedStraightDutyHours(hours: number) {
+    let deduction = 0;
+    for (let i = 4; i <= hours; i++) {
+      if (i % 5 === 0) deduction += 1;
+    }
+    return hours - deduction;
   }
 
   private getComputedHours(hours: number) {
