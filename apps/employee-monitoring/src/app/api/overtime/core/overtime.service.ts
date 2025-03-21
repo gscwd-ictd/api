@@ -1037,15 +1037,14 @@ export class OvertimeService {
 
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         }
-        //1. check if nightshift
-        const shift = employeeSchedules[0].shift;
+        //1. get previous day schedule
+        const previousDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(
+          employeeId,
+          dayjs(plannedDate).subtract(1, 'day').toDate()
+        );
         //if nightshift
-        if (shift === ScheduleShift.NIGHT) {
+        if (previousDaySchedule.schedule.shift === ScheduleShift.NIGHT) {
           //check previous day time out
-          const previousDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(
-            employeeId,
-            dayjs(plannedDate).subtract(1, 'day').toDate()
-          );
           const previousDayTimeOutDate = dayjs(plannedDate + ' ' + previousDaySchedule.schedule.timeOut);
 
           const encodedTimeInDate = dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn);
