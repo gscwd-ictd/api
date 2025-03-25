@@ -1047,10 +1047,12 @@ export class OvertimeService {
           //check previous day time out
           const previousDayTimeOutDate = dayjs(plannedDate + ' ' + previousDaySchedule.schedule.timeOut);
 
-          const encodedTimeInDate = dayjs(plannedDate + ' ' + updatedOvertimeDetails.encodedTimeIn);
+          const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
+
+          const otAndPreviousShiftInterval = encodedTimeInDate.diff(previousDayTimeOutDate, 'minute');
 
           if (computedEncodedHours > 4) {
-            if (encodedTimeInDate.diff(previousDayTimeOutDate, 'minute') < 60) {
+            if (otAndPreviousShiftInterval < 60) {
               computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
             } else {
               computedEncodedHours = this.getComputedHours(computedEncodedHours);
@@ -1062,7 +1064,6 @@ export class OvertimeService {
       }
       return {
         ...restOfUpdatedOvertime,
-        //...supervisorEmployeeSignatures,
         entriesForTheDay: entries,
         plannedDate,
         approvedBy: _approvedBy,
