@@ -7,6 +7,7 @@ import {
   UpdateAllOvertimeAccomplishmentDto,
   UpdateOvertimeAccomplishmentByEmployeeDto,
   UpdateOvertimeAccomplishmentDto,
+  UpdateOvertimeApplicationDto,
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
 import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase, ScheduleShift } from '@gscwd-api/utils';
@@ -1866,6 +1867,24 @@ export class OvertimeService {
       if (updateOvertimeApprovalResult.affected > 0) return { cancelledOvertimeApplication: id };
     }
     return;
+  }
+
+  async updateOvertimeDetails(updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
+    const { id, estimatedHours, plannedDate, purpose, employeeId } = updateOvertimeApplicationDto;
+    const updateOvertimeApplication = await this.overtimeApplicationService.crud().update({
+      dto: {
+        estimatedHours,
+        plannedDate,
+        purpose,
+      },
+      updateBy: { id },
+    });
+    const overtimeImmediateSupervisorId = await this.overtimeApplicationService.crud().findOneOrNull({
+      find: { where: { id, overtimeImmediateSupervisorId: { employeeId } } },
+    });
+    if (!overtimeImmediateSupervisorId) throw new HttpException('User is not the immediate supervisor of this overtime application', 403);
+    if (updateOvertimeApplication.affected > 0) return updateOvertimeApplication;
+    throw new HttpException('An error has occurred.', 500);
   }
 
   private getComputedStraightDutyHours(hours: number) {
