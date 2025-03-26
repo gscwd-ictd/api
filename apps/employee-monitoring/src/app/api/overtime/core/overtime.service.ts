@@ -1871,20 +1871,54 @@ export class OvertimeService {
   }
 
   async updateOvertimeDetails(updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
-    const { id, estimatedHours, plannedDate, purpose, employeeId } = updateOvertimeApplicationDto;
-    const updateOvertimeApplication = await this.overtimeApplicationService.crud().update({
-      dto: {
-        estimatedHours,
-        plannedDate,
-        purpose,
-      },
-      updateBy: { id },
-    });
+    const { id, estimatedHours, plannedDate, purpose, employeeId, employees } = updateOvertimeApplicationDto;
     const overtimeImmediateSupervisorId = await this.overtimeApplicationService.crud().findOneOrNull({
       find: { where: { id, overtimeImmediateSupervisorId: { employeeId } } },
     });
     if (!overtimeImmediateSupervisorId) throw new HttpException('User is not the immediate supervisor of this overtime application', 403);
-    if (updateOvertimeApplication.affected > 0) return updateOvertimeApplication;
+    await this.dataSource.transaction(async (entityManager) => {
+      const updateOvertimeApplication = await this.overtimeApplicationService.crud().transact(entityManager).update({
+        dto: {
+          estimatedHours,
+          plannedDate,
+          purpose,
+        },
+        updateBy: { id },
+      });
+      //Check if overtime application is approved
+      const status = await this.overtimeApplicationService
+        .crud()
+        .transact(entityManager)
+        .findOne({ find: { select: { status: true }, where: { id } } });
+
+      if (status === OvertimeStatus.APPROVED) throw new HttpException('Overtime Application is already approved.', 403);
+      //Delete Overtime Accomplishments
+      await entityManager.query(
+        `DELETE FROM overtime_accomplishments WHERE overtime_employee_id_fk IN (
+          SELECT overtime_employee_id WHERE overtime_application_id_fk = ?
+        );`,
+        [id]
+      );
+
+      //Delete Overtime Employees
+      await entityManager.query(`DELETE FROM overtime_employees WHERE overtime_application_id_fk=?;`, [id]);
+
+      //Update Overtime Employees;
+      await Promise.all(
+        employees.map(async (employeeId: string) => {
+          await this.overtimeEmployeeService
+            .crud()
+            .transact(entityManager)
+            .create({
+              dto: {
+                employeeId,
+                overtimeApplicationId: id,
+              },
+            });
+        })
+      );
+      if (updateOvertimeApplication.affected > 0) return updateOvertimeApplication;
+    });
     throw new HttpException('An error has occurred.', 500);
   }
 
