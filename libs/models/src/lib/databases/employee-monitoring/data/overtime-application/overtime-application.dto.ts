@@ -1,6 +1,6 @@
 import { OvertimeStatus } from '@gscwd-api/utils';
 import { PartialType, PickType } from '@nestjs/swagger';
-import { IsDate, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { OvertimeImmediateSupervisor } from '../overtime-immediate-supervisor';
 
 export class CreateOvertimeApplicationDto {
@@ -38,6 +38,13 @@ export class CreateOvertimeDto extends PickType(CreateOvertimeApplicationDto, [
 }
 
 export class UpdateOvertimeApplicationDto extends PickType(CreateOvertimeApplicationDto, ['estimatedHours', 'plannedDate', 'purpose']) {
+  @IsUUID()
   id: string;
+
+  @IsUUID()
   employeeId: string;
+
+  @IsArray()
+  @IsUUID('all', { each: true })
+  employees: string[];
 }
