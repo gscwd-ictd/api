@@ -134,7 +134,7 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
 
       await this.overtimeAccomplishmentService
         .crud()
-        .update({ dto: { status: OvertimeStatus.REMOVED_BY_MANAGER }, updateBy: { overtimeEmployeeId: overtimeEmployee } });
+        .update({ dto: { status: OvertimeStatus.REMOVED_BY_IMMEDIATE_SUPERVISOR }, updateBy: { overtimeEmployeeId: overtimeEmployee } });
 
       return overtimeEmployee;
     } catch (error) {
