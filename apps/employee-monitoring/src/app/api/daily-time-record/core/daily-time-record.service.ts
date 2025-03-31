@@ -1242,7 +1242,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         ) {
           const employeeId = await this.employeeService.getEmployeeIdByCompanyId(companyId);
           const employeeShift = (
-            await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(ivmsEntryItem[0].date).subtract(1, 'day').toDate())
+            await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(ivmsEntryItem.date).subtract(1, 'day').toDate())
           ).schedule.shift;
 
           if (employeeShift === 'night') {
