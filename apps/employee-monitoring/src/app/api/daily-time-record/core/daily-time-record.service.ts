@@ -78,6 +78,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     }
   }
 
+  async generateAllEmployeeDtrByMonthAndYear() {}
+
   async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number, half: ReportHalf) {
     const daysInMonth = dayjs(year + '-' + month + '-' + '01').daysInMonth();
     const dayRange = this.getDayRange(daysInMonth);
@@ -1235,6 +1237,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         prevIvmsDateTime = currentIvmsDateTime;
       })
     );
+
     //timeout (silip next day morning kay nagtabok ug adlaw)
     //result for tomorrow
     await Promise.all(
@@ -1249,7 +1252,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         ) {
           const employeeId = await this.employeeService.getEmployeeIdByCompanyId(companyId);
           const employeeShift = (
-            await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(ivmsEntry[0].date).subtract(1, 'day').toDate())
+            await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(ivmsEntryItem[0].date).subtract(1, 'day').toDate())
           ).schedule.shift;
 
           if (employeeShift === 'night') {
