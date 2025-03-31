@@ -1885,40 +1885,41 @@ export class OvertimeService {
         updateBy: { id },
       });
       //Check if overtime application is approved
-      const status = await this.overtimeApplicationService
+      const overtimeApplication = (await this.overtimeApplicationService
         .crud()
         .transact(entityManager)
-        .findOne({ find: { select: { status: true }, where: { id } } });
+        .findOne({ find: { where: { id } } })) as OvertimeApplication;
 
-      if (status === OvertimeStatus.APPROVED) throw new HttpException('Overtime Application is already approved.', 403);
+      if (overtimeApplication.status === OvertimeStatus.APPROVED) throw new HttpException('Overtime Application is already approved.', 403);
       //Delete Overtime Accomplishments
       await entityManager.query(
-        `DELETE FROM overtime_accomplishments WHERE overtime_employee_id_fk IN (
-          SELECT overtime_employee_id WHERE overtime_application_id_fk = ?
+        `DELETE FROM overtime_accomplishment WHERE overtime_employee_id_fk IN (
+          SELECT overtime_employee_id FROM overtime_employee WHERE overtime_application_id_fk = ?
         );`,
         [id]
       );
 
       //Delete Overtime Employees
-      await entityManager.query(`DELETE FROM overtime_employees WHERE overtime_application_id_fk=?;`, [id]);
+      await entityManager.query(`DELETE FROM overtime_employee WHERE overtime_application_id_fk=?;`, [id]);
 
       //Update Overtime Employees;
       await Promise.all(
         employees.map(async (employeeId: string) => {
-          await this.overtimeEmployeeService
-            .crud()
-            .transact(entityManager)
-            .create({
-              dto: {
-                employeeId,
-                overtimeApplicationId: id,
-              },
-            });
+          const overtimeEmployeeId = await this.overtimeEmployeeService.createOvertimeEmployees(
+            { employeeId, overtimeApplicationId: overtimeApplication },
+            entityManager
+          );
+          await this.overtimeAccomplishmentService.createOvertimeAccomplishment(
+            {
+              overtimeEmployeeId,
+              status: OvertimeStatus.PENDING,
+            },
+            entityManager
+          );
         })
       );
       if (updateOvertimeApplication.affected > 0) return updateOvertimeApplication;
     });
-    throw new HttpException('An error has occurred.', 500);
   }
 
   private getComputedStraightDutyHours(hours: number) {

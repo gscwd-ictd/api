@@ -62,7 +62,7 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
 
       await this.overtimeAccomplishmentService
         .crud()
-        .update({ dto: { status: OvertimeStatus.REMOVED }, updateBy: { overtimeEmployeeId: overtimeEmployee } });
+        .update({ dto: { status: OvertimeStatus.REMOVED_BY_MANAGER }, updateBy: { overtimeEmployeeId: overtimeEmployee } });
       return overtimeEmployee;
     } catch (error) {
       if (error instanceof RpcException) {
@@ -116,14 +116,26 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
 
       if (overtimeAccomplishment.status === 'approved' && overtimeApplication.status === 'approved') {
         throw new RpcException({
-          message: 'Overtime Accomplishment is already approved. Deleting is not allowed.',
+          message: 'Overtime Accomplishment is already approved. Removal is not allowed.',
         });
       }
 
-      await this.overtimeAccomplishmentService.crud().delete({ deleteBy: { overtimeEmployeeId: overtimeEmployee }, softDelete: false });
-      await this.crud().delete({ deleteBy: { id: overtimeEmployee.id }, softDelete: false });
+      if (
+        overtimeAccomplishment.status === OvertimeStatus.REMOVED_BY_IMMEDIATE_SUPERVISOR ||
+        overtimeAccomplishment.status === OvertimeStatus.REMOVED_BY_MANAGER
+      ) {
+        throw new RpcException({
+          message: 'Overtime Accomplishment is already removed. this is not allowed.',
+        });
+      }
 
-      console.log(overtimeEmployee);
+      // await this.overtimeAccomplishmentService.crud().delete({ deleteBy: { overtimeEmployeeId: overtimeEmployee }, softDelete: false });
+      // await this.crud().delete({ deleteBy: { id: overtimeEmployee.id }, softDelete: false });
+
+      await this.overtimeAccomplishmentService
+        .crud()
+        .update({ dto: { status: OvertimeStatus.REMOVED_BY_IMMEDIATE_SUPERVISOR }, updateBy: { overtimeEmployeeId: overtimeEmployee } });
+
       return overtimeEmployee;
     } catch (error) {
       console.log(error);
