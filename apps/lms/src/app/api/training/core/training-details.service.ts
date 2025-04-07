@@ -14,7 +14,7 @@ import {
   UpdateTrainingStatusDto,
 } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { DataSource, EntityManager, Raw } from 'typeorm';
+import { DataSource, EntityManager, In, Raw } from 'typeorm';
 import { TrainingTagsService } from '../components/tags';
 import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
@@ -1440,7 +1440,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           },
           where: {
             trainingStart: Raw((alias) => `to_char(${alias}, 'YYYY-MM') = :dateRange`, { dateRange }),
-            status: TrainingStatus.COMPLETED || TrainingStatus.REQUIREMENTS_SUBMISSION,
+            status: In([TrainingStatus.COMPLETED, TrainingStatus.REQUIREMENTS_SUBMISSION]),
           },
           order: {
             trainingStart: 'ASC',
