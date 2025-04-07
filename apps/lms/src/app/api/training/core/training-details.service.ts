@@ -1440,7 +1440,7 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
           },
           where: {
             trainingStart: Raw((alias) => `to_char(${alias}, 'YYYY-MM') = :dateRange`, { dateRange }),
-            status: TrainingStatus.COMPLETED,
+            status: TrainingStatus.COMPLETED || TrainingStatus.REQUIREMENTS_SUBMISSION,
           },
           order: {
             trainingStart: 'ASC',
