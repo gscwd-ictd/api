@@ -9,4 +9,9 @@ export class DocumentsController {
   async approvalDocuments(@Param('trainingId') trainingId: string) {
     return await this.documentsService.approvalDocuments(trainingId);
   }
+
+  @Get('certification/:trainingId')
+  async certificationDocument(@Param('trainingId') trainingId: string) {
+    return await this.documentsService.certificateDocuments(trainingId);
+  }
 }
