@@ -1046,7 +1046,7 @@ export class OvertimeService {
         //if nightshift
         if (previousDaySchedule.schedule.shift === ScheduleShift.NIGHT) {
           //check previous day time out
-          const previousDayTimeOutDate = dayjs(plannedDate + ' ' + previousDaySchedule.schedule.timeOut);
+          const previousDayTimeOutDate = dayjs(plannedDate + ' ' + previousDaySchedule.schedule.timeOut).add(1, 'day');
 
           const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
 
