@@ -10,7 +10,15 @@ import {
 } from '@gscwd-api/models';
 import { PassSlipApprovalService } from '../components/approval/core/pass-slip-approval.service';
 import { MicroserviceClient } from '@gscwd-api/microservices';
-import { abbreviate, LeaveLedger, NatureOfBusiness, ObTransportation, PassSlipApprovalStatus, PassSlipForDispute, PassSlipForLedger } from '@gscwd-api/utils';
+import {
+  abbreviate,
+  LeaveLedger,
+  NatureOfBusiness,
+  ObTransportation,
+  PassSlipApprovalStatus,
+  PassSlipForDispute,
+  PassSlipForLedger,
+} from '@gscwd-api/utils';
 import { Between, DataSource, IsNull, Not } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
@@ -211,14 +219,17 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       find: {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true, hrmoApprovalDate: true, supervisorApprovalDate: true, hrmoDisapprovalRemarks: true },
-        where: [{
-          supervisorId, passSlipId: {
-            dateOfApplication: Between(
-              dayjs(dayjs().subtract(3, 'month').format('YYYY-MM') + '-01').toDate(),
-              dayjs(dayjs().add(1, 'day').format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
-            )
-          }
-        }],
+        where: [
+          {
+            supervisorId,
+            passSlipId: {
+              dateOfApplication: Between(
+                dayjs(dayjs().subtract(3, 'month').format('YYYY-MM') + '-01').toDate(),
+                dayjs(dayjs().add(1, 'day').format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
+              ),
+            },
+          },
+        ],
         order: { passSlipId: { dateOfApplication: 'DESC' } },
       },
       onError: () => new NotFoundException(),
@@ -1081,7 +1092,9 @@ export class PassSlipService extends CrudHelper<PassSlip> {
           isDeductibleToPay,
         } = passSlip;
         const { passSlipCountInLedger } = (
-          await this.rawQuery(`SELECT count(*) passSlipCountInLedger FROM employee_monitoring.leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [id])
+          await this.rawQuery(`SELECT count(*) passSlipCountInLedger FROM employee_monitoring.leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [
+            id,
+          ])
         )[0];
 
         const employeeCompanyId = (await this.employeeService.getEmployeeDetails(employeeId)).companyId;
@@ -1092,17 +1105,19 @@ export class PassSlipService extends CrudHelper<PassSlip> {
               INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
             WHERE dtr_date = ? AND dtr.company_id_fk= ?;`,
           [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
-        )) as { dtrId: string; scheduleTimeOut: Date, timeOut: Date }[];
+        )) as { dtrId: string; scheduleTimeOut: Date; timeOut: Date }[];
 
         if (dtr.length > 0) {
-          if (dtr[0].timeOut === null && (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS || natureOfBusiness === NatureOfBusiness.PERSONAL)) {
+          if (
+            dtr[0].timeOut === null &&
+            (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS || natureOfBusiness === NatureOfBusiness.PERSONAL)
+          ) {
             await this.rawQuery(
               `UPDATE daily_time_record SET time_out = ?, has_correction = 1 WHERE company_id_fk = ? AND date_format(dtr_date,'%Y-%m-%d') = ? `,
               [dtr[0].scheduleTimeOut, employeeCompanyId, dayjs(dateOfApplication).format('YYYY-MM-DD')]
             );
           }
         }
-
 
         const restDays = await this.rawQuery(
           `
@@ -1304,10 +1319,13 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Officia
               INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
             WHERE dtr_date = ? AND dtr.company_id_fk= ?;`,
           [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
-        )) as { dtrId: string; scheduleTimeOut: Date, timeOut: Date }[];
+        )) as { dtrId: string; scheduleTimeOut: Date; timeOut: Date }[];
 
         if (dtr.length > 0) {
-          if (dtr[0].timeOut === null && (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS || natureOfBusiness === NatureOfBusiness.PERSONAL)) {
+          if (
+            dtr[0].timeOut === null &&
+            (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS || natureOfBusiness === NatureOfBusiness.PERSONAL)
+          ) {
             await this.rawQuery(
               `UPDATE daily_time_record SET time_out = ?, has_correction = 1 WHERE company_id_fk = ? AND date_format(dtr_date,'%Y-%m-%d') = ? `,
               [dtr[0].scheduleTimeOut, employeeCompanyId, dayjs(dateOfApplication).format('YYYY-MM-DD')]
@@ -1475,12 +1493,15 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Officia
 
   async getAssignableSupervisorForPassSlip(employeeData: { orgId: string; employeeId: string }) {
     let officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeData.orgId);
-    const employeeAssignment = (await this.employeeService.getBasicEmployeeDetails(employeeData.employeeId)).assignment.name;
+    const employeeDetails = await this.employeeService.getBasicEmployeeDetails(employeeData.employeeId);
+    const employeeAssignment = employeeDetails.assignment.name;
     const userRole = (await this.employeeService.getEmployeeDetails(employeeData.employeeId)).userRole;
     if (userRole === 'division_manager' || userRole === 'department_manager' || userRole === 'assistant_general_manager') {
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);
       const supervisorOrgId = (await this.employeeService.getEmployeeDetails(supervisorId)).assignment.id;
       officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(supervisorOrgId);
+      if (officerOfTheDayId === null && userRole === 'department_manager')
+        officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeDetails.assignment.id);
     }
     let officerOfTheDayName: string;
     if (officerOfTheDayId) officerOfTheDayName = (await this.employeeService.getEmployeeDetails(officerOfTheDayId)).employeeFullName;
@@ -1489,17 +1510,20 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Officia
     const supervisorAndOfficerOfTheDayArray =
       officerOfTheDayId !== null
         ? [
-          { label: officerOfTheDayName, value: officerOfTheDayId },
-          { label: employeeSupervisorName, value: employeeSupervisorId },
-        ]
+            { label: officerOfTheDayName, value: officerOfTheDayId },
+            { label: employeeSupervisorName, value: employeeSupervisorId },
+          ]
         : [{ label: employeeSupervisorName, value: employeeSupervisorId }];
     const supervisoryEmployees = await this.employeeService.getSupervisoryEmployeesForDropdown(employeeData.employeeId);
     const result = [
       ...supervisorAndOfficerOfTheDayArray,
       ...supervisoryEmployees,
-      employeeAssignment === 'Building and Grounds, Transportation and Water Meter Maintenance Division' ? {
-        label: 'Tampico, Agnes P. , MPA', value: '010a0d3a-5b3d-11ed-a08b-000c29f95a80'
-      } : null,
+      employeeAssignment === 'Building and Grounds, Transportation and Water Meter Maintenance Division'
+        ? {
+            label: 'Tampico, Agnes P. , MPA',
+            value: '010a0d3a-5b3d-11ed-a08b-000c29f95a80',
+          }
+        : null,
       { label: 'Pe, Charlene Marie D. ', value: 'af7bbec8-b26e-11ed-a79b-000c29f95a80' },
     ];
     return result
