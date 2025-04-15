@@ -1468,8 +1468,8 @@ export class OvertimeService {
               oacc.actual_hours actualHours,
               oappl.status otStatus,
               oacc.status accomplishmentStatus,
-              oacc.encoded_time_in timeIn,
-              oacc.encoded_time_out timeOut
+              DATE_FORMAT(oacc.encoded_time_in, '%Y-%m-%d %H-%i-%s') timeIn,
+              DATE_FORMAT(oacc.encoded_time_out,'%Y-%m-%d %H-%i-%s') timeOut
           FROM overtime_application oappl
               INNER JOIN overtime_approval oappr ON oappr.overtime_application_id_fk = oappl.overtime_application_id
               INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oappl.overtime_application_id
