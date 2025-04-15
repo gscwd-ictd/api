@@ -1454,10 +1454,12 @@ export class OvertimeService {
       const _month = ('0' + month).slice(-2);
       const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
 
-      const result = await this.overtimeApplicationService.rawQuery(
+      const result = (await this.overtimeApplicationService.rawQuery(
         `
           SELECT DISTINCT 
-            emp.company_id companyId,
+              emp.company_id companyId,
+              oe.employee_id_fk employeeId,
+              oappl.overtime_application_id overtimeApplicationId,
               ${process.env.HRMS_DB_NAME}get_employee_fullname2(oe.employee_id_fk) employeeName,
               ${process.env.HRMS_DB_NAME}get_employee_assignment(oe.employee_id_fk) assignment,
               DATE_FORMAT(oappl.planned_date, '%Y-%m-%d') plannedDate,
@@ -1467,7 +1469,9 @@ export class OvertimeService {
               oappl.estimated_hours estimatedHours,
               oacc.actual_hours actualHours,
               oappl.status otStatus,
-              oacc.status accomplishmentStatus
+              oacc.status accomplishmentStatus,
+              DATE_FORMAT(oacc.encoded_time_in, '%Y-%m-%d %h:%i %p') timeIn,
+              DATE_FORMAT(oacc.encoded_time_out,'%Y-%m-%d %h:%i %p') timeOut
           FROM overtime_application oappl
               INNER JOIN overtime_approval oappr ON oappr.overtime_application_id_fk = oappl.overtime_application_id
               INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oappl.overtime_application_id
@@ -1484,6 +1488,30 @@ export class OvertimeService {
           ORDER BY plannedDate ASC, employeeName ASC; 
         `,
         [immediateSupervisorEmployeeId, immediateSupervisorEmployeeId, year, _month, days, _natureOfAppointment]
+      )) as {
+        companyId: string;
+        employeeId: string;
+        overtimeApplicationId: string;
+        employeeName: string;
+        assignment: string;
+        plannedDate: Date;
+        applicationDate: Date;
+        purpose: string;
+        accomplishments: string;
+        estimatedHours: number;
+        actualHours: number;
+        otStatus: OvertimeStatus;
+        accomplishmentStatus: OvertimeStatus;
+        timeIn: string;
+        timeOut: string;
+      }[];
+
+      const resultWithEncodedHours = await Promise.all(
+        result.map(async (accomplishment) => {
+          const { employeeId, overtimeApplicationId, ...rest } = accomplishment;
+          const overtimeDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId);
+          return { ...rest, encodedHours: overtimeDetails.computedEncodedHours };
+        })
       );
 
       const preparedByDetails = await this.employeeService.getBasicEmployeeDetails(immediateSupervisorEmployeeId);
@@ -1507,7 +1535,7 @@ export class OvertimeService {
       return {
         periodCovered,
         orgName,
-        summary: result,
+        summary: resultWithEncodedHours,
         signatories: {
           preparedBy: { name: employeeName, signature: employeeSignature, position: preparedByPosition },
           notedBy: { name: supervisorName, signature: supervisorSignature, position: notedByPosition },
