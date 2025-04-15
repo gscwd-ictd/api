@@ -1472,7 +1472,9 @@ export class OvertimeService {
               oappl.estimated_hours estimatedHours,
               oacc.actual_hours actualHours,
               oappl.status otStatus,
-              oacc.status accomplishmentStatus
+              oacc.status accomplishmentStatus,
+              oacc.encoded_time_in timeIn,
+              oacc.encoded_time_out timeOut
           FROM overtime_application oappl
               INNER JOIN overtime_approval oappr ON oappr.overtime_application_id_fk = oappl.overtime_application_id
               INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oappl.overtime_application_id

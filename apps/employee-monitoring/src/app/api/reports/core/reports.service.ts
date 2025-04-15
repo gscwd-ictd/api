@@ -3,8 +3,6 @@ import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-
 import { EmployeesService } from '../../employees/core/employees.service';
 import { NatureOfAppointment, NatureOfBusiness, Report, User } from '@gscwd-api/utils';
 import dayjs = require('dayjs');
-import { last } from 'rxjs';
-import { PassSlip } from '@gscwd-api/models';
 
 @Injectable()
 export class ReportsService {

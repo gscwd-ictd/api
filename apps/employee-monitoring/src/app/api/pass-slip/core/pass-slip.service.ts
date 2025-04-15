@@ -1500,7 +1500,6 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Officia
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);
       const supervisorOrgId = (await this.employeeService.getEmployeeDetails(supervisorId)).assignment.id;
       officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(supervisorOrgId);
-      console.log('officer:', officerOfTheDayId);
       if (officerOfTheDayId === null && userRole === 'department_manager')
         officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeDetails.assignment.id);
     }
