@@ -1046,22 +1046,28 @@ export class OvertimeService {
         //if nightshift
         if (previousDaySchedule.schedule.shift === ScheduleShift.NIGHT) {
           //check previous day time out
-          const previousDayTimeOutDate = dayjs(plannedDate + ' ' + previousDaySchedule.schedule.timeOut);
+          const previousDayTimeOutDate = dayjs(plannedDate + ' ' + previousDaySchedule.schedule.timeOut).add(1, 'day');
 
           const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
 
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(previousDayTimeOutDate, 'minute');
 
+          console.log(encodedTimeInDate.format('YYYY-MM-DD HH:mm'), previousDayTimeOutDate.format('YYYY-MM-DD HH:mm'));
+          console.log(computedEncodedHours, otAndPreviousShiftInterval);
           if (computedEncodedHours > 4) {
             if (otAndPreviousShiftInterval < 60) {
+              console.log('straight duty');
               computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
             } else {
+              console.log('dili straight duty');
               computedEncodedHours = this.getComputedHours(computedEncodedHours);
             }
           }
         } else {
+          console.log('dili straight duty');
           if (computedEncodedHours > 4) computedEncodedHours = this.getComputedHours(computedEncodedHours);
         }
+        console.log('asdasdasda');
       }
       return {
         ...restOfUpdatedOvertime,

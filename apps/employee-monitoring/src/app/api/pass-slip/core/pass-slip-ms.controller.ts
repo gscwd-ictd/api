@@ -18,7 +18,9 @@ export class PassSlipControllerMs {
   @MessagePattern('get_assignable_supervisors_for_pass_slip')
   async getAssignableSupervisorForPassSlip(@Payload() employeeData: { employeeId: string; orgId: string }) {
     try {
-      return await this.passSlipService.getAssignableSupervisorForPassSlip(employeeData);
+      const result = await this.passSlipService.getAssignableSupervisorForPassSlip(employeeData);
+      console.log(result);
+      return result;
     } catch (error) {
       throw new RpcException(error.message);
     }

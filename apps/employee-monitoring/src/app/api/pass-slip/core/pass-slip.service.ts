@@ -219,14 +219,17 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       find: {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true, hrmoApprovalDate: true, supervisorApprovalDate: true, hrmoDisapprovalRemarks: true },
-        where: [{
-          supervisorId, passSlipId: {
-            dateOfApplication: Between(
-              dayjs(dayjs().subtract(3, 'month').format('YYYY-MM') + '-01').toDate(),
-              dayjs(dayjs().add(1, 'day').format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
-            )
-          }
-        }],
+        where: [
+          {
+            supervisorId,
+            passSlipId: {
+              dateOfApplication: Between(
+                dayjs(dayjs().subtract(3, 'month').format('YYYY-MM') + '-01').toDate(),
+                dayjs(dayjs().add(1, 'day').format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
+              ),
+            },
+          },
+        ],
         order: { passSlipId: { dateOfApplication: 'DESC' } },
       },
       onError: () => new NotFoundException(),
@@ -1490,12 +1493,16 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Officia
 
   async getAssignableSupervisorForPassSlip(employeeData: { orgId: string; employeeId: string }) {
     let officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeData.orgId);
-    const employeeAssignment = (await this.employeeService.getBasicEmployeeDetails(employeeData.employeeId)).assignment.name;
+    const employeeDetails = await this.employeeService.getBasicEmployeeDetails(employeeData.employeeId);
+    const employeeAssignment = employeeDetails.assignment.name;
     const userRole = (await this.employeeService.getEmployeeDetails(employeeData.employeeId)).userRole;
     if (userRole === 'division_manager' || userRole === 'department_manager' || userRole === 'assistant_general_manager') {
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeData.employeeId);
       const supervisorOrgId = (await this.employeeService.getEmployeeDetails(supervisorId)).assignment.id;
       officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(supervisorOrgId);
+      console.log('officer:', officerOfTheDayId);
+      if (officerOfTheDayId === null && userRole === 'department_manager')
+        officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeDetails.assignment.id);
     }
     let officerOfTheDayName: string;
     if (officerOfTheDayId) officerOfTheDayName = (await this.employeeService.getEmployeeDetails(officerOfTheDayId)).employeeFullName;

@@ -16,11 +16,11 @@ export class ReportsService {
 
       const employeeAttendance = await Promise.all(
         employees.map(async (employee) => {
-          const companyId = await this.employeesService.getCompanyId(employee.value);
           const name = employee.label;
-
-          const report = (await this.dtrService.rawQuery(`CALL sp_generate_report_on_attendance(?,?,?);`, [companyId, dateFrom, dateTo]))[0][0];
-          return { companyId, name, ...report };
+          const report = (
+            await this.dtrService.rawQuery(`CALL sp_generate_report_on_attendance_v3(?,?,?);`, [employee.value, dateFrom, dateTo])
+          )[0][0];
+          return { name, ...report };
         })
       );
       return employeeAttendance;
@@ -256,7 +256,8 @@ export class ReportsService {
   }
 
   async generateReportOnUnusedPassSlips(dateFrom: Date, dateTo: Date, natureOfBusiness: NatureOfBusiness) {
-    const result = (await this.dtrService.rawQuery(`
+    const result = (await this.dtrService.rawQuery(
+      `
       SELECT 
           pass_slip_id passSlipId,
           ${process.env.HRMS_DB_NAME}get_company_id_by_employee_id(employee_id_fk) companyId,
@@ -275,8 +276,16 @@ export class ReportsService {
           psa.status = 'unused' AND nature_of_business = ? 
           AND ps.created_at >= ? AND ps.created_at <= ?  
       ORDER BY ${process.env.HRMS_DB_NAME}get_employee_fullname2(employee_id_fk) ASC;
-    `, [natureOfBusiness, dateFrom, dateTo])) as {
-      passSlipId: string, companyId: string, fullName: string, dateApplied: Date, approvedBy: string, natureOfBusiness: NatureOfBusiness, purpose: string
+    `,
+      [natureOfBusiness, dateFrom, dateTo]
+    )) as {
+      passSlipId: string;
+      companyId: string;
+      fullName: string;
+      dateApplied: Date;
+      approvedBy: string;
+      natureOfBusiness: NatureOfBusiness;
+      purpose: string;
     }[];
     return result;
   }
@@ -660,13 +669,20 @@ export class ReportsService {
   async generateReportOnLeaveApplicationLateFiling(dateFrom: Date, dateTo: Date) {
     try {
       return (await this.dtrService.rawQuery(`CALL sp_get_late_filed_leave_application_by_date_range(?,?);`, [dateFrom, dateTo]))[0];
-    }
-    catch (error) {
+    } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
 
-  async generateReport(user: User, report: Report, dateFrom?: Date, dateTo?: Date, monthYear?: string, employeeId?: string, natureOfBusiness?: NatureOfBusiness) {
+  async generateReport(
+    user: User,
+    report: Report,
+    dateFrom?: Date,
+    dateTo?: Date,
+    monthYear?: string,
+    employeeId?: string,
+    natureOfBusiness?: NatureOfBusiness
+  ) {
     try {
       if (user === null) throw new ForbiddenException();
       let reportDetails: object;
