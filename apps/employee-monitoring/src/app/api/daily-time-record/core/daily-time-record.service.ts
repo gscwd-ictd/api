@@ -724,7 +724,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
                 dtrDeductionType: DtrDeductionType.HALFDAY,
               });
             }
-            if (latesUndertimesNoAttendance.noOfLates > 0) {
+
+            if (latesUndertimesNoAttendance.noOfLates > 0 && !latesUndertimesNoAttendance.isHalfDay && noOfUndertimes === 0) {
               const leaveCardItem = await this.leaveCardLedgerDebitService
                 .crud()
                 .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
@@ -856,6 +857,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _timeIn = null;
     let _timeOut = null;
     const { timeIn, timeOut } = schedule;
+
+    const timeOutAmOrPm = dayjs(ivmsEntry[0].date + ' ' + timeOut).format('A');
+    const timeInAmOrPm = dayjs(ivmsEntry[0].date + ' ' + timeIn).format('A');
+
     const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
     const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, currEmployeeDtr.dtrDate));
     const result = await Promise.all(
@@ -888,6 +893,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         } else {
           if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))) {
             if (_timeIn === null) _timeIn = time;
+            else {
+              if (timeOutAmOrPm === 'PM' && timeInAmOrPm === 'PM') {
+                //
+                //6am < 1pm? y
+                //
+                _timeIn = time;
+              }
+            }
           }
           if (
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
