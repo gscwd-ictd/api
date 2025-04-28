@@ -1964,6 +1964,6 @@ export class OvertimeService {
     for (let i = 4; i <= hours; i++) {
       if (i % 5 === 0 && i > 10) deduction += 1;
     }
-    return hours - deduction - 1;
+    return hours - deduction - (hours > 5 ? 1 : 0);
   }
 }
