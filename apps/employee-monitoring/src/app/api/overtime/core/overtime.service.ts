@@ -1543,7 +1543,7 @@ export class OvertimeService {
         },
       };
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new NotFoundException('!@#', error.message);
     }
   }
 

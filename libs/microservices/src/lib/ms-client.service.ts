@@ -14,7 +14,7 @@ export class MicroserviceClient {
   constructor(
     @Inject(MS_CLIENT)
     private readonly client: ClientProxy
-  ) { }
+  ) {}
 
   /**
    * Send a message queue to execute a function (specified via pattern) in a listening microservice host.
@@ -38,7 +38,7 @@ export class MicroserviceClient {
 
       // execute send function
       //return await lastValueFrom(this.client.send<Output, Payload>(pattern, payload));
-      return await lastValueFrom(this.client.send<Output, Payload>(pattern, payload).pipe(timeout(10000)));
+      return await lastValueFrom(this.client.send<Output, Payload>(pattern, payload).pipe(timeout(20000)));
 
       // catch any resulting error
     } catch (error) {
