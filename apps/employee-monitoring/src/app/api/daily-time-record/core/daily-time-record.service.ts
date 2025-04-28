@@ -528,12 +528,21 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   //#endregion
 
   async getDtrByCompanyIdAndDay(data: { companyId: string; date: Date }) {
+    const dateCurrent = dayjs(data.date).toDate();
     try {
-      const dateCurrent = dayjs(data.date).toDate();
-
       const id = data.companyId.replace('-', '');
 
-      const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
+      //const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
+      const employeeDetails = (
+        (await this.rawQuery(
+          `SELECT _id userId,user_role userRole, company_id companyId FROM ${process.env.HRMS_DB_NAME}employees emp WHERE emp.company_id = ?`,
+          [data.companyId]
+        )) as {
+          userId: string;
+          userRole: string;
+          companyId: string;
+        }[]
+      )[0];
 
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
 
@@ -716,7 +725,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
                 dtrDeductionType: DtrDeductionType.HALFDAY,
               });
             }
-            if (latesUndertimesNoAttendance.noOfLates > 0) {
+
+            if (latesUndertimesNoAttendance.noOfLates > 0 && !latesUndertimesNoAttendance.isHalfDay && noOfUndertimes === 0) {
               const leaveCardItem = await this.leaveCardLedgerDebitService
                 .crud()
                 .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
@@ -766,7 +776,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const dateCurrent = dayjs(data.date).toDate();
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
-
+      const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
+      const hasPendingDtrCorrection = currEmployeeDtr ? await this.hasPendingDtrCorrection(currEmployeeDtr.id) : false;
+      const dtrCorrection = currEmployeeDtr ? await this.getDtrCorrection(currEmployeeDtr.id) : null;
       const restDays = schedule.restDaysNumbers.split(', ');
       const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
 
@@ -793,8 +805,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         leaveDateStatus,
         isHoliday,
         isRestDay,
-        hasPendingDtrCorrection: false,
-        dtrCorrection: null,
+        hasPendingDtrCorrection,
+        dtrCorrection,
         dtr: {
           companyId: null,
           createdAt: null,
@@ -848,6 +860,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _timeIn = null;
     let _timeOut = null;
     const { timeIn, timeOut } = schedule;
+
+    const timeOutAmOrPm = dayjs(ivmsEntry[0].date + ' ' + timeOut).format('A');
+    const timeInAmOrPm = dayjs(ivmsEntry[0].date + ' ' + timeIn).format('A');
+
     const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
     const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, currEmployeeDtr.dtrDate));
     const result = await Promise.all(
@@ -880,6 +896,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         } else {
           if (dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 ' + timeOut).subtract(suspensionHours, 'hour'))) {
             if (_timeIn === null) _timeIn = time;
+            else {
+              if (timeOutAmOrPm === 'PM' && timeInAmOrPm === 'PM') {
+                //
+                //6am < 1pm? y
+                //
+                _timeIn = time;
+              }
+            }
           }
           if (
             dayjs('2023-01-01 ' + time).isBefore(dayjs('2023-01-01 23:59:59')) &&
