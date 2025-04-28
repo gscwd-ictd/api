@@ -1464,7 +1464,7 @@ export class OvertimeService {
           SELECT DISTINCT 
               emp.company_id companyId,
               oe.employee_id_fk employeeId,
-              appl.overtime_application_id overtimeApplicationId,
+              oappl.overtime_application_id overtimeApplicationId,
               ${process.env.HRMS_DB_NAME}get_employee_fullname2(oe.employee_id_fk) employeeName,
               ${process.env.HRMS_DB_NAME}get_employee_assignment(oe.employee_id_fk) assignment,
               DATE_FORMAT(oappl.planned_date, '%Y-%m-%d') plannedDate,
@@ -1966,9 +1966,10 @@ export class OvertimeService {
 
   private getComputedHours(hours: number) {
     let deduction = 0;
+
     for (let i = 4; i <= hours; i++) {
       if (i % 5 === 0 && i > 10) deduction += 1;
     }
-    return hours - deduction - 1;
+    return hours - deduction - (hours > 5 ? 1 : 0);
   }
 }
