@@ -145,19 +145,20 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
   //TODO: During this was created, the period displayed on the ledger is hrmo_approval_date, due to audit concerns this cannot be amended during the year, so before the year ends (11:57-59pm), it should be amended to be hrdm_approval_date,
   @Cron('0 57 23 7-12 1 *')
   async forfeitureOfSpecialPrivilegeLeave() {
-    const employees = await this.employeeService.getAllPermanentEmployeeIds();
-    const now = dayjs().format('YYYY-MM-DD');
-    const finalWorkingDay = dayjs(await this.holidaysService.getTheNextWorkingDayByDays(dayjs('2025-01-01').toDate(), 7)).format('YYYY-MM-DD');
+    try {
+      const employees = await this.employeeService.getAllPermanentEmployeeIds();
+      const now = dayjs().format('YYYY-MM-DD');
+      const finalWorkingDay = dayjs(await this.holidaysService.getTheNextWorkingDayByDays(dayjs('2025-01-01').toDate(), 7)).format('YYYY-MM-DD');
 
-    if (finalWorkingDay === now) {
-      const result = await Promise.all(
-        employees.map(async (employee) => {
-          const { employeeId } = employee;
+      if (finalWorkingDay === now) {
+        const result = await Promise.all(
+          employees.map(async (employee) => {
+            const { employeeId } = employee;
 
-          const forfeitedSpl = parseInt(
-            (
-              await this.rawQuery(
-                `
+            const forfeitedSpl = parseInt(
+              (
+                await this.rawQuery(
+                  `
                   SELECT COUNT(*) previousYearSplApplicationsValue
                   FROM leave_application la
                     INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
@@ -168,30 +169,34 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
                   AND lad.status in ('approved')
                   AND leave_benefits_id_fk = 'cb91fdda-9f65-4132-ae80-c61bda9abe31';
         `,
-                [employeeId]
-              )
-            )[0].previousYearSplApplicationsValue
-          );
-          if (forfeitedSpl > 0) {
-            const splLeaveBenefit = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Special Privilege Leave' } } });
-            const splDeduction = await this.leaveCreditDeductionService.crud().create({
-              dto: {
-                leaveBenefitsId: splLeaveBenefit,
-                debitValue: forfeitedSpl,
-                employeeId,
-                remarks: 'SPL Forfeiture',
-              },
-            });
+                  [employeeId]
+                )
+              )[0].previousYearSplApplicationsValue
+            );
+            if (forfeitedSpl > 0) {
+              const splLeaveBenefit = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Special Privilege Leave' } } });
+              const splDeduction = await this.leaveCreditDeductionService.crud().create({
+                dto: {
+                  leaveBenefitsId: splLeaveBenefit,
+                  debitValue: forfeitedSpl,
+                  employeeId,
+                  remarks: 'SPL Forfeiture',
+                },
+              });
 
-            const splLedger = await this.crud().create({
-              dto: {
-                leaveCreditDeductionsId: splDeduction,
-                debitValue: forfeitedSpl,
-              },
-            });
-          }
-        })
-      );
+              const splLedger = await this.crud().create({
+                dto: {
+                  leaveCreditDeductionsId: splDeduction,
+                  debitValue: forfeitedSpl,
+                },
+              });
+            }
+          })
+        );
+        console.log('SPL Forfeiture executed');
+      }
+    } catch (error) {
+      console.log(error, '\nSPL Forfeiture failed');
     }
   }
 
