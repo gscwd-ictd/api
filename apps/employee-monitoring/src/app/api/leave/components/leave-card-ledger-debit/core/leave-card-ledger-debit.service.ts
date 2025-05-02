@@ -143,7 +143,7 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
    * for now, the logic flow of this function is assumingly in accordance to the amendment.
    */
   //TODO: During this was created, the period displayed on the ledger is hrmo_approval_date, due to audit concerns this cannot be amended during the year, so before the year ends (11:57-59pm), it should be amended to be hrdm_approval_date,
-  @Cron('0 57 23 7-12 1 *')
+  //@Cron('0 57 23 7-12 1 *') disable cron on 61(portal.gscwd.app)
   async forfeitureOfSpecialPrivilegeLeave() {
     try {
       const employees = await this.employeeService.getAllPermanentEmployeeIds();
