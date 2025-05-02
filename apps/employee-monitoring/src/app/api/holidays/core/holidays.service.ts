@@ -72,14 +72,27 @@ export class HolidaysService extends CrudHelper<Holidays> {
   async getTheNextWorkingDayByDays(date: Date, days: number) {
     const theDate = dayjs(date);
     let currDate = theDate;
-    for (let i = 1; i < days; i++) {
-      if (currDate.day() === 6) currDate = currDate.add(3, 'day');
-      if (currDate.day() === 0 || (await this.isHoliday(dayjs(theDate.format('YYYY-MM-DD')).toDate()))) currDate = currDate.add(2, 'day');
-      else currDate = currDate.add(1, 'day');
-    }
-    if (currDate.day() === 6) currDate = currDate.add(2, 'day');
-    if (currDate.day() === 0 || (await this.isHoliday(dayjs(theDate.format('YYYY-MM-DD')).toDate()))) currDate = currDate.add(1, 'day');
+    if (days === 1) return currDate.add(1, 'day');
+    for (let i = 1; i <= days; i++) {
+      if (currDate.day() === 6) {
+        currDate = currDate.add(2, 'day');
+      } else if (currDate.day() === 0 || (await this.isHoliday(dayjs(currDate.format('YYYY-MM-DD')).toDate()))) {
+        currDate = currDate.add(1, 'day');
+      } else {
+        currDate = currDate.add(1, 'day');
+      }
 
+      if (i === days && days > 1) {
+        if (currDate.day() === 6) {
+          currDate = currDate.add(2, 'day');
+        } else {
+          currDate = currDate.add(1, 'day');
+          while ((await this.isHoliday(dayjs(currDate.format('YYYY-MM-DD')).toDate())) || currDate.day() === 0 || currDate.day() === 6) {
+            currDate = currDate.add(1, 'day');
+          }
+        }
+      }
+    }
     return currDate.toDate();
   }
 

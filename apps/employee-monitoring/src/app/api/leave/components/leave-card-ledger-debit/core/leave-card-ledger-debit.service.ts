@@ -133,6 +133,73 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     return vlDeductions;
   }
 
+  /**
+   * @created 2025-04-30
+   * @description SPL Forfeiture after 7 working days of january
+   * @IMPORTANT During this was created, the period displayed on the ledger is hrmo_approval_date,
+   * due to audit concerns this cannot be amended during the year,
+   * so before the year ends (11:57-59pm), it should be amended to be hrdm_approval_date,
+   * so that the carry over function of SPL to the next year will work accordingly with the forfeiture
+   * for now, the logic flow of this function is assumingly in accordance to the amendment.
+   */
+  //TODO: During this was created, the period displayed on the ledger is hrmo_approval_date, due to audit concerns this cannot be amended during the year, so before the year ends (11:57-59pm), it should be amended to be hrdm_approval_date,
+  @Cron('0 57 23 7-12 1 *')
+  async forfeitureOfSpecialPrivilegeLeave() {
+    try {
+      const employees = await this.employeeService.getAllPermanentEmployeeIds();
+      const now = dayjs().format('YYYY-MM-DD');
+      const finalWorkingDay = dayjs(await this.holidaysService.getTheNextWorkingDayByDays(dayjs('2025-01-01').toDate(), 7)).format('YYYY-MM-DD');
+
+      if (finalWorkingDay === now) {
+        const result = await Promise.all(
+          employees.map(async (employee) => {
+            const { employeeId } = employee;
+
+            const forfeitedSpl = parseInt(
+              (
+                await this.rawQuery(
+                  `
+                  SELECT COUNT(*) previousYearSplApplicationsValue
+                  FROM leave_application la
+                    INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+                  WHERE employee_id_fk = ?
+                  AND YEAR(hrdm_approval_date) = YEAR(NOW())
+                  AND YEAR(date_of_filing) = YEAR(NOW())-1
+                  AND la.status NOT IN ('disapproved by supervisor', 'disapproved by hrdm', 'disapproved by hrmo', 'cancelled')
+                  AND lad.status in ('approved')
+                  AND leave_benefits_id_fk = 'cb91fdda-9f65-4132-ae80-c61bda9abe31';
+        `,
+                  [employeeId]
+                )
+              )[0].previousYearSplApplicationsValue
+            );
+            if (forfeitedSpl > 0) {
+              const splLeaveBenefit = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Special Privilege Leave' } } });
+              const splDeduction = await this.leaveCreditDeductionService.crud().create({
+                dto: {
+                  leaveBenefitsId: splLeaveBenefit,
+                  debitValue: forfeitedSpl,
+                  employeeId,
+                  remarks: 'SPL Forfeiture',
+                },
+              });
+
+              const splLedger = await this.crud().create({
+                dto: {
+                  leaveCreditDeductionsId: splDeduction,
+                  debitValue: forfeitedSpl,
+                },
+              });
+            }
+          })
+        );
+        console.log('SPL Forfeiture executed');
+      }
+    } catch (error) {
+      console.log(error, '\nSPL Forfeiture failed');
+    }
+  }
+
   @Cron('0 57 23 5-10 12 *')
   async forfeitureOfForcedLeave() {
     const novemberLastWeekDay = await this.holidaysService.getLastWeekDayOfTheMonth(dayjs().format('YYYY') + '-11-30');
@@ -143,7 +210,9 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
       const result = await Promise.all(
         employees.map(async (employee) => {
           const { companyId, employeeId } = employee;
-          const employeeLeaveLedger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs().year()]))[0] as LeaveLedger[];
+          const employeeLeaveLedger = (
+            await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs().year()])
+          )[0] as LeaveLedger[];
 
           const currentForcedLeaveBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].forcedLeaveBalance;
           const currentVLBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].vacationLeaveBalance;
