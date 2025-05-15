@@ -526,9 +526,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   //#endregion
 
   async getDtrByCompanyIdAndDay(data: { companyId: string; date: Date }) {
+    const dateCurrent = dayjs(data.date).toDate();
     try {
-      const dateCurrent = dayjs(data.date).toDate();
-
       const id = data.companyId.replace('-', '');
 
       //const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
@@ -692,7 +691,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
                 await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
                   dailyTimeRecordId: dtr,
                   debitValue,
-                  createdAt: dtr.dtrDate,
+                  createdAt: dayjs().toDate(),
                   dtrDeductionType: DtrDeductionType.UNDERTIME,
                 });
               }
@@ -775,7 +774,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const dateCurrent = dayjs(data.date).toDate();
       const employeeDetails = await this.employeeScheduleService.getEmployeeDetailsByCompanyId(data.companyId);
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
-
+      const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
+      const hasPendingDtrCorrection = currEmployeeDtr ? await this.hasPendingDtrCorrection(currEmployeeDtr.id) : false;
+      const dtrCorrection = currEmployeeDtr ? await this.getDtrCorrection(currEmployeeDtr.id) : null;
       const restDays = schedule.restDaysNumbers.split(', ');
       const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
 
@@ -802,8 +803,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         leaveDateStatus,
         isHoliday,
         isRestDay,
-        hasPendingDtrCorrection: false,
-        dtrCorrection: null,
+        hasPendingDtrCorrection,
+        dtrCorrection,
         dtr: {
           companyId: null,
           createdAt: null,

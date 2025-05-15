@@ -19,6 +19,7 @@ export class LeaveCardLedgerDebitController {
 
   @Get('')
   async forceForfeitureOfForcedLeave() {
-    return await this.leaveCardLedgerDebitService.forfeitureOfForcedLeave();
+    //return await this.leaveCardLedgerDebitService.forfeitureOfForcedLeave();
+    return await this.leaveCardLedgerDebitService.forfeitureOfSpecialPrivilegeLeave();
   }
 }
