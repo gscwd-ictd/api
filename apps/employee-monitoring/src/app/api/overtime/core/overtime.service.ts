@@ -1064,10 +1064,12 @@ export class OvertimeService {
           const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(plannedDate + ' ' + currentDaySchedule.schedule.timeOut, 'minute');
           if (computedEncodedHours > 4) {
-            if (otAndPreviousShiftInterval < 60 && otAndPreviousShiftInterval >= 0) {
-              computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
-            } else {
-              computedEncodedHours = this.getComputedHours(computedEncodedHours);
+            if (employeeDetails.userRole !== 'job_order') {
+              if (otAndPreviousShiftInterval < 60 && otAndPreviousShiftInterval >= 0) {
+                computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
+              } else {
+                computedEncodedHours = this.getComputedHours(computedEncodedHours);
+              }
             }
           }
         }
