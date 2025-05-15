@@ -1060,7 +1060,18 @@ export class OvertimeService {
             }
           }
         } else {
-          if (computedEncodedHours > 4) computedEncodedHours = this.getComputedHours(computedEncodedHours);
+          const currentDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(plannedDate).toDate());
+          const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
+          const otAndPreviousShiftInterval = encodedTimeInDate.diff(plannedDate + ' ' + currentDaySchedule.schedule.timeOut, 'minute');
+          if (computedEncodedHours > 4) {
+            if (employeeDetails.userRole !== 'job_order') {
+              if (otAndPreviousShiftInterval < 60 && otAndPreviousShiftInterval >= 0) {
+                computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
+              } else {
+                computedEncodedHours = this.getComputedHours(computedEncodedHours);
+              }
+            }
+          }
         }
       }
       return {
