@@ -1064,8 +1064,16 @@ export class OvertimeService {
             }
           }
         } else {
-          console.log('dili straight duty');
-          if (computedEncodedHours > 4) computedEncodedHours = this.getComputedHours(computedEncodedHours);
+          const currentDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(plannedDate).toDate());
+          const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
+          const otAndPreviousShiftInterval = encodedTimeInDate.diff(plannedDate + ' ' + currentDaySchedule.schedule.timeOut, 'minute');
+          if (computedEncodedHours > 4) {
+            if (otAndPreviousShiftInterval < 60) {
+              computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
+            } else {
+              computedEncodedHours = this.getComputedHours(computedEncodedHours);
+            }
+          }
         }
         console.log('asdasdasda');
       }
