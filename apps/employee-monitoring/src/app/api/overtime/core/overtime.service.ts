@@ -1067,15 +1067,22 @@ export class OvertimeService {
           const currentDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(plannedDate).toDate());
           const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(plannedDate + ' ' + currentDaySchedule.schedule.timeOut, 'minute');
+          console.log(
+            encodedTimeInDate.format('YYYY-MM-DD HH:mm'),
+            plannedDate + ' ' + currentDaySchedule.schedule.timeOut,
+            otAndPreviousShiftInterval
+          );
           if (computedEncodedHours > 4) {
-            if (otAndPreviousShiftInterval < 60) {
-              computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
-            } else {
-              computedEncodedHours = this.getComputedHours(computedEncodedHours);
+            if (employeeDetails.userRole !== 'job_order') {
+              console.log('not job order');
+              if (otAndPreviousShiftInterval < 60 && otAndPreviousShiftInterval >= 0) {
+                computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
+              } else {
+                computedEncodedHours = this.getComputedHours(computedEncodedHours);
+              }
             }
           }
         }
-        console.log('asdasdasda');
       }
       return {
         ...restOfUpdatedOvertime,
@@ -1974,7 +1981,6 @@ export class OvertimeService {
 
   private getComputedHours(hours: number) {
     let deduction = 0;
-
     for (let i = 4; i <= hours; i++) {
       if (i % 5 === 0 && i > 10) deduction += 1;
     }
