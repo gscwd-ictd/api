@@ -1074,7 +1074,6 @@ export class OvertimeService {
           );
           if (computedEncodedHours > 4) {
             if (employeeDetails.userRole !== 'job_order') {
-              console.log('not job order');
               if (otAndPreviousShiftInterval < 60 && otAndPreviousShiftInterval >= 0) {
                 computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
               } else {
