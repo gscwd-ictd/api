@@ -243,6 +243,7 @@ export class TrainingNomineesService extends CrudHelper<TrainingNominee> {
                 status: MoreThanOrEqual(trainingStatus),
               },
             },
+            employeeId: Not('05b06b28-b191-11ed-a79b-000c29f95a80'),
           },
         },
         onError: (error) => {
