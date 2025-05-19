@@ -755,7 +755,7 @@ export class ReportsService {
         report: reportDetails,
         signatory: {
           preparedBy: { name: user.name, positionTitle: employeeDetails.assignment.positionTitle },
-          reviewedBy: { name: reviewedBy.employeeFullName, positionTitle: reviewedBy.assignment.positionTitle },
+          reviewedBy: { name: reviewedBy.employeeFullName, positionTitle: reviewedBy.positionTitle },
           approvedBy: { name: supervisorDetails.employeeFullName, positionTitle: supervisorDetails.assignment.positionTitle },
         },
       };
