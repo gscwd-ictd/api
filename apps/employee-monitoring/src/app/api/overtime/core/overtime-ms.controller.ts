@@ -31,6 +31,11 @@ export class OvertimeMSController {
   @UseFilters(new MsExceptionFilter())
   @MessagePattern('update_overtime_details')
   async updateOvertimeDetails(@Payload() updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
-    return await this.overtimeService.updateOvertimeDetails(updateOvertimeApplicationDto);
+    try {
+      return await this.overtimeService.updateOvertimeDetails(updateOvertimeApplicationDto);
+    } catch (error) {
+      console.log(error);
+      throw new RpcException(error.message);
+    }
   }
 }

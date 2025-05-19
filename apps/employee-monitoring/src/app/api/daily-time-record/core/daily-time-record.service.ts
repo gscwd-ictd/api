@@ -78,8 +78,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     }
   }
 
-  async generateAllEmployeeDtrByMonthAndYear() {}
-
   async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number, half: ReportHalf) {
     const daysInMonth = dayjs(year + '-' + month + '-' + '01').daysInMonth();
     const dayRange = this.getDayRange(daysInMonth);
@@ -693,7 +691,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
                 await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
                   dailyTimeRecordId: dtr,
                   debitValue,
-                  createdAt: dtr.dtrDate,
+                  createdAt: dayjs().toDate(),
                   dtrDeductionType: DtrDeductionType.UNDERTIME,
                 });
               }
@@ -1268,7 +1266,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           const employeeShift = (
             await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(ivmsEntryItem.date).subtract(1, 'day').toDate())
           ).schedule.shift;
-
+          console.log(employeeShift);
           if (employeeShift === 'night') {
             if (timeScanTimeOfDay === 'AM') _timeOut = time;
           }

@@ -145,7 +145,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                   createdAt,
                   leaveBenefitsId: specialPrivilegeLeaveId,
                   employeeId,
-                  creditValue: specialPrivilegeLeaveBalance,
+                  creditValue: specialPrivilegeLeaveBalance + 3,
                   creditDate,
                   remarks: 'Beginning Balance',
                 },

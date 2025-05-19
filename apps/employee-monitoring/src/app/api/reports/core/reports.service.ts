@@ -740,17 +740,23 @@ export class ReportsService {
       }
 
       const employeeDetails = await this.employeesService.getEmployeeDetails(user.employeeId);
+
+      const reviewedBy = (
+        await this.dtrService.rawQuery(`SELECT
+      ${process.env.HRMS_DB_NAME}get_employee_fullname2(pp.employee_id_fk) employeeFullName,
+          pp.position_title positionTitle
+      FROM ${process.env.HRMS_DB_NAME}plantilla_positions pp WHERE item_number ='ADM-RPW-002';`)
+      )[0];
+
       const supervisorId = await this.employeesService.getEmployeeSupervisorId(user.employeeId);
       const supervisorDetails = await this.employeesService.getEmployeeDetails(supervisorId.toString());
-      const managerId = await this.employeesService.getEmployeeSupervisorId(supervisorId.toString());
-      const managerDetails = await this.employeesService.getEmployeeDetails(managerId.toString());
 
       return {
         report: reportDetails,
         signatory: {
           preparedBy: { name: user.name, positionTitle: employeeDetails.assignment.positionTitle },
-          reviewedBy: { name: supervisorDetails.employeeFullName, positionTitle: supervisorDetails.assignment.positionTitle },
-          approvedBy: { name: managerDetails.employeeFullName, positionTitle: managerDetails.assignment.positionTitle },
+          reviewedBy: { name: reviewedBy.employeeFullName, positionTitle: reviewedBy.positionTitle },
+          approvedBy: { name: supervisorDetails.employeeFullName, positionTitle: supervisorDetails.assignment.positionTitle },
         },
       };
     } catch (error) {

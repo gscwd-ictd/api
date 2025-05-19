@@ -36,7 +36,7 @@ export class LeaveService {
     private readonly leaveApplicationDatesService: LeaveApplicationDatesService,
     private readonly leaveMonetizationService: LeaveMonetizationService,
     private readonly dataSource: DataSource
-  ) { }
+  ) {}
 
   async getLeavesUnderSupervisor(supervisorId: string) {
     return await this.leaveApplicationService.getLeavesUnderSupervisor(supervisorId);
@@ -63,7 +63,9 @@ export class LeaveService {
   }
 
   async getLeaveLedger(employeeId: string, companyId: string, year: number) {
-    const ledger = (await this.leaveApplicationService.crud().getRepository().query(`CALL sp_get_employee_ledger(?,?,?);`, [employeeId, companyId, year]))[0];
+    const ledger = (
+      await this.leaveApplicationService.crud().getRepository().query(`CALL sp_get_employee_ledger(?,?,?);`, [employeeId, companyId, year])
+    )[0];
     return ledger;
   }
 
@@ -196,7 +198,11 @@ export class LeaveService {
             if (leaveName === 'Terminal Leave') {
               const companyId = await this.employeesService.getCompanyId(leaveApplicationId.employeeId);
               const employeeLeaveLedger = (
-                await this.leaveApplicationService.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [leaveApplicationId.employeeId, companyId, dayjs().year()])
+                await this.leaveApplicationService.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [
+                  leaveApplicationId.employeeId,
+                  companyId,
+                  dayjs().year(),
+                ])
               )[0] as LeaveLedger[];
               const finalBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
               const { vacationLeaveBalance, sickLeaveBalance, forcedLeaveBalance, specialPrivilegeLeaveBalance } = finalBalance;
@@ -269,11 +275,11 @@ export class LeaveService {
                   leaveName === 'Monetization'
                     ? `VL deduction from monetization | ` + leaveApplicationId.referenceNo
                     : `VL deduction from Terminal Leave` +
-                    ` (` +
-                    dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
-                    `/₱ ` +
-                    monetizedAmount +
-                    `)`,
+                      ` (` +
+                      dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
+                      `/₱ ` +
+                      monetizedAmount +
+                      `)`,
                 employeeId: leaveApplicationId.employeeId,
               },
             });
@@ -290,11 +296,11 @@ export class LeaveService {
                   leaveName === 'Monetization'
                     ? `SL deduction from monetization | ` + leaveApplicationId.referenceNo
                     : `SL deduction from Terminal Leave` +
-                    ` (` +
-                    dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
-                    `/₱ ` +
-                    monetizedAmount +
-                    `)`,
+                      ` (` +
+                      dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
+                      `/₱ ` +
+                      monetizedAmount +
+                      `)`,
                 employeeId: leaveApplicationId.employeeId,
               },
             });

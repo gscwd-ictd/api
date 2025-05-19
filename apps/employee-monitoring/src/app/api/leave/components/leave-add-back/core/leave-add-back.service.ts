@@ -46,7 +46,6 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
   }
 
   async addBackLeaveOnWorkSuspension(dtrDate: Date) {
-
     const suspensionHrs = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(dtrDate);
 
     if (suspensionHrs > 0) {
@@ -72,10 +71,7 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
       if (leaveApplicationDates.length !== 0) {
         const result = await Promise.all(
           leaveApplicationDates.map(async (_leaveApplicationDatesId) => {
-            const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(
-              _leaveApplicationDatesId.employeeId,
-              dtrDate
-            );
+            const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(_leaveApplicationDatesId.employeeId, dtrDate);
 
             const suspensionHrs = await this.workSuspensionService.getWorkSuspensionHoursBySuspensionDateAndScheduleTimeOut(
               employeeSchedule.schedule.timeOut,
@@ -154,7 +150,7 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
               const leaveCreditEarningIdVl = await this.leaveCreditEarningsService.addLeaveCreditEarnings({
                 leaveBenefitsId: leaveBenefitsIdVl,
                 creditDate: dtrDate,
-                creditValue: suspensionHrs / 8,
+                creditValue,
                 remarks: 'Add Back | Work Suspension ' + workSuspensionStart,
                 employeeId: _leaveApplicationDatesId.employeeId,
               });
@@ -162,7 +158,6 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
               const leaveCardLedgerCreditVl = await this.leaveCardLedgerCreditService.crud().create({
                 dto: { leaveCreditEarningId: leaveCreditEarningIdVl },
               });
-
             } else {
               const addBack = await this.crudService.create({
                 dto: {
