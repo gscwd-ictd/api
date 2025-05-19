@@ -6,7 +6,7 @@ import { Throttle } from '@nestjs/throttler';
 
 @Controller({ version: '1', path: '/leave-application' })
 export class LeaveApplicationController {
-  constructor(private readonly leaveApplicationService: LeaveApplicationService) { }
+  constructor(private readonly leaveApplicationService: LeaveApplicationService) {}
 
   @UseGuards(LeaveApplicationGuard)
   @Throttle({ default: { limit: 1, ttl: 10000 } })

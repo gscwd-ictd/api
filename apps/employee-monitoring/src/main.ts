@@ -12,6 +12,7 @@ import * as redis from 'redis';
 import RedisStore from 'connect-redis';
 
 import { AppModule } from './app/app.module';
+import helmet from 'helmet';
 
 const whitelist = [
   'http://192.168.137.249:4103',
@@ -38,7 +39,7 @@ const whitelist = [
 //${process.env.EMPLOYEE_MONITORING_REDIS_HOST}
 const redisClientHrms = redis.createClient({
   url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:${process.env.RSP_AUTH_PORT}`,
-  //password: process.env.RSP_AUTH_PASSWORD,
+  password: process.env.RSP_AUTH_PASSWORD,
 });
 
 redisClientHrms.connect().catch(console.error);
@@ -105,6 +106,18 @@ async function bootstrap() {
     },
   });
 
+  app.use(
+    helmet({
+      xContentTypeOptions: true,
+      xXssProtection: true,
+      hsts: {
+        maxAge: 31536000, // 1 year (in seconds)
+        includeSubDomains: true, // Apply to all subdomains
+        preload: true, // Allow browser preloading
+      },
+    })
+  );
+
   // HybridApp.startMicroservice(app, {
   //   transport: Transport.REDIS,
   //   options:{
@@ -112,6 +125,11 @@ async function bootstrap() {
   //     port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
   //   }
   // })
+
+  app.use((req: any, res: { setHeader: (arg0: string, arg1: string) => void }, next: () => void) => {
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
+  });
 
   app.startAllMicroservices();
   //app.useGlobalPipes(new ValidationPipe({ enableDebugMessages: true }));

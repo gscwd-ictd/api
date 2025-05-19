@@ -6,15 +6,14 @@ import { MsExceptionFilter } from '@gscwd-api/utils';
 
 @Controller('employee-schedule')
 export class EmployeeScheduleMsController {
-  constructor(private readonly employeeScheduleService: EmployeeScheduleService) { }
+  constructor(private readonly employeeScheduleService: EmployeeScheduleService) {}
 
   @UseFilters(new MsExceptionFilter())
   @MessagePattern('add_employee_schedule')
   async addEmployeeSchedule(@Payload() employeeScheduleDto: CreateEmployeeScheduleDto) {
     try {
       return await this.employeeScheduleService.addEmployeeSchedule(employeeScheduleDto);
-    }
-    catch (error) {
+    } catch (error) {
       throw new RpcException(error.message);
     }
   }
@@ -24,8 +23,7 @@ export class EmployeeScheduleMsController {
   async getEmployeeSchedule(@Payload() employeeId: string) {
     try {
       return await this.employeeScheduleService.getEmployeeSchedule(employeeId);
-    }
-    catch (error) {
+    } catch (error) {
       throw new RpcException(error.message);
     }
   }
