@@ -20,7 +20,7 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
   async findAllAssignableParticipants() {
     try {
       /* find all employees with supervisor */
-      const employees = await this.hrmsEmployeesService.findAllEmployeesWithSupervisor();
+      const employees = await this.hrmsEmployeesService.findAllPermanentCasualJOEmployeesWithSupervisor();
 
       /* custom return */
       return await Promise.all(
