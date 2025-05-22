@@ -66,6 +66,16 @@ export class HrmsEmployeesService {
     })) as Array<BenchmarkParticipantsRaw>;
   }
 
+  /* find all permanent casual jo */
+  async findAllPermanentCasualJOEmployeesWithSupervisor() {
+    return (await this.microserviceClient.call({
+      action: 'send',
+      pattern: FindEmployeesPatterns.GET_PERMANENT_CASUAL_JO_EMPLOYEES_WITH_SUPERVISOR,
+      payload: '',
+      onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
+    })) as Array<BenchmarkParticipantsRaw>;
+  }
+
   /* find employees with supervisor by employee id */
   async findEmployeesWithSupervisorByEmployeeId(employeeId: string) {
     return (await this.microserviceClient.call({

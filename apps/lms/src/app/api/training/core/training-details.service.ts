@@ -18,14 +18,7 @@ import { DataSource, EntityManager, In, Raw } from 'typeorm';
 import { TrainingTagsService } from '../components/tags';
 import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
-import {
-  DocumentRequirementsType,
-  NomineeType,
-  TrainingHistoryType,
-  TrainingNomineeStatus,
-  TrainingRequirementsRaw,
-  TrainingStatus,
-} from '@gscwd-api/utils';
+import { DocumentRequirementsType, NomineeType, TrainingHistoryType, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
 import { TrainingNomineesService } from '../components/nominees';
 import { LspRatingService } from '../../lsp-rating';
