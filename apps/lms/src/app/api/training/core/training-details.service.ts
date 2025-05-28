@@ -18,14 +18,7 @@ import { DataSource, EntityManager, In, Raw } from 'typeorm';
 import { TrainingTagsService } from '../components/tags';
 import { TrainingLspDetailsService } from '../components/lsp';
 import { TrainingDistributionsService } from '../components/slot-distributions';
-import {
-  DocumentRequirementsType,
-  NomineeType,
-  TrainingHistoryType,
-  TrainingNomineeStatus,
-  TrainingRequirementsRaw,
-  TrainingStatus,
-} from '@gscwd-api/utils';
+import { DocumentRequirementsType, NomineeType, TrainingHistoryType, TrainingRequirementsRaw, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingApprovalsService } from '../components/approvals';
 import { TrainingNomineesService } from '../components/nominees';
 import { LspRatingService } from '../../lsp-rating';
@@ -1482,19 +1475,35 @@ export class TrainingDetailsService extends CrudHelper<TrainingDetails> {
 
       const trainees = await Promise.all(
         training.map(async (items) => {
-          const trainingId = items.id;
-          const trainingStatus = TrainingStatus.COMPLETED;
-          const nomineeType = NomineeType.NOMINEE;
-          const nomineeStatus = TrainingNomineeStatus.ACCEPTED;
-          const participants = (
-            await this.trainingNomineesService.findAllNomineeByTrainingId(trainingId, trainingStatus, nomineeType, nomineeStatus)
-          ).map((items) => {
-            return {
-              companyId: items.companyId,
-              name: items.name,
-              assignment: items.assignment,
-            };
-          });
+          const nominee = await this.trainingNomineesService.findAllNomineesRequirementsByTrainingId(items.id);
+
+          const baseRequirements = items.trainingRequirements.map((req) => req.document);
+          const participants: any[] = [];
+
+          await Promise.all(
+            nominee.map(async (batch) => {
+              const qualifiedEmployees = await Promise.all(
+                batch.employees
+                  .filter((employee) =>
+                    baseRequirements.every((reqName) => {
+                      const match = employee.requirements.find((r) => r.document === reqName);
+                      return match?.isSelected === true;
+                    })
+                  )
+                  .map(async (items) => {
+                    const employee = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(items.employeeId);
+                    return {
+                      companyId: employee.companyId,
+                      employeeId: items.employeeId,
+                      name: employee.employeeFullName,
+                      assignment: employee.assignment.name,
+                    };
+                  })
+              );
+
+              participants.push(...qualifiedEmployees);
+            })
+          );
 
           return {
             title: items.title,
