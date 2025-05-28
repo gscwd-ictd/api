@@ -38,7 +38,7 @@ export class MicroserviceClient {
 
       // execute send function
       //return await lastValueFrom(this.client.send<Output, Payload>(pattern, payload));
-      return await lastValueFrom(this.client.send<Output, Payload>(pattern, payload).pipe(timeout(5000)));
+      return await lastValueFrom(this.client.send<Output, Payload>(pattern, payload).pipe(timeout(50000)));
 
       // catch any resulting error
     } catch (error) {

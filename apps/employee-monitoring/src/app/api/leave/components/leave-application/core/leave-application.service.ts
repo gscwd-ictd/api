@@ -14,7 +14,7 @@ import {
   VacationLeaveDetails,
 } from '@gscwd-api/utils';
 import { RpcException } from '@nestjs/microservices';
-import { Between, DataSource, EntityManager } from 'typeorm';
+import { Between, DataSource, EntityManager, Not } from 'typeorm';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
