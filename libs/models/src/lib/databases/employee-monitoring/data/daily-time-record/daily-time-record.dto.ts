@@ -9,6 +9,7 @@ export class DailyTimeRecordDto {
   lunchIn: Date;
   timeOut: Date;
   scheduleId: Schedule;
+  remarks?: string;
 }
 
 export class UpdateDailyTimeRecordDto extends PickType(DailyTimeRecordDto, ['companyId', 'dtrDate']) {
@@ -16,6 +17,7 @@ export class UpdateDailyTimeRecordDto extends PickType(DailyTimeRecordDto, ['com
   lunchOut?: number;
   lunchIn?: number;
   timeOut?: number;
+  remarks: string;
 }
 
 export class CreateDtrRemarksDto extends PickType(DailyTimeRecordDto, ['companyId']) {

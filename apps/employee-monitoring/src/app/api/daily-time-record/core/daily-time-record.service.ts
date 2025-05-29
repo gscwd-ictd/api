@@ -77,8 +77,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     }
   }
 
-  async generateAllEmployeeDtrByMonthAndYear() {}
-
   async getEmployeeDtrByMonthAndYear(companyId: string, year: number, month: number, half: ReportHalf) {
     const daysInMonth = dayjs(year + '-' + month + '-' + '01').daysInMonth();
     const dayRange = this.getDayRange(daysInMonth);
@@ -244,7 +242,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       await this.rawQuery(`SELECT remarks FROM daily_time_record WHERE company_id_fk = ? AND dtr_date=?`, [dtr.companyId, dtr.dtrDate])
     )[0].remarks as string;
 
-    const isLNDRemarks = dtrRemarks !== null ? dtrRemarks.includes('L & D') || dtrRemarks.includes('Office Event') : false;
+    const isLNDRemarks = dtrRemarks !== null ? dtrRemarks.replace(/ /g, '').includes('L&D') || dtrRemarks.includes('Office Event') : false;
 
     const overtimeApplicationCount = (
       await this.rawQuery(
@@ -692,7 +690,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
                 await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
                   dailyTimeRecordId: dtr,
                   debitValue,
-                  createdAt: dtr.dtrDate,
+                  createdAt: dayjs().toDate(),
                   dtrDeductionType: DtrDeductionType.UNDERTIME,
                 });
               }
@@ -1267,7 +1265,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           const employeeShift = (
             await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(ivmsEntryItem.date).subtract(1, 'day').toDate())
           ).schedule.shift;
-
+          console.log(employeeShift);
           if (employeeShift === 'night') {
             if (timeScanTimeOfDay === 'AM') _timeOut = time;
           }

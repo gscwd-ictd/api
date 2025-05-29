@@ -8,7 +8,6 @@ import { DataSource, EntityManager } from 'typeorm';
 import { CustomGroupMembersService } from '../../../../custom-groups/components/custom-group-members/core/custom-group-members.service';
 import { EmployeeRestDaysService } from '../components/employee-rest-day/components/employee-rest-days/core/employee-rest-days.service';
 import { EmployeeRestDayService } from '../components/employee-rest-day/core/employee-rest-day.service';
-import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
@@ -79,6 +78,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
       }
       //#endregion 1. Create Employee Schedule
     });
+    console.log(result);
     return result;
   }
 
@@ -316,7 +316,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
 
       return { employeeName: employeeName.fullName, schedule: { ...schedule } };
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw new InternalServerErrorException(error);
     }
   }
 

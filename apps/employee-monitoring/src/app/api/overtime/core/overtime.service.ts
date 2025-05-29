@@ -1054,10 +1054,14 @@ export class OvertimeService {
 
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(previousDayTimeOutDate, 'minute');
 
+          console.log(encodedTimeInDate.format('YYYY-MM-DD HH:mm'), previousDayTimeOutDate.format('YYYY-MM-DD HH:mm'));
+          console.log(computedEncodedHours, otAndPreviousShiftInterval);
           if (computedEncodedHours > 4) {
             if (otAndPreviousShiftInterval < 60) {
+              console.log('straight duty');
               computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
             } else {
+              console.log('dili straight duty');
               computedEncodedHours = this.getComputedHours(computedEncodedHours);
             }
           }
@@ -1065,6 +1069,11 @@ export class OvertimeService {
           const currentDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(plannedDate).toDate());
           const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(plannedDate + ' ' + currentDaySchedule.schedule.timeOut, 'minute');
+          console.log(
+            encodedTimeInDate.format('YYYY-MM-DD HH:mm'),
+            plannedDate + ' ' + currentDaySchedule.schedule.timeOut,
+            otAndPreviousShiftInterval
+          );
           if (computedEncodedHours > 4) {
             if (employeeDetails.userRole !== 'job_order') {
               if (otAndPreviousShiftInterval < 60 && otAndPreviousShiftInterval >= 0) {
@@ -1078,7 +1087,6 @@ export class OvertimeService {
       }
       return {
         ...restOfUpdatedOvertime,
-        //...supervisorEmployeeSignatures,
         entriesForTheDay: entries,
         plannedDate,
         approvedBy: _approvedBy,

@@ -25,6 +25,7 @@ import RedisStore from 'connect-redis';
 
 const redisClientHrms = redis.createClient({
   url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:6479`,
+  password: 'IloVdTTpdX',
 });
 redisClientHrms.connect().catch(console.error);
 
@@ -53,6 +54,7 @@ async function bootstrap() {
     'http://172.20.110.60:3007',
     'http://172.20.110.45:3002',
     'http://172.20.110.60:3002',
+    'http://172.20.10.63:3000',
     'https://portal.gscwd.app',
   ];
 

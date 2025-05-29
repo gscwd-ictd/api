@@ -203,15 +203,6 @@ export class EmployeesService {
     });
   }
 
-  async getMonthlyHourlyRateByEmployeeIdAndEffectivityYear(employeeId: string, year: number) {
-    return await this.client.call<string, string, { monthlyRate: number; hourlyRate: number }>({
-      action: 'send',
-      payload: employeeId,
-      pattern: 'get_monthly_hourly_rate_by_employee_id',
-      onError: (error) => new NotFoundException(error),
-    });
-  }
-
   async getEmployeeNatureOfAppointment(employeeId: string) {
     return await this.client.call<string, string, string>({
       action: 'send',

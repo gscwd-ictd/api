@@ -84,7 +84,9 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
       const credits = await Promise.all(
         employees.map(async (employee, idx) => {
           const { employeeId, companyId } = employee;
-          const employeeLeaveLedger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs().year()]))[0] as LeaveLedger[];
+          const employeeLeaveLedger = (
+            await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs().year()])
+          )[0] as LeaveLedger[];
           const beginningBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
 
           try {
@@ -143,7 +145,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                   createdAt,
                   leaveBenefitsId: specialPrivilegeLeaveId,
                   employeeId,
-                  creditValue: specialPrivilegeLeaveBalance,
+                  creditValue: specialPrivilegeLeaveBalance + 3,
                   creditDate,
                   remarks: 'Beginning Balance',
                 },
@@ -356,8 +358,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
       });
       console.log('Monthly Leave Credit Earnings Addition executed');
       return 'Monthly Leave Credit Earnings Addition executed';
-    }
-    catch (error) {
+    } catch (error) {
       Logger.error(error);
     }
   }
