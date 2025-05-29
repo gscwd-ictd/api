@@ -243,7 +243,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       await this.rawQuery(`SELECT remarks FROM daily_time_record WHERE company_id_fk = ? AND dtr_date=?`, [dtr.companyId, dtr.dtrDate])
     )[0].remarks as string;
 
-    const isLNDRemarks = dtrRemarks !== null ? dtrRemarks.includes('L & D') || dtrRemarks.includes('Office Event') : false;
+    const isLNDRemarks = dtrRemarks !== null ? dtrRemarks.replace(/ /g, '').includes('L&D') || dtrRemarks.includes('Office Event') : false;
 
     const overtimeApplicationCount = (
       await this.rawQuery(
