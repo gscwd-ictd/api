@@ -28,9 +28,9 @@ export class OvertimeMSController {
     }
   }
 
-  @UseFilters(new MsExceptionFilter())
-  @MessagePattern('update_overtime_details')
-  async updateOvertimeDetails(@Payload() updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
-    return await this.overtimeService.updateOvertimeDetails(updateOvertimeApplicationDto);
-  }
+  // @UseFilters(new MsExceptionFilter())
+  // @MessagePattern('update_overtime_details')
+  // async updateOvertimeDetails(@Payload() updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
+  //   return await this.overtimeService.updateOvertimeDetails(updateOvertimeApplicationDto);
+  // }
 }
