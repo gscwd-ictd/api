@@ -62,21 +62,23 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
       })) as Array<OtherTrainingParticipant>;
 
       /* find all employees with supervisor */
-      const employees = await this.hrmsEmployeesService.findAllEmployeesWithSupervisor();
+      const employees = await this.hrmsEmployeesService.findAllPermanentCasualJOEmployeesWithSupervisor();
 
       /* extract the employee ids from both arrays */
       const participantIds = benchmarkParticipants.map((participant) => participant.employeeId);
 
       /* filter employees to remove those with employee ids present in participants */
-      return employees
-        .filter((employee) => !participantIds.includes(employee.employee._id))
-        .map((employee) => ({
-          supervisorName: employee.supervisor.name,
-          employeeId: employee.employee._id,
-          name: employee.employee.name,
-          positionTitle: employee.employee.positionTitle,
-          assignment: employee.employee.assignment,
-        }));
+      return await Promise.all(
+        employees
+          .filter((employee) => !participantIds.includes(employee.employee._id))
+          .map((employee) => ({
+            supervisorName: employee.supervisor.name,
+            employeeId: employee.employee._id,
+            name: employee.employee.name,
+            positionTitle: employee.employee.positionTitle,
+            assignment: employee.employee.assignment,
+          }))
+      );
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
