@@ -14,7 +14,7 @@ import {
   VacationLeaveDetails,
 } from '@gscwd-api/utils';
 import { RpcException } from '@nestjs/microservices';
-import { Between, DataSource, EntityManager } from 'typeorm';
+import { Between, DataSource, EntityManager, Not } from 'typeorm';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
@@ -580,7 +580,12 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     });
 
     const { leaveName } = leaveApplicationBasicInfo;
-    if (leaveName === 'Vacation Leave' || leaveName === 'Special Privilege Leave' || leaveName === 'Forced Leave') {
+    if (
+      leaveName === 'Vacation Leave' ||
+      leaveName === 'Special Privilege Leave' ||
+      leaveName === 'Forced Leave' ||
+      leaveName === 'Leave Without Pay'
+    ) {
       const leaveApplicationDetails = await this.getVacationLeaveDetails(leaveApplicationId);
       return { employeeDetails, leaveApplicationBasicInfo, leaveApplicationDetails };
     } else if (leaveName === 'Sick Leave') {
