@@ -405,6 +405,8 @@ export class ReportsService {
         const employeeLWOP = (
           await this.dtrService.rawQuery(`CALL sp_generate_report_on_lwop_summary(?,?,?,?);`, [employee.value, employee.label, companyId, monthYear])
         )[0];
+
+        console.log(employeeLWOP);
         if (employeeLWOP) {
           await Promise.all(
             employeeLWOP.map(
@@ -413,6 +415,7 @@ export class ReportsService {
                 employeeName: string;
                 companyId: string;
                 leaveDescription: string;
+                justification: string;
                 dates: string;
                 noOfDays: number;
               }) => {
