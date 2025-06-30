@@ -749,6 +749,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const isHalfDay = latesUndertimesNoAttendance.isHalfDay;
       //1.4 no attendance
       const noAttendance = latesUndertimesNoAttendance.noAttendance;
+      const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(dateCurrent);
       const summary = {
         noOfLates,
         totalMinutesLate,
@@ -765,6 +766,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         isHoliday,
         isRestDay,
         isOt,
+        suspensionHours,
         hasPendingDtrCorrection,
         dtrCorrection,
         dtr: { ...dtr, remarks, baseRemarks: dtr.remarks },
@@ -776,6 +778,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeDetails.userId, dateCurrent)).schedule;
       const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
       const hasPendingDtrCorrection = currEmployeeDtr ? await this.hasPendingDtrCorrection(currEmployeeDtr.id) : false;
+      const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(dateCurrent);
       const dtrCorrection = currEmployeeDtr ? await this.getDtrCorrection(currEmployeeDtr.id) : null;
       const restDays = schedule.restDaysNumbers.split(', ');
       const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
@@ -805,6 +808,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         isRestDay,
         hasPendingDtrCorrection,
         dtrCorrection,
+        suspensionHours,
         dtr: {
           companyId: null,
           createdAt: null,
