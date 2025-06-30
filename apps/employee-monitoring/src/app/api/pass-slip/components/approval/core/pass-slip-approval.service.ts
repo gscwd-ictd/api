@@ -42,11 +42,19 @@ export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {
       });
     } else if (status === PassSlipApprovalStatus.FOR_DISPUTE) {
       updateResult = await this.crudService.update({ dto: { status }, updateBy: { passSlipId } });
-      await this.rawQuery(`UPDATE pass_slip SET encoded_time_in = ?, dispute_remarks = ? WHERE pass_slip_id = ?`, [
-        encodedTimeIn,
-        disputeRemarks,
-        passSlipId,
-      ]);
+      if (updatePassSlipApprovalDto.encodedTimeOut) {
+        await this.rawQuery(`UPDATE pass_slip SET encoded_time_in = ?, dispute_remarks = ?, encoded_time_out= ? WHERE pass_slip_id = ?`, [
+          encodedTimeIn,
+          disputeRemarks,
+          updatePassSlipApprovalDto.encodedTimeOut,
+          passSlipId,
+        ]);
+      } else
+        await this.rawQuery(`UPDATE pass_slip SET encoded_time_in = ?, dispute_remarks = ? WHERE pass_slip_id = ?`, [
+          encodedTimeIn,
+          disputeRemarks,
+          passSlipId,
+        ]);
     } else if (typeof isDisputeApproved === 'boolean') {
       updateResult = await this.crudService.update({ dto: { status: PassSlipApprovalStatus.APPROVED }, updateBy: { passSlipId } });
       if (isDisputeApproved === true)
