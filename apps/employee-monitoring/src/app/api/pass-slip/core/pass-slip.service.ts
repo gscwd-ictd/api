@@ -418,6 +418,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ps.is_dispute_approved isDisputeApproved,
         ps.dispute_remarks disputeRemarks,
         ps.encoded_time_in encodedTimeIn,
+        ps.encoded_time_out encodedTimeOut,
         ps.is_deductible_to_pay isDeductibleToPay, 
         is_cancelled isCancelled,
         DATE_FORMAT(psa.hrmo_approval_date,'%Y-%m-%d %H:%i:%s') hrmoApprovalDate,
@@ -434,7 +435,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         OR status = 'approved with medical certificate' 
         OR status = 'approved without medical certificate'
         OR status = 'disapproved by hrmo' 
-        OR status = 'disapproved'
+        OR status = 'disapproved' 
+        OR status = 'unused'
       ) 
       ORDER BY ps.date_of_application DESC,psa.status ASC;  
     `,
@@ -457,6 +459,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       disputeRemarks: string;
       isMedical: boolean;
       encodedTimeIn: number;
+      encodedTimeOut: number;
       isCancelled: boolean;
       supervisorApprovalDate: Date;
       hrmoApprovalDate: Date;
