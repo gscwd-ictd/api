@@ -1056,10 +1056,10 @@ export class OvertimeService {
           console.log(computedEncodedHours, otAndPreviousShiftInterval);
           if (computedEncodedHours > 4) {
             if (otAndPreviousShiftInterval < 60) {
-              console.log('straight duty');
+              //straight duty
               computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
             } else {
-              console.log('dili straight duty');
+              //not straight duty
               computedEncodedHours = this.getComputedHours(computedEncodedHours);
             }
           }
@@ -1067,11 +1067,6 @@ export class OvertimeService {
           const currentDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(plannedDate).toDate());
           const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(plannedDate + ' ' + currentDaySchedule.schedule.timeOut, 'minute');
-          console.log(
-            encodedTimeInDate.format('YYYY-MM-DD HH:mm'),
-            plannedDate + ' ' + currentDaySchedule.schedule.timeOut,
-            otAndPreviousShiftInterval
-          );
           if (computedEncodedHours > 4) {
             if (employeeDetails.userRole !== 'job_order') {
               if (otAndPreviousShiftInterval < 60 && otAndPreviousShiftInterval >= 0) {
@@ -1079,7 +1074,7 @@ export class OvertimeService {
               } else {
                 computedEncodedHours = this.getComputedHours(computedEncodedHours);
               }
-            }
+            } else computedEncodedHours = this.getComputedHours(computedEncodedHours);
           }
         }
       }
@@ -1972,6 +1967,7 @@ export class OvertimeService {
 
   private getComputedStraightDutyHours(hours: number) {
     let deduction = 0;
+    console.log('asd asd asd');
     for (let i = 4; i <= hours; i++) {
       if (i % 5 === 0) deduction += 1;
     }
@@ -1980,6 +1976,7 @@ export class OvertimeService {
 
   private getComputedHours(hours: number) {
     let deduction = 0;
+    console.log('here here here');
     for (let i = 4; i <= hours; i++) {
       if (i % 5 === 0 && i > 10) deduction += 1;
     }
