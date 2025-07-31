@@ -13,7 +13,7 @@ export class StatsService {
     private readonly employeeService: EmployeesService,
     private readonly organizationService: OrganizationService,
     private readonly overtimeService: OvertimeService
-  ) { }
+  ) {}
 
   async countAllPendingApplicationsForManager(employeeId: string) {
     try {
@@ -114,12 +114,14 @@ export class StatsService {
 
   async getDashBoardCount() {
     return (
-      await this.passSlipService
-        .rawQuery(`
-          SELECT 
+      await this.passSlipService.rawQuery(`
+           SELECT 
             (SELECT COUNT(leave_application_id) FROM leave_application WHERE status = 'for hrmo credit certification') pendingLeaveApplications,
+            (SELECT COUNT(leave_application_id) FROM leave_application la
+				        INNER JOIN leave_application_dates lad ON la.leave_application_id = lad.leave_application_id_fk
+             WHERE lad.status = 'for cancellation') pendingLeaveCancellations,
             (SELECT COUNT(overtime_application_id) FROM overtime_application WHERE date_format(planned_date,'%Y') = year(now())) overtimeApplications, 
-            (SELECT COUNT(pass_slip_approval_id) FROM pass_slip_approval WHERE status='for hrmo approval') pendingPassSlips;      
+            (SELECT COUNT(pass_slip_approval_id) FROM pass_slip_approval WHERE status='for hrmo approval' OR 'awaiting medical certificate') pendingPassSlips;      
       `)
     )[0];
   }
