@@ -96,6 +96,75 @@ export class HolidaysService extends CrudHelper<Holidays> {
     return currDate.toDate();
   }
 
+  async addBackFromHoliday(holidayDate: Date) {
+    const holiday = await this.crudService.findOneOrNull({ find: { where: { holidayDate } } });
+    console.log(holiday);
+    if (holiday) {
+      const { holidayDate, name, type } = holiday;
+      console.log(holidayDate);
+
+      const reason = 'Holiday - ' + type + ' - ' + name;
+      //add back leave dates for the set holiday;
+      //1. get all employeeIds na nasa leave application na may approved na application
+      const employees = (await this.rawQuery(`
+        SELECT DISTINCT employee_id_fk employeeId 
+        FROM leave_application WHERE status='approved';`)) as {
+        employeeId: string;
+      }[];
+
+      console.log(employees);
+
+      //2. get all leaveApplicationDatesId galing sa number 1 na may leave application na tumama sa day nung holiday
+      await this.rawQuery(
+        `DELETE FROM employee_monitoring.leave_card_ledger_debit WHERE daily_time_record_id_fk IN 
+        (SELECT daily_time_record_id FROM daily_time_record WHERE dtr_date = ?);`,
+        [holidayDate]
+      );
+      const leaveAddBacks = await Promise.all(
+        employees.map(async (employeeId) => {
+          const leaveApplications = (await this.rawQuery(
+            `
+            SELECT leave_application_date_id leaveApplicationDateId 
+              FROM leave_application_dates lad INNER JOIN leave_application la 
+            WHERE la.leave_application_id = lad.leave_application_id_fk 
+            AND la.employee_id_fk = ? AND leave_date = ? AND la.status = ?
+          `,
+            [employeeId.employeeId, holidayDate, LeaveApplicationStatus.APPROVED]
+          )) as { leaveApplicationDateId: string }[];
+
+          const leaveApplicationDates = await Promise.all(
+            leaveApplications.map(async (leaveApplication) => {
+              const { leaveApplicationDateId } = leaveApplication;
+              const leaveApplicationDate = await this.leaveApplicationDatesService.crud().findOne({
+                find: {
+                  select: { createdAt: true, deletedAt: true, id: true, leaveDate: true, updatedAt: true },
+                  where: { id: leaveApplicationDateId },
+                },
+              });
+              const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
+                const leaveAddBack = await this.leaveAddBackService.addLeaveAddBackTransaction(
+                  {
+                    creditValue: 1,
+                    leaveApplicationDatesId: leaveApplicationDate,
+                    reason,
+                  },
+                  entityManager
+                );
+
+                const leaveCardLedgerCredit = await this.leaveCardLedgerCreditService.addLeaveCardLedgerCreditTransaction(
+                  {
+                    leaveAddBackId: leaveAddBack,
+                  },
+                  entityManager
+                );
+              });
+            })
+          );
+        })
+      );
+    }
+  }
+
   async addHoliday(holidaysDto: HolidaysDto) {
     const holiday = await this.crudService.create({
       dto: holidaysDto,
@@ -116,7 +185,7 @@ export class HolidaysService extends CrudHelper<Holidays> {
     //2. get all leaveApplicationDatesId galing sa number 1 na may leave application na tumama sa day nung holiday
     await this.rawQuery(
       `DELETE FROM employee_monitoring.leave_card_ledger_debit WHERE daily_time_record_id_fk IN 
-(SELECT daily_time_record_id FROM daily_time_record WHERE dtr_date = ?); `,
+        (SELECT daily_time_record_id FROM daily_time_record WHERE dtr_date = ?); `,
       [holidaysDto.holidayDate]
     );
     const leaveAddBacks = await Promise.all(
