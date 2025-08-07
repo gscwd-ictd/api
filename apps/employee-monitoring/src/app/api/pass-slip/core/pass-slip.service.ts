@@ -1495,7 +1495,14 @@ AND (ps.nature_of_business='Personal Business' OR ps.nature_of_business='Officia
   }
 
   async getAssignableSupervisorForPassSlip(employeeData: { orgId: string; employeeId: string }) {
-    let officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(employeeData.orgId);
+    const employeeTempAssignment = (await this.rawQuery(
+      `SELECT organization_id_fk orgId FROM ${process.env.HRMS_DB_NAME}employee_temporary_assignment WHERE employee_id_fk = ?`,
+      [employeeData.employeeId]
+    )) as { orgId: string }[];
+
+    let officerOfTheDayId = await this.officerOfTheDayService.getOfficerOfTheDayOrgByOrgId(
+      employeeTempAssignment.length > 0 ? employeeTempAssignment[0].orgId : employeeData.orgId
+    );
     const employeeDetails = await this.employeeService.getBasicEmployeeDetails(employeeData.employeeId);
     const employeeAssignment = employeeDetails.assignment.name;
     const userRole = (await this.employeeService.getEmployeeDetails(employeeData.employeeId)).userRole;
