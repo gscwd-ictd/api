@@ -1124,11 +1124,19 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
         const restDays = await this.rawQuery(
           `
-          SELECT addtime(s.time_in, "04:00:00") restHourStart, addtime(s.time_in, "05:00:00") restHourEnd
-            FROM daily_time_record dtr 
-          INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
-          WHERE DATE_FORMAT(dtr_date,'%Y-%m-%d') = ?  
-          AND company_id_fk = ?;`,
+              SELECT
+                if(s.is_with_lunch = 0,
+                  if(s.lunch_out IS null, addtime(s.time_in, "04:00:00"), s.lunch_out),
+                  s.lunch_out
+                ) restHourStart,
+                if(s.is_with_lunch = 0,
+                  if(s.lunch_in IS null, addtime(s.time_in, "05:00:00"), s.lunch_in),
+                  s.lunch_in
+                ) restHourEnd
+                FROM daily_time_record dtr
+              INNER JOIN schedule s ON dtr.schedule_id_fk = s.schedule_id 
+              WHERE DATE_FORMAT(dtr_date,'%Y-%m-%d') = ? 
+              AND company_id_fk = ?;`,
           [dayjs(dateOfApplication).format('YYYY-MM-DD'), employeeCompanyId]
         );
         const restHourStart = restDays[0].restHourStart;
