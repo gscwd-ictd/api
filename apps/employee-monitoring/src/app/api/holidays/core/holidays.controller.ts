@@ -1,10 +1,10 @@
 import { HolidaysDto, UpdateHolidayDto } from '@gscwd-api/models';
-import { Body, Controller, Delete, Get, Param, Post, Put, } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { HolidaysService } from './holidays.service';
 
 @Controller({ version: '1', path: 'holidays' })
 export class HolidaysController {
-  constructor(private readonly holidayService: HolidaysService) { }
+  constructor(private readonly holidayService: HolidaysService) {}
 
   @Post()
   async addHolidays(@Body() holidaysDto: HolidaysDto) {
@@ -16,6 +16,11 @@ export class HolidaysController {
     return await this.holidayService.getHolidaysForTheCurrentYear();
   }
 
+  @Get('/:holiday_date')
+  async addBackFromHoliday(@Param('holiday_date') holidayDate: Date) {
+    return await this.holidayService.addBackFromHoliday(holidayDate);
+  }
+
   @Put()
   async updateHoliday(@Body() updateHolidayDto: UpdateHolidayDto) {
     return await this.holidayService.updateHoliday(updateHolidayDto);
@@ -25,5 +30,4 @@ export class HolidaysController {
   async deleteHoliday(@Param('holiday_id') id: string) {
     return await this.holidayService.deleteHoliday(id);
   }
-
 }
