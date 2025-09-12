@@ -434,6 +434,7 @@ export class OvertimeService {
       find: {
         select: {
           id: true,
+          createdAt: true,
           plannedDate: true,
           estimatedHours: true,
           purpose: true,
@@ -580,11 +581,21 @@ export class OvertimeService {
       const approvedOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(completedOvertimes);
       const forApprovalOvertimesWithEmployees = await this.getOvertimeEmployeeDetails(forApprovalOvertimes);
 
+      const statusPriority = {
+        pending: 0, // highest priority → top
+        approved: 1, // middle
+        cancelled: 2, // lowest priority → bottom
+        disapproved: 3,
+      };
+
       return {
         supervisorName,
-        overtimes: [...approvedOvertimesWithEmployees, ...forApprovalOvertimesWithEmployees].sort((a, b) =>
-          a.status > b.status ? -1 : a.status < b.status ? 1 : 0
-        ),
+        overtimes: [...approvedOvertimesWithEmployees, ...forApprovalOvertimesWithEmployees].sort((a, b) => {
+          if (statusPriority[a.status] !== statusPriority[b.status]) {
+            return statusPriority[a.status] - statusPriority[b.status];
+          }
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }),
       };
     } catch (error) {
       throw new NotFoundException(error.message);
