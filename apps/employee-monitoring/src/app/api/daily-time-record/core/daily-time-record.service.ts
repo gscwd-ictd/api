@@ -644,7 +644,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
           }
         } else if (noOfLates > 0 && latesUndertimesNoAttendance.isHalfDay) {
-          console.log('here2025-09-17', latesUndertimesNoAttendance.minutesLate);
           const debitValue = latesUndertimesNoAttendance.minutesLate / 480;
           if (!leaveCardItem) {
             await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
