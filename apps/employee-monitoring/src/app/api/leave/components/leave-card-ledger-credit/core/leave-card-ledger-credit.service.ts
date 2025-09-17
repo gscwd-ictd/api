@@ -306,7 +306,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                 const lwopsForTheMonth = (await this.rawQuery(
                   `
                     SELECT 
-                      SUM(get_num_of_leave_days_by_year_month_hrdm_approval_date(la.leave_application_id, ?))
+                      SUM(DISTINCT get_num_of_leave_days_by_year_month_hrdm_approval_date(la.leave_application_id, ?)) 
                     noOfDays
                     FROM leave_application la 
                       INNER JOIN leave_application_dates lad ON la.leave_application_id = lad.leave_application_id_fk
@@ -328,9 +328,12 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
 
                 rehabValue = rehabValue * 0.041666666666667;
 
+                const lwopDays = lwopsForTheMonth[0].noOfDays === null ? '0' : lwopsForTheMonth[0].noOfDays;
+
+                if (lwopsForTheMonth.length > 0) lwopValue = parseFloat(lwopDays) * 0.041666666666667;
+
                 const creditValue = parseFloat(leaveBenefit.accumulatedCredits) - rehabValue - lwopValue;
 
-                if (lwopsForTheMonth.length > 0) lwopValue = parseInt(lwopsForTheMonth[0].noOfDays) * 0.041666666666667;
                 const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
                   {
                     createdAt,
@@ -359,7 +362,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
       console.log('Monthly Leave Credit Earnings Addition executed');
       return 'Monthly Leave Credit Earnings Addition executed';
     } catch (error) {
-      Logger.error(error);
+      Logger.error(error.message);
     }
   }
 
