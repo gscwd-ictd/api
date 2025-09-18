@@ -718,7 +718,7 @@ export class OvertimeService {
               managerId: true,
             },
             where: {
-              createdAt: Between(
+              plannedDate: Between(
                 dayjs(yearMonth + '-01')
                   .subtract(1, 'day')
                   .toDate(),
