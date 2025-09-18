@@ -718,14 +718,7 @@ export class OvertimeService {
               managerId: true,
             },
             where: {
-              plannedDate: Between(
-                dayjs(yearMonth + '-01')
-                  .subtract(1, 'day')
-                  .toDate(),
-                dayjs(yearMonth + '-' + dayjs(yearMonth + '-01').daysInMonth())
-                  .add(1, 'day')
-                  .toDate()
-              ),
+              plannedDate: Between(dayjs(yearMonth + '-01').toDate(), dayjs(yearMonth + '-' + dayjs(yearMonth + '-01').daysInMonth()).toDate()),
             },
             order: { plannedDate: 'DESC', status: 'DESC' },
             relations: { overtimeImmediateSupervisorId: true },
