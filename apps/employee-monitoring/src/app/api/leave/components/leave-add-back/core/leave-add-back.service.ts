@@ -57,22 +57,24 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
           if (suspensionHrs > 0) {
             const leaveApplicationDates = (await this.rawQuery(
               `SELECT 
-            lad.leave_application_date_id leaveApplicationDatesId, 
-            la.leave_benefits_id_fk leaveBenefitsId,
-            la.employee_id_fk employeeId
-          FROM leave_application_dates lad
-            INNER JOIN leave_application la ON la.leave_application_id = lad.leave_application_id_fk
-            INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
-          WHERE lad.leave_date = ?
-            AND la.status = 'approved'
-            AND lad.status = 'approved'
-            AND lad.status <> 'for cancellation'
-            AND lb.leave_types <> 'special leave benefit' 
-            AND lb.leave_name <> 'Leave Without Pay' 
-            AND lad.leave_application_date_id NOT IN ( 
-              SELECT leave_application_dates_id_fk FROM leave_add_back
-            );`,
-              [dayjs(suspensionDate).format('YYYY-MM-DD')]
+                    lad.leave_application_date_id leaveApplicationDatesId, 
+                    la.leave_benefits_id_fk leaveBenefitsId,
+                    la.employee_id_fk employeeId
+                  FROM leave_application_dates lad
+                    INNER JOIN leave_application la ON la.leave_application_id = lad.leave_application_id_fk
+                    INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
+                  WHERE lad.leave_date = ?
+                    AND la.status = 'approved'
+                    AND lad.status = 'approved'
+                    AND lad.status <> 'for cancellation'
+                    AND lb.leave_types <> 'special leave benefit' 
+                    AND lb.leave_name <> 'Leave Without Pay' 
+                    AND lad.leave_application_date_id NOT IN ( 
+                      SELECT leave_application_dates_id_fk FROM leave_add_back
+                    )
+                    AND lad.leave_application_id_fk NOT IN (SELECT leave_application_id_fk from leave_card_ledger_debit 
+                  WHERE leave_application_id_fk IN (SELECT leave_application_id_fk from leave_application_dates WHERE leave_date = ?));`,
+              [dayjs(suspensionDate).format('YYYY-MM-DD'), dayjs(suspensionDate).format('YYYY-MM-DD')]
             )) as { leaveApplicationDatesId: LeaveApplicationDates; leaveBenefitsId: string; employeeId: string }[];
 
             if (leaveApplicationDates.length !== 0) {
