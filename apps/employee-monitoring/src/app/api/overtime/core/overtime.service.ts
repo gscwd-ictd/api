@@ -1056,8 +1056,6 @@ export class OvertimeService {
 
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(previousDayTimeOutDate, 'minute');
 
-          console.log(encodedTimeInDate.format('YYYY-MM-DD HH:mm'), previousDayTimeOutDate.format('YYYY-MM-DD HH:mm'));
-          console.log(computedEncodedHours, otAndPreviousShiftInterval);
           if (computedEncodedHours > 4) {
             if (otAndPreviousShiftInterval < 60) {
               //straight duty
@@ -1259,6 +1257,141 @@ export class OvertimeService {
       completed: { approved, disapproved },
       forApproval: pending,
     };
+  }
+
+  async getOvertimeAccomplishmentByEmployeeIdByYearMonth(employeeId: string, yearMonth: string) {
+    const [year, month] = yearMonth.split('-').map(Number);
+    const lastDay = dayjs(yearMonth + '-01').daysInMonth();
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month - 1, lastDay);
+    try {
+      const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
+
+      const supervisorName = (await this.employeeService.getBasicEmployeeDetailsByEmployeeId(supervisorId)).employeeFullName;
+
+      const pendingOvertimes = (await this.overtimeAccomplishmentService.crud().findAll({
+        find: {
+          select: {
+            overtimeEmployeeId: {
+              id: true,
+              employeeId: true,
+              overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true, estimatedHours: true },
+            },
+            remarks: true,
+            status: true,
+            approvedBy: true,
+            dateApproved: true,
+            accomplishments: true,
+            encodedTimeIn: true,
+            ivmsTimeIn: true,
+            ivmsTimeOut: true,
+            encodedTimeOut: true,
+            actualHrs: true,
+            id: true,
+          },
+          where: {
+            overtimeEmployeeId: { employeeId, overtimeApplicationId: { status: OvertimeStatus.APPROVED } },
+            status: OvertimeStatus.PENDING,
+          },
+          relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
+          order: { overtimeEmployeeId: { overtimeApplicationId: { plannedDate: 'DESC' } } },
+          loadRelationIds: true,
+          loadEagerRelations: true,
+          relationLoadStrategy: 'query',
+        },
+        onError: () => new NotFoundException(),
+      })) as OvertimeAccomplishment[];
+
+      const pendingResult = await Promise.all(
+        pendingOvertimes.map(async (overtime) => {
+          const { overtimeEmployeeId, remarks, status } = overtime;
+
+          const { overtimeApplicationId, employeeId } = overtimeEmployeeId;
+          const { estimatedHours, plannedDate, purpose } = overtimeApplicationId;
+
+          const dateOfOTApproval = dayjs(
+            (await this.overtimeApprovalService.crud().findAll({ find: { select: { dateApproved: true }, where: { overtimeApplicationId } } }))[0]
+              .dateApproved
+          ).format('YYYY-MM-DD');
+
+          const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
+
+          return {
+            supervisorName,
+            ...overtimeAccomplishmentDetails,
+            overtimeApplicationId: overtimeApplicationId.id,
+            estimatedHours,
+            dateOfOTApproval,
+            plannedDate,
+            employeeId,
+            purpose,
+            remarks,
+            status,
+          };
+        })
+      );
+
+      const approvedOvertimes = (await this.overtimeAccomplishmentService.crud().findAll({
+        find: {
+          select: {
+            overtimeEmployeeId: {
+              id: true,
+              employeeId: true,
+              overtimeApplicationId: { id: true, status: true, purpose: true, plannedDate: true, estimatedHours: true },
+            },
+            remarks: true,
+            status: true,
+            actualHrs: true,
+            ivmsTimeIn: true,
+            ivmsTimeOut: true,
+            accomplishments: true,
+            id: true,
+          },
+          where: {
+            overtimeEmployeeId: { employeeId, overtimeApplicationId: { status: OvertimeStatus.APPROVED, plannedDate: Between(start, end) } },
+            status: OvertimeStatus.APPROVED,
+          },
+          relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
+          order: { overtimeEmployeeId: { overtimeApplicationId: { plannedDate: 'DESC' } } },
+          loadRelationIds: true,
+          loadEagerRelations: true,
+          relationLoadStrategy: 'query',
+        },
+        onError: () => new NotFoundException(),
+      })) as OvertimeAccomplishment[];
+
+      const approvedResult = await Promise.all(
+        approvedOvertimes.map(async (overtime) => {
+          const { overtimeEmployeeId, remarks, status } = overtime;
+
+          const { overtimeApplicationId, employeeId } = overtimeEmployeeId;
+          const { estimatedHours, plannedDate, purpose } = overtimeApplicationId;
+
+          const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
+
+          const dateOfOTApproval = dayjs(
+            (await this.overtimeApprovalService.crud().findAll({ find: { select: { dateApproved: true }, where: { overtimeApplicationId } } }))[0]
+              .dateApproved
+          ).format('YYYY-MM-DD');
+
+          return {
+            ...overtimeAccomplishmentDetails,
+            overtimeApplicationId: overtimeApplicationId.id,
+            estimatedHours,
+            plannedDate,
+            dateOfOTApproval,
+            employeeId,
+            purpose,
+            remarks,
+            status,
+          };
+        })
+      );
+
+      return { forApproval: pendingResult, completed: approvedResult };
+    } catch (error) {
+      throw new HttpException(error, error.message);
+    }
   }
 
   async getOvertimeAccomplishmentByEmployeeId(employeeId: string) {
