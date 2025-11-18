@@ -2,6 +2,7 @@ import {
   Benchmark,
   BenchmarkParticipantRequirements,
   BenchmarkParticipants,
+  EmployeeTrainingView,
   LspAffiliation,
   LspAward,
   LspCertification,
@@ -70,4 +71,5 @@ export const DB_ENTITIES = [
   OtherTrainingParticipantRequirements,
 
   LspRankView,
+  EmployeeTrainingView,
 ];
