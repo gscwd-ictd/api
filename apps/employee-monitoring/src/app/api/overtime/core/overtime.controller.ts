@@ -10,16 +10,11 @@ import { OvertimeService } from './overtime.service';
 
 @Controller({ version: '1', path: 'overtime' })
 export class OvertimeController {
-  constructor(private readonly overtimeService: OvertimeService) { }
+  constructor(private readonly overtimeService: OvertimeService) {}
 
   @Post()
   async createOvertime(@Body() createOverTimeDto: CreateOvertimeDto) {
     return await this.overtimeService.createOvertime(createOverTimeDto);
-  }
-
-  @Get(':overtime_application_id/accomplishments/employees')
-  async getOvertimeAccomplishmentsByOvertimeApplicationId(@Param('overtime_application_id') overtimeApplicationId: string) {
-    //return await this.overtimeService.getOvertimeAccomplishmentsByOvertimeApplicationId(overtimeApplicationId);
   }
 
   @Get('immediate-supervisors')
@@ -55,6 +50,11 @@ export class OvertimeController {
   @Get('/employees/:employee_id/accomplishments')
   async getOvertimeAccomplishmentByEmployeeId(@Param('employee_id') employeeId: string) {
     return await this.overtimeService.getOvertimeAccomplishmentByEmployeeId(employeeId);
+  }
+
+  @Get('/employees/:employee_id/accomplishments/:year_month')
+  async getOvertimeAccomplishmentByEmployeeIdByMonth(@Param('employee_id') employeeId: string, @Param('year_month') yearMonth: string) {
+    return await this.overtimeService.getOvertimeAccomplishmentByEmployeeIdByYearMonth(employeeId, yearMonth);
   }
 
   @Get('/employees/:employee_id/list')
