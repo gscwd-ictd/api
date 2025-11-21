@@ -1731,6 +1731,7 @@ export class OvertimeService {
       WHERE date_format(planned_date,'%Y')=? AND date_format(planned_date,'%m') = ? AND date_format(planned_date,'%d') IN (?) 
       AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?) 
       AND oacc.status IN ('approved','pending') 
+      AND oa.status <> 'cancelled'
     ;`,
       [year, _month, days, immediateSupervisorEmployeeId, immediateSupervisorEmployeeId]
     )) as {
