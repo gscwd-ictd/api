@@ -228,7 +228,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, dtr.dtrDate));
     const timeOutDay = schedule.shift === 'night' ? '2024-01-02 ' : '2024-01-01 ';
-    //schedule.restDaysNumbers
+
     const restDays = typeof schedule.restDaysNumbers === 'undefined' ? [] : schedule.restDaysNumbers.split(', ');
     const day = dayjs(dayjs(dtr.dtrDate).format('YYYY-MM-DD')).format('d');
     const isRestDay = restDays.includes(day);
@@ -236,8 +236,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     const isWithLunch = schedule.lunchOut !== null && schedule.lunchIn !== null ? true : false;
 
-    const restHourStart = dayjs('2024-01-01 ' + schedule.timeIn).add(4, 'h');
-    const restHourEnd = dayjs('2024-01-01 ' + schedule.timeIn).add(5, 'h');
+    const restHourStart = isWithLunch ? dayjs('2024-01-01 ' + schedule.lunchOut) : dayjs('2024-01-01 ' + schedule.timeIn).add(4, 'h');
+
+    const restHourEnd = isWithLunch ? dayjs('2024-01-01 ' + schedule.lunchIn) : dayjs('2024-01-01 ' + schedule.timeIn).add(5, 'h');
 
     const dtrRemarks = (
       await this.rawQuery(`SELECT remarks FROM daily_time_record WHERE company_id_fk = ? AND dtr_date=?`, [dtr.companyId, dtr.dtrDate])
@@ -341,6 +342,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           noOfUndertimes = 1;
           isHalfDay = true;
         }
+      }
+
+      if (restHourStart.isBefore(dayjs('2024-01-01 ' + schedule.timeIn).add(4, 'h')) && timeOutWithinRestHours) {
+        isHalfDay = false;
       }
 
       if (isWithLunch && dtr.timeIn === null && dtr.lunchOut === null && dtr.lunchIn !== null && lateAfternoon > 0) {
@@ -467,13 +472,30 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       let passSlipNatureOfBusiness: string = null;
       if (passSlipsNatureOfBusiness.length > 0)
         passSlipNatureOfBusiness = passSlipsNatureOfBusiness[passSlipsNatureOfBusiness.length - 1].natureOfBusiness;
-      minutesUndertime =
-        !timeOutWithinRestHours && suspensionHours <= 0
-          ? dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
-              dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
-              'm'
-            )
-          : 0;
+
+      if (!timeOutWithinRestHours && suspensionHours <= 0) {
+        minutesUndertime = dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+          dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+          'm'
+        );
+      } else if (dayjs('2024-01-01 ' + dtr.timeOut).isAfter(restHourEnd) && !timeOutWithinRestHours) {
+        minutesUndertime = dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+          dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+          'm'
+        );
+      } else if (dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourStart) && !timeOutWithinRestHours) {
+        minutesUndertime = dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+          dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+          'm'
+        );
+      } else if (timeOutWithinRestHours) {
+        minutesUndertime = dayjs(dayjs('2024-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+          restHourEnd.format('YYYY-MM-DD HH:mm'),
+          'm'
+        );
+      } else {
+        minutesUndertime = 0;
+      }
 
       //minutesUndertime if there is work suspension;
       if (timeOutWithinRestHours && suspensionHours < 4 && suspensionHours > 0) {
