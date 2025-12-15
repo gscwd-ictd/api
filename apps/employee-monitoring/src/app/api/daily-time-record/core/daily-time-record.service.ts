@@ -265,7 +265,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       dayjs(timeOutDay + dtr.timeOut).isSame(restHourStart) ||
       (dayjs(timeOutDay + dtr.timeOut).isAfter(restHourStart) && dayjs(timeOutDay + dtr.timeOut).isBefore(restHourEnd)) ||
       dayjs(timeOutDay + dtr.timeOut).isSame(restHourEnd);
-    //overtimeApplicationCount === '0' &&
+
+    const realTimeOutDay = schedule.shift === 'night' ? dtr.dtrDate + ' ' : dayjs(dtr.dtrDate).add(1, 'D').format('YYYY-MM-DD') + ' ';
+
+    const timeoutIsSameOrAfterWorkSuspensionStart =
+      dayjs(realTimeOutDay + dtr.timeOut).isSame(workSuspensionStart) || dayjs(realTimeOutDay + dtr.timeOut).isAfter(workSuspensionStart);
 
     if (!isHoliday && !isRestDay && !isLNDRemarks) {
       //uncomment just in case
@@ -378,10 +382,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       }
 
       if (dtr.timeIn !== null && dtr.lunchOut !== null && lateMorning <= 0 && dtr.lunchIn === null && dtr.timeOut === null) {
-        /*
-        &&
-        dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
-        */
         isHalfDay = true;
         noOfUndertimes = 1;
       }
@@ -394,10 +394,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         dtr.timeOut === null &&
         (dayjs(timeOutDay + dtr.timeOut).isAfter(workSuspensionStart) || dayjs(timeOutDay + dtr.timeOut).isSame(workSuspensionStart))
       ) {
-        /*
-        &&
-        dayjs(dtr.dtrDate + ' ' + dtr.timeOut).isBefore(workSuspensionStart)
-        */
         isHalfDay = false;
         noOfUndertimes = 0;
       }
@@ -469,6 +465,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         [employeeId, dtr.dtrDate]
       )) as { natureOfBusiness: string }[];
 
+      const workSuspensionRestHourStart = isWithLunch
+        ? dayjs(dtr.dtrDate + ' ' + schedule.lunchOut)
+        : dayjs(dtr.dtrDate + ' ' + schedule.timeIn).add(4, 'h');
+
+      const workSuspensionRestHourEnd = isWithLunch
+        ? dayjs(dtr.dtrDate + ' ' + schedule.lunchIn)
+        : dayjs(dtr.dtrDate + ' ' + schedule.timeIn).add(5, 'h');
+
       let passSlipNatureOfBusiness: string = null;
       if (passSlipsNatureOfBusiness.length > 0)
         passSlipNatureOfBusiness = passSlipsNatureOfBusiness[passSlipsNatureOfBusiness.length - 1].natureOfBusiness;
@@ -488,7 +492,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
           'm'
         );
-      } else if (timeOutWithinRestHours) {
+      } else if (timeOutWithinRestHours && suspensionHours === 0) {
         minutesUndertime = dayjs(dayjs('2024-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
           restHourEnd.format('YYYY-MM-DD HH:mm'),
           'm'
@@ -497,6 +501,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         minutesUndertime = 0;
       }
 
+      if (timeoutIsSameOrAfterWorkSuspensionStart && suspensionHours > 0) {
+        minutesUndertime = 0;
+      }
       //minutesUndertime if there is work suspension;
       if (timeOutWithinRestHours && suspensionHours < 4 && suspensionHours > 0) {
         if (
@@ -512,7 +519,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         noOfUndertimes = 1;
       }
 
-      if (dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).isBefore(workSuspensionStart)) {
+      if (
+        dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).isBefore(workSuspensionStart) &&
+        dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).isBefore(workSuspensionRestHourStart)
+      ) {
         minutesUndertime = !timeOutWithinRestHours
           ? dayjs(dayjs(workSuspensionStart).format('YYYY-MM-DD HH:mm')).diff(
               dayjs(suspensionTimeOutDay + ' ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
