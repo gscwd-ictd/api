@@ -27,7 +27,7 @@ export class HolidaysService extends CrudHelper<Holidays> {
               name, 
               date_format(holiday_date,'%M %d, %Y') holidayDate, 
               type FROM holidays 
-      WHERE year(holiday_date) = year(now()) 
+      WHERE holiday_date BETWEEN CONCAT(year(now()),'-','01-01') AND CONCAT(year(now())+1,'-01-31') 
       ORDER BY holiday_date ASC`
     );
   }
@@ -94,6 +94,16 @@ export class HolidaysService extends CrudHelper<Holidays> {
       }
     }
     return currDate.toDate();
+  }
+
+  async getAllHolidays() {
+    return await this.rawQuery(
+      `SELECT holiday_id id, 
+              name, 
+              date_format(holiday_date,'%M %d, %Y') holidayDate, 
+              type FROM holidays 
+      ORDER BY year(holiday_date) DESC,holiday_date ASC`
+    );
   }
 
   async addBackFromHoliday(holidayDate: Date) {
