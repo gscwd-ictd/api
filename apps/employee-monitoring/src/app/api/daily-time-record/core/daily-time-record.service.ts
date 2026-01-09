@@ -600,10 +600,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const overtimeApplication = (
         await this.rawQuery(
           `
-      SELECT COUNT(DISTINCT oa.overtime_application_id) otCount FROM overtime_application oa 
-        INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
-      WHERE oe.employee_id_fk = ?
-      AND oa.status = 'approved' AND DATE_FORMAT(oa.planned_date,'%Y-%m-%d') = ?;
+        SELECT COUNT(DISTINCT oa.overtime_application_id) otCount FROM overtime_application oa 
+          INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
+        WHERE oe.employee_id_fk = ?
+        AND oa.status = 'approved' AND DATE_FORMAT(oa.planned_date,'%Y-%m-%d') = ?;
       `,
           [employeeDetails.userId, dayjs(dateCurrent).format('YYYY-MM-DD')]
         )
@@ -711,7 +711,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           }
         }
 
-        if (noOfUndertimes > 0) {
+        if (noOfUndertimes > 0 && !latesUndertimesNoAttendance.isHalfDay) {
           const leaveCardItem = await this.leaveCardLedgerDebitService
             .crud()
             .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.UNDERTIME } } });
