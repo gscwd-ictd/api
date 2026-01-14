@@ -18,4 +18,5 @@ export type LeaveBenefitsIds = {
   specialPrivilegeLeaveId: LeaveBenefits;
   forcedLeaveId: LeaveBenefits;
   specialLeaveBenefitsId: LeaveBenefits;
+  wellnessLeaveId: LeaveBenefits;
 };
