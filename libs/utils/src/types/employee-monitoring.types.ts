@@ -126,6 +126,7 @@ export enum Report {
   REPORT_ON_PASS_SLIP_DEDUCTIBLE_TO_PAY = 'report on pass slip deductible to pay',
   REPORT_ON_UNUSED_PASS_SLIP = 'report on unused pass slip',
   REPORT_ON_LEAVE_APPLICATION_LATE_FILING = 'report on leave application late filing',
+  REPORT_ON_NIGHT_DIFFERENTIAL_PAY = 'report on night differential pay',
 }
 
 export enum NatureOfAppointment {
@@ -255,6 +256,8 @@ export type LeaveLedger = {
   specialLeaveBenefitBalance: number;
   specialPrivilegeLeave: number;
   specialPrivilegeLeaveBalance: number;
+  wellnessLeave: number;
+  wellnessLeaveBalance: number;
   leaveDates: string;
   actionType: string;
   remarks: string;
