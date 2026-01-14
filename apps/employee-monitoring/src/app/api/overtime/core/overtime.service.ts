@@ -1264,6 +1264,11 @@ export class OvertimeService {
     const lastDay = dayjs(yearMonth + '-01').daysInMonth();
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month - 1, lastDay);
+    const pendingsStart = dayjs().subtract(6, 'month').toDate();
+    const pendingEnd = dayjs().toDate();
+
+    console.log(pendingsStart);
+
     try {
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
 
@@ -1290,7 +1295,10 @@ export class OvertimeService {
             id: true,
           },
           where: {
-            overtimeEmployeeId: { employeeId, overtimeApplicationId: { status: OvertimeStatus.APPROVED } },
+            overtimeEmployeeId: {
+              employeeId,
+              overtimeApplicationId: { status: OvertimeStatus.APPROVED, plannedDate: Between(pendingsStart, pendingEnd) },
+            },
             status: OvertimeStatus.PENDING,
           },
           relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
@@ -1802,6 +1810,8 @@ export class OvertimeService {
                 })
               );
 
+              let isHoliday = false;
+
               const {
                 day,
                 accomplishments,
@@ -1834,21 +1844,24 @@ export class OvertimeService {
               if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) {
                 if (suspensionHours >= 0) {
                   totalRegularOTHoursRendered += hoursRendered;
-                } else totalOffOTHoursRendered += hoursRendered;
+                }
               } else {
+                isHoliday = true;
                 totalOffOTHoursRendered += hoursRendered;
               }
 
               return typeof overtime !== 'undefined'
-                ? { day, hoursRendered }
+                ? { day, hoursRendered, isHoliday }
                 : {
                     day: Number.parseInt(_day.toString()),
                     hoursRendered: null,
+                    isHoliday,
                   };
             } catch {
               return {
                 day: Number.parseInt(_day.toString()),
                 hoursRendered: null,
+                isHoliday: null,
               };
             }
           })
