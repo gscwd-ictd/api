@@ -174,7 +174,7 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
       const schedule = (
         await this.rawQuery<string, EmployeeScheduleType>(
           `
-            SELECT DISTINCT 
+           select a.* from (SELECT DISTINCT 
                 s.schedule_id id,
                 es.date_from esDateFrom,
                 es.date_to esDateTo,
@@ -198,10 +198,11 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
             LEFT JOIN employee_rest_day emr ON emr.employee_id_fk = es.employee_id_fk 
             INNER JOIN employee_rest_days emrs ON emr.employee_rest_day_id = emrs.employee_rest_day_id_fk 
             WHERE emr.employee_id_fk = ? AND ( ? BETWEEN emr.date_from AND emr.date_to ) AND ( ? BETWEEN es.date_from AND es.date_to ) 
-            GROUP BY s.schedule_id,es.created_at,dateFrom, dateTo,scheduleRange,es.date_from,es.date_to, duration 
+            AND emr.date_from = es.date_from AND emr.date_to = es.date_to
+            GROUP BY s.schedule_id, es.created_at, dateFrom, dateTo, scheduleRange, es.date_from,es.date_to, duration 
             ORDER BY DATE_FORMAT(es.date_from,'%Y-%m-%d') DESC, 
             DATE_FORMAT(es.date_to,'%Y-%m-%d') DESC, 
-            DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC,duration ASC LIMIT 1`,
+            DATE_FORMAT(emr.date_from,'%Y-%m-%d') DESC, duration ASC) a ORDER BY a.duration ASC limit 1;`,
           [employeeId, currDateString, currDateString]
         )
       )[0];
