@@ -84,30 +84,35 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
       const credits = await Promise.all(
         employees.map(async (employee, idx) => {
           const { employeeId, companyId } = employee;
+          const previousYear = dayjs().year() - 1;
           const employeeLeaveLedger = (
-            await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs().year()])
+            await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, previousYear])
           )[0] as LeaveLedger[];
+
           const beginningBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
 
           try {
             const {
               sickLeaveBalance,
               vacationLeaveBalance,
-              //specialLeaveBenefitBalance,
-              specialPrivilegeLeaveBalance,
-              forcedLeaveBalance,
-              //specialPrivilegeLeave,
+              specialPrivilegeLeaveBalance: _specialPrivilegeLeaveBalance,
+              wellnessLeaveBalance: _wellnessLeaveBalance,
             } = beginningBalance;
+
+            const specialPrivilegeLeaveBalance = _specialPrivilegeLeaveBalance ?? 0;
+            const wellnessLeaveBalance = _wellnessLeaveBalance ?? 0;
 
             const leaveBenefits = (
               await this.rawQuery<string, LeaveBenefitsIds[]>(`SELECT 
-            (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Forced Leave' AND deleted_at IS NULL LIMIT 1) forcedLeaveId, 
-            (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Sick Leave' AND deleted_at IS NULL LIMIT 1) sickLeaveId, 
-            (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Vacation Leave' AND deleted_at IS NULL LIMIT 1) vacationLeaveId,
-            (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Special Privilege Leave' AND deleted_at IS NULL LIMIT 1) specialPrivilegeLeaveId;`)
+              (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Forced Leave' AND deleted_at IS NULL LIMIT 1) forcedLeaveId, 
+              (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Sick Leave' AND deleted_at IS NULL LIMIT 1) sickLeaveId, 
+              (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Vacation Leave' AND deleted_at IS NULL LIMIT 1) vacationLeaveId,
+              (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Special Privilege Leave' AND deleted_at IS NULL LIMIT 1) specialPrivilegeLeaveId,
+              (SELECT leave_benefits_id FROM leave_benefits WHERE leave_name = 'Wellness Leave' AND deleted_at IS NULL LIMIT 1) wellnessLeaveId;
+            `)
             )[0];
 
-            const { forcedLeaveId, sickLeaveId, vacationLeaveId, specialPrivilegeLeaveId } = leaveBenefits;
+            const { forcedLeaveId, sickLeaveId, vacationLeaveId, specialPrivilegeLeaveId, wellnessLeaveId } = leaveBenefits;
             const creditDate = dayjs(dayjs().add(0, 'year').year() + '-01-01').toDate();
             const createdAt = dayjs(
               dayjs().add(0, 'year').year() + '-01-01 ' + '00' + ':' + dayjs().minute() + ':' + dayjs().second()
@@ -123,7 +128,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                   createdAt,
                   leaveBenefitsId: forcedLeaveId,
                   employeeId,
-                  creditValue: forcedLeaveBalance,
+                  creditValue: 5,
                   creditDate,
                   remarks: 'Beginning Balance',
                 },
@@ -145,7 +150,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                   createdAt,
                   leaveBenefitsId: specialPrivilegeLeaveId,
                   employeeId,
-                  creditValue: specialPrivilegeLeaveBalance + 3,
+                  creditValue: parseFloat(specialPrivilegeLeaveBalance.toString()) + 3,
                   creditDate,
                   remarks: 'Beginning Balance',
                 },
@@ -156,6 +161,28 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
               dto: {
                 createdAt,
                 leaveCreditEarningId: specialLeavePrivilegeCredit,
+              },
+            });
+
+            const wellnessLeaveCredit = await this.leaveCreditEarnings
+              .crud()
+              .transact<LeaveCreditEarnings>(entityManager)
+              .create({
+                dto: {
+                  createdAt,
+                  leaveBenefitsId: wellnessLeaveId,
+                  employeeId,
+                  creditValue: (wellnessLeaveBalance ?? 0) + 5,
+                  creditDate,
+                  remarks: 'Beginning Balance',
+                },
+                onError: () => new InternalServerErrorException(),
+              });
+
+            await this.crudService.transact<LeaveCardLedgerCredit>(entityManager).create({
+              dto: {
+                createdAt,
+                leaveCreditEarningId: wellnessLeaveCredit,
               },
             });
 
@@ -364,6 +391,49 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
     } catch (error) {
       Logger.error(error.message);
     }
+  }
+
+  async creditWellnessLeave(date: Date, creditValue: number) {
+    const employees = await this.employeeService.getAllPermanentEmployeeIds();
+    const { leaveBenefitsId } = (
+      await this.rawQuery(
+        `SELECT leave_benefits_id leaveBenefitsId, accumulated_credits accumulatedCredits 
+          FROM employee_monitoring.leave_benefits 
+       WHERE leave_name = 'Wellness Leave' AND deleted_at IS NULL;`
+      )
+    )[0] as { leaveBenefitsId: LeaveBenefits; accumulatedCredits: string };
+
+    const creditDate = dayjs(date).toDate();
+
+    const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
+      const credits = await Promise.all(
+        employees.map(async (employee) => {
+          const { employeeId } = employee;
+
+          const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
+            {
+              createdAt: creditDate,
+              employeeId,
+              creditDate,
+              creditValue,
+              leaveBenefitsId,
+              remarks: '',
+            },
+            entityManager
+          );
+
+          const leaveCardLedgerCredit = await this.crudService.transact<LeaveCardLedgerCredit>(entityManager).create({
+            dto: {
+              createdAt: creditDate,
+              leaveCreditEarningId: leaveCreditEarning,
+            },
+          });
+          return { leaveCreditEarning, leaveCardLedgerCredit };
+        })
+      );
+    });
+    console.log('Wellness Leave Credit Earnings Addition executed');
+    return 'Wellness Leave Credit Earnings Addition executed';
   }
 
   async creditCumulativeLeavesManuallyWithValue(day: Date, creditValue: number) {

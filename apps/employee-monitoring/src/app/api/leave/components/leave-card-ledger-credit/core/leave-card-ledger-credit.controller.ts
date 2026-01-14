@@ -18,7 +18,8 @@ export class LeaveCardLedgerCreditController {
   async creditBeginningBalance() {
     await this.leaveCardLedgerCreditService.creditBeginningBalance();
     //await this.leaveCardLedgerCreditService.creditRecurringLeaves(); //commented out because the recurring leaves were credited previous month for the fix
-    await this.leaveCardLedgerCreditService.creditCumulativeLeavesManuallyWithValue(dayjs('2025-01-01').toDate(), 0);
+    //await this.leaveCardLedgerCreditService.creditCumulativeLeavesManuallyWithValue(dayjs('2026-01-01').toDate(), 0);
+    await this.leaveCardLedgerCreditService.creditCumulativeLeavesManually(dayjs('2026-01-01 01:00:00').toDate());
   }
 
   @Get('credit-cumulative/:date')
@@ -29,5 +30,10 @@ export class LeaveCardLedgerCreditController {
   @Get('credit-cumulative-2/:date')
   async creditCumulative2(@Param('date') date: Date) {
     await this.leaveCardLedgerCreditService.creditCumulativeLeavesManuallyWithValue(date, 0);
+  }
+
+  @Get('credit-wellness-leave/:date')
+  async creditWellnessLeave(@Param('date') date: Date) {
+    await this.leaveCardLedgerCreditService.creditWellnessLeave(date, 10);
   }
 }
