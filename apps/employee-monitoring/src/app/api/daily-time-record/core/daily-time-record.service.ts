@@ -487,11 +487,6 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
           'm'
         );
-      } else if (dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourStart) && !timeOutWithinRestHours) {
-        minutesUndertime = dayjs(dayjs('2023-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
-          dayjs('2023-01-01 ' + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
-          'm'
-        );
       } else if (timeOutWithinRestHours && suspensionHours === 0) {
         minutesUndertime = dayjs(dayjs('2024-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
           restHourEnd.format('YYYY-MM-DD HH:mm'),
@@ -499,6 +494,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         );
       } else {
         minutesUndertime = 0;
+      }
+
+      if (dayjs('2024-01-01 ' + dtr.timeOut).isBefore(restHourStart) && !timeOutWithinRestHours) {
+        minutesUndertime =
+          dayjs(dayjs('2024-01-01 ' + schedule.timeOut).format('YYYY-MM-DD HH:mm')).diff(
+            dayjs(timeOutDay + dtr.timeOut).format('YYYY-MM-DD HH:mm'),
+            'm'
+          ) - 60;
       }
 
       if (timeoutIsSameOrAfterWorkSuspensionStart && suspensionHours > 0) {
@@ -554,6 +557,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       noAttendance,
       isHalfDay,
     };
+    0;
   }
   //#endregion
 
