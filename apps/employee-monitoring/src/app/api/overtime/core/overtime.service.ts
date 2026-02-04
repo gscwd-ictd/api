@@ -1267,8 +1267,6 @@ export class OvertimeService {
     const pendingsStart = dayjs().subtract(6, 'month').toDate();
     const pendingEnd = dayjs().toDate();
 
-    console.log(pendingsStart);
-
     try {
       const supervisorId = await this.employeeService.getEmployeeSupervisorId(employeeId);
 
@@ -1322,10 +1320,24 @@ export class OvertimeService {
               .dateApproved
           ).format('YYYY-MM-DD');
 
+          const { otSupervisorName } = (
+            await this.overtimeAccomplishmentService.rawQuery(
+              `
+            SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname2(ois.employee_id_fk) otSupervisorName 
+            FROM overtime_application oa 
+              INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id  = oa.overtime_immediate_supervisor_id_fk
+          WHERE oa.overtime_application_id=?;
+
+          `,
+              [overtimeApplicationId.id]
+            )
+          )[0];
+
           const overtimeAccomplishmentDetails = await this.getOvertimeDetails(employeeId, overtimeApplicationId.id);
 
           return {
             supervisorName,
+            otSupervisorName,
             ...overtimeAccomplishmentDetails,
             overtimeApplicationId: overtimeApplicationId.id,
             estimatedHours,
@@ -1382,8 +1394,22 @@ export class OvertimeService {
               .dateApproved
           ).format('YYYY-MM-DD');
 
+          const { otSupervisorName } = (
+            await this.overtimeAccomplishmentService.rawQuery(
+              `
+            SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname2(ois.employee_id_fk) otSupervisorName 
+            FROM overtime_application oa 
+              INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id  = oa.overtime_immediate_supervisor_id_fk
+          WHERE oa.overtime_application_id=?;
+
+          `,
+              [overtimeApplicationId.id]
+            )
+          )[0];
+
           return {
             ...overtimeAccomplishmentDetails,
+            otSupervisorName,
             overtimeApplicationId: overtimeApplicationId.id,
             estimatedHours,
             plannedDate,
