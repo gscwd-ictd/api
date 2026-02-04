@@ -203,9 +203,11 @@ export class HolidaysService extends CrudHelper<Holidays> {
         const leaveApplications = (await this.rawQuery(
           `
             SELECT leave_application_date_id leaveApplicationDateId 
-              FROM leave_application_dates lad INNER JOIN leave_application la 
-            WHERE la.leave_application_id = lad.leave_application_id_fk 
-            AND la.employee_id_fk = ? AND leave_date = ? AND la.status = ?
+              FROM leave_application_dates lad 
+            INNER JOIN leave_application la ON la.leave_application_id = lad.leave_application_id_fk
+            INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id              
+            WHERE lb.leave_types <> 'special leave benefit' 
+            AND la.employee_id_fk = ? AND leave_date = ? AND la.status = ?;
           `,
           [employeeId.employeeId, holidayDate, LeaveApplicationStatus.APPROVED]
         )) as { leaveApplicationDateId: string }[];
