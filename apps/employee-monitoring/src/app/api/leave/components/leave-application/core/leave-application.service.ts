@@ -873,21 +873,21 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           {
             status: LeaveApplicationStatus.FOR_HRDM_APPROVAL,
             dateOfFiling: Between(
-              dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
+              dayjs(dayjs().subtract(6, 'month').format('YYYY-MM') + '-01').toDate(),
               dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
             ),
           },
           {
             status: LeaveApplicationStatus.APPROVED,
             dateOfFiling: Between(
-              dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
+              dayjs(dayjs().subtract(6, 'month').format('YYYY-MM') + '-01').toDate(),
               dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
             ),
           },
           {
             status: LeaveApplicationStatus.DISAPPROVED_BY_HRDM,
             dateOfFiling: Between(
-              dayjs(dayjs().subtract(2, 'month').format('YYYY-MM') + '-01').toDate(),
+              dayjs(dayjs().subtract(6, 'month').format('YYYY-MM') + '-01').toDate(),
               dayjs(dayjs().format('YYYY-MM') + '-' + dayjs().daysInMonth()).toDate()
             ),
           },
