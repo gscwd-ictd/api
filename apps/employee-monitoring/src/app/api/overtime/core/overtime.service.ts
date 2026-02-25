@@ -1323,13 +1323,18 @@ export class OvertimeService {
           const { otSupervisorName } = (
             await this.overtimeAccomplishmentService.rawQuery(
               `
-            SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname2(ois.employee_id_fk) otSupervisorName 
-            FROM overtime_application oa 
-              INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id  = oa.overtime_immediate_supervisor_id_fk
-          WHERE oa.overtime_application_id=?;
-
+            (SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname2(ois.employee_id_fk) otSupervisorName 
+                        FROM overtime_application oa 
+                          INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id  = oa.overtime_immediate_supervisor_id_fk
+            WHERE oa.overtime_application_id=?
+            )
+            UNION 
+            (
+            SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname2(oa.manager_id_fk) otSupervisorName 
+                        FROM overtime_application oa WHERE oa.overtime_application_id=?
+            );
           `,
-              [overtimeApplicationId.id]
+              [overtimeApplicationId.id, overtimeApplicationId.id]
             )
           )[0];
 
@@ -1397,13 +1402,18 @@ export class OvertimeService {
           const { otSupervisorName } = (
             await this.overtimeAccomplishmentService.rawQuery(
               `
-            SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname2(ois.employee_id_fk) otSupervisorName 
-            FROM overtime_application oa 
-              INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id  = oa.overtime_immediate_supervisor_id_fk
-          WHERE oa.overtime_application_id=?;
-
+            (SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname2(ois.employee_id_fk) otSupervisorName 
+                        FROM overtime_application oa 
+                          INNER JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id  = oa.overtime_immediate_supervisor_id_fk
+            WHERE oa.overtime_application_id=?
+            )
+            UNION 
+            (
+            SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname2(oa.manager_id_fk) otSupervisorName 
+                        FROM overtime_application oa WHERE oa.overtime_application_id=?
+            );
           `,
-              [overtimeApplicationId.id]
+              [overtimeApplicationId.id, overtimeApplicationId.id]
             )
           )[0];
 
