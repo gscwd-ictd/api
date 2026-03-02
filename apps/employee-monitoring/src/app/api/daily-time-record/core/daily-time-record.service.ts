@@ -730,7 +730,17 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             )
           )[0].passSlipCount;
 
-          if (passSlipCount === '0') {
+          const passSlipCountHalfDay = (
+            await this.rawQuery(
+              `SELECT COUNT(pass_slip_id) passSlipCount FROM pass_slip ps 
+                  INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
+                WHERE psa.status = 'approved' AND ps.nature_of_business = 'Half Day' AND DATE_FORMAT(ps.date_of_application, '%Y-%m-%d')  = ?  
+                AND ps.employee_id_fk = ? AND ps.time_out IS NOT NULL;`,
+              [dtr.dtrDate, employeeDetails.userId]
+            )
+          )[0].passSlipCount;
+
+          if (passSlipCount === '0' && passSlipCountHalfDay === '0') {
             if (!leaveCardItem) {
               if (latesUndertimesNoAttendance.minutesUndertime > 0) {
                 debitValue = latesUndertimesNoAttendance.minutesUndertime / 480;

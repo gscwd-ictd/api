@@ -34,6 +34,6 @@ export class LeaveCardLedgerCreditController {
 
   @Get('credit-wellness-leave/:date')
   async creditWellnessLeave(@Param('date') date: Date) {
-    await this.leaveCardLedgerCreditService.creditWellnessLeave(date, 10);
+    await this.leaveCardLedgerCreditService.creditWellnessLeave(date, 5);
   }
 }
