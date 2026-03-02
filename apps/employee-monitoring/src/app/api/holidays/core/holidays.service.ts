@@ -100,7 +100,7 @@ export class HolidaysService extends CrudHelper<Holidays> {
     return await this.rawQuery(
       `SELECT holiday_id id, 
               name, 
-              date_format(holiday_date,'%M %d, %Y') holidayDate, 
+              date_format(holiday_date,'%M %d, %Y') \`date\`, 
               type FROM holidays 
       ORDER BY year(holiday_date) DESC,holiday_date ASC`
     );
