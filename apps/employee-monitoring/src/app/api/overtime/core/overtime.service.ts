@@ -184,7 +184,7 @@ export class OvertimeService {
           INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
         WHERE oa.overtime_application_id 
         NOT IN (SELECT overtime_application_id FROM overtime_application WHERE manager_id_fk = ? ) 
-        AND oe.employee_id_fk IN (?) 
+        AND oe.employee_id_fk IN (?) AND planned_date >= date_add(NOW(), INTERVAL -60 DAY) 
         AND oa.status = 'pending' ;
         `,
         [managerId, employeeIds]
