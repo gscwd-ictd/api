@@ -210,7 +210,9 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
       return {
         ongoing,
-        completed: [...approved, ...disapproved, ...cancelled],
+        completed: [...approved, ...disapproved, ...cancelled].sort(
+          (a, b) => new Date(b.dateOfFiling).getTime() - new Date(a.dateOfFiling).getTime()
+        ),
       };
     } catch (error) {
       throw new NotFoundException(error.message);
