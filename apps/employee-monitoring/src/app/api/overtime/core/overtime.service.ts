@@ -1904,8 +1904,12 @@ export class OvertimeService {
         );
         const { hourlyRate } = hourlyMonthlyRate;
 
-        const regularMultiplier = natureOfAppointment === 'permanent' || natureOfAppointment === 'casual' ? 1.25 : 1;
-        const offMultiplier = natureOfAppointment === 'permanent' || natureOfAppointment === 'casual' ? 1.5 : 1;
+        // Uncomment these 2 lines and comment the following 2 lines after them if CSC reverts back to the old rules
+        // const regularMultiplier = natureOfAppointment === 'permanent' || natureOfAppointment === 'casual' ? 1.25 : 1;
+        // const offMultiplier = natureOfAppointment === 'permanent' || natureOfAppointment === 'casual' ? 1.5 : 1;
+
+        const regularMultiplier = 1.25;
+        const offMultiplier = 1.5;
 
         const regularOTAmount = Math.round((hourlyRate * totalRegularOTHoursRendered * regularMultiplier + Number.EPSILON) * 100) / 100;
         const offOTAmount = Math.round((hourlyRate * totalOffOTHoursRendered * offMultiplier + Number.EPSILON) * 100) / 100;
