@@ -1754,10 +1754,19 @@ export class OvertimeService {
     const _month = ('0' + month).slice(-2);
 
     let overallTotalRegularOTAmount = 0;
+    let overallTotalRegularOTAmountOld = 0;
+
     let overallTotalOffOTAmount = 0;
+    let overallTotalOffOTAmountOld = 0;
+
     let overallNightDifferentialAmount = 0;
+    let overallNightDifferentialAmountOld = 0;
+
     let overallTotalOTAmount = 0;
+    let overallTotalOTAmountOld = 0;
+
     let overallSubstituteDutyOTAmount = 0;
+    let overallSubstituteDutyOTAmountOld = 0;
 
     const days = half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
 
@@ -1911,20 +1920,35 @@ export class OvertimeService {
         const regularMultiplier = 1.25;
         const offMultiplier = 1.5;
 
-        const regularOTAmount = Math.round((hourlyRate * totalRegularOTHoursRendered * regularMultiplier + Number.EPSILON) * 100) / 100;
-        const offOTAmount = Math.round((hourlyRate * totalOffOTHoursRendered * offMultiplier + Number.EPSILON) * 100) / 100;
+        const regularMultiplierOld = 1;
+        const offMultiplierOld = 1;
+
+        const regularOTAmount = Math.round((hourlyRate * totalRegularOTHoursRendered * regularMultiplier + Number.EPSILON) * 1000) / 1000;
+        const regularOTAmountOld = Math.round((hourlyRate * totalRegularOTHoursRendered * regularMultiplierOld + Number.EPSILON) * 1000) / 1000;
+
+        const offOTAmount = Math.round((hourlyRate * totalOffOTHoursRendered * offMultiplier + Number.EPSILON) * 1000) / 1000;
+        const offOTAmountOld = Math.round((hourlyRate * totalOffOTHoursRendered * offMultiplierOld + Number.EPSILON) * 1000) / 1000;
+
         const totalOTHoursRendered = totalRegularOTHoursRendered + totalOffOTHoursRendered;
+
         const substituteDutyOTHours = 0;
         const substituteAmount = 0;
         const nightDifferentialHrs = 0;
         const nightDifferentialAmount = 0;
-        const totalOvertimeAmount = regularOTAmount + offOTAmount + substituteAmount + nightDifferentialAmount;
+        const totalOvertimeAmount = Math.round((regularOTAmount + offOTAmount + substituteAmount + nightDifferentialAmount) * 100) / 100;
+        const totalOvertimeAmountOld = Math.round((regularOTAmountOld + offOTAmountOld + substituteAmount + nightDifferentialAmount) * 100) / 100;
 
         overallTotalRegularOTAmount += regularOTAmount;
+        overallTotalRegularOTAmountOld += regularOTAmountOld;
+
         overallTotalOffOTAmount += offOTAmount;
+        overallTotalOffOTAmountOld += offOTAmountOld;
+
         overallSubstituteDutyOTAmount += substituteAmount;
         overallNightDifferentialAmount += nightDifferentialAmount;
+
         overallTotalOTAmount += totalOvertimeAmount;
+        overallTotalOTAmountOld += totalOvertimeAmountOld;
 
         return {
           employeeFullName: employee.employeeName,
@@ -1940,13 +1964,23 @@ export class OvertimeService {
           totalOTHoursRendered,
           totalRegularOTHoursRendered,
           totalOffOTHoursRendered,
-          regularOTAmount,
-          offOTAmount,
+
+          regularOTAmount: regularOTAmount.toFixed(2),
+          regularOTAmountOld,
+          differenceRegularOTAmountAndOld: regularOTAmount - regularOTAmountOld,
+
+          offOTAmount: offOTAmount.toFixed(2),
+          offOTAmountOld,
+          differenceOffOTAmountAndOld: offOTAmount - offOTAmountOld,
+
           substituteDutyOTHours,
           substituteAmount,
           nightDifferentialHrs,
           nightDifferentialAmount,
-          totalOvertimeAmount,
+
+          totalOvertimeAmount: totalOvertimeAmount.toFixed(2),
+          totalOvertimeAmountOld,
+          differenceTotalOvertimeOld: (Math.round((totalOvertimeAmount - totalOvertimeAmountOld) * 100) / 100).toFixed(2),
         };
       })
     );
@@ -1983,11 +2017,15 @@ export class OvertimeService {
         notedBy: { name: supervisorName, signature: supervisorSignature, position: notedByPosition },
         approvedBy: { name: approvedBy.supervisorName, signature: approvedBy.supervisorSignature, position: approvedByPosition },
       },
-      overallTotalRegularOTAmount,
-      overallTotalOffOTAmount,
+      overallTotalRegularOTAmount: (Math.round(overallTotalRegularOTAmount * 100) / 100).toFixed(2),
+      overallTotalRegularOTAmountOld,
+      overallTotalOffOTAmount: (Math.round(overallTotalOffOTAmount * 100) / 100).toFixed(2),
+      overallTotalOffOTAmountOld,
       overallSubstituteDutyOTAmount,
       overallNightDifferentialAmount,
       overallTotalOTAmount,
+      overallTotalOTAmountOld: (Math.round(overallTotalOTAmountOld * 100) / 100).toFixed(2),
+      differenceOverallTotalOTAmountAndOld: (Math.round((overallTotalOTAmount - overallTotalOTAmountOld) * 100) / 100).toFixed(2),
     };
   }
 
