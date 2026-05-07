@@ -2023,7 +2023,7 @@ export class OvertimeService {
       overallTotalOffOTAmountOld,
       overallSubstituteDutyOTAmount,
       overallNightDifferentialAmount,
-      overallTotalOTAmount,
+      overallTotalOTAmount: (Math.round(overallTotalOTAmount * 100) / 100).toFixed(2),
       overallTotalOTAmountOld: (Math.round(overallTotalOTAmountOld * 100) / 100).toFixed(2),
       differenceOverallTotalOTAmountAndOld: (Math.round((overallTotalOTAmount - overallTotalOTAmountOld) * 100) / 100).toFixed(2),
     };
