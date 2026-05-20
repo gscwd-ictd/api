@@ -11,7 +11,7 @@ import {
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
 import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase, ScheduleShift } from '@gscwd-api/utils';
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
@@ -40,10 +40,38 @@ export class OvertimeService {
     private readonly workSuspensionService: WorkSuspensionService
   ) {}
 
+  private async checkEmployeeHasOt(createOverTimeDto: CreateOvertimeDto) {
+    const { employees, ...overtimeApplication } = createOverTimeDto;
+    let message = '';
+    await Promise.all(
+      employees.map(async (employee) => {
+        const { employeeHasOtForTheDay, employeeName } = (
+          (await this.overtimeApplicationService.rawQuery(
+            `
+                SELECT if(ote.existingEmployeeOtCount > 0, true, false) employeeHasOtForTheDay,ote.employeeName employeeName
+                FROM (SELECT count(*) existingEmployeeOtCount, ${process.env.HRMS_DB_NAME}get_employee_fullname2(oe.employee_id_fk) employeeName FROM overtime_application oa
+                  INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
+                WHERE 
+                  oa.planned_date = ? AND (status='pending' OR status='approved') 
+                  AND oe.employee_id_fk = ?) ote; 
+            `,
+            [overtimeApplication.plannedDate, employee]
+          )) as { employeeHasOtForTheDay: string; employeeName: string }[]
+        )[0];
+
+        if (employeeHasOtForTheDay !== '0') message += `• ${employeeName}\n`;
+      })
+    );
+    if (message !== '')
+      throw new ForbiddenException({ message: `These employees already applied overtime for ${overtimeApplication.plannedDate}:\n\n` + message });
+  }
+
   async createOvertime(createOverTimeDto: CreateOvertimeDto) {
+    await this.checkEmployeeHasOt(createOverTimeDto);
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       try {
         const { employees, ...overtimeApplication } = createOverTimeDto;
+
         let application;
         const { overtimeImmediateSupervisorId, employeeId, ...restOfOvertimeApplication } = overtimeApplication;
         const dmanagerId = await this.employeeService.getEmployeeSupervisorId(employeeId);
@@ -2141,13 +2169,41 @@ export class OvertimeService {
     return;
   }
 
+  private async checkEmployeeHasOtOnUpdate(updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
+    const { employees, plannedDate, id } = updateOvertimeApplicationDto;
+    console.log(id);
+    let message = '';
+    await Promise.all(
+      employees.map(async (employee) => {
+        const { employeeHasOtForTheDay, employeeName } = (
+          (await this.overtimeApplicationService.rawQuery(
+            `
+                SELECT if(ote.existingEmployeeOtCount > 0, true, false) employeeHasOtForTheDay,ote.employeeName employeeName
+                FROM (SELECT count(*) existingEmployeeOtCount, ${process.env.HRMS_DB_NAME}get_employee_fullname2(oe.employee_id_fk) employeeName FROM overtime_application oa
+                  INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
+                WHERE 
+                  oa.planned_date = ? AND (status='pending' OR status='approved') 
+                  AND oe.employee_id_fk = ? AND oa.overtime_application_id <> ? ) ote; 
+            `,
+            [plannedDate, employee, id]
+          )) as { employeeHasOtForTheDay: string; employeeName: string }[]
+        )[0];
+        if (employeeHasOtForTheDay !== '0') message += `• ${employeeName}\n`;
+      })
+    );
+    console.log(message);
+    if (message !== '') throw new ForbiddenException({ message: `These employees already applied overtime for ${plannedDate}:\n\n ` + message });
+  }
+
   async updateOvertimeDetails(updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
+    //
+    await this.checkEmployeeHasOtOnUpdate(updateOvertimeApplicationDto);
     const { id, estimatedHours, plannedDate, purpose, employeeId, employees } = updateOvertimeApplicationDto;
     const overtimeImmediateSupervisorId = await this.overtimeApplicationService.crud().findOneOrNull({
       find: { where: { id, overtimeImmediateSupervisorId: { employeeId } } },
     });
     if (!overtimeImmediateSupervisorId) throw new HttpException('User is not the immediate supervisor of this overtime application', 403);
-    await this.dataSource.transaction(async (entityManager) => {
+    const otDetails = await this.dataSource.transaction(async (entityManager) => {
       const updateOvertimeApplication = await this.overtimeApplicationService.crud().transact(entityManager).update({
         dto: {
           estimatedHours,
@@ -2190,8 +2246,10 @@ export class OvertimeService {
           );
         })
       );
-      if (updateOvertimeApplication.affected > 0) return updateOvertimeApplication;
+      if (updateOvertimeApplication.affected > 0) return employeeId;
+      return;
     });
+    return { overtimeApplicationId: id, employeesAffected: otDetails };
   }
 
   private getComputedStraightDutyHours(hours: number) {
