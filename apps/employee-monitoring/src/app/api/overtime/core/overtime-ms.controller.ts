@@ -32,10 +32,10 @@ export class OvertimeMSController {
   @MessagePattern('update_overtime_details')
   async updateOvertimeDetails(@Payload() updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
     try {
-      return await this.overtimeService.updateOvertimeDetails(updateOvertimeApplicationDto);
+      const result = await this.overtimeService.updateOvertimeDetails(updateOvertimeApplicationDto);
+      return result;
     } catch (error) {
-      console.log(error);
-      throw new RpcException(error.message);
+      return error;
     }
   }
 }
