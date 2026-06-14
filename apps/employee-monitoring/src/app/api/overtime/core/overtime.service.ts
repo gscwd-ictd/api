@@ -2102,10 +2102,18 @@ export class OvertimeService {
         [year, month, day]
       )
     )[0].isHoliday;
+
+    const { isWorkSuspension } = (
+      await this.employeeScheduleService.rawQuery(
+        `SELECT IF(COUNT(*)>0, true,false) isWorkSuspension FROM work_suspension WHERE suspension_date =  concat(?,'-',?,'-',?);`,
+        [year, month, day]
+      )
+    )[0];
+
     const dayOfWeek = dayjs(year + '-' + month + '-' + day)
       .day()
       .toString();
-    if (restDays.includes(dayOfWeek) || isHoliday === '1') result = false;
+    if (restDays.includes(dayOfWeek) || isHoliday === '1' || isWorkSuspension === '1') result = false;
     else result = true;
     return result;
   }
