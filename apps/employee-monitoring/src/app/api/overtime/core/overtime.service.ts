@@ -1788,13 +1788,13 @@ export class OvertimeService {
     let overallTotalOffOTAmountOld = 0;
 
     let overallNightDifferentialAmount = 0;
-    let overallNightDifferentialAmountOld = 0;
+    // let overallNightDifferentialAmountOld = 0;
 
     let overallTotalOTAmount = 0;
     let overallTotalOTAmountOld = 0;
 
     let overallSubstituteDutyOTAmount = 0;
-    let overallSubstituteDutyOTAmountOld = 0;
+    // let overallSubstituteDutyOTAmountOld = 0;
 
     const days = half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
 
@@ -2262,19 +2262,19 @@ export class OvertimeService {
 
   private getComputedStraightDutyHours(hours: number) {
     let deduction = 0;
-    console.log('asd asd asd');
-    for (let i = 4; i <= hours; i++) {
-      if (i % 5 === 0) deduction += 1;
-    }
+    if (hours >= 4) deduction = hours / 4;
+    // for (let i = 4; i <= hours; i++) {
+    //   if (i % 5 === 0) deduction += 1;
+    // }
     return hours - deduction;
   }
 
   private getComputedHours(hours: number) {
     let deduction = 0;
-    console.log('here here here');
-    for (let i = 4; i <= hours; i++) {
-      if (i % 5 === 0 && i > 10) deduction += 1;
-    }
-    return hours - deduction - (hours > 5 ? 1 : 0);
+    // for (let i = 4; i <= hours; i++) {
+    //   if (i % 5 === 0 && i > 10) deduction += 1;
+    // }
+    if (hours >= 4) deduction = hours / 4;
+    return hours - deduction;
   }
 }
