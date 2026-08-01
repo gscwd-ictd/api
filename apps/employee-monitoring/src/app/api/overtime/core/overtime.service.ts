@@ -2266,7 +2266,7 @@ export class OvertimeService {
     // for (let i = 4; i <= hours; i++) {
     //   if (i % 5 === 0) deduction += 1;
     // }
-    return hours - deduction;
+    return Math.floor(hours - deduction);
   }
 
   private getComputedHours(hours: number) {
@@ -2275,6 +2275,6 @@ export class OvertimeService {
     //   if (i % 5 === 0 && i > 10) deduction += 1;
     // }
     if (hours >= 4) deduction = hours / 4;
-    return hours - deduction;
+    return Math.floor(hours - deduction);
   }
 }
