@@ -1104,10 +1104,11 @@ export class OvertimeService {
               } else {
                 computedEncodedHours = this.getComputedHours(computedEncodedHours);
               }
-            } else computedEncodedHours = this.getComputedHours(computedEncodedHours);
+            } else computedEncodedHours = computedEncodedHours >= 5 ? computedEncodedHours - 1 : computedEncodedHours; // minus 1 to account lunchbreak
           }
         }
       }
+      console.log(computedEncodedHours);
       return {
         ...restOfUpdatedOvertime,
         entriesForTheDay: entries,
