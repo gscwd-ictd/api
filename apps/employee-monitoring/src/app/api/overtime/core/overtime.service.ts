@@ -1084,15 +1084,19 @@ export class OvertimeService {
 
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(previousDayTimeOutDate, 'minute');
 
-          if (computedEncodedHours > 4) {
-            if (otAndPreviousShiftInterval < 60) {
-              //straight duty
-              computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
-            } else {
-              //not straight duty
-              computedEncodedHours = this.getComputedHours(computedEncodedHours);
+          if (employeeDetails.userRole !== 'job_order') {
+            if (computedEncodedHours > 4) {
+              if (otAndPreviousShiftInterval < 60) {
+                //straight duty
+                computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
+              } else {
+                //not straight duty
+                computedEncodedHours = this.getComputedHours(computedEncodedHours);
+              }
+              console.log(computedEncodedHours);
             }
-          }
+            //console.log(computedEncodedHours);
+          } else computedEncodedHours = computedEncodedHours >= 5 ? computedEncodedHours - 1 : computedEncodedHours; // minus 1 to account lunchbreak
         } else {
           const currentDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(plannedDate).toDate());
           const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
@@ -2263,19 +2267,21 @@ export class OvertimeService {
 
   private getComputedStraightDutyHours(hours: number) {
     let deduction = 0;
-    if (hours >= 4) deduction = hours / 4;
+    if (hours >= 4) deduction = Math.floor(hours / 4);
     // for (let i = 4; i <= hours; i++) {
     //   if (i % 5 === 0) deduction += 1;
     // }
-    return Math.floor(hours - deduction);
+
+    return hours - deduction;
   }
 
   private getComputedHours(hours: number) {
     let deduction = 0;
+    if (hours >= 4) deduction = Math.floor(hours / 4);
     // for (let i = 4; i <= hours; i++) {
-    //   if (i % 5 === 0 && i > 10) deduction += 1;
+    //   if (i % 5 === 0) deduction += 1;
     // }
-    if (hours >= 4) deduction = hours / 4;
-    return Math.floor(hours - deduction);
+
+    return hours - deduction;
   }
 }
