@@ -952,10 +952,13 @@ export class OvertimeService {
       const overtimeEmployee = await this.overtimeEmployeeService
         .crud()
         .findOneOrNull({ find: { where: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } } });
+
       const overtimeAccomplishment = await this.overtimeAccomplishmentService
         .crud()
         .findOneOrNull({ find: { where: { overtimeEmployeeId: { id: overtimeEmployee.id } } } });
+
       let computedEncodedHours = null;
+
       if (overtimeAccomplishment.encodedTimeIn !== null && overtimeAccomplishment.encodedTimeOut !== null) {
         computedEncodedHours =
           ((dayjs(overtimeAccomplishment.encodedTimeOut).diff(dayjs(overtimeAccomplishment.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
@@ -964,7 +967,7 @@ export class OvertimeService {
       }
 
       if (computedEncodedHours > 4) {
-        computedEncodedHours = (this.getComputedHours(computedEncodedHours) * 100) / 100;
+        computedEncodedHours = (this.getComputedDutyHours(computedEncodedHours) * 100) / 100;
       }
       return computedEncodedHours;
     } catch (error) {
@@ -1095,7 +1098,7 @@ export class OvertimeService {
                 //not straight duty
                 computedEncodedHours = this.getComputedHours(computedEncodedHours);
               }
-              console.log(computedEncodedHours);
+              console.log('nightshift: ' + computedEncodedHours);
             }
             //console.log(computedEncodedHours);
           } else computedEncodedHours = computedEncodedHours >= 5 ? computedEncodedHours - 1 : computedEncodedHours; // minus 1 to account lunchbreak
@@ -1103,18 +1106,27 @@ export class OvertimeService {
           const currentDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(plannedDate).toDate());
           const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(plannedDate + ' ' + currentDaySchedule.schedule.timeOut, 'minute');
+
           if (computedEncodedHours > 4) {
             if (employeeDetails.userRole !== 'job_order') {
+              console.log('currentDaySchedule.schedule.timeOut: ' + currentDaySchedule.schedule.timeOut);
+              console.log('encodedTimeInDate: ' + encodedTimeInDate);
+              console.log('otAndPreviousShiftInterval: ' + otAndPreviousShiftInterval);
               if (otAndPreviousShiftInterval < 60 && otAndPreviousShiftInterval >= 0) {
-                computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
+                //   computedEncodedHours = this.getComputedStraightDutyHours(computedEncodedHours);
+                computedEncodedHours = this.getComputedAterDutyHours(computedEncodedHours);
+                console.log('1: ' + computedEncodedHours);
               } else {
-                computedEncodedHours = this.getComputedHours(computedEncodedHours);
+                //   computedEncodedHours = this.getComputedHours(computedEncodedHours);
+                computedEncodedHours = this.getComputedDutyHours(computedEncodedHours);
+
+                console.log('2: ' + computedEncodedHours);
               }
             } else computedEncodedHours = computedEncodedHours >= 5 ? computedEncodedHours - 1 : computedEncodedHours; // minus 1 to account lunchbreak
           }
         }
       }
-      console.log(computedEncodedHours);
+
       return {
         ...restOfUpdatedOvertime,
         entriesForTheDay: entries,
@@ -1773,7 +1785,7 @@ export class OvertimeService {
         },
       };
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new NotFoundException('!@#', error.message);
     }
   }
 
@@ -2284,6 +2296,32 @@ export class OvertimeService {
     // for (let i = 4; i <= hours; i++) {
     //   if (i % 5 === 0) deduction += 1;
     // }
+
+    return hours - deduction;
+  }
+
+  private getComputedDutyHours(hours: number) {
+    if (hours < 4) {
+      return hours;
+    }
+
+    // Deduct 1 hour lunch break
+    let computedHours = hours - 1;
+
+    // For hours beyond 9, deduct 1 hour for every completed 4 hours
+    if (hours > 9) {
+      const proceedingHours = hours - 9;
+      const additionalBreaks = Math.floor(proceedingHours / 4);
+
+      computedHours -= additionalBreaks;
+    }
+
+    return computedHours;
+  }
+
+  private getComputedAterDutyHours(hours: number) {
+    let deduction = 0;
+    if (hours >= 4) deduction = Math.floor(hours / 4);
 
     return hours - deduction;
   }
