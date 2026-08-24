@@ -950,10 +950,13 @@ export class OvertimeService {
       const overtimeEmployee = await this.overtimeEmployeeService
         .crud()
         .findOneOrNull({ find: { where: { employeeId, overtimeApplicationId: { id: overtimeApplicationId } } } });
+
       const overtimeAccomplishment = await this.overtimeAccomplishmentService
         .crud()
         .findOneOrNull({ find: { where: { overtimeEmployeeId: { id: overtimeEmployee.id } } } });
+
       let computedEncodedHours = null;
+
       if (overtimeAccomplishment.encodedTimeIn !== null && overtimeAccomplishment.encodedTimeOut !== null) {
         computedEncodedHours =
           ((dayjs(overtimeAccomplishment.encodedTimeOut).diff(dayjs(overtimeAccomplishment.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
@@ -962,7 +965,7 @@ export class OvertimeService {
       }
 
       if (computedEncodedHours > 4) {
-        computedEncodedHours = (this.getComputedHours(computedEncodedHours) * 100) / 100;
+        computedEncodedHours = (this.getComputedDutyHours(computedEncodedHours) * 100) / 100;
       }
       return computedEncodedHours;
     } catch (error) {
@@ -1608,7 +1611,7 @@ export class OvertimeService {
 
       return { forApproval: pendingResult, completed: approvedResult };
     } catch (error) {
-      throw new HttpException(error, error.message);
+      throw new HttpException(error, error.status);
     }
   }
 
@@ -1780,7 +1783,7 @@ export class OvertimeService {
         },
       };
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new NotFoundException('!@#', error.message);
     }
   }
 
@@ -1813,6 +1816,7 @@ export class OvertimeService {
     const days = half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
 
     const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
+
     const employees = (await this.overtimeApplicationService.rawQuery(
       `
       SELECT 
