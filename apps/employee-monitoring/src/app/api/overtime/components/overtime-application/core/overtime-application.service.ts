@@ -59,7 +59,7 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
   async getOvertimeApplicationsByEmployeeIds(employeeIds: string[], managerId: string) {
     //!TODO INVESTIGATE LATER
     //RIGHT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
-
+    //AND oa.manager_id_fk<>?
     const employees = (await this.rawQuery(
       `
         SELECT DISTINCT 
@@ -77,7 +77,7 @@ export class OvertimeApplicationService extends CrudHelper<OvertimeApplication> 
         LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
         WHERE oe.employee_id_fk IN (?) AND (ois.employee_id_fk <> ? OR oa.manager_id_fk <> ?) 
         AND (oapp.manager_id_fk = ? 
-        OR oapp.manager_id_fk IS NULL) AND planned_date >= date_add(NOW(), INTERVAL -60 DAY) 
+        OR oapp.manager_id_fk IS NULL) AND planned_date >= date_add(NOW(), INTERVAL -90 DAY) 
         ORDER BY DATE_FORMAT(planned_date,'%Y-%m-%d') DESC ;
     `,
       [employeeIds, managerId, managerId, managerId]
