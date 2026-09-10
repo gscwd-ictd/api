@@ -47,7 +47,6 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
 
   async addBackLeaveOnWorkSuspensionV2() {
     const latestWorkSuspensions = await this.workSuspensionService.getLatestWorkSuspensions();
-    //console.log(latestWorkSuspensions);
     if (latestWorkSuspensions.length > 0) {
       await Promise.all(
         latestWorkSuspensions.map(async (ws) => {
@@ -57,30 +56,33 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
           if (suspensionHrs > 0) {
             const leaveApplicationDates = (await this.rawQuery(
               `SELECT 
-                    lad.leave_application_date_id leaveApplicationDatesId, 
-                    la.leave_benefits_id_fk leaveBenefitsId,
-                    la.employee_id_fk employeeId
-                  FROM leave_application_dates lad
-                    INNER JOIN leave_application la ON la.leave_application_id = lad.leave_application_id_fk
-                    INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
-                  WHERE lad.leave_date = ?
-                    AND la.status = 'approved'
-                    AND lad.status = 'approved'
-                    AND lad.status <> 'for cancellation'
-                    AND lb.leave_types <> 'special leave benefit' 
-                    AND lb.leave_name <> 'Leave Without Pay' 
-                    AND lad.leave_application_date_id NOT IN ( 
-                      SELECT leave_application_dates_id_fk FROM leave_add_back
-                    )
-                    AND lad.leave_application_id_fk NOT IN (SELECT leave_application_id_fk from leave_card_ledger_debit 
-                  WHERE leave_application_id_fk IN (SELECT leave_application_id_fk from leave_application_dates WHERE leave_date = ?));`,
-              [dayjs(suspensionDate).format('YYYY-MM-DD'), dayjs(suspensionDate).format('YYYY-MM-DD')]
+                lad.leave_application_date_id leaveApplicationDatesId, 
+                la.leave_benefits_id_fk leaveBenefitsId,
+                la.employee_id_fk employeeId
+              FROM leave_application_dates lad
+                INNER JOIN leave_application la ON la.leave_application_id = lad.leave_application_id_fk
+                INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk 
+              WHERE lad.leave_date = ?
+                AND la.status = 'approved'
+                AND lad.status = 'approved'
+                AND lad.status <> 'for cancellation'
+                AND lb.leave_types <> 'special leave benefit' 
+                AND lb.leave_name <> 'Leave Without Pay' 
+                AND NOT EXISTS (
+                  SELECT 1 FROM leave_add_back lab 
+                  WHERE lab.leave_application_dates_id_fk = lad.leave_application_date_id
+                )
+                AND NOT EXISTS (
+                  SELECT 1 FROM leave_add_back lab 
+                  WHERE lab.leave_application_dates_id_fk = lad.leave_application_date_id
+                );`,
+              [dayjs(suspensionDate).format('YYYY-MM-DD')]
             )) as { leaveApplicationDatesId: LeaveApplicationDates; leaveBenefitsId: string; employeeId: string }[];
 
             if (leaveApplicationDates.length !== 0) {
               const result = await Promise.all(
                 leaveApplicationDates.map(async (_leaveApplicationDatesId) => {
-                  const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(
+                  const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDateForLeaveAddback(
                     _leaveApplicationDatesId.employeeId,
                     suspensionDate
                   );
@@ -223,7 +225,10 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
       if (leaveApplicationDates.length !== 0) {
         const result = await Promise.all(
           leaveApplicationDates.map(async (_leaveApplicationDatesId) => {
-            const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(_leaveApplicationDatesId.employeeId, dtrDate);
+            const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDateForLeaveAddback(
+              _leaveApplicationDatesId.employeeId,
+              dtrDate
+            );
 
             const suspensionHrs = await this.workSuspensionService.getWorkSuspensionHoursBySuspensionDateAndScheduleTimeOut(
               employeeSchedule.schedule.timeOut,
