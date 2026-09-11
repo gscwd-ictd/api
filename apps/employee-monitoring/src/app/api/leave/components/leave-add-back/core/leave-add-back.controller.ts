@@ -5,11 +5,11 @@ import { LeaveAddBackService } from './leave-add-back.service';
 export class LeaveAddBackController {
   constructor(private readonly leaveAddBackService: LeaveAddBackService) {}
 
-  @Get(':dtr_date')
-  async testWorkSuspensionNow(@Param('dtr_date') dtrDate: Date) {
-    //return await this.leaveAddBackService.addBackLeaveOnWorkSuspensionV2();
-    return await this.leaveAddBackService.addBackLeaveOnWorkSuspension(dtrDate);
-  }
+  // @Get(':dtr_date')
+  // async testWorkSuspensionNow(@Param('dtr_date') dtrDate: Date) {
+  //   // return await this.leaveAddBackService.addBackLeaveOnWorkSuspensionV2();
+  //   return await this.leaveAddBackService.addBackLeaveOnWorkSuspension(dtrDate);
+  // }
 
   @Post('run-add-back-work-suspension')
   async runAddBackManually() {
