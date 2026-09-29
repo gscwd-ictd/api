@@ -1,3 +1,4 @@
+import { DtrDeductionType } from '@gscwd-api/utils';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import {
@@ -49,34 +50,11 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const { natureOfBusiness } = passSlipDto;
     const passSlip = await this.dataSource.transaction(async (transactionEntityManager) => {
       const { approval, supervisorId, isMedical, ...rest } = passSlipDto;
-      const employeeDetails = await this.employeeService.getEmployeeDetails(rest.employeeId);
-      //check leave ledger
-      const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(rest.employeeId);
-
-      let isDeductibleToPay = false;
       let status = PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL;
-      if (rest.natureOfBusiness !== NatureOfBusiness.OFFICIAL_BUSINESS) {
-        if (natureOfAppointment === 'job order' || natureOfAppointment === 'cos jo') {
-          isDeductibleToPay = true;
-        } else {
-          const employeeLeaveLedger = (
-            await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [rest.employeeId, employeeDetails.companyId, dayjs().year()])
-          )[0] as LeaveLedger[];
-          const { sickLeaveBalance, vacationLeaveBalance } = employeeLeaveLedger[employeeLeaveLedger.length - 1];
-
-          if (isMedical !== null) {
-            if (parseInt(isMedical.toString()) === 0) {
-              if (vacationLeaveBalance <= 0) isDeductibleToPay = true;
-            } else {
-              if (sickLeaveBalance <= 0) isDeductibleToPay = true;
-            }
-          }
-        }
-      }
 
       const passSlipResult = await transactionEntityManager
         .getRepository(PassSlip)
-        .save({ ...rest, isMedical, dateOfApplication: dayjs().toDate(), isDeductibleToPay });
+        .save({ ...rest, isMedical, dateOfApplication: dayjs().toDate() });
       if (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS) status = PassSlipApprovalStatus.FOR_HRMO_APPROVAL;
 
       const approvalResult = await transactionEntityManager.getRepository(PassSlipApproval).save({
@@ -915,7 +893,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
    * Returns true if a debit was posted.
    */
   private async finalizePassSlip(passSlip: PassSlipForLedger): Promise<boolean> {
-    const { id, employeeId, natureOfBusiness, timeOut, isDeductibleToPay } = passSlip;
+    const { id, employeeId, natureOfBusiness, timeOut } = passSlip;
     const date = dayjs(passSlip.dateOfApplication).format('YYYY-MM-DD');
     const companyId = (await this.employeeService.getEmployeeDetails(employeeId)).companyId;
 
@@ -945,9 +923,26 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       }
     }
 
-    // 3. no leave credit deduction for Official Business or job order / COS (deductible to pay)
+    // 3. this pass slip accounts for leaving early -> drop any DTR undertime / half day debit for the
+    //    same day so the employee is not deducted twice (phone app + face scanner)
+    const coversDtrTimeOut =
+      natureOfBusiness === NatureOfBusiness.UNDERTIME ||
+      natureOfBusiness === NatureOfBusiness.HALF_DAY ||
+      ((natureOfBusiness === NatureOfBusiness.PERSONAL || natureOfBusiness === NatureOfBusiness.WELLNESS_PASS) && originalTimeIn === null);
+    if (coversDtrTimeOut) {
+      await this.rawQuery(
+        `DELETE lcld FROM leave_card_ledger_debit lcld
+           INNER JOIN daily_time_record dtr ON dtr.daily_time_record_id = lcld.daily_time_record_id_fk
+          WHERE dtr.company_id_fk = ? AND DATE_FORMAT(dtr.dtr_date,'%Y-%m-%d') = ?
+            AND lcld.dtr_deduction_type IN (?, ?);`,
+        [companyId, date, DtrDeductionType.UNDERTIME, DtrDeductionType.HALFDAY]
+      );
+    }
+
+    // 4. no leave credit deduction for Official Business or job order / contract of service
     if (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS) return false;
-    if (isDeductibleToPay === true || Number(isDeductibleToPay) === 1) return false;
+    const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(employeeId);
+    if (natureOfAppointment === 'job order' || natureOfAppointment === 'cos jo') return false;
 
     const wellnessMinutesUsedThisQuarter =
       natureOfBusiness === NatureOfBusiness.WELLNESS_PASS ? await this.getWellnessMinutesUsedBefore(passSlip, companyId) : 0;

@@ -119,3 +119,32 @@ export function quarterStart(date: Date | string): string {
   const month = Math.floor(d.getMonth() / 3) * 3;
   return `${d.getFullYear()}-${String(month + 1).padStart(2, '0')}-01`;
 }
+
+/**
+ * Counts pass slips that already account for the employee leaving early on a date, so the DTR
+ * undertime / half day deduction must NOT also be applied (prevents double deduction when the
+ * employee scans out on both the phone app and the face scanner).
+ *
+ * A pass slip "covers" the DTR time out when it has a pass slip OUT and either:
+ *  - it is Undertime or Half Day, or
+ *  - the employee never scanned back IN (Personal Business / Wellness Pass), or the IN was
+ *    auto-filled with the schedule time out.
+ * Params: [employeeId, 'YYYY-MM-DD', companyId]
+ */
+export const PASS_SLIP_COVERS_DTR_TIME_OUT_SQL = `
+  SELECT COUNT(ps.pass_slip_id) passSlipCount
+    FROM pass_slip ps
+   INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id
+    LEFT JOIN daily_time_record dtr ON dtr.company_id_fk = ?
+          AND DATE_FORMAT(dtr.dtr_date,'%Y-%m-%d') = DATE_FORMAT(ps.date_of_application,'%Y-%m-%d')
+    LEFT JOIN schedule s ON s.schedule_id = dtr.schedule_id_fk
+   WHERE ps.employee_id_fk = ?
+     AND DATE_FORMAT(ps.date_of_application,'%Y-%m-%d') = ?
+     AND ps.time_out IS NOT NULL
+     AND psa.status IN ('approved','approved with medical certificate','approved without medical certificate',
+                        'awaiting medical certificate','for dispute')
+     AND (
+          ps.nature_of_business IN ('Undertime','Half Day')
+       OR (ps.nature_of_business IN ('Personal Business','Wellness Pass')
+           AND (ps.time_in IS NULL OR (s.time_out IS NOT NULL AND ps.time_in >= s.time_out)))
+     );`;
