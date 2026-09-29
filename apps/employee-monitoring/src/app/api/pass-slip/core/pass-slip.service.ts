@@ -763,7 +763,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       `SELECT ps.pass_slip_id id
          FROM pass_slip ps
         INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id
-        WHERE get_date_after_num_of_working_days(ps.date_of_application, ?) <= DATE_FORMAT(now(),'%Y-%m-%d')
+        WHERE get_nth_working_day_after(ps.date_of_application, ?) <= DATE_FORMAT(now(),'%Y-%m-%d')
           AND psa.status = 'awaiting medical certificate';`,
       [PassSlipService.DISPUTE_WINDOW_WORKING_DAYS]
     )) as { id: string }[];
@@ -797,7 +797,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   private async postPassSlipsToLedger(filter: { asOf?: string; dateOfApplication?: string }) {
     const where = filter.dateOfApplication
       ? `DATE_FORMAT(ps.date_of_application,'%Y-%m-%d') = ?`
-      : `get_date_after_num_of_working_days(ps.date_of_application, ${PassSlipService.DISPUTE_WINDOW_WORKING_DAYS}) <= ?
+      : `get_nth_working_day_after(ps.date_of_application, ${PassSlipService.DISPUTE_WINDOW_WORKING_DAYS}) <= ?
          AND ps.date_of_application >= DATE_SUB(?, INTERVAL ${PassSlipService.LEDGER_CATCH_UP_DAYS} DAY)`;
     const params = filter.dateOfApplication ? [filter.dateOfApplication] : [filter.asOf, filter.asOf];
 

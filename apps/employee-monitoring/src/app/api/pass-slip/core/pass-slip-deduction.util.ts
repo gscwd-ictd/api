@@ -31,7 +31,8 @@ export function toMinutes(time: string | null | undefined): number | null {
 export function getLunchBreak(schedule: ScheduleWindow): { start: number; end: number } {
   const lunchOut = toMinutes(schedule.lunchOut);
   const lunchIn = toMinutes(schedule.lunchIn);
-  if (lunchOut !== null && lunchIn !== null && lunchIn > lunchOut) return { start: lunchOut, end: lunchIn };
+  // a lunch break longer than 3 hours is treated as bad schedule data (e.g. lunch_in 23:31)
+  if (lunchOut !== null && lunchIn !== null && lunchIn > lunchOut && lunchIn - lunchOut <= 180) return { start: lunchOut, end: lunchIn };
   const start = toMinutes(schedule.timeIn) + 240;
   return { start, end: start + 60 };
 }

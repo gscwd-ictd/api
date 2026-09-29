@@ -65,6 +65,12 @@ describe('pass slip deductions', () => {
     });
   });
 
+  it('ignores a corrupt lunch break (lunch_in 23:31) and falls back to 4h after time in', () => {
+    const bad = { timeIn: '07:00:00', timeOut: '16:00:00', lunchOut: '11:00:00', lunchIn: '23:31:00' };
+    expect(getLunchBreak(bad)).toEqual({ start: 660, end: 720 });
+    expect(credits(NatureOfBusiness.UNDERTIME, '14:00:00', null, bad)).toBe(0.25);
+  });
+
   it('quarter start', () => {
     expect(quarterStart('2026-09-29T10:00:00')).toBe('2026-07-01');
     expect(quarterStart('2026-01-05T10:00:00')).toBe('2026-01-01');
