@@ -1,0 +1,26 @@
+-- Wellness Pass support in the leave ledger view.
+-- nature_of_business ENUM gets 'Wellness Pass' automatically (TypeORM synchronize: true).
+-- If synchronize is ever turned off, run:
+--   ALTER TABLE pass_slip MODIFY nature_of_business
+--     ENUM('Personal Business','Half Day','Undertime','Official Business','Wellness Pass') NOT NULL;
+
+-- sp_generate_leave_ledger_view: pass slip debits are routed by `_remarks` (= nature_of_business).
+-- Without this change, Wellness Pass debits are inserted into leave_card_ledger_debit but
+-- are NOT shown / NOT subtracted in the ledger (no branch matches 'Wellness Pass').
+--
+-- In sp_generate_leave_ledger_view, replace:
+--   IF _leaveName = 'Vacation Leave' OR _remarks = 'Tardiness' OR _remarks = 'Undertime' OR _remarks = 'Half Day' THEN
+-- with:
+--   IF _leaveName = 'Vacation Leave' OR _remarks = 'Tardiness' OR _remarks = 'Undertime' OR _remarks = 'Half Day' OR _remarks = 'Wellness Pass' THEN
+--
+-- Recommended (medical routing made explicit, rule 2.4). In the `_remarks = 'Personal Business'` block replace:
+--   IF _passSlipStatus = 'approved without medical certificate' OR _passSlipStatus = 'approved' THEN
+--      ... VL ...
+--   ELSE
+--      ... SL ...
+-- with:
+--   IF _passSlipStatus = 'approved with medical certificate' THEN
+--      ... SL ...
+--   ELSE
+--      ... VL ...
+-- (same two INSERT blocks, swapped) so any unexpected status defaults to VL, not SL.
