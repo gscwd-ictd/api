@@ -71,6 +71,21 @@ describe('pass slip deductions', () => {
     expect(credits(NatureOfBusiness.UNDERTIME, '14:00:00', null, bad)).toBe(0.25);
   });
 
+  it('no lunch set: 1-hour break after the 4th hour (8-5 -> 12-1, 7:30-4:30 -> 11:30-12:30)', () => {
+    expect(getLunchBreak({ timeIn: '08:00:00', timeOut: '17:00:00', lunchOut: null, lunchIn: null })).toEqual({ start: 720, end: 780 });
+    expect(getLunchBreak({ timeIn: '07:30:00', timeOut: '16:30:00', lunchOut: null, lunchIn: null })).toEqual({ start: 690, end: 750 });
+  });
+
+  it('lunch set on a "without lunch" schedule is still the excluded window', () => {
+    const cashier = { timeIn: '07:00:00', timeOut: '18:00:00', lunchOut: '10:30:00', lunchIn: '11:45:00' };
+    expect(credits(NatureOfBusiness.PERSONAL, '10:00:00', '12:00:00', cashier)).toBe(0.094); // 120 - 75 = 45 min
+  });
+
+  it('flexible schedule uses the fixed schedule end time', () => {
+    const fourDay = { timeIn: '07:00:00', timeOut: '18:00:00', lunchOut: '12:00:00', lunchIn: '13:00:00' };
+    expect(credits(NatureOfBusiness.UNDERTIME, '16:00:00', null, fourDay)).toBe(0.25);
+  });
+
   it('quarter start', () => {
     expect(quarterStart('2026-09-29T10:00:00')).toBe('2026-07-01');
     expect(quarterStart('2026-01-05T10:00:00')).toBe('2026-01-01');
