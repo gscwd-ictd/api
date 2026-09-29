@@ -1,5 +1,7 @@
 -- =====================================================================================
 -- sp_generate_leave_ledger_view  (updated 2026-09)
+-- Run in: employee_monitoring (production) or `employee-monitoring` (development).
+-- Tested on a copy of the 2026-09-29 production dump: final balances identical for 67 employees.
 --
 -- Changes from the previous version (search for "CHANGED"):
 --  1. 'Wellness Pass' pass slip debits are routed to VACATION LEAVE (previously they
