@@ -170,6 +170,7 @@ export type EmployeeMonthlyDailyTimeRecord = {
 };
 
 export type EmployeeScheduleType = {
+  withLunch: boolean;
   id: string;
   esDateFrom: Date;
   esDateTo: Date;

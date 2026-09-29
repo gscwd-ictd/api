@@ -1,7 +1,6 @@
 import { HolidaysDto, UpdateHolidayDto } from '@gscwd-api/models';
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { HolidaysService } from './holidays.service';
-import { timeStamp } from 'console';
 
 @Controller({ version: '1', path: 'holidays' })
 export class HolidaysController {

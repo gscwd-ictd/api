@@ -1,5 +1,5 @@
 import { CreateLeaveCreditEarningsDto, UpdateLeaveCreditEarningsDto } from '@gscwd-api/models';
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Post, Put } from '@nestjs/common';
 import { LeaveCreditEarningsService } from './leave-credit-earnings.service';
 
 @Controller({ version: '1', path: 'leave-credit-earnings' })

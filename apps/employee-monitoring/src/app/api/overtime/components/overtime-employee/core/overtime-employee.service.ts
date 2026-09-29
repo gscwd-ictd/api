@@ -27,8 +27,21 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
   }
 
   async createOvertimeEmployees(createOvertimeEmployeeDto: CreateOvertimeEmployeeDto, entityManager: EntityManager) {
+    const { plannedDate } = createOvertimeEmployeeDto.overtimeApplicationId;
+    const { employeeId } = createOvertimeEmployeeDto;
     //get salary grade if casual/permanent...get daily rate if job order
-    const { dailyRate, salaryGradeAmount } = await this.employeeService.getSalaryGradeOrDailyRateByEmployeeId(createOvertimeEmployeeDto.employeeId);
+    const { dailyRate, salaryGradeAmount } = (
+      await this.rawQuery(
+        `
+      SELECT 
+        ${process.env.HRMS_DB_NAME}get_nosi_nosa_daily_rate(?,?) dailyRate,
+        ${process.env.HRMS_DB_NAME}get_nosi_nosa_salary_grade_amount(?,?) salaryGradeAmount;
+    `,
+        [employeeId, plannedDate, employeeId, plannedDate]
+      )
+    )[0] as { dailyRate: number; salaryGradeAmount: number };
+
+    //const { dailyRate, salaryGradeAmount } = await this.employeeService.getSalaryGradeOrDailyRateByEmployeeId(createOvertimeEmployeeDto.employeeId);
 
     return await this.crudService.transact<OvertimeEmployee>(entityManager).create({
       dto: { salaryGradeAmount, dailyRate, ...createOvertimeEmployeeDto },

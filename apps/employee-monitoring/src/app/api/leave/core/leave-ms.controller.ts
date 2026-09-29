@@ -7,15 +7,14 @@ import { MsExceptionFilter } from '@gscwd-api/utils';
 
 @Controller()
 export class LeaveMsController {
-  constructor(private readonly leaveService: LeaveService) { }
+  constructor(private readonly leaveService: LeaveService) {}
 
   @UseFilters(new MsExceptionFilter())
   @MessagePattern('get_leave_for_hrdm_approval')
   async getForHrdmApprovalCount() {
     try {
       return await this.leaveService.getForHrdmApprovalCount();
-    }
-    catch (error) {
+    } catch (error) {
       throw new RpcException(error.message);
     }
   }
@@ -25,10 +24,8 @@ export class LeaveMsController {
   async updateHrdmLeaveApprovalStatus(@Payload() updateLeaveApplicationStatus: UpdateLeaveApplicationHrdmStatusDto) {
     try {
       return await this.leaveService.updateLeaveStatus({ ...updateLeaveApplicationStatus, hrdmApprovalDate: dayjs().toDate() });
-    }
-    catch (error) {
+    } catch (error) {
       throw new RpcException(error.message);
     }
-
   }
 }
