@@ -55,7 +55,7 @@ export enum NatureOfBusiness {
   HALF_DAY = 'Half Day',
   UNDERTIME = 'Undertime',
   OFFICIAL_BUSINESS = 'Official Business',
-  WELLNESS_PASS = 'WELLNESS_PASS',
+  WELLNESS_PASS = 'Wellness Pass',
 }
 
 export enum ObTransportation {
