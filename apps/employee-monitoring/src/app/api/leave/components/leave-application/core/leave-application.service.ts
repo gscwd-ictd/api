@@ -252,6 +252,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           ORDER BY la.date_of_filing DESC;`,
         [id]
       );
+
       const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue`, [id]))[0];
 
       const leaveApplicationsWithDates = await Promise.all(
@@ -608,7 +609,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       return { employeeDetails, leaveApplicationBasicInfo };
     }
   }
-
 
   async getTerminalLeaveDetails(leaveApplicationId: string) {
     const monetizationDetails = await this.getMonetizationDetails(leaveApplicationId);

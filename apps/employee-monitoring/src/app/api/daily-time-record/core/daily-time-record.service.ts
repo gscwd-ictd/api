@@ -899,19 +899,24 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   async updateDtr(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: EmployeeScheduleType) {
-    const { isIncompleteDtr } = (await this.rawQuery(`SELECT is_incomplete_dtr(?) isIncompleteDtr;`, [currEmployeeDtr.id]))[0];
-    if (parseInt(isIncompleteDtr) === 1) {
-      switch (schedule.shift) {
-        case 'day':
-          if (schedule.lunchOut !== null && schedule.lunchIn !== null) {
-            return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);
-          } else return await this.updateRegularWithOutLunch(currEmployeeDtr, ivmsEntry, schedule);
-        case 'night':
-          return await this.updateNightScheduleDtr(currEmployeeDtr.companyId, ivmsEntry, schedule);
-        default:
-          break;
-      }
+    /* observe uncomment condition if there are unforeseen unexpected results */
+    //const { isIncompleteDtr } = (await this.rawQuery(`SELECT is_incomplete_dtr(?) isIncompleteDtr;`, [currEmployeeDtr.id]))[0];
+    //if (parseInt(isIncompleteDtr) === 1) {
+    switch (schedule.shift) {
+      case 'day':
+        if (schedule.withLunch === true) {
+          console.log('here');
+          console.log(dayjs(ivmsEntry[0].date).toDate() === dayjs('2026-04-28').toDate());
+          return await this.updateRegularMorningDtr(currEmployeeDtr, ivmsEntry, schedule);
+        } else {
+          return await this.updateRegularWithOutLunch(currEmployeeDtr, ivmsEntry, schedule);
+        }
+      case 'night':
+        return await this.updateNightScheduleDtr(currEmployeeDtr.companyId, ivmsEntry, schedule);
+      default:
+        break;
     }
+    //}
   }
   //
   async updateRegularWithOutLunch(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
@@ -1140,7 +1145,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   async saveDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: EmployeeScheduleType) {
     switch (schedule.shift) {
       case 'day':
-        if (schedule.lunchOut !== null && schedule.lunchIn !== null) {
+        if (schedule.withLunch) {
           return await this.addRegularMorningDtr(companyId, ivmsEntry, schedule);
         } else return await this.addRegularWithOutLunch(companyId, ivmsEntry, schedule);
       case 'night':
