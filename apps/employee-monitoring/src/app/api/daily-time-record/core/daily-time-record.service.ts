@@ -1611,7 +1611,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   /** True if an app-scanned pass slip already accounts for the employee leaving early that day. */
   private async passSlipCoversDtrTimeOut(employeeId: string, companyId: string, dtrDate: Date | string) {
     const { passSlipCount } = (
-      await this.rawQuery(PASS_SLIP_COVERS_DTR_TIME_OUT_SQL, [companyId, employeeId, dayjs(dtrDate).format('YYYY-MM-DD')])
+      await this.rawQuery(PASS_SLIP_COVERS_DTR_TIME_OUT_SQL, [
+        companyId,
+        employeeId,
+        dayjs(dtrDate).format('YYYY-MM-DD'),
+        dayjs(dtrDate).format('YYYY-MM-DD'),
+      ])
     )[0];
     return Number(passSlipCount) > 0;
   }

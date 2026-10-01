@@ -1,8 +1,9 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Schedule } from '../schedule';
 
 @Entity()
+@Index('IDX_dtr_company_date', ['companyId', 'dtrDate'])
 export class DailyTimeRecord extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'daily_time_record_id' })
   id: string;
