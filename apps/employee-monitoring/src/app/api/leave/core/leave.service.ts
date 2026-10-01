@@ -6,7 +6,7 @@ import {
   UpdateLeaveApplicationHrmoStatusDto,
   UpdateLeaveApplicationSupervisorStatusDto,
 } from '@gscwd-api/models';
-import { DtrDeductionType, LeaveApplicationStatus, LeaveLedger } from '@gscwd-api/utils';
+import { LeaveApplicationStatus, LeaveLedger } from '@gscwd-api/utils';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { DataSource, EntityManager } from 'typeorm';

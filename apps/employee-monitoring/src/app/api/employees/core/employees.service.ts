@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class EmployeesService {
-  constructor(private readonly client: MicroserviceClient, private readonly dataSource: DataSource) { }
+  constructor(private readonly client: MicroserviceClient, private readonly dataSource: DataSource) {}
 
   async getAllPermanentEmployeeIds() {
     const employees = (await this.client.call<string, object, []>({
@@ -20,9 +20,25 @@ export class EmployeesService {
     return employees;
   }
 
-  async getBasicEmployeeDetailsByEmployeeId(employeeId: string): Promise<EmployeeDetails & { employeeFullNameFirst: string, orgStruct: { officeName: string, divisionName: string, departmentName: string } }> {
+  async getAllActivePermanentEmployeeIds() {
+    const employees = (await this.client.call<string, object, []>({
+      action: 'send',
+      pattern: 'get_all_active_regular_employee_ids',
+      payload: {},
+      onError: (error) => {
+        throw new InternalServerErrorException();
+      },
+    })) as { employeeId: string; companyId: string }[];
+
+    return employees;
+  }
+
+  async getBasicEmployeeDetailsByEmployeeId(
+    employeeId: string
+  ): Promise<EmployeeDetails & { employeeFullNameFirst: string; orgStruct: { officeName: string; divisionName: string; departmentName: string } }> {
     try {
-      const employeeDetails = await this.dataSource.query(`
+      const employeeDetails = await this.dataSource.query(
+        `
           SELECT emp._id userId, 
                 emp.company_id companyId,
                 ${process.env.HRMS_DB_NAME}get_employee_position_or_oic(emp._id) positionTitle, 
@@ -36,11 +52,15 @@ export class EmployeesService {
           INNER JOIN ${process.env.HRMS_DB_NAME}plantilla_positions pp ON pp.employee_id_fk = emp._id
           INNER JOIN ${process.env.PORTAL_DB_NAME}employees port_emp ON port_emp.user_id_fk = emp._id
           WHERE emp._id = ?;
-        `, [employeeId]);
+        `,
+        [employeeId]
+      );
 
-      const { id, name, userId, employeeFullName, companyId, positionId, positionTitle, userRole, employeeFullNameFirst, photoUrl } = employeeDetails[0];
-      const { officeName, divisionName, departmentName } = (await this.dataSource.query(`CALL ${process.env.HRMS_DB_NAME}sp_get_office_department_division(?);`, [id]))[0][0];
-
+      const { id, name, userId, employeeFullName, companyId, positionId, positionTitle, userRole, employeeFullNameFirst, photoUrl } =
+        employeeDetails[0];
+      const { officeName, divisionName, departmentName } = (
+        await this.dataSource.query(`CALL ${process.env.HRMS_DB_NAME}sp_get_office_department_division(?);`, [id])
+      )[0][0];
 
       return {
         userId,
@@ -51,21 +71,22 @@ export class EmployeesService {
         assignment: { id, name, positionId, positionTitle },
         orgStruct: { officeName, divisionName, departmentName },
         userRole,
-      } as EmployeeDetails & { employeeFullNameFirst: string, orgStruct: { officeName: string, divisionName: string, departmentName: string } };
-    }
-    catch (error) {
+      } as EmployeeDetails & { employeeFullNameFirst: string; orgStruct: { officeName: string; divisionName: string; departmentName: string } };
+    } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
 
   async getEmployeeIdByCompanyId(companyId: string) {
     try {
-      const employee = (await this.dataSource.query(`
+      const employee = (await this.dataSource.query(
+        `
        SELECT _id employeeId 
-        FROM ${process.env.HRMS_DB_NAME}employees WHERE company_id = ? LIMIT 1;`, [companyId])) as { employeeId: string }[];
+        FROM ${process.env.HRMS_DB_NAME}employees WHERE company_id = ? LIMIT 1;`,
+        [companyId]
+      )) as { employeeId: string }[];
       return employee.length > 0 ? employee[0].employeeId : null;
-    }
-    catch (error) {
+    } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
@@ -328,5 +349,39 @@ export class EmployeesService {
       pattern: 'get_employees_by_nature_of_appointment',
       payload: natureOfAppointment,
     })) as { employeeId: string; fullName: string }[];
+  }
+
+  async getEmployeesUnderOvertimeSupervisor(employeeId: string) {
+    return await this.dataSource.query(
+      `
+        SELECT employeeId, companyId, employeeFullName FROM 
+        (
+            (SELECT emp._id employeeId, emp.company_id companyId, ${process.env.HRMS_DB_NAME}get_employee_fullname2(emp._id) employeeFullName 
+              FROM ${process.env.HRMS_DB_NAME}employees emp 
+                INNER JOIN ${process.env.HRMS_DB_NAME}employee_temporary_assignment eta ON eta.employee_id_fk = emp._id 
+              WHERE (now() >= eta.date_from AND now() <= eta.date_to) AND eta.organization_id_fk IN (
+              SELECT ois.org_id_fk FROM employee_monitoring.overtime_immediate_supervisor ois WHERE ois.employee_id_fk = ?
+            ))
+            UNION
+            (SELECT 
+              emp.employee_id employeeId, 
+              emp.company_id companyId, 
+              emp.name employeeFullName 
+            FROM 
+              ${process.env.HRMS_DB_NAME}all_employees_view emp 
+            WHERE emp.assignmentId IN (
+              SELECT ois.org_id_fk FROM employee_monitoring.overtime_immediate_supervisor ois 
+                WHERE ois.employee_id_fk = ?
+            ) AND emp.employee_id NOT IN (
+              SELECT eta.employee_id_fk FROM ${process.env.HRMS_DB_NAME}employee_temporary_assignment eta 
+                WHERE eta.organization_id_fk <> get_employee_assignment_id_or_oic_id(?)
+              AND (now() >= eta.date_from AND now() <= eta.date_to)
+            )
+            )
+         ) employees 
+          order by employees.employeeFullName;
+    `,
+      [employeeId]
+    );
   }
 }
