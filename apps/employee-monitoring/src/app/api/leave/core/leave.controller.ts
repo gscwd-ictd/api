@@ -15,7 +15,7 @@ import { AuthenticatedUser } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'leave' })
 export class LeaveController {
-  constructor(private readonly leaveService: LeaveService) { }
+  constructor(private readonly leaveService: LeaveService) {}
 
   @Get('hrmo/:year_month')
   async getLeavesForHrApprovalByYearMonth(@Param('year_month') yearMonth: string) {

@@ -53,10 +53,10 @@ export class ReportsService {
       leaveApplications = await this.dtrService.rawQuery(
         `
         SELECT 
-        employee_id_fk employeeId,
-        leave_application_id leaveApplicationId,
-        GROUP_CONCAT(lad.leave_date ORDER BY lad.leave_date ASC SEPARATOR ', ') leaveDates, 
-        DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') dateOfFiling,
+          employee_id_fk employeeId,
+          leave_application_id leaveApplicationId,
+          GROUP_CONCAT(lad.leave_date ORDER BY lad.leave_date ASC SEPARATOR ', ') leaveDates, 
+          DATE_FORMAT(la.date_of_filing,'%Y-%m-%d') dateOfFiling,
           COALESCE(in_hospital, out_patient) reason FROM leave_application la 
               INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
               INNER JOIN leave_benefits lb ON la.leave_benefits_id_fk = lb.leave_benefits_id
@@ -313,36 +313,49 @@ export class ReportsService {
   }
 
   async generateReportOnEmployeeLeaveCreditBalance(monthYear: string) {
-    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+    let employeeId;
+    try {
+      const employees = await this.employeesService.getAllPermanentCasualEmployees2();
 
-    const leaveCreditBalance = await Promise.all(
-      employees.map(async (employee) => {
-        const { value, label } = employee;
-        const employeeDetails = await this.employeesService.getEmployeeDetails(value);
-        const { companyId } = employeeDetails;
-        const leaveDetails = (await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear]))[0];
-        const { sickLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
+      const leaveCreditBalance = await Promise.all(
+        employees.map(async (employee) => {
+          const { value, label } = employee;
+          const employeeDetails = await this.employeesService.getEmployeeDetails(value);
+          const { companyId } = employeeDetails;
+          employeeId = value;
+          console.log(value, companyId);
+          const leaveDetails = (
+            await this.dtrService.rawQuery(`CALL sp_get_employee_ledger_by_month_year(?,?,?);`, [value, companyId, monthYear])
+          )[0];
 
-        const totalVacationLeave = parseFloat(
-          parseFloat(vacationLeaveBalance).toLocaleString(undefined, {
-            minimumFractionDigits: 3,
-            maximumFractionDigits: 3,
-          })
-        );
+          console.log(leaveDetails.length, employeeId, companyId);
 
-        return {
-          companyId,
-          name: label,
-          sickLeaveBalance: parseFloat(sickLeaveBalance).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
-          vacationLeaveBalance: totalVacationLeave.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
-          totalLeaveBalance: (totalVacationLeave + parseFloat(sickLeaveBalance)).toLocaleString(undefined, {
-            minimumFractionDigits: 3,
-            maximumFractionDigits: 3,
-          }),
-        };
-      })
-    );
-    return leaveCreditBalance;
+          const { sickLeaveBalance, vacationLeaveBalance } = leaveDetails[leaveDetails.length - 1];
+
+          const totalVacationLeave = parseFloat(
+            parseFloat(vacationLeaveBalance).toLocaleString(undefined, {
+              minimumFractionDigits: 3,
+              maximumFractionDigits: 3,
+            })
+          );
+
+          return {
+            companyId,
+            name: label,
+            sickLeaveBalance: parseFloat(sickLeaveBalance).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+            vacationLeaveBalance: totalVacationLeave.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+            totalLeaveBalance: (totalVacationLeave + parseFloat(sickLeaveBalance)).toLocaleString(undefined, {
+              minimumFractionDigits: 3,
+              maximumFractionDigits: 3,
+            }),
+          };
+        })
+      );
+      return leaveCreditBalance;
+    } catch (error) {
+      console.log(employeeId);
+      console.log(error);
+    }
   }
 
   async generateReportOnEmployeeLeaveCreditBalanceWithMoney(monthYear: string) {
@@ -675,6 +688,19 @@ export class ReportsService {
     }
   }
 
+  async generateReportOnNightDifferentialPay(userId: string, dateFrom: Date, dateTo: Date) {
+    // get employees under overtime immediate supervisor
+    //    including temporary assigned to his/her org
+    //    excluding those in his/her org but temporarily assigned to other
+    try {
+      const employeesUnderOrg = await this.employeesService.getEmployeesUnderOvertimeSupervisor(userId);
+      console.log(employeesUnderOrg);
+      return {};
+    } catch (error) {
+      throw new HttpException('', 500);
+    }
+  }
+
   async generateReport(
     user: User,
     report: Report,
@@ -738,6 +764,9 @@ export class ReportsService {
           reportDetails = await this.generateReportOnLeaveApplicationLateFiling(dateFrom, dateTo);
           break;
         //#endregion Report About Leaves
+        case decodeURI(Report.REPORT_ON_NIGHT_DIFFERENTIAL_PAY):
+          reportDetails = await this.generateReportOnNightDifferentialPay(user.employeeId, dateFrom, dateTo);
+          break;
         default:
           break;
       }

@@ -28,7 +28,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
 
   @Cron('0 0 0 1 1 *')
   async creditRecurringLeaves() {
-    const employees = await this.employeeService.getAllPermanentEmployeeIds();
+    const employees = await this.employeeService.getAllActivePermanentEmployeeIds();
     //select all cumulative and val
     const leaveBenefits = (await this.rawQuery(
       `SELECT leave_benefits_id leaveBenefitsId, accumulated_credits accumulatedCredits 
@@ -79,7 +79,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
 
   @Cron('0 57 23 31 12 *')
   async creditBeginningBalance() {
-    const employees = await this.employeeService.getAllPermanentEmployeeIds();
+    const employees = await this.employeeService.getAllActivePermanentEmployeeIds();
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       const credits = await Promise.all(
         employees.map(async (employee, idx) => {
@@ -258,7 +258,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
   }
 
   async creditCumulativeLeaves() {
-    const employees = await this.employeeService.getAllPermanentEmployeeIds();
+    const employees = await this.employeeService.getAllActivePermanentEmployeeIds();
     //select all cumulative and val
     const leaveBenefits = (await this.rawQuery(
       `SELECT leave_benefits_id leaveBenefitsId, accumulated_credits accumulatedCredits 
@@ -312,7 +312,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
 
   async creditCumulativeLeavesManually(day: Date) {
     try {
-      const employees = await this.employeeService.getAllPermanentEmployeeIds();
+      const employees = await this.employeeService.getAllActivePermanentEmployeeIds();
 
       const leaveBenefits = (await this.rawQuery(
         `SELECT leave_benefits_id leaveBenefitsId, accumulated_credits accumulatedCredits 

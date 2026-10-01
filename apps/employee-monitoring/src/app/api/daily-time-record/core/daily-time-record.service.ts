@@ -1,3 +1,4 @@
+import { PASS_SLIP_COVERS_DTR_TIME_OUT_SQL } from '../../pass-slip/core/pass-slip-deduction.util';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { CreateDtrRemarksDto, DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto, UpdateDtrRemarksDto } from '@gscwd-api/models';
@@ -666,18 +667,14 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           } else {
             const currentDebitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
             if (currentDebitValue !== leaveCardItem.debitValue) {
-              const { leaveCreditDeductionsId } = leaveCardItem;
-              await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
-              await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+              await this.removeDtrLedgerDebit(leaveCardItem);
             }
           }
           //1.2 compute undertime by the day
         } else if (noOfLates === 0 && !latesUndertimesNoAttendance.isHalfDay) {
           //remove debit and deduction
           if (leaveCardItem) {
-            const { leaveCreditDeductionsId } = leaveCardItem;
-            await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
-            await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+            await this.removeDtrLedgerDebit(leaveCardItem);
           }
         } else if (noOfLates > 0 && latesUndertimesNoAttendance.isHalfDay && latesUndertimesNoAttendance.minutesLate > 0) {
           const debitValue = latesUndertimesNoAttendance.minutesLate / 480;
@@ -697,9 +694,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             .crud()
             .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.HALFDAY } } });
           if (leaveCardItemHalfDay) {
-            const { leaveCreditDeductionsId } = leaveCardItemHalfDay;
-            await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItemHalfDay.id }, softDelete: false });
-            await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+            await this.removeDtrLedgerDebit(leaveCardItemHalfDay);
           }
         }
 
@@ -709,9 +704,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.UNDERTIME } } });
 
           if (leaveCardItem) {
-            const { leaveCreditDeductionsId } = leaveCardItem;
-            await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
-            await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: leaveCreditDeductionsId.id } });
+            await this.removeDtrLedgerDebit(leaveCardItem);
           }
         }
 
@@ -720,27 +713,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             .crud()
             .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.UNDERTIME } } });
           let debitValue = 0;
-          const passSlipCount = (
-            await this.rawQuery(
-              `SELECT COUNT(pass_slip_id) passSlipCount FROM pass_slip ps 
-                  INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
-                WHERE psa.status = 'approved' AND ps.nature_of_business = 'Undertime' AND DATE_FORMAT(ps.date_of_application, '%Y-%m-%d')  = ?  
-                AND ps.employee_id_fk = ? AND ps.time_out IS NOT NULL;`,
-              [dtr.dtrDate, employeeDetails.userId]
-            )
-          )[0].passSlipCount;
+          // a pass slip (app scan) already accounts for leaving early -> no DTR undertime (avoid double deduction)
+          const passSlipCovers = await this.passSlipCoversDtrTimeOut(employeeDetails.userId, employeeDetails.companyId, dtr.dtrDate);
+          if (passSlipCovers && leaveCardItem) await this.removeDtrLedgerDebit(leaveCardItem);
 
-          const passSlipCountHalfDay = (
-            await this.rawQuery(
-              `SELECT COUNT(pass_slip_id) passSlipCount FROM pass_slip ps 
-                  INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id 
-                WHERE psa.status = 'approved' AND ps.nature_of_business = 'Half Day' AND DATE_FORMAT(ps.date_of_application, '%Y-%m-%d')  = ?  
-                AND ps.employee_id_fk = ? AND ps.time_out IS NOT NULL;`,
-              [dtr.dtrDate, employeeDetails.userId]
-            )
-          )[0].passSlipCount;
-
-          if (passSlipCount === '0' && passSlipCountHalfDay === '0') {
+          if (!passSlipCovers) {
             if (!leaveCardItem) {
               if (latesUndertimesNoAttendance.minutesUndertime > 0) {
                 debitValue = latesUndertimesNoAttendance.minutesUndertime / 480;
@@ -760,17 +737,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             .crud()
             .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.HALFDAY } } });
           const debitValue = 0;
-          const passSlipCount = (
-            await this.rawQuery(
-              `SELECT COUNT(pass_slip_id) passSlipCount FROM pass_slip ps
-                  INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id
-                WHERE psa.status = 'approved' AND ps.nature_of_business = 'Half Day' 
-                AND DATE_FORMAT(ps.date_of_application, '%Y-%m-%d')  = ? 
-                AND ps.employee_id_fk = ? AND ps.time_out IS NOT NULL;`,
-              [dtr.dtrDate, employeeDetails.userId]
-            )
-          )[0].passSlipCount;
-          if (passSlipCount === '0') {
+          const passSlipCovers = await this.passSlipCoversDtrTimeOut(employeeDetails.userId, employeeDetails.companyId, dtr.dtrDate);
+          if (passSlipCovers && leaveCardItem) await this.removeDtrLedgerDebit(leaveCardItem);
+          if (!passSlipCovers) {
             if (!leaveCardItem) {
               await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
                 dailyTimeRecordId: dtr,
@@ -1637,6 +1606,23 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         },
       });
     }
+  }
+
+  /** True if an app-scanned pass slip already accounts for the employee leaving early that day. */
+  private async passSlipCoversDtrTimeOut(employeeId: string, companyId: string, dtrDate: Date | string) {
+    const { passSlipCount } = (
+      await this.rawQuery(PASS_SLIP_COVERS_DTR_TIME_OUT_SQL, [companyId, employeeId, dayjs(dtrDate).format('YYYY-MM-DD')])
+    )[0];
+    return Number(passSlipCount) > 0;
+  }
+
+  /** Remove a DTR-based ledger debit (and its leave credit deduction, if any) without crashing on unloaded relations. */
+  private async removeDtrLedgerDebit(leaveCardItem: { id: string }) {
+    const row = (await this.rawQuery(`SELECT leave_credit_deductions_id_fk lcdId FROM leave_card_ledger_debit WHERE leave_card_ledger_id = ?;`, [
+      leaveCardItem.id,
+    ])) as { lcdId: string | null }[];
+    await this.leaveCardLedgerDebitService.crud().delete({ deleteBy: { id: leaveCardItem.id }, softDelete: false });
+    if (row.length > 0 && row[0].lcdId) await this.leaveCreditDeductionsService.crud().delete({ deleteBy: { id: row[0].lcdId } });
   }
 
   @Cron('0 59 23 * * 0-6')
