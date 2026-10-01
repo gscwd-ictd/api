@@ -4,7 +4,7 @@ import { OvertimeService } from './overtime.service';
 
 @Controller({ version: '1', path: 'overtime/reports' })
 export class OvertimeReportsController {
-  constructor(private overtimeService: OvertimeService) { }
+  constructor(private overtimeService: OvertimeService) {}
 
   @Get(':overtime_application_id/:immediate_supervisor_employee_id')
   async getOvertimeAuthorization(
@@ -41,6 +41,12 @@ export class OvertimeReportsController {
     @Query('half') half: ReportHalf,
     @Query('nature_of_appointment') natureOfAppointment: string
   ) {
-    return await this.overtimeService.getOvertimeAuthorizationAccomplishmentSummary(immediateSupervisorEmployeeId, year, month, half, natureOfAppointment);
+    return await this.overtimeService.getOvertimeAuthorizationAccomplishmentSummary(
+      immediateSupervisorEmployeeId,
+      year,
+      month,
+      half,
+      natureOfAppointment
+    );
   }
 }

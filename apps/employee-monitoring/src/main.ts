@@ -30,9 +30,12 @@ const whitelist = [
   'http://172.20.10.59:3109',
   'http://172.20.110.45:3005',
   'http://172.20.10.57:3005',
-  'http://172.20.10.60:3002',
-  'http://172.20.110.45:3001',
-  'http://172.20.110.45:3002',
+  'http://172.20.110.60:3001',
+  'http://172.20.110.60:3002',
+  'http://172.20.110.60:3003',
+  'http://172.20.110.60:3004',
+  'http://172.20.110.60:3005',
+  'http://172.20.110.60:3006',
   'http://172.20.10.63:3005',
   'http://172.20.10.63:3000',
   'http://172.20.10.58:3000',
@@ -103,12 +106,29 @@ async function bootstrap() {
   //   })
   // );
 
+  app.use(
+    helmet({
+      xContentTypeOptions: true,
+      xXssProtection: true,
+      hsts: {
+        maxAge: 31536000, // 1 year (in seconds)
+        includeSubDomains: true, // Apply to all subdomains
+        preload: true, // Allow browser preloading
+      },
+    })
+  );
+
+  app.use((req: any, res: { setHeader: (arg0: string, arg1: string) => void }, next: () => void) => {
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
+  });
+
   app.connectMicroservice({
     transport: Transport.REDIS,
     options: {
       host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
       port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
-      password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
+      //password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
     },
   });
 

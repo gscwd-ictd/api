@@ -25,7 +25,6 @@ import RedisStore from 'connect-redis';
 
 const redisClientHrms = redis.createClient({
   url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:6479`,
-  password: 'IloVdTTpdX',
 });
 redisClientHrms.connect().catch(console.error);
 

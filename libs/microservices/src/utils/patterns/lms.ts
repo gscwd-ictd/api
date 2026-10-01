@@ -23,6 +23,7 @@ export enum EmployeeTagsPatterns {
   GET_TAGS_BY_EMPLOYEE_ID = 'get_tags_by_employee_id',
   GET_EMPLOYEES_BY_TAG_ID = 'get_employee_by_tag_id',
   GET_EMPLOYEES_BY_TAGS_IDS = 'get_employees_by_tag_ids',
+  GET_EMPLOYEES_BY_TAGS_IDS_V3 = 'get_employees_by_tag_ids_v3',
   DELETE_EMPLOYEE_TAGS = 'delete_employee_tags',
   COUNT_EMPLOYEE_TAGS = 'count_employee_tags',
 }

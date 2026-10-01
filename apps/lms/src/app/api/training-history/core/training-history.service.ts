@@ -37,6 +37,9 @@ export class TrainingHistoryService extends CrudHelper<TrainingHistory> {
               id: trainingId,
             },
           },
+          order: {
+            createdAt: 'DESC',
+          },
         },
       });
     } catch (error) {

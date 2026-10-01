@@ -158,22 +158,6 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
     return leaveDateCancellationDto;
   }
 
-  async getLeaveCancelledAndForCancellation(leaveApplicationId: string) {
-    return (await this.rawQuery(
-      `
-    SELECT
-       DATE_FORMAT(lad.leave_date,'%Y-%m-%d') leaveDate
-     FROM leave_application la 
-       INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
-       INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
-     WHERE la.leave_application_id=?  AND (lad.status ='for cancellation' OR lad.status='cancelled'); 
-    `,
-      [leaveApplicationId]
-    )) as {
-      leaveDate: string;
-    }[];
-  }
-
   async getForApprovalLeaveDates() {
     const leaveApplications = await this.getAllLeaveApplicationIdsFromLeaveDates();
     const leaveApplicationDateDetails = await Promise.all(
@@ -245,6 +229,22 @@ export class LeaveApplicationDatesService extends CrudHelper<LeaveApplicationDat
       leaveDate: string;
       status: string;
     };
+  }
+
+  async getLeaveCancelledAndForCancellation(leaveApplicationId: string) {
+    return (await this.rawQuery(
+      `
+    SELECT
+       DATE_FORMAT(lad.leave_date,'%Y-%m-%d') leaveDate
+     FROM leave_application la 
+       INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+       INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
+     WHERE la.leave_application_id=?  AND (lad.status ='for cancellation' OR lad.status='cancelled'); 
+    `,
+      [leaveApplicationId]
+    )) as {
+      leaveDate: string;
+    }[];
   }
 
   async getLeaveDatesByLeaveApplicationIdAndStatus(leaveApplicationId: string, status: LeaveDayStatus | null) {

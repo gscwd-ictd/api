@@ -36,6 +36,7 @@ export class BenchmarkParticipantsService extends CrudHelper<BenchmarkParticipan
       );
     } catch (error) {
       Logger.error(error);
+      console.log(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

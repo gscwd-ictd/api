@@ -488,7 +488,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       .orderBy('t.created_at', 'DESC')
       .addOrderBy('status', 'ASC')
       .leftJoinAndSelect('t.passSlipId', 'passSlipId')
-      .where(`DATE_FORMAT(t.created_at,'%m') = :dateApplied`, { dateApplied: dayjs().format('MM').toString() })
+      .where(`DATE_FORMAT(t.created_at,'%Y-%m-%d') = :dateApplied`, { dateApplied: dayjs().format('YYYY-MM-DD').toString() })
       .getMany();
 
     const passSlipDetails = await Promise.all(

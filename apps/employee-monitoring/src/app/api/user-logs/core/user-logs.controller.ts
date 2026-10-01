@@ -4,7 +4,7 @@ import { UserLogsService } from './user-logs.service';
 
 @Controller({ version: '1', path: 'user-logs' })
 export class UserLogsController {
-  constructor(private readonly userLogsService: UserLogsService) {}
+  constructor(private readonly userLogsService: UserLogsService) { }
 
   @Post()
   async addLogs(@Body() createUserLogsDto: CreateUserLogsDto) {
