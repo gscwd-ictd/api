@@ -130,17 +130,17 @@ export function quarterStart(date: Date | string): string {
  *  - it is Undertime or Half Day, or
  *  - the employee never scanned back IN (Personal Business / Wellness Pass), or the IN was
  *    auto-filled with the schedule time out.
- * Params: [employeeId, 'YYYY-MM-DD', companyId]
+ * Params: [companyId, employeeId, 'YYYY-MM-DD', 'YYYY-MM-DD'].
  */
 export const PASS_SLIP_COVERS_DTR_TIME_OUT_SQL = `
   SELECT COUNT(ps.pass_slip_id) passSlipCount
     FROM pass_slip ps
    INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id
     LEFT JOIN daily_time_record dtr ON dtr.company_id_fk = ?
-          AND DATE_FORMAT(dtr.dtr_date,'%Y-%m-%d') = DATE_FORMAT(ps.date_of_application,'%Y-%m-%d')
+          AND dtr.dtr_date = DATE(ps.date_of_application)
     LEFT JOIN schedule s ON s.schedule_id = dtr.schedule_id_fk
    WHERE ps.employee_id_fk = ?
-     AND DATE_FORMAT(ps.date_of_application,'%Y-%m-%d') = ?
+     AND ps.date_of_application >= ? AND ps.date_of_application < DATE_ADD(?, INTERVAL 1 DAY)
      AND ps.time_out IS NOT NULL
      AND psa.status IN ('approved','approved with medical certificate','approved without medical certificate',
                         'awaiting medical certificate','for dispute')
