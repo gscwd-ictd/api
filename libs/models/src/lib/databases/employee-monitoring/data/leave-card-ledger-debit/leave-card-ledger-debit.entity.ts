@@ -33,4 +33,8 @@ export class LeaveCardLedgerDebit extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'dtr_deduction_type', type: 'enum', nullable: true, enum: DtrDeductionType })
   dtrDeductionType: DtrDeductionType;
+
+  /** Leave type decided at posting time (Wellness Pass). NULL = sp_generate_leave_ledger_view applies its usual rules. */
+  @Column({ name: 'leave_type_charged', type: 'enum', enum: ['VL', 'SL'], nullable: true, default: null })
+  leaveTypeCharged: 'VL' | 'SL' | null;
 }

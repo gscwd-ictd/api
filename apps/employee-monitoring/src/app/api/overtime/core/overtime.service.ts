@@ -1798,6 +1798,9 @@ export class OvertimeService {
 
     const _month = ('0' + month).slice(-2);
 
+    // ADDED: one flag for "paid by salary grade" (permanent/casual) vs "paid by daily rate" (job order)
+    const isSalaryGradeBased = _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual';
+
     let overallTotalRegularOTAmount = 0;
     let overallTotalRegularOTAmountOld = 0;
 
@@ -1855,22 +1858,22 @@ export class OvertimeService {
           return null;
 
         const hourlyMonthlyRate = {
-          hourlyRate:
-            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount / 22 / 8 : employee.dailyRate / 8,
-          monthlyRate:
-            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate * 22,
+          hourlyRate: isSalaryGradeBased ? employee.salaryGradeAmount / 22 / 8 : employee.dailyRate / 8, // CHANGED: uses isSalaryGradeBased
+          monthlyRate: isSalaryGradeBased ? employee.salaryGradeAmount : employee.dailyRate * 22, // CHANGED: uses isSalaryGradeBased
         };
 
         const overtimes = await Promise.all(
           days.map(async (_day) => {
             //const empSched = await this.isRegularOvertimeDay(employee.employeeId, year, month, _day);
             //!TODO get every overtime of the employee on specific year and month on specified days in the half chosen
-            const filterForEmployeeRate =
-              _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual'
-                ? `AND oe.salary_grade_amount = ? AND oe.daily_rate IS NULL `
-                : `AND oe.salary_grade_amount IS NULL AND oe.daily_rate = ? `;
-            const employeeRate =
-              _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual' ? employee.salaryGradeAmount : employee.dailyRate;
+
+            // CHANGED: treat 0 the same as NULL for the rate that does not apply.
+            // Since Oct 2, 2026, job order rows are saved with salary_grade_amount = 0.00 instead of NULL,
+            // which made the old "IS NULL" check skip them.
+            const filterForEmployeeRate = isSalaryGradeBased
+              ? `AND oe.salary_grade_amount = ? AND (oe.daily_rate IS NULL OR oe.daily_rate = 0) `
+              : `AND (oe.salary_grade_amount IS NULL OR oe.salary_grade_amount = 0) AND oe.daily_rate = ? `;
+            const employeeRate = isSalaryGradeBased ? employee.salaryGradeAmount : employee.dailyRate; // CHANGED: uses isSalaryGradeBased
             try {
               const overtime = (await this.overtimeApplicationService.rawQuery(
                 `
@@ -1892,6 +1895,15 @@ export class OvertimeService {
                 day: number;
                 overtimeApplicationId: string;
               }[];
+
+              // ADDED: no overtime on this day — return an empty day instead of throwing into the catch below
+              if (!overtime || overtime.length === 0) {
+                return {
+                  day: Number.parseInt(_day.toString()),
+                  hoursRendered: null,
+                  isHoliday: null,
+                };
+              }
 
               const overtimeDetails = await Promise.all(
                 overtime.map(async (overtimeDetail) => {
@@ -1999,14 +2011,10 @@ export class OvertimeService {
         return {
           employeeFullName: employee.employeeName,
           overtimes,
-          monthlyRate:
-            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual'
-              ? employee.salaryGradeAmount
-              : (Math.trunc(employee.dailyRate * 22 * 100) / 100).toFixed(2),
-          hourlyRate:
-            _natureOfAppointment === 'permanent' || _natureOfAppointment === 'casual'
-              ? (Math.trunc((employee.salaryGradeAmount / 22 / 8) * 100) / 100).toFixed(2)
-              : (Math.trunc((employee.dailyRate / 8) * 100) / 100).toFixed(2),
+          monthlyRate: isSalaryGradeBased ? employee.salaryGradeAmount : (Math.trunc(employee.dailyRate * 22 * 100) / 100).toFixed(2), // CHANGED: uses isSalaryGradeBased
+          hourlyRate: isSalaryGradeBased // CHANGED: uses isSalaryGradeBased
+            ? (Math.trunc((employee.salaryGradeAmount / 22 / 8) * 100) / 100).toFixed(2)
+            : (Math.trunc((employee.dailyRate / 8) * 100) / 100).toFixed(2),
           totalOTHoursRendered,
           totalRegularOTHoursRendered,
           totalOffOTHoursRendered,
