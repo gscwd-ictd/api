@@ -1,6 +1,6 @@
 import { OvertimeStatus } from '@gscwd-api/utils';
 import { PartialType, PickType } from '@nestjs/swagger';
-import { IsArray, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { OvertimeImmediateSupervisor } from '../overtime-immediate-supervisor';
 
 export class CreateOvertimeApplicationDto {
@@ -47,4 +47,13 @@ export class UpdateOvertimeApplicationDto extends PickType(CreateOvertimeApplica
   @IsArray()
   @IsUUID('all', { each: true })
   employees: string[];
+}
+
+export class CancelOvertimeApplicationDto {
+  @IsUUID('all')
+  immediateSupervisorEmployeeId: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'remarks is required when cancelling an overtime' })
+  remarks: string;
 }

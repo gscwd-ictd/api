@@ -1,4 +1,5 @@
 import {
+  CancelOvertimeApplicationDto,
   CreateOvertimeDto,
   UpdateAllOvertimeAccomplishmentDto,
   UpdateOvertimeAccomplishmentByEmployeeDto,
@@ -98,8 +99,11 @@ export class OvertimeController {
   }
 
   @Patch('/immediate-supervisor/:overtime_application_id/cancel')
-  async immediateSupervisorCancelOvertimeApplication(@Param('overtime_application_id') overtimeApplicationId: string) {
-    return await this.overtimeService.immediateSupervisorCancelOvertimeApplication(overtimeApplicationId);
+  async immediateSupervisorCancelOvertimeApplication(
+    @Param('overtime_application_id') overtimeApplicationId: string,
+    @Body() cancelOvertimeApplicationDto: CancelOvertimeApplicationDto
+  ) {
+    return await this.overtimeService.immediateSupervisorCancelOvertimeApplication(overtimeApplicationId, cancelOvertimeApplicationDto);
   }
 
   @Delete('/immediate-supervisors/:overtime_immediate_supervisor_id')

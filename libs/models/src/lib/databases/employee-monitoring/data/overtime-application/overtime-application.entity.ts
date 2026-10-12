@@ -26,4 +26,13 @@ export class OvertimeApplication extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'status', type: 'enum', enum: OvertimeStatus, default: OvertimeStatus.PENDING })
   status: OvertimeStatus;
+
+  @Column({ name: 'cancelled_by', type: 'uuid', nullable: true, default: null })
+  cancelledBy: string | null;
+
+  @Column({ name: 'cancelled_at', type: 'datetime', nullable: true, default: null })
+  cancelledAt: Date | null;
+
+  @Column({ name: 'cancel_remarks', type: 'text', nullable: true, default: null })
+  cancelRemarks: string | null;
 }

@@ -1,4 +1,5 @@
 import {
+  CancelOvertimeApplicationDto,
   CreateOvertimeDto,
   OvertimeAccomplishment,
   OvertimeApplication,
@@ -11,7 +12,7 @@ import {
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
 import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase, ScheduleShift } from '@gscwd-api/utils';
-import { ForbiddenException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import dayjs = require('dayjs');
 import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
@@ -2188,19 +2189,48 @@ export class OvertimeService {
     return overtimesWithEmployees;
   }
 
-  async immediateSupervisorCancelOvertimeApplication(id: string) {
-    const updateOvertimeApplicationResult = await this.overtimeApplicationService
-      .crud()
-      .update({ dto: { status: OvertimeStatus.CANCELLED }, updateBy: { id }, onError: () => new InternalServerErrorException() });
-    if (updateOvertimeApplicationResult.affected > 0) {
-      const updateOvertimeApprovalResult = await this.overtimeApprovalService.crud().update({
-        dto: { dateApproved: dayjs().toDate() },
-        updateBy: { overtimeApplicationId: { id } },
-        onError: () => new InternalServerErrorException(),
-      });
-      if (updateOvertimeApprovalResult.affected > 0) return { cancelledOvertimeApplication: id };
-    }
-    return;
+  /**
+   * OT immediate supervisor cancels an overtime application at any stage — also after the
+   * next higher head approved it and after accomplishments were approved (HR, 2026-10-13).
+   * Cancelled OT drops out of reports (queries filter status <> 'cancelled'); accomplishments are
+   * kept for audit. Already processed payroll periods are not recomputed.
+   */
+  async immediateSupervisorCancelOvertimeApplication(id: string, cancelDto: CancelOvertimeApplicationDto) {
+    const { immediateSupervisorEmployeeId, remarks } = cancelDto;
+
+    const rows = (await this.overtimeApplicationService.rawQuery(
+      `
+        SELECT oa.overtime_application_id id, oa.status status, ois.employee_id_fk immediateSupervisorEmployeeId
+        FROM overtime_application oa
+        LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
+        WHERE oa.overtime_application_id = ?;
+      `,
+      [id]
+    )) as { id: string; status: OvertimeStatus; immediateSupervisorEmployeeId: string | null }[];
+
+    if (rows.length === 0) throw new NotFoundException('Overtime application not found.');
+    const overtimeApplication = rows[0];
+
+    if (overtimeApplication.immediateSupervisorEmployeeId !== immediateSupervisorEmployeeId)
+      throw new ForbiddenException('Only the immediate supervisor of this overtime can cancel it.');
+
+    if (overtimeApplication.status === OvertimeStatus.CANCELLED) throw new ConflictException('Overtime application is already cancelled.');
+
+    const previousStatus = overtimeApplication.status;
+    const cancelledAt = dayjs().toDate();
+
+    await this.dataSource.transaction(async (entityManager: EntityManager) => {
+      await entityManager.query(
+        `UPDATE overtime_application
+           SET status = ?, cancelled_by = ?, cancelled_at = ?, cancel_remarks = ?
+         WHERE overtime_application_id = ?;`,
+        [OvertimeStatus.CANCELLED, immediateSupervisorEmployeeId, cancelledAt, remarks, id]
+      );
+      // keep previous behaviour: mark the approval row as actioned
+      await entityManager.query(`UPDATE overtime_approval SET date_approved = ? WHERE overtime_application_id_fk = ?;`, [cancelledAt, id]);
+    });
+
+    return { cancelledOvertimeApplication: id, previousStatus, cancelledBy: immediateSupervisorEmployeeId, cancelledAt, remarks };
   }
 
   private async checkEmployeeHasOtOnUpdate(updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
