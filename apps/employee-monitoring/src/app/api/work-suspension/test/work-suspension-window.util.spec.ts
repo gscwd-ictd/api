@@ -56,8 +56,8 @@ describe('getSuspensionWindow — other cases', () => {
   it('suspension inside lunch starts counting after lunch', () => {
     expect(getSuspensionWindow(tod('12:30'), sched8to5)).toMatchObject({ suspendedMinutes: 240, fraction: 0.5 });
   });
-  it('swing shift 14-22 (lunch 18-19), 17:00 -> 17-18 + 19-22 = 240, ND 19-22 = 180', () => {
-    expect(getSuspensionWindow(tod('17:00'), swing14to22)).toMatchObject({ suspendedMinutes: 240, fraction: 0.5, ndSuspendedMinutes: 180 });
+  it('swing shift 14-22 (lunch 18-19), 17:00 -> 17-18 + 19-22 = 240, ND 18-22 = 240 (lunch not excluded)', () => {
+    expect(getSuspensionWindow(tod('17:00'), swing14to22)).toMatchObject({ suspendedMinutes: 240, fraction: 0.5, ndSuspendedMinutes: 240 });
   });
   it('LEGACY and missing suspensions are not handled here', () => {
     expect(getSuspensionWindow({ suspensionType: WorkSuspensionType.LEGACY }, sched8to5).isSuspended).toBe(false);

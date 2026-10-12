@@ -11,7 +11,8 @@
  *    scheduled time out, capped at midnight, excluding lunch.
  *  - Lunch: the schedule's lunch; if none (or bad data), the 5th hour of duty (time in + 4h -> + 5h).
  *  - f = suspendedMinutes / 480, max 1.
- *  - Night differential window is 18:00 - 06:00.
+ *  - Night differential window is 18:00 - 06:00. ND minutes do NOT exclude lunch (HR, 2026-10-12)
+ *    and are only granted on regular work schedule days (callers skip rest days / holidays).
  */
 import { WorkSuspensionType } from '@gscwd-api/models';
 
@@ -45,7 +46,7 @@ export type SuspensionWindow = {
   suspendedMinutes: number;
   /** suspendedMinutes / 480, max 1 */
   fraction: number;
-  /** suspended duty minutes inside the 18:00 - 06:00 night differential window, lunch excluded */
+  /** suspended scheduled minutes inside the 18:00 - 06:00 night differential window, lunch NOT excluded */
   ndSuspendedMinutes: number;
 };
 
@@ -140,7 +141,7 @@ export function getSuspensionWindow(suspension: SuspensionInput | null | undefin
   };
   // the early-morning part of the ND window (00:00 - 06:00 of the same date) can also overlap a
   // schedule starting after midnight; suspension ends at midnight, so only 18:00 - 24:00 matters.
-  const ndSuspendedMinutes = dutyMinutesWithin(ndInterval, lunch);
+  const ndSuspendedMinutes = Math.max(0, ndInterval.end - ndInterval.start);
 
   return {
     isSuspended: true,
