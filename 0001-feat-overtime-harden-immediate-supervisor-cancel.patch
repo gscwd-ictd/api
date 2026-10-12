@@ -1,0 +1,227 @@
+From 73ac20eee8cc110ecc66da2feaa0f3ba2bce101e Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 13 Oct 2026 00:30:40 +0800
+Subject: [PATCH] feat(overtime): harden immediate supervisor cancel
+
+PATCH /v1/overtime/immediate-supervisor/:overtime_application_id/cancel
+body { immediateSupervisorEmployeeId, remarks }
+- allowed at any status (also after manager and accomplishment approval)
+- 404 not found, 403 not the OT's immediate supervisor, 409 already cancelled
+- records cancelled_by / cancelled_at / cancel_remarks (new nullable columns)
+- unit tests
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VY2MMG1mm8xPRbVK6rtCkn
+---
+ .../api/overtime/core/overtime.controller.ts  |  8 ++-
+ .../app/api/overtime/core/overtime.service.ts | 58 ++++++++++++++-----
+ .../test/overtime-supervisor-cancel.spec.ts   | 47 +++++++++++++++
+ .../overtime-application.dto.ts               | 11 +++-
+ .../overtime-application.entity.ts            |  9 +++
+ 5 files changed, 116 insertions(+), 17 deletions(-)
+ create mode 100644 apps/employee-monitoring/src/app/api/overtime/test/overtime-supervisor-cancel.spec.ts
+
+diff --git a/apps/employee-monitoring/src/app/api/overtime/core/overtime.controller.ts b/apps/employee-monitoring/src/app/api/overtime/core/overtime.controller.ts
+index ddd9550d..85c21d00 100644
+--- a/apps/employee-monitoring/src/app/api/overtime/core/overtime.controller.ts
++++ b/apps/employee-monitoring/src/app/api/overtime/core/overtime.controller.ts
+@@ -1,4 +1,5 @@
+ import {
++  CancelOvertimeApplicationDto,
+   CreateOvertimeDto,
+   UpdateAllOvertimeAccomplishmentDto,
+   UpdateOvertimeAccomplishmentByEmployeeDto,
+@@ -98,8 +99,11 @@ export class OvertimeController {
+   }
+ 
+   @Patch('/immediate-supervisor/:overtime_application_id/cancel')
+-  async immediateSupervisorCancelOvertimeApplication(@Param('overtime_application_id') overtimeApplicationId: string) {
+-    return await this.overtimeService.immediateSupervisorCancelOvertimeApplication(overtimeApplicationId);
++  async immediateSupervisorCancelOvertimeApplication(
++    @Param('overtime_application_id') overtimeApplicationId: string,
++    @Body() cancelOvertimeApplicationDto: CancelOvertimeApplicationDto
++  ) {
++    return await this.overtimeService.immediateSupervisorCancelOvertimeApplication(overtimeApplicationId, cancelOvertimeApplicationDto);
+   }
+ 
+   @Delete('/immediate-supervisors/:overtime_immediate_supervisor_id')
+diff --git a/apps/employee-monitoring/src/app/api/overtime/core/overtime.service.ts b/apps/employee-monitoring/src/app/api/overtime/core/overtime.service.ts
+index e29dacaf..19065fac 100644
+--- a/apps/employee-monitoring/src/app/api/overtime/core/overtime.service.ts
++++ b/apps/employee-monitoring/src/app/api/overtime/core/overtime.service.ts
+@@ -1,4 +1,5 @@
+ import {
++  CancelOvertimeApplicationDto,
+   CreateOvertimeDto,
+   OvertimeAccomplishment,
+   OvertimeApplication,
+@@ -11,7 +12,7 @@ import {
+   UpdateOvertimeApprovalDto,
+ } from '@gscwd-api/models';
+ import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase, ScheduleShift } from '@gscwd-api/utils';
+-import { ForbiddenException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
++import { ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+ import dayjs = require('dayjs');
+ import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual } from 'typeorm';
+ import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
+@@ -2188,19 +2189,48 @@ export class OvertimeService {
+     return overtimesWithEmployees;
+   }
+ 
+-  async immediateSupervisorCancelOvertimeApplication(id: string) {
+-    const updateOvertimeApplicationResult = await this.overtimeApplicationService
+-      .crud()
+-      .update({ dto: { status: OvertimeStatus.CANCELLED }, updateBy: { id }, onError: () => new InternalServerErrorException() });
+-    if (updateOvertimeApplicationResult.affected > 0) {
+-      const updateOvertimeApprovalResult = await this.overtimeApprovalService.crud().update({
+-        dto: { dateApproved: dayjs().toDate() },
+-        updateBy: { overtimeApplicationId: { id } },
+-        onError: () => new InternalServerErrorException(),
+-      });
+-      if (updateOvertimeApprovalResult.affected > 0) return { cancelledOvertimeApplication: id };
+-    }
+-    return;
++  /**
++   * OT immediate supervisor cancels an overtime application at any stage — also after the
++   * next higher head approved it and after accomplishments were approved (HR, 2026-10-13).
++   * Cancelled OT drops out of reports (queries filter status <> 'cancelled'); accomplishments are
++   * kept for audit. Already processed payroll periods are not recomputed.
++   */
++  async immediateSupervisorCancelOvertimeApplication(id: string, cancelDto: CancelOvertimeApplicationDto) {
++    const { immediateSupervisorEmployeeId, remarks } = cancelDto;
++
++    const rows = (await this.overtimeApplicationService.rawQuery(
++      `
++        SELECT oa.overtime_application_id id, oa.status status, ois.employee_id_fk immediateSupervisorEmployeeId
++        FROM overtime_application oa
++        LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
++        WHERE oa.overtime_application_id = ?;
++      `,
++      [id]
++    )) as { id: string; status: OvertimeStatus; immediateSupervisorEmployeeId: string | null }[];
++
++    if (rows.length === 0) throw new NotFoundException('Overtime application not found.');
++    const overtimeApplication = rows[0];
++
++    if (overtimeApplication.immediateSupervisorEmployeeId !== immediateSupervisorEmployeeId)
++      throw new ForbiddenException('Only the immediate supervisor of this overtime can cancel it.');
++
++    if (overtimeApplication.status === OvertimeStatus.CANCELLED) throw new ConflictException('Overtime application is already cancelled.');
++
++    const previousStatus = overtimeApplication.status;
++    const cancelledAt = dayjs().toDate();
++
++    await this.dataSource.transaction(async (entityManager: EntityManager) => {
++      await entityManager.query(
++        `UPDATE overtime_application
++           SET status = ?, cancelled_by = ?, cancelled_at = ?, cancel_remarks = ?
++         WHERE overtime_application_id = ?;`,
++        [OvertimeStatus.CANCELLED, immediateSupervisorEmployeeId, cancelledAt, remarks, id]
++      );
++      // keep previous behaviour: mark the approval row as actioned
++      await entityManager.query(`UPDATE overtime_approval SET date_approved = ? WHERE overtime_application_id_fk = ?;`, [cancelledAt, id]);
++    });
++
++    return { cancelledOvertimeApplication: id, previousStatus, cancelledBy: immediateSupervisorEmployeeId, cancelledAt, remarks };
+   }
+ 
+   private async checkEmployeeHasOtOnUpdate(updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
+diff --git a/apps/employee-monitoring/src/app/api/overtime/test/overtime-supervisor-cancel.spec.ts b/apps/employee-monitoring/src/app/api/overtime/test/overtime-supervisor-cancel.spec.ts
+new file mode 100644
+index 00000000..4f17202e
+--- /dev/null
++++ b/apps/employee-monitoring/src/app/api/overtime/test/overtime-supervisor-cancel.spec.ts
+@@ -0,0 +1,47 @@
++import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
++import { OvertimeStatus } from '@gscwd-api/utils';
++import { OvertimeService } from '../core/overtime.service';
++
++const SUPERVISOR = '11111111-1111-1111-1111-111111111111';
++const OTHER = '22222222-2222-2222-2222-222222222222';
++const OT_ID = 'ot-1';
++
++function makeService(row: { status: OvertimeStatus; immediateSupervisorEmployeeId: string } | null) {
++  const queries: { sql: string; params: unknown[] }[] = [];
++  const entityManager = { query: jest.fn(async (sql: string, params: unknown[]) => queries.push({ sql, params })) };
++  const service = Object.create(OvertimeService.prototype) as OvertimeService;
++  Object.assign(service, {
++    overtimeApplicationService: { rawQuery: jest.fn(async () => (row ? [{ id: OT_ID, ...row }] : [])) },
++    dataSource: { transaction: jest.fn(async (fn: (em: unknown) => Promise<unknown>) => fn(entityManager)) },
++  });
++  return { service, queries };
++}
++
++describe('OvertimeService.immediateSupervisorCancelOvertimeApplication', () => {
++  const dto = { immediateSupervisorEmployeeId: SUPERVISOR, remarks: 'no longer needed' };
++
++  it.each([OvertimeStatus.PENDING, OvertimeStatus.APPROVED, OvertimeStatus.DISAPPROVED])('cancels an overtime that is %s', async (status) => {
++    const { service, queries } = makeService({ status, immediateSupervisorEmployeeId: SUPERVISOR });
++    const result = await service.immediateSupervisorCancelOvertimeApplication(OT_ID, dto);
++    expect(result).toMatchObject({ cancelledOvertimeApplication: OT_ID, previousStatus: status, cancelledBy: SUPERVISOR, remarks: dto.remarks });
++    expect(queries[0].sql).toContain('UPDATE overtime_application');
++    expect(queries[0].params).toEqual([OvertimeStatus.CANCELLED, SUPERVISOR, expect.any(Date), dto.remarks, OT_ID]);
++    expect(queries[1].sql).toContain('UPDATE overtime_approval');
++  });
++
++  it('404 when the overtime does not exist', async () => {
++    const { service } = makeService(null);
++    await expect(service.immediateSupervisorCancelOvertimeApplication(OT_ID, dto)).rejects.toBeInstanceOf(NotFoundException);
++  });
++
++  it('403 when the caller is not the immediate supervisor', async () => {
++    const { service, queries } = makeService({ status: OvertimeStatus.APPROVED, immediateSupervisorEmployeeId: OTHER });
++    await expect(service.immediateSupervisorCancelOvertimeApplication(OT_ID, dto)).rejects.toBeInstanceOf(ForbiddenException);
++    expect(queries).toHaveLength(0);
++  });
++
++  it('409 when already cancelled', async () => {
++    const { service } = makeService({ status: OvertimeStatus.CANCELLED, immediateSupervisorEmployeeId: SUPERVISOR });
++    await expect(service.immediateSupervisorCancelOvertimeApplication(OT_ID, dto)).rejects.toBeInstanceOf(ConflictException);
++  });
++});
+diff --git a/libs/models/src/lib/databases/employee-monitoring/data/overtime-application/overtime-application.dto.ts b/libs/models/src/lib/databases/employee-monitoring/data/overtime-application/overtime-application.dto.ts
+index 37525ef6..4311d131 100644
+--- a/libs/models/src/lib/databases/employee-monitoring/data/overtime-application/overtime-application.dto.ts
++++ b/libs/models/src/lib/databases/employee-monitoring/data/overtime-application/overtime-application.dto.ts
+@@ -1,6 +1,6 @@
+ import { OvertimeStatus } from '@gscwd-api/utils';
+ import { PartialType, PickType } from '@nestjs/swagger';
+-import { IsArray, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
++import { IsArray, IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+ import { OvertimeImmediateSupervisor } from '../overtime-immediate-supervisor';
+ 
+ export class CreateOvertimeApplicationDto {
+@@ -48,3 +48,12 @@ export class UpdateOvertimeApplicationDto extends PickType(CreateOvertimeApplica
+   @IsUUID('all', { each: true })
+   employees: string[];
+ }
++
++export class CancelOvertimeApplicationDto {
++  @IsUUID('all')
++  immediateSupervisorEmployeeId: string;
++
++  @IsString()
++  @IsNotEmpty({ message: 'remarks is required when cancelling an overtime' })
++  remarks: string;
++}
+diff --git a/libs/models/src/lib/databases/employee-monitoring/data/overtime-application/overtime-application.entity.ts b/libs/models/src/lib/databases/employee-monitoring/data/overtime-application/overtime-application.entity.ts
+index 345cb09b..efa57a4a 100644
+--- a/libs/models/src/lib/databases/employee-monitoring/data/overtime-application/overtime-application.entity.ts
++++ b/libs/models/src/lib/databases/employee-monitoring/data/overtime-application/overtime-application.entity.ts
+@@ -26,4 +26,13 @@ export class OvertimeApplication extends DatabaseEntity implements IEntity {
+ 
+   @Column({ name: 'status', type: 'enum', enum: OvertimeStatus, default: OvertimeStatus.PENDING })
+   status: OvertimeStatus;
++
++  @Column({ name: 'cancelled_by', type: 'uuid', nullable: true, default: null })
++  cancelledBy: string | null;
++
++  @Column({ name: 'cancelled_at', type: 'datetime', nullable: true, default: null })
++  cancelledAt: Date | null;
++
++  @Column({ name: 'cancel_remarks', type: 'text', nullable: true, default: null })
++  cancelRemarks: string | null;
+ }
+-- 
+2.43.0
+
