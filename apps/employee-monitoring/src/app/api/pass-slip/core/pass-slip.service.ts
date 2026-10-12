@@ -256,69 +256,39 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
 
   async getCurrentPassSlipsByEmployeeId(employeeId: string) {
+    const today = dayjs(dayjs().format('YYYY-MM-DD'));
+    const basePassSlip = {
+      employeeId,
+      dateOfApplication: Between(today.subtract(1, 'day').toDate(), today.add(1, 'day').toDate()),
+    };
+
     const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
         select: { supervisorId: true, status: true },
         where: [
           {
-            passSlipId: {
-              employeeId,
-              dateOfApplication: Between(
-                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
-                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
-              ),
-              natureOfBusiness: NatureOfBusiness.PERSONAL,
-              timeIn: IsNull(),
-            },
+            passSlipId: { ...basePassSlip, natureOfBusiness: NatureOfBusiness.PERSONAL, timeIn: IsNull() },
             status: PassSlipApprovalStatus.APPROVED,
           },
           {
-            passSlipId: {
-              employeeId,
-              dateOfApplication: Between(
-                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
-                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
-              ),
-              natureOfBusiness: NatureOfBusiness.PERSONAL,
-              timeIn: IsNull(),
-            },
+            passSlipId: { ...basePassSlip, natureOfBusiness: NatureOfBusiness.PERSONAL, timeIn: IsNull() },
             status: PassSlipApprovalStatus.AWAITING_MEDICAL_CERTIFICATE,
           },
           {
-            passSlipId: {
-              employeeId,
-              dateOfApplication: Between(
-                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
-                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
-              ),
-              natureOfBusiness: NatureOfBusiness.OFFICIAL_BUSINESS,
-              timeIn: IsNull(),
-            },
+            passSlipId: { ...basePassSlip, natureOfBusiness: NatureOfBusiness.OFFICIAL_BUSINESS, timeIn: IsNull() },
             status: PassSlipApprovalStatus.APPROVED,
           },
           {
-            passSlipId: {
-              employeeId,
-              dateOfApplication: Between(
-                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
-                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
-              ),
-              timeOut: IsNull(),
-              natureOfBusiness: NatureOfBusiness.HALF_DAY,
-            },
+            passSlipId: { ...basePassSlip, natureOfBusiness: NatureOfBusiness.WELLNESS_PASS, timeIn: IsNull() },
             status: PassSlipApprovalStatus.APPROVED,
           },
           {
-            passSlipId: {
-              employeeId,
-              dateOfApplication: Between(
-                dayjs(dayjs().format('YYYY-MM-DD')).subtract(1, 'day').toDate(),
-                dayjs(dayjs().format('YYYY-MM-DD')).add(1, 'day').toDate()
-              ),
-              natureOfBusiness: NatureOfBusiness.UNDERTIME,
-              timeOut: IsNull(),
-            },
+            passSlipId: { ...basePassSlip, natureOfBusiness: NatureOfBusiness.HALF_DAY, timeOut: IsNull() },
+            status: PassSlipApprovalStatus.APPROVED,
+          },
+          {
+            passSlipId: { ...basePassSlip, natureOfBusiness: NatureOfBusiness.UNDERTIME, timeOut: IsNull() },
             status: PassSlipApprovalStatus.APPROVED,
           },
         ],
@@ -968,12 +938,27 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const debitValue = minutesToCredits(deductibleMinutes);
     if (debitValue <= 0) return false;
 
-    // VL vs SL is resolved by sp_generate_leave_ledger_view from nature_of_business, is_medical and status
+    // Wellness Pass excess -> SL; falls back to VL when the SL balance is zero or negative.
+    // Other natures stay NULL so sp_generate_leave_ledger_view applies its usual VL/SL rules.
+    let leaveTypeCharged: 'VL' | 'SL' | null = null;
+    if (natureOfBusiness === NatureOfBusiness.WELLNESS_PASS) {
+      const slBalance = await this.getSickLeaveBalance(employeeId, companyId, date);
+      leaveTypeCharged = slBalance > 0 ? 'SL' : 'VL';
+    }
+
     await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
       passSlipId: { ...passSlip, timeIn: timeIn as unknown as number } as never,
       debitValue,
+      leaveTypeCharged,
     });
     return true;
+  }
+
+  /** Employee's current SL balance (last row of the leave ledger for the slip's year). */
+  private async getSickLeaveBalance(employeeId: string, companyId: string, date: string): Promise<number> {
+    const ledger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs(date).year()]))[0] as LeaveLedger[];
+    if (!ledger || ledger.length === 0) return 0;
+    return Number(ledger[ledger.length - 1].sickLeaveBalance) || 0;
   }
 
   async getUsedPassSlipsCountByEmployeeId(employeeId: string) {
