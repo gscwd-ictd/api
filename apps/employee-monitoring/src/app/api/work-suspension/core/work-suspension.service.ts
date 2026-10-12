@@ -1,6 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateWorkSuspensionDto, UpdateWorkSuspensionDto, WorkSuspension, WorkSuspensionType } from '@gscwd-api/models';
 import { getSuspensionWindow, SuspensionSchedule, SuspensionWindow } from './work-suspension-window.util';
+import { toSortingSuspension } from './work-suspension-dtr.util';
 import {
   BadRequestException,
   ConflictException,
@@ -274,5 +275,31 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
   async getSuspensionWindow(date: Date, schedule: SuspensionSchedule): Promise<SuspensionWindow> {
     const suspension = await this.getActiveWorkSuspensionByDate(date);
     return getSuspensionWindow(suspension, schedule);
+  }
+
+  /**
+   * Hours + start used by the DTR punch-sorting code (scans after "time out − hours" become time out).
+   * LEGACY: the old values (suspension_hours + get_work_suspension_start). New rows: derived from the
+   * suspension window, so the sorting code keeps working unchanged. Start is 'YYYY-MM-DD HH:mm:ss' or null.
+   */
+  async getSortingSuspension(date: Date | string, schedule: SuspensionSchedule): Promise<{ suspensionHours: number; workSuspensionStart: string | null }> {
+    const dateString = dayjs(date).format('YYYY-MM-DD');
+    const legacyHours = await this.getWorkSuspensionBySuspensionDate(dayjs(dateString).toDate());
+    if (legacyHours > 0) {
+      return { suspensionHours: legacyHours, workSuspensionStart: await this.getWorkSuspensionStart(schedule.timeOut, dateString as unknown as Date) };
+    }
+    const { suspensionHours, startMinutes } = toSortingSuspension(await this.getSuspensionWindow(dayjs(dateString).toDate(), schedule), schedule);
+    if (startMinutes === null) return { suspensionHours: 0, workSuspensionStart: null };
+    return {
+      suspensionHours,
+      workSuspensionStart: dayjs(dateString).startOf('day').add(startMinutes, 'minute').format('YYYY-MM-DD HH:mm:ss'),
+    };
+  }
+
+  /** { type, startTime } of the active new-rule suspension on a date (for the DTR table / PDF marker), else null. */
+  async getWorkSuspensionMarker(date: Date | string): Promise<{ id: string; name: string; type: WorkSuspensionType; startTime: string | null } | null> {
+    const suspension = await this.getActiveWorkSuspensionByDate(dayjs(date).toDate());
+    if (!suspension || suspension.suspensionType === WorkSuspensionType.LEGACY) return null;
+    return { id: suspension.id, name: suspension.name, type: suspension.suspensionType, startTime: suspension.suspensionStartTime };
   }
 }
