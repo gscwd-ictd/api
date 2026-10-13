@@ -1,6 +1,9 @@
 import { CreateWorkSuspensionDto, UpdateWorkSuspensionDto, WorkSuspensionType } from '@gscwd-api/models';
 import { BadRequestException, Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query, ValidationPipe } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { WorkSuspensionService } from './work-suspension.service';
+// resolved lazily through ModuleRef: LeaveAddBackModule already imports WorkSuspensionModule
+import { WorkSuspensionAddBackService } from '../../leave/components/leave-add-back/core/work-suspension-add-back.service';
 
 // the global ValidationPipe is disabled in main.ts, so validate here; whitelist drops extra fields (e.g. app: 'ems')
 const validation = new ValidationPipe({ transform: true, whitelist: true });
@@ -22,7 +25,15 @@ function singleQueryValue(value: unknown, name: string, options: { pattern?: Reg
 
 @Controller({ version: '1', path: 'work-suspension' })
 export class WorkSuspensionController {
-  constructor(private readonly workSuspensionService: WorkSuspensionService) {}
+  constructor(private readonly workSuspensionService: WorkSuspensionService, private readonly moduleRef?: ModuleRef) {}
+
+  private addBack(): WorkSuspensionAddBackService | null {
+    try {
+      return this.moduleRef?.get(WorkSuspensionAddBackService, { strict: false }) ?? null;
+    } catch {
+      return null;
+    }
+  }
 
   /** ?from=YYYY-MM-DD&to=YYYY-MM-DD&includeArchived=false (default: last 6 months, archived included) */
   @Get('')
@@ -47,7 +58,9 @@ export class WorkSuspensionController {
 
   @Post()
   async createWorkSuspension(@Body(validation) workSuspensionDto: CreateWorkSuspensionDto) {
-    return await this.workSuspensionService.createWorkSuspension(workSuspensionDto);
+    const created = await this.workSuspensionService.createWorkSuspension(workSuspensionDto);
+    const leaveAddBack = await this.addBack()?.applyForSuspension(await this.workSuspensionService.getActiveWorkSuspensionById(created.id));
+    return { ...created, leaveAddBack };
   }
 
   @Patch(':work_suspension_id')
@@ -55,11 +68,17 @@ export class WorkSuspensionController {
     @Param('work_suspension_id', ParseUUIDPipe) id: string,
     @Body(new ValidationPipe({ transform: true, whitelist: true, skipMissingProperties: true })) updateDto: UpdateWorkSuspensionDto
   ) {
-    return await this.workSuspensionService.updateWorkSuspension(id, updateDto);
+    const result = await this.workSuspensionService.updateWorkSuspension(id, updateDto);
+    const leaveAddBack = await this.addBack()?.reapplyForSuspension(id);
+    return { ...result, leaveAddBack };
   }
 
   @Delete(':work_suspension_id')
   async deleteWorkSuspension(@Param('work_suspension_id', ParseUUIDPipe) id: string) {
-    return await this.workSuspensionService.deleteWorkSuspension(id);
+    // check archived / not found first, then undo the credits, then delete
+    await this.workSuspensionService.assertEditable(id);
+    const leaveAddBack = await this.addBack()?.reverseForSuspension(id);
+    const deleted = await this.workSuspensionService.deleteWorkSuspension(id);
+    return { ...deleted, leaveAddBack };
   }
 }

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { LeaveAddBackService } from './leave-add-back.service';
+import { WorkSuspensionAddBackService } from './work-suspension-add-back.service';
 import { LeaveAddBackController } from './leave-add-back.controller';
 import { CrudModule } from '@gscwd-api/crud';
 import { LeaveAddBack } from '@gscwd-api/models';
@@ -25,8 +26,8 @@ import { LeaveCardLedgerDebitModule } from '../../leave-card-ledger-debit/core/l
     LeaveCreditDeductionsModule,
     LeaveCardLedgerDebitModule,
   ],
-  providers: [LeaveAddBackService],
+  providers: [LeaveAddBackService, WorkSuspensionAddBackService],
   controllers: [LeaveAddBackController],
-  exports: [LeaveAddBackService],
+  exports: [LeaveAddBackService, WorkSuspensionAddBackService],
 })
 export class LeaveAddBackModule {}

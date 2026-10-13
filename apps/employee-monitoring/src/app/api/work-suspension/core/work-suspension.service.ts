@@ -148,8 +148,16 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
       onError: (error) => new InternalServerErrorException(error),
     });
 
-    // TODO step 4: adjust leave add-backs for the changed suspension (work_suspension_id FK)
+    // leave add-backs are re-applied by the controller (WorkSuspensionAddBackService.reapplyForSuspension)
     return { previous: existing, updated: await this.getById(id) };
+  }
+
+  /** 404 when missing, 409 when archived / LEGACY. */
+  async assertEditable(id: string): Promise<WorkSuspension> {
+    const existing = await this.getById(id);
+    if (existing.isArchived || existing.suspensionType === WorkSuspensionType.LEGACY)
+      throw new ConflictException('Archived work suspensions are read-only.');
+    return existing;
   }
 
   async deleteWorkSuspension(id: string) {
@@ -157,7 +165,7 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
     if (existing.isArchived || existing.suspensionType === WorkSuspensionType.LEGACY)
       throw new ConflictException('Archived work suspensions are read-only.');
 
-    // TODO step 4: reverse leave add-backs credited for this suspension before deleting
+    // leave add-backs are reversed by the controller before this runs
     await this.crudService.delete({ deleteBy: { id }, softDelete: false, onError: (error) => new InternalServerErrorException(error) });
     return existing;
   }
@@ -304,5 +312,26 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
     const suspension = await this.getActiveWorkSuspensionByDate(dayjs(date).toDate());
     if (!suspension || suspension.suspensionType === WorkSuspensionType.LEGACY) return null;
     return { id: suspension.id, name: suspension.name, type: suspension.suspensionType, startTime: suspension.suspensionStartTime };
+  }
+
+  /** Active (non-archived, non-LEGACY) suspension by id, or null. */
+  async getActiveWorkSuspensionById(id: string): Promise<WorkSuspension | null> {
+    const rows: Row[] = await this.rawQuery(
+      `SELECT ${SELECT_COLUMNS} FROM work_suspension WHERE work_suspension_id = ? AND is_archived = 0 AND suspension_type <> 'LEGACY';`,
+      [id]
+    );
+    return rows.length > 0 ? WorkSuspensionService.mapRow(rows[0]) : null;
+  }
+
+  /** Active new-rule suspensions dated within the last `days` days (and up to today). */
+  async getRecentActiveSuspensions(days: number): Promise<WorkSuspension[]> {
+    const rows: Row[] = await this.rawQuery(
+      `SELECT ${SELECT_COLUMNS} FROM work_suspension
+       WHERE is_archived = 0 AND suspension_type <> 'LEGACY'
+         AND suspension_date BETWEEN (CURDATE() - INTERVAL ? DAY) AND CURDATE()
+       ORDER BY suspension_date;`,
+      [days]
+    );
+    return rows.map((row) => WorkSuspensionService.mapRow(row));
   }
 }
