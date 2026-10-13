@@ -293,11 +293,17 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
    * LEGACY: the old values (suspension_hours + get_work_suspension_start). New rows: derived from the
    * suspension window, so the sorting code keeps working unchanged. Start is 'YYYY-MM-DD HH:mm:ss' or null.
    */
-  async getSortingSuspension(date: Date | string, schedule: SuspensionSchedule): Promise<{ suspensionHours: number; workSuspensionStart: string | null }> {
+  async getSortingSuspension(
+    date: Date | string,
+    schedule: SuspensionSchedule
+  ): Promise<{ suspensionHours: number; workSuspensionStart: string | null }> {
     const dateString = dayjs(date).format('YYYY-MM-DD');
     const legacyHours = await this.getWorkSuspensionBySuspensionDate(dayjs(dateString).toDate());
     if (legacyHours > 0) {
-      return { suspensionHours: legacyHours, workSuspensionStart: await this.getWorkSuspensionStart(schedule.timeOut, dateString as unknown as Date) };
+      return {
+        suspensionHours: legacyHours,
+        workSuspensionStart: await this.getWorkSuspensionStart(schedule.timeOut, dateString as unknown as Date),
+      };
     }
     const { suspensionHours, startMinutes } = toSortingSuspension(await this.getSuspensionWindow(dayjs(dateString).toDate(), schedule), schedule);
     if (startMinutes === null) return { suspensionHours: 0, workSuspensionStart: null };
@@ -308,7 +314,9 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
   }
 
   /** { type, startTime } of the active new-rule suspension on a date (for the DTR table / PDF marker), else null. */
-  async getWorkSuspensionMarker(date: Date | string): Promise<{ id: string; name: string; type: WorkSuspensionType; startTime: string | null } | null> {
+  async getWorkSuspensionMarker(
+    date: Date | string
+  ): Promise<{ id: string; name: string; type: WorkSuspensionType; startTime: string | null } | null> {
     const suspension = await this.getActiveWorkSuspensionByDate(dayjs(date).toDate());
     if (!suspension || suspension.suspensionType === WorkSuspensionType.LEGACY) return null;
     return { id: suspension.id, name: suspension.name, type: suspension.suspensionType, startTime: suspension.suspensionStartTime };

@@ -111,7 +111,10 @@ export class WorkSuspensionAddBackService {
   }
 
   private async fractionFor(employeeId: string, suspension: WorkSuspension): Promise<number> {
-    const { schedule } = await this.employeeScheduleService.getEmployeeScheduleByDtrDateForLeaveAddback(employeeId, dayjs(suspension.suspensionDate).toDate());
+    const { schedule } = await this.employeeScheduleService.getEmployeeScheduleByDtrDateForLeaveAddback(
+      employeeId,
+      dayjs(suspension.suspensionDate).toDate()
+    );
     if (!schedule?.timeIn || !schedule?.timeOut) return 0;
     return getSuspensionWindow(suspension, schedule).fraction;
   }
@@ -120,7 +123,15 @@ export class WorkSuspensionAddBackService {
 
   private async creditEarning(
     manager: EntityManager,
-    args: { employeeId: string; leaveBenefits: LeaveBenefits; date: string; value: number; remarks: string; workSuspensionId: string; sourceId: string }
+    args: {
+      employeeId: string;
+      leaveBenefits: LeaveBenefits;
+      date: string;
+      value: number;
+      remarks: string;
+      workSuspensionId: string;
+      sourceId: string;
+    }
   ) {
     const earning = await manager.save(
       manager.create(LeaveCreditEarnings, {
@@ -191,7 +202,13 @@ export class WorkSuspensionAddBackService {
       const vl = entries.some((e) => e.leave === VACATION_LEAVE) ? await this.vacationLeave(manager) : null;
       for (const entry of entries) {
         const leaveBenefits = entry.leave === 'SAME' ? ownLeave : vl;
-        const common = { employeeId: candidate.employeeId, leaveBenefits, value: entry.value, workSuspensionId: suspension.id, sourceId: candidate.leaveApplicationDateId };
+        const common = {
+          employeeId: candidate.employeeId,
+          leaveBenefits,
+          value: entry.value,
+          workSuspensionId: suspension.id,
+          sourceId: candidate.leaveApplicationDateId,
+        };
         if (entry.kind === 'credit') await this.creditEarning(manager, { ...common, date, remarks: addBackRemarks });
         else await this.debitDeduction(manager, { ...common, remarks: WorkSuspensionAddBackService.remarks(suspension, 'Deduction') });
       }
@@ -225,8 +242,14 @@ export class WorkSuspensionAddBackService {
     const result: AddBackRunResult = { workSuspensionId: suspension.id, created: 0, skipped: 0, failed: 0 };
 
     const jobs: { label: string; run: () => Promise<'created' | 'skipped'> }[] = [
-      ...(await this.findLeaveCandidates(date)).map((c) => ({ label: `leave date ${c.leaveApplicationDateId}`, run: () => this.processLeave(suspension, c) })),
-      ...(await this.findHalfDayPassSlipCandidates(date)).map((c) => ({ label: `pass slip ${c.passSlipId}`, run: () => this.processPassSlip(suspension, c) })),
+      ...(await this.findLeaveCandidates(date)).map((c) => ({
+        label: `leave date ${c.leaveApplicationDateId}`,
+        run: () => this.processLeave(suspension, c),
+      })),
+      ...(await this.findHalfDayPassSlipCandidates(date)).map((c) => ({
+        label: `pass slip ${c.passSlipId}`,
+        run: () => this.processPassSlip(suspension, c),
+      })),
     ];
 
     // one employee's failure (missing schedule, ...) must not block the others

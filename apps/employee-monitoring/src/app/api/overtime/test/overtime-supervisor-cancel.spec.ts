@@ -1,4 +1,5 @@
-import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { ArgumentMetadata, ConflictException, ForbiddenException, NotFoundException, ValidationPipe } from '@nestjs/common';
+import { CancelOvertimeApplicationDto } from '@gscwd-api/models';
 import { OvertimeStatus } from '@gscwd-api/utils';
 import { OvertimeService } from '../core/overtime.service';
 
@@ -47,12 +48,8 @@ describe('OvertimeService.immediateSupervisorCancelOvertimeApplication', () => {
 });
 
 describe('CancelOvertimeApplicationDto validation', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { ValidationPipe } = require('@nestjs/common');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { CancelOvertimeApplicationDto } = require('@gscwd-api/models');
   const pipe = new ValidationPipe({ whitelist: true });
-  const meta = { type: 'body', metatype: CancelOvertimeApplicationDto };
+  const meta: ArgumentMetadata = { type: 'body', metatype: CancelOvertimeApplicationDto };
 
   it('rejects non-string remarks and a non-uuid supervisor id', async () => {
     await expect(pipe.transform({ immediateSupervisorEmployeeId: SUPERVISOR, remarks: { a: 1 } }, meta)).rejects.toBeTruthy();

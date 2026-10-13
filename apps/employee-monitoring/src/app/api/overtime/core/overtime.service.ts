@@ -12,7 +12,15 @@ import {
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
 import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase, ScheduleShift } from '@gscwd-api/utils';
-import { ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import dayjs = require('dayjs');
 import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
@@ -99,8 +107,7 @@ export class OvertimeService {
     const management = await this.getManagementLevelEmployees(employeeIds);
     if (management.length > 0)
       throw new ForbiddenException({
-        message:
-          'Management level employees cannot have overtime:\n\n' + management.map((m) => `• ${m.employeeName} (${m.reason})`).join('\n'),
+        message: 'Management level employees cannot have overtime:\n\n' + management.map((m) => `• ${m.employeeName} (${m.reason})`).join('\n'),
       });
   }
 
@@ -1250,8 +1257,7 @@ export class OvertimeService {
       employeeDetails.userRole === 'oic_assistant_general_manager' ||
       employeeDetails.userRole === 'oic_general_manager' ||
       employeeDetails.userRole === 'general_manager'
-    )
-    {
+    ) {
       // management level employees cannot have overtime → leave them out of the picker
       const employees = await this.employeeService.getEmployeesByOrgId(orgId);
       const management = new Set((await this.getManagementLevelEmployees(employees.map((e) => e.value))).map((m) => m.employeeId));
