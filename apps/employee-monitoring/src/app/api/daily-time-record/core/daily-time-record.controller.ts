@@ -5,7 +5,7 @@ import { ReportHalf } from '@gscwd-api/utils';
 
 @Controller({ version: '1', path: 'daily-time-record' })
 export class DailyTimeRecordController {
-  constructor(private readonly dailyTimeRecordService: DailyTimeRecordService) { }
+  constructor(private readonly dailyTimeRecordService: DailyTimeRecordService) {}
 
   @Get()
   async getAllRecords() {
@@ -13,7 +13,12 @@ export class DailyTimeRecordController {
   }
 
   @Get('/employees/:company_id/:year/:month')
-  async getEmployeeDtrByMonthAndYear(@Param('company_id') companyId: string, @Param('year') year: number, @Param('month') month: number, @Query('half') half: ReportHalf) {
+  async getEmployeeDtrByMonthAndYear(
+    @Param('company_id') companyId: string,
+    @Param('year') year: number,
+    @Param('month') month: number,
+    @Query('half') half: ReportHalf
+  ) {
     return await this.dailyTimeRecordService.getEmployeeDtrByMonthAndYear(companyId, year, month, half);
   }
 

@@ -36,6 +36,7 @@ import { OtherTrainingParticipantsRequirementsModule } from './api/others/compon
 import { ReportsModule } from './api/reports';
 import { TrainingHistoryModule } from './api/training-history';
 import { SmsModule } from './services/sms';
+import { EmployeeModule } from './api/employee/employee.module';
 
 @Module({
   imports: [
@@ -82,6 +83,8 @@ import { SmsModule } from './services/sms';
     TrainingNomineesModule,
     TrainingApprovalsModule,
     TrainingRequirementsModule,
+
+    EmployeeModule,
 
     /* stats */
     StatsModule,

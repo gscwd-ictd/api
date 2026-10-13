@@ -20,7 +20,6 @@ import { isArray } from 'class-validator';
 import { LeaveApplicationDatesService } from '../../leave-application-dates/core/leave-application-dates.service';
 import dayjs = require('dayjs');
 import { EmployeesService } from '../../../../employees/core/employees.service';
-import { OfficerOfTheDayService } from '../../../../officer-of-the-day/core/officer-of-the-day.service';
 import { LeaveMonetizationService } from '../../leave-monetization/core/leave-monetization.service';
 
 @Injectable()
@@ -82,7 +81,6 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
     const result = this.dataSource.transaction(async (transactionEntityManager) => {
       const { leaveApplicationDates, ...rest } = createLeaveApplication;
-
       const companyId = await this.employeesService.getCompanyId(rest.employeeId);
       let supervisorId = null;
 
@@ -254,6 +252,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           ORDER BY la.date_of_filing DESC;`,
         [id]
       );
+
       const { debitValue } = (await this.rawQuery(`SELECT get_debit_value(?) debitValue`, [id]))[0];
 
       const leaveApplicationsWithDates = await Promise.all(
@@ -952,6 +951,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
           hrdmApprovedBy,
           hrdmApprovalDate,
           ...monetizationDetails,
+          ...terminalLeaveDetails,
           ...terminalLeaveDetails,
           id: rest.id,
           employee: { employeeId, employeeName, companyId: employeeDetails.companyId, signatureUrl: employeeDetails.signatureUrl },

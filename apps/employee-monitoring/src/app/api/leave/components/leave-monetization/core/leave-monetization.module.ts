@@ -10,4 +10,4 @@ import { CrudModule } from '@gscwd-api/crud';
   controllers: [LeaveMonetizationController],
   exports: [LeaveMonetizationService],
 })
-export class LeaveMonetizationModule {}
+export class LeaveMonetizationModule { }

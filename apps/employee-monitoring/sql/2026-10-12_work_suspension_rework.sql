@@ -24,3 +24,12 @@ WHERE suspension_type = 'LEGACY' OR suspension_hours IS NOT NULL;
 
 -- Check
 SELECT suspension_type, is_archived, COUNT(*) FROM work_suspension GROUP BY 1, 2;
+
+-- 4. Step 4 (leave add-back): idempotency / reversal columns (also added by TypeORM synchronize)
+ALTER TABLE leave_add_back ADD COLUMN work_suspension_id_fk CHAR(36) NULL DEFAULT NULL;
+ALTER TABLE leave_credit_earnings
+  ADD COLUMN work_suspension_id_fk CHAR(36) NULL DEFAULT NULL,
+  ADD COLUMN add_back_source_id CHAR(36) NULL DEFAULT NULL;
+ALTER TABLE leave_credit_deductions
+  ADD COLUMN work_suspension_id_fk CHAR(36) NULL DEFAULT NULL,
+  ADD COLUMN add_back_source_id CHAR(36) NULL DEFAULT NULL;

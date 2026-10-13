@@ -334,7 +334,6 @@ export class EmployeesService {
       payload: {},
     })) as string;
   }
-
   async getEmployeesByNatureOfAppointmentAndEmployeeIds(natureOfAppointment: NatureOfAppointment, employeeIds: string[]) {
     return (await this.client.call<string, object, { employeeId: string; fullName: string }[]>({
       action: 'send',

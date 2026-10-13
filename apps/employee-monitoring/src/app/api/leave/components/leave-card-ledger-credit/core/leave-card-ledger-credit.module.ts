@@ -19,7 +19,7 @@ import { LeaveCreditEarningsModule } from '../../leave-credit-earnings/core/leav
         options: {
           host: process.env.EMPLOYEE_REDIS_HOST,
           port: parseInt(process.env.EMPLOYEE_REDIS_PORT),
-          password: process.env.EMPLOYEE_REDIS_PASSWORD,
+          //password: process.env.EMPLOYEE_REDIS_PASSWORD,
         },
       },
     ]),

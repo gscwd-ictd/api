@@ -47,7 +47,7 @@ export class HrmsEmployeeTagsService {
   async findEmployeesByMultipleTagId(tags: Array<string>) {
     return await this.microserviceClient.call({
       action: 'send',
-      pattern: EmployeeTagsPatterns.GET_EMPLOYEES_BY_TAGS_IDS,
+      pattern: EmployeeTagsPatterns.GET_EMPLOYEES_BY_TAGS_IDS_V3,
       payload: tags,
       onError: ({ code, message, details }) => new HttpException(message, code, { cause: details as Error }),
     });

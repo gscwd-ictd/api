@@ -27,4 +27,12 @@ export class LeaveCreditEarnings extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'remarks', type: 'text', default: null })
   remarks: string;
+
+  /** WHOLE_DAY / TIME_OF_DAY work suspension that produced this row (idempotency + reversal). NULL for other rows. */
+  @Column({ name: 'work_suspension_id_fk', type: 'uuid', nullable: true, default: null })
+  workSuspensionId: string | null;
+
+  /** leave_application_dates / pass_slip id the work suspension add-back was computed for. */
+  @Column({ name: 'add_back_source_id', type: 'uuid', nullable: true, default: null })
+  addBackSourceId: string | null;
 }

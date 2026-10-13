@@ -20,7 +20,7 @@ import { EmployeeRestDaysModule } from '../components/employee-rest-day/componen
         options: {
           host: process.env.EMPLOYEE_REDIS_HOST,
           port: parseInt(process.env.EMPLOYEE_REDIS_PORT),
-          password: process.env.EMPLOYEE_REDIS_PASSWORD,
+          //password: process.env.EMPLOYEE_REDIS_PASSWORD,
         },
       },
     ]),
@@ -32,4 +32,4 @@ import { EmployeeRestDaysModule } from '../components/employee-rest-day/componen
   controllers: [EmployeeScheduleController, EmployeeScheduleMsController],
   exports: [EmployeeScheduleService],
 })
-export class EmployeeScheduleModule {}
+export class EmployeeScheduleModule { }
