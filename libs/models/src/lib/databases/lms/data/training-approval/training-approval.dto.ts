@@ -7,6 +7,20 @@ export class CreateTrainingApprovalDto {
   trainingDetails: TrainingDetailsDto;
 }
 
+export class TddManagerDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  trainingDetails: string;
+
+  @IsNotEmpty()
+  @IsUUID('all')
+  tddManager: string;
+
+  @IsOptional()
+  @IsString({ message: 'remarks must be string.' })
+  remarks: string;
+}
+
 export class PdcSecretariatDto {
   @IsNotEmpty()
   @IsUUID('4')
@@ -17,7 +31,7 @@ export class PdcSecretariatDto {
   pdcSecretariat: string;
 
   @IsOptional()
-  @IsString({ message: 'training nominee remarks must be string' })
+  @IsString({ message: 'remarks must be string.' })
   remarks: string;
 }
 
@@ -31,7 +45,7 @@ export class PdcChairmanDto {
   pdcChairman: string;
 
   @IsOptional()
-  @IsString({ message: 'training nominee remarks must be string' })
+  @IsString({ message: 'remarks must be string.' })
   remarks: string;
 }
 
@@ -45,6 +59,6 @@ export class GeneralManagerDto {
   generalManager: string;
 
   @IsOptional()
-  @IsString({ message: 'training nominee remarks must be string' })
+  @IsString({ message: 'remarks must be string.' })
   remarks: string;
 }

@@ -1,6 +1,7 @@
-import { DailyTimeRecord } from '@gscwd-api/models';
+
 import { DtrCorrectionStatus } from '@gscwd-api/utils';
 import { PickType } from '@nestjs/swagger';
+import { DailyTimeRecord } from '../daily-time-record';
 
 export class CreateDtrCorrectionDto {
   id: string;
@@ -11,6 +12,8 @@ export class CreateDtrCorrectionDto {
   timeOut: number;
   status: DtrCorrectionStatus;
   remarks: string;
+  companyId: string;
+  dtrDate: Date;
 }
 
-export class ApproveDtrCorrectionDto extends PickType(CreateDtrCorrectionDto, ['id', 'status']) {}
+export class ApproveDtrCorrectionDto extends PickType(CreateDtrCorrectionDto, ['id', 'status']) { }

@@ -14,6 +14,10 @@ export class LeaveAddBack extends DatabaseEntity implements IEntity {
   @Column({ name: 'reason', type: 'text' })
   reason: string;
 
-  @Column({ name: 'credit_value', type: 'decimal', scale: 2, precision: 3 })
+  @Column({ name: 'credit_value', type: 'decimal', scale: 3, precision: 6 })
   creditValue: number;
+
+  /** WHOLE_DAY / TIME_OF_DAY work suspension that produced this row (idempotency + reversal). NULL for other rows. */
+  @Column({ name: 'work_suspension_id_fk', type: 'uuid', nullable: true, default: null })
+  workSuspensionId: string | null;
 }

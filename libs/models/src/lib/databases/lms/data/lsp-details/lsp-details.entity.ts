@@ -1,10 +1,10 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
+import { DatabaseEntityWithTimezone, IEntity } from '@gscwd-api/crud';
 import { LspSource, LspType } from '@gscwd-api/utils';
 import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity({ name: 'lsp_details' })
 @Unique(['firstName', 'middleName', 'lastName'])
-export class LspDetails extends DatabaseEntity implements IEntity {
+export class LspDetails extends DatabaseEntityWithTimezone implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'lsp_details_id' })
   id: string;
 
@@ -29,7 +29,7 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'extension_name', type: 'varchar', length: '10', nullable: true })
   extensionName: string;
 
-  @Column({ name: 'organization_name', unique: true, type: 'varchar', length: '100', nullable: true })
+  @Column({ name: 'organization_name', unique: true, type: 'text', nullable: true })
   organizationName: string;
 
   @Column({ name: 'sex', type: 'varchar', length: '10', nullable: true })
@@ -44,7 +44,7 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'tax_identification_number', nullable: true })
   tin: string;
 
-  @Column({ name: 'postal_address', type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'postal_address', type: 'text', nullable: true })
   postalAddress: string;
 
   @Column({ name: 'subject_matter_expertise', type: 'jsonb', nullable: true })
@@ -59,7 +59,7 @@ export class LspDetails extends DatabaseEntity implements IEntity {
   @Column({ name: 'experience_number_of_years', nullable: true })
   experience: number;
 
-  @Column({ name: 'introduction', length: 250, nullable: true })
+  @Column({ name: 'introduction', type: 'text', nullable: true })
   introduction: string;
 
   @Column({ name: 'lsp_type', type: 'enum', enum: LspType, nullable: false })

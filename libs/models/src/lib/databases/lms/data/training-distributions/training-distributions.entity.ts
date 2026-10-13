@@ -1,11 +1,10 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { DatabaseEntityWithTimezone, IEntity } from '@gscwd-api/crud';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TrainingDetails } from '../training-details';
 import { TrainingDistributionStatus } from '@gscwd-api/utils';
 
 @Entity({ name: 'training_distributions' })
-@Unique(['trainingDetails', 'supervisorId'])
-export class TrainingDistribution extends DatabaseEntity implements IEntity {
+export class TrainingDistribution extends DatabaseEntityWithTimezone implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_distribution_id' })
   id: string;
 
@@ -21,4 +20,7 @@ export class TrainingDistribution extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'status', type: 'enum', enum: TrainingDistributionStatus, default: TrainingDistributionStatus.NOMINATION_PENDING })
   status: TrainingDistributionStatus;
+
+  @Column({ name: 'remarks', type: 'text', nullable: true })
+  remarks: string;
 }

@@ -4,7 +4,7 @@ import { UserLogsService } from './user-logs.service';
 
 @Controller({ version: '1', path: 'user-logs' })
 export class UserLogsController {
-  constructor(private readonly userLogsService: UserLogsService) {}
+  constructor(private readonly userLogsService: UserLogsService) { }
 
   @Post()
   async addLogs(@Body() createUserLogsDto: CreateUserLogsDto) {
@@ -14,6 +14,11 @@ export class UserLogsController {
   @Get()
   async getLogs() {
     return await this.userLogsService.getLogs();
+  }
+
+  @Get('year-month/:yearmonth')
+  async getLogsByYearMonth(@Param('yearmonth') yearMonth: string) {
+    return await this.userLogsService.getLogsByYearMonth(yearMonth);
   }
 
   @Get(':id')

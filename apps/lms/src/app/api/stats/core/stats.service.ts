@@ -6,8 +6,6 @@ import { Raw } from 'typeorm';
 import { HrmsEmployeesService } from '../../../services/hrms';
 import { BenchmarkService } from '../../benchmark';
 import { OtherTrainingsService } from '../../others';
-import { BenchmarkParticipantsService } from '../../benchmark/components/participants';
-import { OtherTrainingParticipantsService } from '../../others/components/other-training-participants';
 import { LspRankView } from '@gscwd-api/models';
 import { CrudService } from '@gscwd-api/crud';
 
@@ -19,9 +17,7 @@ export class StatsService {
     private readonly trainingNomineesService: TrainingNomineesService,
     private readonly hrmsEmployeesService: HrmsEmployeesService,
     private readonly benchmarkService: BenchmarkService,
-    private readonly benchmarkParticipantsService: BenchmarkParticipantsService,
-    private readonly otherTrainingsService: OtherTrainingsService,
-    private readonly otherTrainingsParticipantsService: OtherTrainingParticipantsService
+    private readonly otherTrainingsService: OtherTrainingsService
   ) {}
 
   async countTrainingStatus() {
@@ -67,6 +63,11 @@ export class StatsService {
                 .countBy({
                   employeeId: items.value,
                   status: TrainingNomineeStatus.ACCEPTED,
+                  trainingDistribution: {
+                    trainingDetails: {
+                      status: TrainingStatus.COMPLETED,
+                    },
+                  },
                   updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
                 });
             })
@@ -116,7 +117,7 @@ export class StatsService {
         .crud()
         .getRepository()
         .countBy({
-          status: OtherTrainingStatus.DONE,
+          status: OtherTrainingStatus.COMPLETED,
           updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
         });
 
@@ -141,6 +142,11 @@ export class StatsService {
         .getRepository()
         .countBy({
           status: TrainingNomineeStatus.ACCEPTED,
+          trainingDistribution: {
+            trainingDetails: {
+              status: TrainingStatus.COMPLETED,
+            },
+          },
           updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
         });
 
@@ -149,25 +155,16 @@ export class StatsService {
         .getRepository()
         .countBy({
           status: TrainingNomineeStatus.DECLINED,
-          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
-        });
-
-      const benchmarkAccepted = await this.benchmarkParticipantsService
-        .crud()
-        .getRepository()
-        .countBy({
-          updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
-        });
-
-      const otherTrainingAccepted = await this.otherTrainingsParticipantsService
-        .crud()
-        .getRepository()
-        .countBy({
+          trainingDistribution: {
+            trainingDetails: {
+              status: TrainingStatus.COMPLETED,
+            },
+          },
           updatedAt: Raw((alias) => `extract(year from ${alias}) = :currentYear`, { currentYear: currentYear }),
         });
 
       return {
-        accepted: trainingAccepted + benchmarkAccepted + otherTrainingAccepted,
+        accepted: trainingAccepted,
         declined: trainingDeclined,
       };
     } catch (error) {

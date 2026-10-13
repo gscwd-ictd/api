@@ -16,5 +16,5 @@ export class CreateBenchmarkParticipantsDto extends PartialType(ParticipantsDto)
 export class UpdateBenchmarkParticipantsDto extends PartialType(CreateBenchmarkParticipantsDto) {
   @IsNotEmpty()
   @IsBoolean()
-  learningApplicationPlan: boolean;
+  learnersJournal: boolean;
 }

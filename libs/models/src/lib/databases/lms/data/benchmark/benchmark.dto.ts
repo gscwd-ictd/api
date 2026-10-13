@@ -6,8 +6,13 @@ import { ParticipantsDto } from '../benchmark-participants';
 export class BenchmarkDto {
   @IsNotEmpty()
   @IsString({ message: 'benchmark title must be a string' })
-  @Length(1, 300, { message: 'benchmark title must be between 1 to 300 characters' })
+  @Length(1, 1000, { message: 'benchmark title must be between 1 to 1000 characters' })
   title: string;
+
+  @IsNotEmpty()
+  @IsString({ message: 'benchmark description must be a string' })
+  @Length(1, 1000, { message: 'benchmark description must be between 1 to 1000 characters' })
+  description: string;
 
   @IsNotEmpty()
   @IsString({ message: 'benchmark partner must be a string' })
@@ -24,7 +29,7 @@ export class BenchmarkDto {
 
   @IsNotEmpty()
   @IsString({ message: 'benchmark location must be a string' })
-  @Length(1, 500, { message: 'benchmark location must be between 1 to 500 characters' })
+  @Length(1, 1000, { message: 'benchmark location must be between 1 to 1000 characters' })
   location: string;
 }
 

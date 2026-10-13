@@ -1,8 +1,9 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { NatureOfBusiness, ObTransportation } from '@gscwd-api/utils';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('pass_slip')
+@Index('IDX_ps_employee_date', ['employeeId', 'dateOfApplication'])
 export class PassSlip extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'pass_slip_id' })
   id: string;
@@ -48,4 +49,7 @@ export class PassSlip extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'is_dispute_approved', type: 'boolean', default: null })
   isDisputeApproved: boolean;
+
+  @Column({ name: 'is_deductible_to_pay', type: 'boolean', default: null })
+  isDeductibleToPay: boolean;
 }

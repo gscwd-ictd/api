@@ -12,9 +12,8 @@ import { LeaveCardLedgerDebitModule } from '../../leave/components/leave-card-le
 import { LeaveCardLedgerCreditModule } from '../../leave/components/leave-card-ledger-credit/core/leave-card-ledger-credit.module';
 import { LeaveAddBackModule } from '../../leave/components/leave-add-back/core/leave-add-back.module';
 import { EmployeesModule } from '../../employees/core/employees.module';
-import { DtrCorrectionModule } from '../../dtr-correction/core/dtr-correction.module';
-import { DtrCorrectionService } from '../../dtr-correction/core/dtr-correction.service';
 import { WorkSuspensionModule } from '../../work-suspension/core/work-suspension.module';
+import { LeaveCreditDeductionsModule } from '../../leave/components/leave-credit-deductions/core/leave-credit-deductions.module';
 
 @Module({
   imports: [
@@ -38,9 +37,10 @@ import { WorkSuspensionModule } from '../../work-suspension/core/work-suspension
     LeaveAddBackModule,
     EmployeesModule,
     WorkSuspensionModule,
+    LeaveCreditDeductionsModule
   ],
   providers: [DailyTimeRecordService, MicroserviceClient],
   controllers: [DailyTimeRecordController],
   exports: [DailyTimeRecordService],
 })
-export class DailyTimeRecordModule {}
+export class DailyTimeRecordModule { }

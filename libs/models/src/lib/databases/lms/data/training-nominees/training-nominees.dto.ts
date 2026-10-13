@@ -18,6 +18,12 @@ export class NomineeDto {
   nomineeType: NomineeType;
 }
 
+export class CreateNomineeDto extends NomineeDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  trainingDistribution: string;
+}
+
 export class CreateTrainingNomineeDto {
   @IsNotEmpty()
   @IsUUID('4')
@@ -27,6 +33,10 @@ export class CreateTrainingNomineeDto {
   @ValidateNested({ each: true })
   @Type(() => NomineeDto)
   employees: Array<NomineeDto>;
+
+  @IsOptional()
+  @IsString({ message: 'remarks must be string' })
+  remarks: string;
 }
 
 export class UpdateTrainingNomineeStatusDto {
@@ -41,4 +51,26 @@ export class UpdateTrainingNomineeStatusDto {
   @IsOptional()
   @IsString({ message: 'training nominee remarks must be string' })
   remarks: string;
+}
+
+export class CreateStandInNomineeDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  nomineeId: string;
+
+  @IsNotEmpty()
+  @IsUUID('4')
+  standinId: string;
+}
+
+export class AdditionalNomineeDto {
+  @IsNotEmpty()
+  @IsUUID('all')
+  employeeId: string;
+}
+
+export class CreateAdditionalNomineeDto extends AdditionalNomineeDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  trainingDistributionId: string;
 }

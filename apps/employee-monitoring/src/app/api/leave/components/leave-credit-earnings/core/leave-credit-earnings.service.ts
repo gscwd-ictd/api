@@ -14,9 +14,13 @@ export class LeaveCreditEarningsService extends CrudHelper<LeaveCreditEarnings> 
   }
 
   async addLeaveCreditEarningsTransaction(leaveCreditEarningsDto: CreateLeaveCreditEarningsDto, entityManager: EntityManager) {
-    return await this.crudService
-      .transact<LeaveCreditEarnings>(entityManager)
-      .create({ dto: leaveCreditEarningsDto, onError: () => new InternalServerErrorException() });
+    return await this.crudService.transact<LeaveCreditEarnings>(entityManager).create({
+      dto: leaveCreditEarningsDto,
+      onError: (error) => {
+        console.log(error);
+        return new InternalServerErrorException();
+      },
+    });
   }
 
   async updateLeaveCreditEarnings(leaveCreditEarningsDto: UpdateLeaveCreditEarningsDto) {

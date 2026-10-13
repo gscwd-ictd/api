@@ -1,11 +1,11 @@
-import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
+import { DatabaseEntityWithTimezone, IEntity } from '@gscwd-api/crud';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TrainingDesign } from '../training-designs';
 import { TrainingSource } from '../training-sources';
 import { TrainingStatus, TrainingType } from '@gscwd-api/utils';
 
 @Entity('training_details')
-export class TrainingDetails extends DatabaseEntity implements IEntity {
+export class TrainingDetails extends DatabaseEntityWithTimezone implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'training_details_id' })
   id: string;
 
@@ -49,4 +49,7 @@ export class TrainingDetails extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'status', type: 'enum', enum: TrainingStatus, default: TrainingStatus.PENDING })
   status: TrainingStatus;
+
+  @Column({ name: 'prepared_by', type: 'uuid', nullable: false })
+  preparedBy: string;
 }

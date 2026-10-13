@@ -1,5 +1,9 @@
-import { DailyTimeRecord, LeaveApplication, LeaveCreditDeductions, PassSlip } from '@gscwd-api/models';
-import { IsNumber, IsOptional } from 'class-validator';
+import { DailyTimeRecord } from '../daily-time-record';
+import { LeaveApplication } from '../leave-application';
+import { LeaveCreditDeductions } from '../leave-credit-deductions';
+import { PassSlip } from '../pass-slip';
+import { DtrDeductionType } from '@gscwd-api/utils';
+import { IsIn, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateLeaveCardLedgerDebitDto {
   @IsOptional()
@@ -19,4 +23,11 @@ export class CreateLeaveCardLedgerDebitDto {
 
   @IsNumber()
   debitValue: number;
+
+  @IsOptional()
+  dtrDeductionType?: DtrDeductionType;
+
+  @IsOptional()
+  @IsIn(['VL', 'SL'])
+  leaveTypeCharged?: 'VL' | 'SL' | null;
 }

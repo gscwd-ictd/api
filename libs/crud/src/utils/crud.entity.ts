@@ -14,3 +14,14 @@ export abstract class DatabaseEntity {
 export interface IEntity {
   id: string;
 }
+
+export abstract class DatabaseEntityWithTimezone {
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp with time zone' })
+  deletedAt: Date;
+}

@@ -12,6 +12,7 @@ import { OvertimeMSController } from './overtime-ms.controller';
 import { DailyTimeRecordModule } from '../../daily-time-record/core/daily-time-record.module';
 import { OvertimeReportsController } from './overtime-reports.controller';
 import { OfficerOfTheDayModule } from '../../officer-of-the-day/core/officer-of-the-day.module';
+import { WorkSuspensionModule } from '../../work-suspension/core/work-suspension.module';
 
 @Module({
   imports: [
@@ -24,8 +25,10 @@ import { OfficerOfTheDayModule } from '../../officer-of-the-day/core/officer-of-
     EmployeeScheduleModule,
     DailyTimeRecordModule,
     OfficerOfTheDayModule,
+    WorkSuspensionModule,
   ],
   providers: [OvertimeService],
   controllers: [OvertimeController, OvertimeMSController, OvertimeReportsController],
+  exports: [OvertimeService],
 })
 export class OvertimeModule {}

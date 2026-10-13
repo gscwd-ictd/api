@@ -2,6 +2,7 @@ import { IsArray, IsInt, IsNotEmpty, IsObject, IsUUID, ValidateNested } from 'cl
 import { TrainingDetailsDto } from '../training-details';
 import { Type } from 'class-transformer';
 import { TrainingRecommendedEmployeeDto } from '../training-recommended-employees';
+import { AdditionalNomineeDto } from '../training-nominees';
 
 export class Supervisor {
   @IsNotEmpty()
@@ -37,4 +38,20 @@ export class CreateTrainingDistributionDto extends SlotDistributionDto {
   @IsNotEmpty()
   @IsUUID('4')
   trainingDetails: TrainingDetailsDto;
+}
+
+export class CreateAdditionalNomineesDto {
+  @IsNotEmpty()
+  @IsUUID('4')
+  trainingId: string;
+
+  @IsNotEmpty()
+  @IsUUID('all')
+  supervisorId: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AdditionalNomineeDto)
+  employees: Array<AdditionalNomineeDto>;
 }

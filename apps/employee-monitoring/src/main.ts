@@ -3,7 +3,7 @@
  * This is only a minimal backend to get started.
  */
 
-import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -12,6 +12,8 @@ import * as redis from 'redis';
 import RedisStore from 'connect-redis';
 
 import { AppModule } from './app/app.module';
+import helmet from 'helmet';
+import { PerformanceInterceptor } from '@gscwd-api/utils';
 
 const whitelist = [
   'http://192.168.137.249:4103',
@@ -28,24 +30,33 @@ const whitelist = [
   'http://172.20.10.59:3109',
   'http://172.20.110.45:3005',
   'http://172.20.10.57:3005',
-  'http://172.20.10.60:3002',
-  'http://172.20.110.45:3001',
-  'http://172.20.110.45:3002',
+  'http://172.20.110.60:3001',
+  'http://172.20.110.60:3002',
+  'http://172.20.110.60:3003',
+  'http://172.20.110.60:3004',
+  'http://172.20.110.60:3005',
+  'http://172.20.110.60:3006',
   'http://172.20.10.63:3005',
   'http://172.20.10.63:3000',
   'http://172.20.10.58:3000',
+  'http://172.20.10.57:3000',
+  'http://172.20.110.85:3000',
+  'http://172.20.110.85:3001',
+  'http://172.20.10.57:3001',
+  'https://mr.gscwd.app',
 ];
 //${process.env.EMPLOYEE_MONITORING_REDIS_HOST}
 const redisClientHrms = redis.createClient({
-  url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:6479`,
+  url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:${process.env.RSP_AUTH_PORT}`,
+  password: process.env.RSP_AUTH_PASSWORD,
 });
 
 redisClientHrms.connect().catch(console.error);
 
-const redisClientPortal = redis.createClient({
-  url: `redis://localhost:6379`,
-});
-redisClientPortal.connect().catch(console.error);
+// const redisClientPortal = redis.createClient({
+//   url: `redis://${process.env.EMPLOYEE_MONITORING_REDIS_HOST}:6479`,
+// });
+// redisClientPortal.connect().catch(console.error);
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -95,21 +106,56 @@ async function bootstrap() {
   //   })
   // );
 
+  app.use(
+    helmet({
+      xContentTypeOptions: true,
+      xXssProtection: true,
+      hsts: {
+        maxAge: 31536000, // 1 year (in seconds)
+        includeSubDomains: true, // Apply to all subdomains
+        preload: true, // Allow browser preloading
+      },
+    })
+  );
+
+  app.use((req: any, res: { setHeader: (arg0: string, arg1: string) => void }, next: () => void) => {
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
+  });
+
   app.connectMicroservice({
     transport: Transport.REDIS,
     options: {
       host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
       port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
+      //password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
     },
   });
+
+  app.use(
+    helmet({
+      xContentTypeOptions: true,
+      xXssProtection: true,
+      hsts: {
+        maxAge: 31536000, // 1 year (in seconds)
+        includeSubDomains: true, // Apply to all subdomains
+        preload: true, // Allow browser preloading
+      },
+    })
+  );
 
   // HybridApp.startMicroservice(app, {
   //   transport: Transport.REDIS,
   //   options:{
   //     host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
-  //     port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT)
+  //     port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
   //   }
   // })
+
+  app.use((req: any, res: { setHeader: (arg0: string, arg1: string) => void }, next: () => void) => {
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
+  });
 
   app.startAllMicroservices();
   //app.useGlobalPipes(new ValidationPipe({ enableDebugMessages: true }));
@@ -118,6 +164,8 @@ async function bootstrap() {
     origin: whitelist,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
+  app.useGlobalInterceptors(new PerformanceInterceptor());
 
   const port = process.env.PORT || 3333;
   await app.listen(port);

@@ -12,10 +12,13 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import {
   BatchRequirementsDto,
+  CreateAdditionalNomineesDto,
+  CreateStandInNomineeDto,
   CreateTrainingBatchDto,
   CreateTrainingExternalDto,
   CreateTrainingInternalDto,
@@ -30,16 +33,20 @@ import {
 import { TrainingDetailsService } from './training-details.service';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { FindAllTrainingInterceptor } from '../misc/interceptors';
-import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
+import { LoginUser, NomineeType, TrainingNomineeStatus, TrainingStatus, User } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../components/nominees';
 import { TrainingRequirementsService } from '../components/requirements';
+import { TrainingDistributionsService } from '../components/slot-distributions';
+import { AuthGuard } from '../../../../guards';
+import { Raw } from 'typeorm';
 
 @Controller({ version: '1', path: 'training' })
 export class TrainingDetailsController {
   constructor(
     private readonly trainingDetailsService: TrainingDetailsService,
     private readonly trainingNomineesService: TrainingNomineesService,
-    private readonly trainingRequirementsService: TrainingRequirementsService
+    private readonly trainingRequirementsService: TrainingRequirementsService,
+    private readonly trainingDistributionsService: TrainingDistributionsService
   ) {}
 
   /* find all training */
@@ -215,6 +222,58 @@ export class TrainingDetailsController {
     });
   }
 
+  /* find all training by date range */
+  @UseInterceptors(FindAllTrainingInterceptor)
+  @Get('q')
+  async findAllTrainingByDateRange(
+    @Query('page', new DefaultValuePipe('1'), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe('10'), ParseIntPipe) limit: number,
+    @Query('dateFrom') dateFrom: string,
+    @Query('dateTo') dateTo: string,
+    @Query('source') source: string
+  ): Promise<Pagination<TrainingDetails> | TrainingDetails[]> {
+    return await this.trainingDetailsService.crud().findAll({
+      find: {
+        relations: {
+          source: true,
+          trainingDesign: true,
+        },
+        select: {
+          createdAt: true,
+          updatedAt: true,
+          deletedAt: true,
+          id: true,
+          trainingDesign: {
+            courseTitle: true,
+          },
+          courseTitle: true,
+          numberOfParticipants: true,
+          numberOfHours: true,
+          location: true,
+          trainingStart: true,
+          trainingEnd: true,
+          source: {
+            name: true,
+          },
+          type: true,
+          status: true,
+        },
+        where: {
+          trainingStart: Raw((alias) => `to_char(${alias}, 'YYYY-MM') >= :dateFrom`, { dateFrom }),
+          trainingEnd: Raw((alias) => `to_char(${alias}, 'YYYY-MM') <= :dateTo`, { dateTo }),
+          source: {
+            name: source,
+          },
+        },
+        order: {
+          updatedAt: 'DESC',
+        },
+      },
+      pagination: { page, limit },
+      onError: () => new InternalServerErrorException(),
+    });
+  }
+
   /* find training by id */
   @Get(':id')
   async findTrainingDetailsById(@Param('id') id: string) {
@@ -222,15 +281,17 @@ export class TrainingDetailsController {
   }
 
   /* insert training (source = internal) */
+  @UseGuards(AuthGuard)
   @Post('internal')
-  async createTrainingInternal(@Body() data: CreateTrainingInternalDto) {
-    return await this.trainingDetailsService.createTrainingInternal(data);
+  async createTrainingInternal(@Body() data: CreateTrainingInternalDto, @LoginUser() user: User) {
+    return await this.trainingDetailsService.createTrainingInternal(data, user.employeeId);
   }
 
   /* insert training (source = external) */
+  @UseGuards(AuthGuard)
   @Post('external')
-  async createTrainingExternal(@Body() data: CreateTrainingExternalDto) {
-    return await this.trainingDetailsService.createTrainingExternal(data);
+  async createTrainingExternal(@Body() data: CreateTrainingExternalDto, @LoginUser() user: User) {
+    return await this.trainingDetailsService.createTrainingExternal(data, user.employeeId);
   }
 
   /* edit training by id (source = internal) */
@@ -256,12 +317,14 @@ export class TrainingDetailsController {
   }
 
   /* send a training notice to the manager to nominate (source = internal) */
+  @UseGuards(AuthGuard)
   @Patch('notices/internal')
   async sendNoticeToManagersInternal(@Body() data: SendTrainingNoticeInternalDto) {
     return await this.trainingDetailsService.sendNoticeToManagersInternal(data);
   }
 
   /* send a training notice to the manager to nominate (source = external) */
+  @UseGuards(AuthGuard)
   @Patch('notices/external')
   async sendNoticeToManagersExternal(@Body() data: SendTrainingNoticeExternalDto) {
     return await this.trainingDetailsService.sendNoticeToManagersExternal(data);
@@ -279,10 +342,14 @@ export class TrainingDetailsController {
   /* find all nominees by training id */
   @Get(':id/nominees')
   async findAllNomineesByTrainingId(@Param('id') id: string) {
-    const trainingStatus = TrainingStatus.ON_GOING_NOMINATION;
-    const nomineeType = NomineeType.NOMINEE;
-    const nomineeStatus = null;
-    return await this.trainingNomineesService.findAllNomineeByTrainingId(id, trainingStatus, nomineeType, nomineeStatus);
+    return await this.trainingDetailsService.findAndCountNomineeByTrainingId(id);
+  }
+
+  /* send approvals to the personnel development committee */
+  @UseGuards(AuthGuard)
+  @Patch(':id/approvals/tdd-manager')
+  async tddManagerTrainingApproval(@Param('id') id: string, @LoginUser() user: User) {
+    return await this.trainingDetailsService.tddManagerApproval(id, user.employeeId);
   }
 
   /* send approvals to the personnel development committee */
@@ -331,5 +398,46 @@ export class TrainingDetailsController {
   @Put('requirements')
   async updateNomineeRequirements(@Body() data: BatchRequirementsDto) {
     return await this.trainingRequirementsService.updateNomineeRequirements(data);
+  }
+
+  @Get(':trainingId/distributions')
+  async findAllSupervisorDistributionByTrainingId(@Param('trainingId') trainingId: string) {
+    return await this.trainingDistributionsService.findAllSupervisorDistributionByTrainingId(trainingId);
+  }
+
+  /* find all available supervisors by training id */
+  @Get(':trainingId/distributions/supervisors')
+  async findAllSupervisors(@Param('trainingId') trainingId: string) {
+    return await this.trainingDetailsService.findAllSupervisorsByTrainingId(trainingId);
+  }
+
+  /* find assignable employee under supervisor by training id */
+  @Get(':trainingId/distributions/supervisors/:supervisorId')
+  async findAllAssignableEmployeeUnderSupervisor(@Param('trainingId') trainingId: string, @Param('supervisorId') supervisorId: string) {
+    return await this.trainingDetailsService.findAllAssignableEmployeeUnderSupervisor(trainingId, supervisorId);
+  }
+
+  /* find stand in by distribution id */
+  @Get('distributions/:distributionId/standin')
+  async findStandInNomineeByDistributionId(@Param('distributionId') distributionId: string) {
+    return await this.trainingNomineesService.findStandInNomineeByDistributionId(distributionId);
+  }
+
+  /* create stand in nominee */
+  @Post('distributions/standin')
+  async createStandinNominee(@Body() data: CreateStandInNomineeDto) {
+    return await this.trainingNomineesService.createStandinNominee(data);
+  }
+
+  /* create additional trainees */
+  @Post('additional-trainees')
+  async createAdditionalTrainees(@Body() data: CreateAdditionalNomineesDto) {
+    return await this.trainingDistributionsService.createAdditionalNominees(data);
+  }
+
+  /* training history */
+  @Get(':trainingId/history')
+  async findTrainingHistoryByTrainingId(@Param('trainingId') trainingId: string) {
+    return await this.trainingDetailsService.findTrainingHistoryByTrainingId(trainingId);
   }
 }

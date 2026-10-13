@@ -1,6 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLspRatingDto, LspRating, UpdateLspRatingDto } from '@gscwd-api/models';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class LspRatingService extends CrudHelper<LspRating> {
@@ -9,9 +10,9 @@ export class LspRatingService extends CrudHelper<LspRating> {
   }
 
   /* insert initial rating for the learning service provider */
-  async createLearningServiceProviderRating(data: CreateLspRatingDto) {
+  async createLearningServiceProviderRating(data: CreateLspRatingDto, entityManager: EntityManager) {
     try {
-      return await this.crudService.create({
+      return await this.crudService.transact<LspRating>(entityManager).create({
         dto: data,
         onError: (error) => {
           throw error;
@@ -52,7 +53,7 @@ export class LspRatingService extends CrudHelper<LspRating> {
       const average = await this.crudService.getRepository().average('rating', { lspDetails: { id: lspId } });
 
       return {
-        average: average,
+        average: average !== null ? average : 0.0,
       };
     } catch (error) {
       Logger.error(error);

@@ -31,6 +31,12 @@ import { OtherTrainingsModule } from './api/others';
 import { OtherTrainingParticipantsModule } from './api/others/components/other-training-participants';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LspRatingModule } from './api/lsp-rating/core/lsp-rating.module';
+import { DocumentsModule } from './api/training/components/documents';
+import { OtherTrainingParticipantsRequirementsModule } from './api/others/components/other-training-participants-requirements';
+import { ReportsModule } from './api/reports';
+import { TrainingHistoryModule } from './api/training-history';
+import { SmsModule } from './services/sms';
+import { EmployeeModule } from './api/employee/employee.module';
 
 @Module({
   imports: [
@@ -62,6 +68,9 @@ import { LspRatingModule } from './api/lsp-rating/core/lsp-rating.module';
     /* portal microservices */
     PortalEmployeesModule,
 
+    /* sms microservices */
+    SmsModule,
+
     /* trainings */
     TrainingSourcesModule,
     TrainingDesignsModule,
@@ -75,6 +84,8 @@ import { LspRatingModule } from './api/lsp-rating/core/lsp-rating.module';
     TrainingApprovalsModule,
     TrainingRequirementsModule,
 
+    EmployeeModule,
+
     /* stats */
     StatsModule,
 
@@ -86,6 +97,14 @@ import { LspRatingModule } from './api/lsp-rating/core/lsp-rating.module';
     /* other trainings */
     OtherTrainingsModule,
     OtherTrainingParticipantsModule,
+    OtherTrainingParticipantsRequirementsModule,
+
+    /* reports */
+    DocumentsModule,
+    ReportsModule,
+
+    /* training logs */
+    TrainingHistoryModule,
 
     /* cron job */
     ScheduleModule.forRoot(),

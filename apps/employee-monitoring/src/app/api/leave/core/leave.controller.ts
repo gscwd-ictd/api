@@ -17,6 +17,11 @@ import { AuthenticatedUser } from '@gscwd-api/utils';
 export class LeaveController {
   constructor(private readonly leaveService: LeaveService) {}
 
+  @Get('hrmo/:year_month')
+  async getLeavesForHrApprovalByYearMonth(@Param('year_month') yearMonth: string) {
+    return await this.leaveService.getLeavesForHrmoApprovalByYearMonth(yearMonth);
+  }
+
   @Get('hrmo/')
   async getLeavesForHrApproval() {
     return await this.leaveService.getLeavesForHrmoApproval();
@@ -55,18 +60,20 @@ export class LeaveController {
   //!todo hrdm guard
   @Patch('hrdm/')
   async updateHrmdLeaveStatus(@Body() updateLeaveApplicationStatus: UpdateLeaveApplicationHrdmStatusDto) {
-    return await this.leaveService.updateLeaveStatus({ ...updateLeaveApplicationStatus, hrdmApprovalDate: dayjs().toDate() });
+    return await this.leaveService.updateLeaveStatus({
+      ...updateLeaveApplicationStatus,
+      hrdmApprovalDate: dayjs().toDate(),
+    });
   }
 
-  //TODO: guard check if logged in is employee status is set for cancellation, if logged in is manager status is set to cancelled
   @Patch('employee/leave-date-cancellation/')
   async cancelLeaveDate(@Body() LeaveDateCancellationDto: LeaveDateCancellationDto) {
     return await this.leaveService.cancelLeaveDate(LeaveDateCancellationDto);
   }
 
-  @Get('ledger/:employee_id/:company_id')
-  async getLeaveLedger(@Param('employee_id') employeeId: string, @Param('company_id') companyId: string) {
-    return await this.leaveService.getLeaveLedger(employeeId, companyId);
+  @Get('ledger/:employee_id/:company_id/:year')
+  async getLeaveLedger(@Param('employee_id') employeeId: string, @Param('company_id') companyId: string, @Param('year') year: number) {
+    return await this.leaveService.getLeaveLedger(employeeId, companyId, year);
   }
 
   @Patch('employee')

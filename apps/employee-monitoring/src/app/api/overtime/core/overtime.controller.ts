@@ -1,14 +1,14 @@
 import {
+  CancelOvertimeApplicationDto,
   CreateOvertimeDto,
   UpdateAllOvertimeAccomplishmentDto,
   UpdateOvertimeAccomplishmentByEmployeeDto,
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, ValidationPipe } from '@nestjs/common';
 import { OvertimeService } from './overtime.service';
 
-//@UseInterceptors(UserLogsInterceptor)
 @Controller({ version: '1', path: 'overtime' })
 export class OvertimeController {
   constructor(private readonly overtimeService: OvertimeService) {}
@@ -16,12 +16,6 @@ export class OvertimeController {
   @Post()
   async createOvertime(@Body() createOverTimeDto: CreateOvertimeDto) {
     return await this.overtimeService.createOvertime(createOverTimeDto);
-  }
-
-  @Get(':overtime_application_id/accomplishments/employees')
-  async getOvertimeAccomplishmentsByOvertimeApplicationId(@Param('overtime_application_id') overtimeApplicationId: string) {
-    console.log(overtimeApplicationId);
-    return await this.overtimeService.getOvertimeAccomplishmentsByOvertimeApplicationId(overtimeApplicationId);
   }
 
   @Get('immediate-supervisors')
@@ -39,6 +33,11 @@ export class OvertimeController {
     return await this.overtimeService.getOvertimeApplicationDetailByManagerIdAndId(managerId, id);
   }
 
+  @Get(':manager_id/list')
+  async getOvertimeApplicationsByManagerId(@Param('manager_id') managerId: string) {
+    return await this.overtimeService.getOvertimeApplicationsByManagerId(managerId);
+  }
+
   @Get(':immediate_supervisor_id')
   async getOvertimeApplicationsBySupervisorId(@Param('immediate_supervisor_id') immediateSupervisorId: string) {
     return await this.overtimeService.getOvertimeApplicationsByImmediateSupervisorId(immediateSupervisorId);
@@ -52,6 +51,11 @@ export class OvertimeController {
   @Get('/employees/:employee_id/accomplishments')
   async getOvertimeAccomplishmentByEmployeeId(@Param('employee_id') employeeId: string) {
     return await this.overtimeService.getOvertimeAccomplishmentByEmployeeId(employeeId);
+  }
+
+  @Get('/employees/:employee_id/accomplishments/:year_month')
+  async getOvertimeAccomplishmentByEmployeeIdByMonth(@Param('employee_id') employeeId: string, @Param('year_month') yearMonth: string) {
+    return await this.overtimeService.getOvertimeAccomplishmentByEmployeeIdByYearMonth(employeeId, yearMonth);
   }
 
   @Get('/employees/:employee_id/list')
@@ -95,13 +99,22 @@ export class OvertimeController {
   }
 
   @Patch('/immediate-supervisor/:overtime_application_id/cancel')
-  async immediateSupervisorCancelOvertimeApplication(@Param('overtime_application_id') overtimeApplicationId: string) {
-    return await this.overtimeService.immediateSupervisorCancelOvertimeApplication(overtimeApplicationId);
+  async immediateSupervisorCancelOvertimeApplication(
+    @Param('overtime_application_id', ParseUUIDPipe) overtimeApplicationId: string,
+    // global ValidationPipe is disabled in main.ts; validate here so ids/remarks are plain strings
+    @Body(new ValidationPipe({ whitelist: true })) cancelOvertimeApplicationDto: CancelOvertimeApplicationDto
+  ) {
+    return await this.overtimeService.immediateSupervisorCancelOvertimeApplication(overtimeApplicationId, cancelOvertimeApplicationDto);
   }
 
   @Delete('/immediate-supervisors/:overtime_immediate_supervisor_id')
   async deleteAccomplishments(@Param('overtime_immediate_supervisor_id') overtimeImmediateSupervisorId: string) {
     return await this.overtimeService.deleteImmediateSupervisor(overtimeImmediateSupervisorId);
+  }
+
+  @Get('monthly/:year_month')
+  async getOvertimeApplicationsByMonth(@Param('year_month') yearMonth: string) {
+    return await this.overtimeService.getOvertimeApplicationsByMonth(yearMonth);
   }
 
   @Get()

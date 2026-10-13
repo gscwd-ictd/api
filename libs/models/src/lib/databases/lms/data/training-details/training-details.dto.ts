@@ -103,7 +103,7 @@ export class CreateTrainingInternalDto extends CreateTrainingDetailsDto {
 export class CreateTrainingExternalDto extends CreateTrainingDetailsDto {
   @IsNotEmpty()
   @IsString({ message: 'training course title must be a string' })
-  @Length(1, 100, { message: 'training course title must be between 1 to 100 characters' })
+  @Length(1, 1000, { message: 'training course title must be between 1 to 1000 characters' })
   courseTitle: string;
 }
 

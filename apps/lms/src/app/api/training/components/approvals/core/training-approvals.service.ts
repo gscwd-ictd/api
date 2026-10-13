@@ -4,10 +4,15 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { NomineeType, TrainingNomineeStatus, TrainingStatus } from '@gscwd-api/utils';
 import { TrainingNomineesService } from '../../nominees';
 import { EntityManager, MoreThanOrEqual } from 'typeorm';
+import { HrmsEmployeesService } from '../../../../../services/hrms';
 
 @Injectable()
 export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
-  constructor(private readonly crudService: CrudService<TrainingApproval>, private readonly trainingNomineesService: TrainingNomineesService) {
+  constructor(
+    private readonly crudService: CrudService<TrainingApproval>,
+    private readonly trainingNomineesService: TrainingNomineesService,
+    private readonly hrmsEmployeesService: HrmsEmployeesService
+  ) {
     super(crudService);
   }
 
@@ -112,6 +117,33 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
     }
   }
 
+  /* tdd manager approval of training by training id*/
+  async tddManagerApproval(trainingId: string, employeeId: string, entityManager: EntityManager) {
+    try {
+      /* set the date to today */
+      const today = new Date();
+
+      /* edit training status and set date approval */
+      return await this.crudService.transact<TrainingApproval>(entityManager).update({
+        updateBy: {
+          trainingDetails: {
+            id: trainingId,
+          },
+        },
+        dto: {
+          tddManager: employeeId,
+          tddManagerApprovalDate: today,
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   /* pdc secretariat approval of training by training id*/
   async pdcSecretariatApproval(data: PdcSecretariatDto, entityManager: EntityManager) {
     try {
@@ -198,6 +230,173 @@ export class TrainingApprovalsService extends CrudHelper<TrainingApproval> {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* find approval details */
+  async findApprovalDetailsByTrainingId(trainingId: string) {
+    try {
+      const approvalDetails = await this.crudService.findOneBy({
+        findBy: {
+          trainingDetails: {
+            id: trainingId,
+          },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+
+      const tddManager = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(approvalDetails.tddManager);
+      const pdcSecretariat = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(approvalDetails.pdcSecretariat);
+      const pdcChairman = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(approvalDetails.pdcChairman);
+      const generalManager = await this.hrmsEmployeesService.findEmployeeDetailsWithSignatureByEmployeeId(approvalDetails.generalManager);
+
+      return {
+        tddManager: {
+          employeeId: approvalDetails.tddManager,
+          name: tddManager.employeeFullName,
+          positionTitle: tddManager.assignment.positionTitle,
+          signature: tddManager.signatureUrl,
+        },
+        pdcSecretariat: {
+          employeeId: approvalDetails.pdcSecretariat,
+          name: pdcSecretariat.employeeFullName,
+          positionTitle: pdcSecretariat.assignment.positionTitle,
+          signature: pdcSecretariat.signatureUrl,
+        },
+        pdcChairman: {
+          employeeId: approvalDetails.pdcSecretariat,
+          name: pdcChairman.employeeFullName,
+          positionTitle: pdcChairman.assignment.positionTitle,
+          signature: pdcChairman.signatureUrl,
+        },
+        generalManager: {
+          employeeId: approvalDetails.generalManager,
+          name: generalManager.employeeFullName,
+          positionTitle: generalManager.assignment.positionTitle,
+          signature: generalManager.signatureUrl,
+        },
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found approval details.', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* find tdd manager approval by training id */
+  async findTddManagerApprovalByTrainingId(trainingId: string) {
+    try {
+      const approvalDetails = await this.crudService.findOneBy({
+        findBy: {
+          trainingDetails: {
+            id: trainingId,
+          },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+
+      const tddManager = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.tddManager);
+
+      return {
+        tddManager: {
+          employeeId: approvalDetails.tddManager,
+          name: tddManager.employeeFullNameFirst,
+          positionTitle: tddManager.assignment.positionTitle,
+        },
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found approval details.', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* find pdc secretariat approval by training id */
+  async findPdcSecretariatApprovalByTrainingId(trainingId: string) {
+    try {
+      const approvalDetails = await this.crudService.findOneBy({
+        findBy: {
+          trainingDetails: {
+            id: trainingId,
+          },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+
+      const pdcSecretariat = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.pdcSecretariat);
+
+      return {
+        pdcSecretariat: {
+          employeeId: approvalDetails.pdcSecretariat,
+          name: pdcSecretariat.employeeFullNameFirst,
+          positionTitle: pdcSecretariat.assignment.positionTitle,
+        },
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found approval details.', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* find pdc chairman approval by training id */
+  async findPdcChairmanApprovalByTrainingId(trainingId: string) {
+    try {
+      const approvalDetails = await this.crudService.findOneBy({
+        findBy: {
+          trainingDetails: {
+            id: trainingId,
+          },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+
+      const pdcChairman = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.pdcChairman);
+
+      return {
+        pdcChairman: {
+          employeeId: approvalDetails.pdcChairman,
+          name: pdcChairman.employeeFullNameFirst,
+          positionTitle: pdcChairman.assignment.positionTitle,
+        },
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found approval details.', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /* find pdc general manager approval by training id */
+  async findGeneralManagerApprovalByTrainingId(trainingId: string) {
+    try {
+      const approvalDetails = await this.crudService.findOneBy({
+        findBy: {
+          trainingDetails: {
+            id: trainingId,
+          },
+        },
+        onError: (error) => {
+          throw error;
+        },
+      });
+
+      const generalManager = await this.hrmsEmployeesService.findEmployeeDetailsByEmployeeId(approvalDetails.generalManager);
+
+      return {
+        generalManager: {
+          employeeId: approvalDetails.generalManager,
+          name: generalManager.employeeFullNameFirst,
+          positionTitle: generalManager.assignment.positionTitle,
+        },
+      };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('Not found approval details.', HttpStatus.NOT_FOUND);
     }
   }
 }

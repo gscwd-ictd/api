@@ -4,10 +4,15 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HrmsEmployeesService } from '../../../../../services/hrms';
 import { EntityManager } from 'typeorm';
 import { OtherTrainingStatus } from '@gscwd-api/utils';
+import { OtherTrainingParticipantsRequirementsService } from '../../other-training-participants-requirements';
 
 @Injectable()
 export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingParticipant> {
-  constructor(private readonly crudService: CrudService<OtherTrainingParticipant>, private readonly hrmsEmployeesService: HrmsEmployeesService) {
+  constructor(
+    private readonly crudService: CrudService<OtherTrainingParticipant>,
+    private readonly OtherTrainingParticipantsRequirementsService: OtherTrainingParticipantsRequirementsService,
+    private readonly hrmsEmployeesService: HrmsEmployeesService
+  ) {
     super(crudService);
   }
 
@@ -15,7 +20,7 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
   async findAllAssignableParticipants() {
     try {
       /* find all employees with supervisor */
-      const employees = await this.hrmsEmployeesService.findAllEmployeesWithSupervisor();
+      const employees = await this.hrmsEmployeesService.findAllPermanentCasualJOEmployeesWithSupervisor();
 
       /* custom return */
       return await Promise.all(
@@ -57,21 +62,23 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
       })) as Array<OtherTrainingParticipant>;
 
       /* find all employees with supervisor */
-      const employees = await this.hrmsEmployeesService.findAllEmployeesWithSupervisor();
+      const employees = await this.hrmsEmployeesService.findAllPermanentCasualJOEmployeesWithSupervisor();
 
       /* extract the employee ids from both arrays */
       const participantIds = benchmarkParticipants.map((participant) => participant.employeeId);
 
       /* filter employees to remove those with employee ids present in participants */
-      return employees
-        .filter((employee) => !participantIds.includes(employee.employee._id))
-        .map((employee) => ({
-          supervisorName: employee.supervisor.name,
-          employeeId: employee.employee._id,
-          name: employee.employee.name,
-          positionTitle: employee.employee.positionTitle,
-          assignment: employee.employee.assignment,
-        }));
+      return await Promise.all(
+        employees
+          .filter((employee) => !participantIds.includes(employee.employee._id))
+          .map((employee) => ({
+            supervisorName: employee.supervisor.name,
+            employeeId: employee.employee._id,
+            name: employee.employee.name,
+            positionTitle: employee.employee.positionTitle,
+            assignment: employee.employee.assignment,
+          }))
+      );
     } catch (error) {
       Logger.error(error);
       throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -110,6 +117,7 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
             supervisorName: employeeDetails.supervisor.name,
             employeeId: items.employeeId,
             name: employeeDetails.employee.name,
+            assignment: employeeDetails.employee.assignment,
           };
         })
       );
@@ -137,6 +145,12 @@ export class OtherTrainingParticipantsService extends CrudHelper<OtherTrainingPa
           throw error;
         },
       });
+
+      /* insert participants requirements */
+      await this.OtherTrainingParticipantsRequirementsService.createParticipantRequirements(
+        { otherTrainingParticipant: participants.id },
+        entityManager
+      );
 
       /* custom return */
       return {

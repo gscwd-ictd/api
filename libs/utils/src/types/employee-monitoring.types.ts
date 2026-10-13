@@ -1,5 +1,3 @@
-import { LargeNumberLike } from 'crypto';
-
 export enum LeaveTypes {
   RECURRING = 'recurring',
   CUMULATIVE = 'cumulative',
@@ -43,6 +41,8 @@ export type LeaveApplicationType = {
   hrdmApprovalDate: Date;
   hrmoApprovalDate: Date;
   supervisorApprovalDate: Date;
+  referenceNo: string;
+  forMonetization: boolean;
 };
 
 export type DtrPayload = {
@@ -55,6 +55,7 @@ export enum NatureOfBusiness {
   HALF_DAY = 'Half Day',
   UNDERTIME = 'Undertime',
   OFFICIAL_BUSINESS = 'Official Business',
+  WELLNESS_PASS = 'Wellness Pass',
 }
 
 export enum ObTransportation {
@@ -65,6 +66,9 @@ export enum ObTransportation {
 
 export enum PassSlipApprovalStatus {
   APPROVED = 'approved',
+  AWAITING_MEDICAL_CERTIFICATE = 'awaiting medical certificate',
+  APPROVED_WITH_MEDICAL_CERTIFICATE = 'approved with medical certificate',
+  APPROVED_WITHOUT_MEDICAL_CERTIFICATE = 'approved without medical certificate',
   ONGOING = 'ongoing',
   DISAPPROVED_BY_HRMO = 'disapproved by hrmo',
   DISAPPROVED = 'disapproved',
@@ -112,11 +116,25 @@ export enum Report {
   REPORT_ON_PERSONAL_BUSINESS = 'report on personal business pass slip',
   REPORT_ON_OFFICIAL_BUSINESS = 'report on official business pass slip',
   REPORT_ON_PERSONAL_BUSINESS_DETAILED = 'detailed report on personal business pass slip',
+  REPORT_ON_PERSONAL_BUSINESS_DETAILED_COS_JO = 'detailed report on personal business pass slip (cos-jo)',
   REPORT_ON_OFFICIAL_BUSINESS_DETAILED = 'detailed report on official business pass slip',
   REPORT_ON_EMPLOYEE_FORCED_LEAVE_CREDITS = 'report on employee forced leave credits',
   REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE = 'report on employee leave credit balance',
   REPORT_ON_EMPLOYEE_LEAVE_CREDIT_BALANCE_WITH_MONEY = 'report on employee leave credit balance with money',
   REPORT_ON_SUMMARY_OF_LEAVE_WITHOUT_PAY = 'report on summary of leave without pay',
+  REPORT_ON_SUMMARY_OF_SICK_LEAVE = 'report on summary of sick leave',
+  REPORT_ON_REHABILITATION_LEAVE = 'report on summary of rehabilitation leave',
+  REPORT_ON_PASS_SLIP_DEDUCTIBLE_TO_PAY = 'report on pass slip deductible to pay',
+  REPORT_ON_UNUSED_PASS_SLIP = 'report on unused pass slip',
+  REPORT_ON_LEAVE_APPLICATION_LATE_FILING = 'report on leave application late filing',
+  REPORT_ON_NIGHT_DIFFERENTIAL_PAY = 'report on night differential pay',
+}
+
+export enum NatureOfAppointment {
+  JOBORDER = 'job order',
+  PERMANENT = 'permanent',
+  CASUAL = 'casual',
+  BOARD_OF_DIRECTORS = 'board of directors',
 }
 
 export type VacationLeaveDetails = {
@@ -152,6 +170,7 @@ export type EmployeeMonthlyDailyTimeRecord = {
 };
 
 export type EmployeeScheduleType = {
+  withLunch: boolean;
   id: string;
   esDateFrom: Date;
   esDateTo: Date;
@@ -168,6 +187,7 @@ export type EmployeeScheduleType = {
   restDaysNumbers: string;
   restDaysNames: string;
   shift: string;
+  duration: number;
 };
 
 export type DailyTimeRecordType = {
@@ -221,6 +241,7 @@ export type PassSlipForLedger = {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;
+  isDeductibleToPay: boolean;
 };
 
 export type LeaveLedger = {
@@ -237,6 +258,8 @@ export type LeaveLedger = {
   specialLeaveBenefitBalance: number;
   specialPrivilegeLeave: number;
   specialPrivilegeLeaveBalance: number;
+  wellnessLeave: number;
+  wellnessLeaveBalance: number;
   leaveDates: string;
   actionType: string;
   remarks: string;
@@ -248,9 +271,11 @@ export enum OvertimeStatus {
   CANCELLED = 'cancelled',
   PENDING = 'pending',
   FOR_APPROVAL = 'for approval',
+  REMOVED_BY_MANAGER = 'removed by manager',
+  REMOVED_BY_IMMEDIATE_SUPERVISOR = 'removed by immediate supervisor',
 }
 
-export enum OvertimeSummaryHalf {
+export enum ReportHalf {
   FIRST_HALF = 'first',
   SECOND_HALF = 'second',
 }
@@ -272,6 +297,7 @@ export type PassSlipForDispute = {
 
 export type OvertimeHrsRendered = {
   computedEncodedHours: number;
+  actualHrs: number;
 };
 
 export type User = {
@@ -295,4 +321,40 @@ export type DtrCorrectionsType = {
   correctedTimeOut: number;
   status: DtrCorrectionStatus;
   remarks: string;
+};
+
+export type HrmoLeaveApplicationListItem = {
+  id: string;
+  employeeId: string;
+  supervisorId: string;
+  leaveBenefitsId: string;
+  dateOfFiling: Date;
+  inPhilippines: string;
+  abroad: string;
+  inHospital: string;
+  outPatient: string;
+  splWomen: string;
+  forMastersCompletion: boolean;
+  forBarBoardReview: boolean;
+  studyLeaveOther: string;
+  forMonetization: boolean;
+  isTerminalLeave: boolean;
+  requestedCommutation: boolean;
+  status: LeaveApplicationStatus;
+  cancelReason: string;
+  cancelDate: Date;
+  hrmoApprovalDate: Date;
+  hrmoApprovedBy: string;
+  supervisorApprovalDate: Date;
+  supervisorDisapprovalRemarks: string;
+  hrdmApprovalDate: Date;
+  hrdmApprovedBy: string;
+  hrdmDisapprovalRemarks: string;
+  isLateFiling: boolean;
+  lateFilingJustification: string;
+  referenceNo: string;
+  employeeName: string;
+  supervisorName: string;
+  leaveName: string;
+  leaveType: string;
 };
