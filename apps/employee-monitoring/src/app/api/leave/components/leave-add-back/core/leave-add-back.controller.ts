@@ -13,7 +13,8 @@ export class LeaveAddBackController {
 
   @Post('run-add-back-work-suspension')
   async runAddBackManually() {
-    await this.leaveAddBackService.addBackLeaveOnWorkSuspensionV2();
+    // same as the nightly cron: LEGACY (V3) + WHOLE_DAY / TIME_OF_DAY suspensions (idempotent)
+    await this.leaveAddBackService.scheduledAddBackLeaveOnWorkSuspension();
     return { message: 'Add-back for work suspension executed' };
   }
 }
