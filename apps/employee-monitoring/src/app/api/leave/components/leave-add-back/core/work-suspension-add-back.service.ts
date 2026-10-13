@@ -38,6 +38,9 @@ export type AddBackRunResult = { workSuspensionId: string; created: number; skip
 /**
  * Leave add-back for WHOLE_DAY / TIME_OF_DAY work suspensions (LEGACY rows stay in LeaveAddBackService).
  *
+ * A leave cancelled after its add-back was credited keeps the credit; it is simply not picked up again
+ * (HR, 2026-10-13). Candidates are approved leave dates only.
+ *
  * Every row written carries work_suspension_id_fk (+ add_back_source_id), which makes the run idempotent
  * (a source already credited for this suspension is skipped) and lets an edit/delete reverse exactly
  * what this suspension produced.
@@ -75,23 +78,21 @@ export class WorkSuspensionAddBackService {
   }
 
   /**
-   * Approved, not cancelled half-day pass slips on the date with complete logs: the pass slip time out
-   * (actual or encoded) and the employee's DTR time in for that day.
+   * Approved, not cancelled half-day pass slips on the date with complete logs. For a half-day pass
+   * slip one log is enough: the pass slip out (actual or encoded). (HR, 2026-10-13: "complete" = out and
+   * in for other natures of business; half day / undertime need only one log.)
    */
   private async findHalfDayPassSlipCandidates(date: string): Promise<PassSlipCandidate[]> {
     return await this.dataSource.query(
       `SELECT DISTINCT ps.pass_slip_id passSlipId, ps.employee_id_fk employeeId
         FROM pass_slip ps
           INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id
-          INNER JOIN ${process.env.HRMS_DB_NAME}employees emp ON emp._id = ps.employee_id_fk
-          INNER JOIN daily_time_record dtr ON dtr.company_id_fk = emp.company_id AND dtr.dtr_date = ?
         WHERE DATE(ps.date_of_application) = ?
           AND ps.nature_of_business = 'Half Day'
           AND (ps.is_cancelled = 0 OR ps.is_cancelled IS NULL)
           AND psa.status = 'approved'
-          AND COALESCE(ps.time_out, ps.encoded_time_out) IS NOT NULL
-          AND dtr.time_in IS NOT NULL;`,
-      [date, date]
+          AND COALESCE(ps.time_out, ps.encoded_time_out) IS NOT NULL;`,
+      [date]
     );
   }
 
