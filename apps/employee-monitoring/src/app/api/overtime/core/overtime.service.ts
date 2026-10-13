@@ -25,6 +25,7 @@ import { OvertimeEmployeeService } from '../components/overtime-employee/core/ov
 import { OvertimeImmediateSupervisorService } from '../components/overtime-immediate-supervisor/core/overtime-immediate-supervisor.service';
 import { getDayRange1stHalf, getDayRange2ndHalf } from '@gscwd-api/utils';
 import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
+import { managementReason } from '../utils/overtime-management.util';
 
 @Injectable()
 export class OvertimeService {
@@ -67,7 +68,44 @@ export class OvertimeService {
       throw new ForbiddenException({ message: `These employees already applied overtime for ${overtimeApplication.plannedDate}:\n\n` + message });
   }
 
+  /**
+   * Employees (of `employeeIds`) at management level: plantilla position GM / AGM / Department Manager /
+   * Division Manager, or OIC of an office / department / division head position.
+   */
+  async getManagementLevelEmployees(employeeIds: string[]): Promise<{ employeeId: string; employeeName: string; reason: string }[]> {
+    if (!employeeIds || employeeIds.length === 0) return [];
+    const hrms = process.env.HRMS_DB_NAME;
+    const rows = (await this.overtimeApplicationService.rawQuery(
+      `
+        SELECT emp._id employeeId, ${hrms}get_employee_fullname2(emp._id) employeeName,
+               pp.position_title positionTitle,
+               emp.user_role userRole,
+               IF(oic._id IS NULL, 0, 1) isOic
+        FROM ${hrms}employees emp
+          LEFT JOIN ${hrms}plantilla_positions pp ON pp.employee_id_fk = emp._id
+          LEFT JOIN ${hrms}officer_in_charge oic ON oic.employee_id_fk = emp._id
+        WHERE emp._id IN (?);
+      `,
+      [employeeIds]
+    )) as { employeeId: string; employeeName: string; positionTitle: string | null; userRole: string | null; isOic: number | string }[];
+
+    return rows
+      .map((row) => ({ employeeId: row.employeeId, employeeName: row.employeeName, reason: managementReason(row) }))
+      .filter((row) => row.reason !== null);
+  }
+
+  /** 403 when any listed employee is management level (no overtime pay for management). */
+  private async checkNoManagementEmployees(employeeIds: string[]) {
+    const management = await this.getManagementLevelEmployees(employeeIds);
+    if (management.length > 0)
+      throw new ForbiddenException({
+        message:
+          'Management level employees cannot have overtime:\n\n' + management.map((m) => `• ${m.employeeName} (${m.reason})`).join('\n'),
+      });
+  }
+
   async createOvertime(createOverTimeDto: CreateOvertimeDto) {
+    await this.checkNoManagementEmployees(createOverTimeDto.employees);
     await this.checkEmployeeHasOt(createOverTimeDto);
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       try {
@@ -1213,8 +1251,12 @@ export class OvertimeService {
       employeeDetails.userRole === 'oic_general_manager' ||
       employeeDetails.userRole === 'general_manager'
     )
-      return await this.employeeService.getEmployeesByOrgId(orgId);
-    else throw new HttpException('You are not an immediate supervisor or a manager.', HttpStatus.FORBIDDEN);
+    {
+      // management level employees cannot have overtime → leave them out of the picker
+      const employees = await this.employeeService.getEmployeesByOrgId(orgId);
+      const management = new Set((await this.getManagementLevelEmployees(employees.map((e) => e.value))).map((m) => m.employeeId));
+      return employees.filter((e) => !management.has(e.value));
+    } else throw new HttpException('You are not an immediate supervisor or a manager.', HttpStatus.FORBIDDEN);
   }
 
   async getOvertimeImmediateSupervisorByEmployeeId(employeeId: string) {
@@ -2261,6 +2303,7 @@ export class OvertimeService {
 
   async updateOvertimeDetails(updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
     //
+    await this.checkNoManagementEmployees(updateOvertimeApplicationDto.employees);
     await this.checkEmployeeHasOtOnUpdate(updateOvertimeApplicationDto);
     const { id, estimatedHours, plannedDate, purpose, employeeId, employees } = updateOvertimeApplicationDto;
     const overtimeImmediateSupervisorId = await this.overtimeApplicationService.crud().findOneOrNull({
