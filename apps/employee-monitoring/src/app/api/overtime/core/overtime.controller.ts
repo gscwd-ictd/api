@@ -6,7 +6,7 @@ import {
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApprovalDto,
 } from '@gscwd-api/models';
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, ValidationPipe } from '@nestjs/common';
 import { OvertimeService } from './overtime.service';
 
 @Controller({ version: '1', path: 'overtime' })
@@ -100,8 +100,9 @@ export class OvertimeController {
 
   @Patch('/immediate-supervisor/:overtime_application_id/cancel')
   async immediateSupervisorCancelOvertimeApplication(
-    @Param('overtime_application_id') overtimeApplicationId: string,
-    @Body() cancelOvertimeApplicationDto: CancelOvertimeApplicationDto
+    @Param('overtime_application_id', ParseUUIDPipe) overtimeApplicationId: string,
+    // global ValidationPipe is disabled in main.ts; validate here so ids/remarks are plain strings
+    @Body(new ValidationPipe({ whitelist: true })) cancelOvertimeApplicationDto: CancelOvertimeApplicationDto
   ) {
     return await this.overtimeService.immediateSupervisorCancelOvertimeApplication(overtimeApplicationId, cancelOvertimeApplicationDto);
   }

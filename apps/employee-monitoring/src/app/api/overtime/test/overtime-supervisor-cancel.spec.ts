@@ -45,3 +45,25 @@ describe('OvertimeService.immediateSupervisorCancelOvertimeApplication', () => {
     await expect(service.immediateSupervisorCancelOvertimeApplication(OT_ID, dto)).rejects.toBeInstanceOf(ConflictException);
   });
 });
+
+describe('CancelOvertimeApplicationDto validation', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { ValidationPipe } = require('@nestjs/common');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { CancelOvertimeApplicationDto } = require('@gscwd-api/models');
+  const pipe = new ValidationPipe({ whitelist: true });
+  const meta = { type: 'body', metatype: CancelOvertimeApplicationDto };
+
+  it('rejects non-string remarks and a non-uuid supervisor id', async () => {
+    await expect(pipe.transform({ immediateSupervisorEmployeeId: SUPERVISOR, remarks: { a: 1 } }, meta)).rejects.toBeTruthy();
+    await expect(pipe.transform({ immediateSupervisorEmployeeId: ['x'], remarks: 'ok' }, meta)).rejects.toBeTruthy();
+    await expect(pipe.transform({ immediateSupervisorEmployeeId: SUPERVISOR, remarks: '' }, meta)).rejects.toBeTruthy();
+  });
+
+  it('accepts a valid body', async () => {
+    await expect(pipe.transform({ immediateSupervisorEmployeeId: SUPERVISOR, remarks: 'ok', extra: 1 }, meta)).resolves.toEqual({
+      immediateSupervisorEmployeeId: SUPERVISOR,
+      remarks: 'ok',
+    });
+  });
+});

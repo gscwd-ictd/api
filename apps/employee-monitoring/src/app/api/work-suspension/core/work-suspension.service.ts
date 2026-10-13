@@ -56,8 +56,11 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
     return dayjs(date).format('YYYY-MM-DD');
   }
 
-  private static normalizeTime(time: string | null | undefined): string | null {
-    if (!time) return null;
+  /** 'HH:mm' or 'HH:mm:ss' -> 'HH:mm:ss'. Anything else (including non-strings) is rejected. */
+  private static normalizeTime(time: unknown): string | null {
+    if (time === null || time === undefined || time === '') return null;
+    if (typeof time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(time))
+      throw new BadRequestException('suspensionStartTime must be HH:mm or HH:mm:ss.');
     return time.length === 5 ? `${time}:00` : time;
   }
 
