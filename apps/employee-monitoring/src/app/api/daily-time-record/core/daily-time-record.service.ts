@@ -19,6 +19,7 @@ import { HolidaysService } from '../../holidays/core/holidays.service';
 import { LeaveCardLedgerDebitService } from '../../leave/components/leave-card-ledger-debit/core/leave-card-ledger-debit.service';
 import { EmployeeScheduleService } from '../components/employee-schedule/core/employee-schedule.service';
 import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
+import { applyWorkSuspensionToDtr } from '../../work-suspension/core/work-suspension-dtr.util';
 import { LeaveCreditDeductionsService } from '../../leave/components/leave-credit-deductions/core/leave-credit-deductions.service';
 
 @Injectable()
@@ -215,6 +216,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       noAttendance,
       halfDayDates,
     };
+  }
+
+  /** DTR time columns come back from MySQL as 'HH:mm:ss' strings even though the entity types them as numbers. */
+  private logString(value: unknown): string | null {
+    return value === null || value === undefined || value === '' ? null : String(value);
   }
 
   //#region lates,undertimes,halfday functionalities
@@ -550,7 +556,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       }
     }
 
-    return {
+    const result = {
       minutesLate,
       noOfLates,
       noOfUndertimes,
@@ -558,7 +564,21 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       noAttendance,
       isHalfDay,
     };
-    0;
+
+    // WHOLE_DAY / TIME_OF_DAY suspensions (LEGACY keeps the logic above)
+    if (!isHoliday && !isRestDay && !isLNDRemarks && schedule?.timeIn && schedule?.timeOut) {
+      const suspensionWindow = await this.workSuspensionService.getSuspensionWindow(dayjs(dtr.dtrDate).toDate(), schedule);
+      if (suspensionWindow.isSuspended) {
+        return applyWorkSuspensionToDtr(
+          suspensionWindow,
+          schedule,
+          { timeIn: this.logString(dtr.timeIn), lunchOut: this.logString(dtr.lunchOut), lunchIn: this.logString(dtr.lunchIn), timeOut: this.logString(dtr.timeOut) },
+          result
+        );
+      }
+    }
+
+    return result;
   }
   //#endregion
 
@@ -775,6 +795,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       //1.4 no attendance
       const noAttendance = latesUndertimesNoAttendance.noAttendance;
       const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(dateCurrent);
+      const workSuspension = await this.workSuspensionService.getWorkSuspensionMarker(dateCurrent);
       const summary = {
         noOfLates,
         totalMinutesLate,
@@ -792,6 +813,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         isRestDay,
         isOt,
         suspensionHours,
+        workSuspension,
         hasPendingDtrCorrection,
         dtrCorrection,
         dtr: { ...dtr, remarks, baseRemarks: dtr.remarks },
@@ -804,6 +826,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       const currEmployeeDtr = await this.findByCompanyIdAndDate(data.companyId, dateCurrent);
       const hasPendingDtrCorrection = currEmployeeDtr ? await this.hasPendingDtrCorrection(currEmployeeDtr.id) : false;
       const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(dateCurrent);
+      const workSuspension = await this.workSuspensionService.getWorkSuspensionMarker(dateCurrent);
       const dtrCorrection = currEmployeeDtr ? await this.getDtrCorrection(currEmployeeDtr.id) : null;
       const restDays = schedule.restDaysNumbers.split(', ');
       const { leaveDateStatus } = (await this.rawQuery(`SELECT get_leave_date_status(?,?) leaveDateStatus;`, [employeeDetails.userId, data.date]))[0];
@@ -834,6 +857,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         hasPendingDtrCorrection,
         dtrCorrection,
         suspensionHours,
+        workSuspension,
         dtr: {
           companyId: null,
           createdAt: null,
@@ -896,8 +920,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     const timeOutAmOrPm = dayjs(ivmsEntry[0].date + ' ' + timeOut).format('A');
     const timeInAmOrPm = dayjs(ivmsEntry[0].date + ' ' + timeIn).format('A');
 
-    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
-    const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, currEmployeeDtr.dtrDate));
+    const sortingSuspension = await this.workSuspensionService.getSortingSuspension(ivmsEntry[0].date, schedule);
+    const suspensionHours = sortingSuspension.suspensionHours;
+    const workSuspensionStart = dayjs(sortingSuspension.workSuspensionStart);
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
         const { time, ...rest } = ivmsEntryItem;
@@ -967,7 +992,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   async updateFrontlineScheduleShiftB(currEmployeeDtr: DailyTimeRecord, ivmsEntry: IvmsEntry[], schedule: any) {
     let _timeIn;
     let _timeOut;
-    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const suspensionHours = (await this.workSuspensionService.getSortingSuspension(ivmsEntry[0].date, schedule)).suspensionHours;
     const { timeIn, timeOut } = schedule;
     //const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, 'cu'));
 
@@ -1013,7 +1038,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _lunchIn = null;
     let _timeOut = null;
     const { timeIn, timeOut, lunchOut, lunchIn } = schedule;
-    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const suspensionHours = (await this.workSuspensionService.getSortingSuspension(ivmsEntry[0].date, schedule)).suspensionHours;
 
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
@@ -1128,8 +1153,9 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   async addRegularWithOutLunch(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
     let _timeIn = null;
     let _timeOut = null;
-    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
-    const workSuspensionStart = dayjs(await this.workSuspensionService.getWorkSuspensionStart(schedule.timeOut, ivmsEntry[0].date));
+    const sortingSuspension = await this.workSuspensionService.getSortingSuspension(ivmsEntry[0].date, schedule);
+    const suspensionHours = sortingSuspension.suspensionHours;
+    const workSuspensionStart = dayjs(sortingSuspension.workSuspensionStart);
 
     const { timeIn, timeOut } = schedule;
     const result = await Promise.all(
@@ -1193,7 +1219,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   async addNightScheduleDtr(companyId: string, ivmsEntry: IvmsEntry[], schedule: any) {
     let _timeIn = null;
     let _timeOut = null;
-    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const suspensionHours = (await this.workSuspensionService.getSortingSuspension(ivmsEntry[0].date, schedule)).suspensionHours;
     const { timeIn, timeOut } = schedule;
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
@@ -1248,7 +1274,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _timeIn = null;
     let _timeOut = null;
 
-    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const suspensionHours = (await this.workSuspensionService.getSortingSuspension(ivmsEntry[0].date, schedule)).suspensionHours;
 
     const ivmsEntryTomorrow = (await this.client.call<string, { companyId: string; date: Date }, IvmsEntry[]>({
       action: 'send',
@@ -1329,7 +1355,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _timeIn = null;
     let _timeOut = null;
 
-    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const suspensionHours = (await this.workSuspensionService.getSortingSuspension(ivmsEntry[0].date, schedule)).suspensionHours;
 
     const { timeIn, timeOut } = schedule;
     const result = await Promise.all(
@@ -1379,7 +1405,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _timeIn = null;
     let _timeOut = null;
 
-    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const suspensionHours = (await this.workSuspensionService.getSortingSuspension(ivmsEntry[0].date, schedule)).suspensionHours;
 
     const ivmsEntryTomorrow = (await this.client.call<string, { companyId: string; date: Date }, IvmsEntry[]>({
       action: 'send',
@@ -1441,7 +1467,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _timeOut;
 
     const { timeIn, timeOut } = schedule;
-    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const suspensionHours = (await this.workSuspensionService.getSortingSuspension(ivmsEntry[0].date, schedule)).suspensionHours;
     const result = await Promise.all(
       ivmsEntry.map(async (ivmsEntryItem, idx) => {
         const { time, ...rest } = ivmsEntryItem;
@@ -1483,7 +1509,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     let _lunchIn = null;
     let _timeOut = null;
 
-    const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(ivmsEntry[0].date);
+    const suspensionHours = (await this.workSuspensionService.getSortingSuspension(ivmsEntry[0].date, schedule)).suspensionHours;
 
     const { timeIn, timeOut, lunchOut, lunchIn } = schedule;
     const result = await Promise.all(
