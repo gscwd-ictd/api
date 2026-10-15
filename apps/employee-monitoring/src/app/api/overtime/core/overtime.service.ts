@@ -10,6 +10,7 @@ import {
   UpdateOvertimeAccomplishmentDto,
   UpdateOvertimeApplicationDto,
   UpdateOvertimeApprovalDto,
+  WorkSuspensionType,
 } from '@gscwd-api/models';
 import { OvertimeHrsRendered, OvertimeStatus, ReportHalf, ScheduleBase, ScheduleShift } from '@gscwd-api/utils';
 import {
@@ -33,7 +34,14 @@ import { OvertimeEmployeeService } from '../components/overtime-employee/core/ov
 import { OvertimeImmediateSupervisorService } from '../components/overtime-immediate-supervisor/core/overtime-immediate-supervisor.service';
 import { getDayRange1stHalf, getDayRange2ndHalf } from '@gscwd-api/utils';
 import { WorkSuspensionService } from '../../work-suspension/core/work-suspension.service';
+
 import { managementReason } from '../utils/overtime-management.util';
+import {
+  OvertimeSuspensionSplit,
+  REGULAR_OT_MULTIPLIER,
+  splitOvertimeBySuspension,
+  SUSPENSION_OT_MULTIPLIER,
+} from '../utils/overtime-suspension.util';
 
 @Injectable()
 export class OvertimeService {
@@ -1856,6 +1864,8 @@ export class OvertimeService {
     let overallTotalOffOTAmount = 0;
     let overallTotalOffOTAmountOld = 0;
 
+    let overallTotalSuspensionOTAmount = 0;
+
     let overallNightDifferentialAmount = 0;
     // let overallNightDifferentialAmountOld = 0;
 
@@ -1898,6 +1908,7 @@ export class OvertimeService {
       employees.map(async (employee) => {
         let totalRegularOTHoursRendered = 0;
         let totalOffOTHoursRendered = 0;
+        let totalSuspensionOTHoursRendered = 0;
         //check if regular employee
         const { natureOfAppointment } = employee;
         if (
@@ -1989,21 +2000,27 @@ export class OvertimeService {
                   ? 0
                   : null;
 
-              const suspensionHours = await this.workSuspensionService.getWorkSuspensionBySuspensionDate(
-                dayjs(year + '-' + month + '-' + day).toDate()
-              );
+              let suspensionHrs = 0;
 
               if (await this.isRegularOvertimeDay(employee.employeeId, year, month, day)) {
-                if (suspensionHours >= 0) {
-                  totalRegularOTHoursRendered += hoursRendered;
-                }
+                // work suspension (new rules): OT inside suspension start -> midnight is paid 1.5x, the rest 1.25x
+                const split = await this.getOvertimeSuspensionSplit(
+                  employee.employeeId,
+                  dayjs(year + '-' + month + '-' + day).toDate(),
+                  hoursRendered,
+                  encodedTimeIn,
+                  encodedTimeOut
+                );
+                totalRegularOTHoursRendered += split.regularHrs;
+                totalSuspensionOTHoursRendered += split.suspensionHrs;
+                suspensionHrs = split.suspensionHrs;
               } else {
                 isHoliday = true;
                 totalOffOTHoursRendered += hoursRendered;
               }
 
               return typeof overtime !== 'undefined'
-                ? { day, hoursRendered, isHoliday }
+                ? { day, hoursRendered, isHoliday, suspensionHrs }
                 : {
                     day: Number.parseInt(_day.toString()),
                     hoursRendered: null,
@@ -2024,8 +2041,9 @@ export class OvertimeService {
         // const regularMultiplier = natureOfAppointment === 'permanent' || natureOfAppointment === 'casual' ? 1.25 : 1;
         // const offMultiplier = natureOfAppointment === 'permanent' || natureOfAppointment === 'casual' ? 1.5 : 1;
 
-        const regularMultiplier = 1.25;
+        const regularMultiplier = REGULAR_OT_MULTIPLIER;
         const offMultiplier = 1.5;
+        const suspensionMultiplier = SUSPENSION_OT_MULTIPLIER;
 
         const regularMultiplierOld = 1;
         const offMultiplierOld = 1;
@@ -2036,20 +2054,29 @@ export class OvertimeService {
         const offOTAmount = Math.round((hourlyRate * totalOffOTHoursRendered * offMultiplier + Number.EPSILON) * 1000) / 1000;
         const offOTAmountOld = Math.round((hourlyRate * totalOffOTHoursRendered * offMultiplierOld + Number.EPSILON) * 1000) / 1000;
 
-        const totalOTHoursRendered = totalRegularOTHoursRendered + totalOffOTHoursRendered;
+        const suspensionOTAmount = Math.round((hourlyRate * totalSuspensionOTHoursRendered * suspensionMultiplier + Number.EPSILON) * 1000) / 1000;
+        const suspensionOTAmountOld = Math.round((hourlyRate * totalSuspensionOTHoursRendered * regularMultiplierOld + Number.EPSILON) * 1000) / 1000;
+
+        totalRegularOTHoursRendered = Math.round(totalRegularOTHoursRendered * 100) / 100;
+        totalSuspensionOTHoursRendered = Math.round(totalSuspensionOTHoursRendered * 100) / 100;
+        const totalOTHoursRendered = Math.round((totalRegularOTHoursRendered + totalSuspensionOTHoursRendered + totalOffOTHoursRendered) * 100) / 100;
 
         const substituteDutyOTHours = 0;
         const substituteAmount = 0;
         const nightDifferentialHrs = 0;
         const nightDifferentialAmount = 0;
-        const totalOvertimeAmount = Math.round((regularOTAmount + offOTAmount + substituteAmount + nightDifferentialAmount) * 100) / 100;
-        const totalOvertimeAmountOld = Math.round((regularOTAmountOld + offOTAmountOld + substituteAmount + nightDifferentialAmount) * 100) / 100;
+        const totalOvertimeAmount =
+          Math.round((regularOTAmount + suspensionOTAmount + offOTAmount + substituteAmount + nightDifferentialAmount) * 100) / 100;
+        const totalOvertimeAmountOld =
+          Math.round((regularOTAmountOld + suspensionOTAmountOld + offOTAmountOld + substituteAmount + nightDifferentialAmount) * 100) / 100;
 
         overallTotalRegularOTAmount += regularOTAmount;
         overallTotalRegularOTAmountOld += regularOTAmountOld;
 
         overallTotalOffOTAmount += offOTAmount;
         overallTotalOffOTAmountOld += offOTAmountOld;
+
+        overallTotalSuspensionOTAmount += suspensionOTAmount;
 
         overallSubstituteDutyOTAmount += substituteAmount;
         overallNightDifferentialAmount += nightDifferentialAmount;
@@ -2067,6 +2094,8 @@ export class OvertimeService {
           totalOTHoursRendered,
           totalRegularOTHoursRendered,
           totalOffOTHoursRendered,
+          regularOTHrs: totalRegularOTHoursRendered,
+          suspensionOTHrs: totalSuspensionOTHoursRendered,
 
           regularOTAmount: regularOTAmount.toFixed(2),
           regularOTAmountOld,
@@ -2075,6 +2104,8 @@ export class OvertimeService {
           offOTAmount: offOTAmount.toFixed(2),
           offOTAmountOld,
           differenceOffOTAmountAndOld: offOTAmount - offOTAmountOld,
+
+          suspensionOTAmount: suspensionOTAmount.toFixed(2),
 
           substituteDutyOTHours,
           substituteAmount,
@@ -2124,6 +2155,7 @@ export class OvertimeService {
       overallTotalRegularOTAmountOld,
       overallTotalOffOTAmount: (Math.round(overallTotalOffOTAmount * 100) / 100).toFixed(2),
       overallTotalOffOTAmountOld,
+      overallTotalSuspensionOTAmount: (Math.round(overallTotalSuspensionOTAmount * 100) / 100).toFixed(2),
       overallSubstituteDutyOTAmount,
       overallNightDifferentialAmount,
       overallTotalOTAmount: (Math.round(overallTotalOTAmount * 100) / 100).toFixed(2),
@@ -2164,6 +2196,36 @@ export class OvertimeService {
     return actualHrs && actualHrs > 0 ? parseFloat(actualHrs.toString()) : computedEncodedHours;
   }
 
+  /**
+   * Splits OT hours on a regular day into regular (1.25x) and work suspension (1.5x) hours.
+   * WHOLE_DAY: window is 00:00 -> 24:00 of the date. TIME_OF_DAY: suspension start -> 24:00.
+   * Only active WHOLE_DAY / TIME_OF_DAY suspensions split; LEGACY rows make the day an off day instead
+   * (see isRegularOvertimeDay) so past reports do not change.
+   */
+  private async getOvertimeSuspensionSplit(
+    employeeId: string,
+    date: Date,
+    hoursRendered: number | null,
+    otStart: Date | null,
+    otEnd: Date | null
+  ): Promise<OvertimeSuspensionSplit> {
+    const notSplit = { regularHrs: hoursRendered && hoursRendered > 0 ? hoursRendered : 0, suspensionHrs: 0 };
+    try {
+      const suspension = await this.workSuspensionService.getActiveWorkSuspensionByDate(date);
+      if (!suspension) return notSplit;
+      // WHOLE_DAY: the whole calendar day 00:00 -> 24:00 is the suspension window (HR 2026-10-15)
+      if (suspension.suspensionType === WorkSuspensionType.WHOLE_DAY) return splitOvertimeBySuspension(hoursRendered, otStart, otEnd, date, 0);
+      if (suspension.suspensionType !== WorkSuspensionType.TIME_OF_DAY) return notSplit;
+      const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, date);
+      const schedule = employeeSchedule?.schedule;
+      if (!schedule?.timeIn || !schedule?.timeOut) return notSplit;
+      const window = await this.workSuspensionService.getSuspensionWindow(date, schedule);
+      return splitOvertimeBySuspension(hoursRendered, otStart, otEnd, date, window.isSuspended ? window.start : null);
+    } catch {
+      return notSplit;
+    }
+  }
+
   private async isRegularOvertimeDay(employeeId: string, year: number, month: number, day: number) {
     let result = false;
     const employeeSchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(
@@ -2180,7 +2242,7 @@ export class OvertimeService {
 
     const { isWorkSuspension } = (
       await this.employeeScheduleService.rawQuery(
-        `SELECT IF(COUNT(*)>0, true,false) isWorkSuspension FROM work_suspension WHERE suspension_date =  concat(?,'-',?,'-',?);`,
+        `SELECT IF(COUNT(*)>0, true,false) isWorkSuspension FROM work_suspension WHERE suspension_date =  concat(?,'-',?,'-',?) AND suspension_type = 'LEGACY';`,
         [year, month, day]
       )
     )[0];
