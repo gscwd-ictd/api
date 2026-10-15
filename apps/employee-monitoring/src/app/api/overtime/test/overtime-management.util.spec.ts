@@ -1,10 +1,14 @@
 import { isManagementPositionTitle, managementReason } from '../utils/overtime-management.util';
 
 describe('management level (no overtime)', () => {
-  it.each(['General Manager A', 'Assistant General Manager', 'Department Manager A', ' Department Manager A', 'Department Manager A*', 'division manager a'])(
-    'title "%s" is management',
-    (title) => expect(isManagementPositionTitle(title)).toBe(true)
-  );
+  it.each([
+    'General Manager A',
+    'Assistant General Manager',
+    'Department Manager A',
+    ' Department Manager A',
+    'Department Manager A*',
+    'division manager a',
+  ])('title "%s" is management', (title) => expect(isManagementPositionTitle(title)).toBe(true));
 
   it.each(['Water Maintenance Head', 'General Services Officer A', 'Water Maintenance General Foreman', 'Principal Engineer C', null, ''])(
     'title "%s" is not management',

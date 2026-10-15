@@ -53,7 +53,10 @@ export class WorkSuspensionController {
       allowed: [WorkSuspensionType.WHOLE_DAY, WorkSuspensionType.TIME_OF_DAY],
     }) as WorkSuspensionType | undefined;
     if (!type) throw new BadRequestException('suspensionType is required.');
-    return await this.workSuspensionService.previewWorkSuspension(type, singleQueryValue(suspensionStartTime, 'suspensionStartTime', { pattern: TIME_PATTERN }));
+    return await this.workSuspensionService.previewWorkSuspension(
+      type,
+      singleQueryValue(suspensionStartTime, 'suspensionStartTime', { pattern: TIME_PATTERN })
+    );
   }
 
   @Post()

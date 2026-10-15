@@ -35,10 +35,10 @@ function makeHarness(opts: { leaves?: { lad: string; employee: string; benefit: 
       const value = row[k] as Record<string, unknown> | undefined;
       if (v && typeof v === 'object' && 'id' in (v as object)) {
         const cond = (v as { id: unknown }).id;
-        if (cond && typeof cond === 'object' && '_value' in (cond as object)) return ((cond as { _value: unknown[] })._value).includes(value?.id);
+        if (cond && typeof cond === 'object' && '_value' in (cond as object)) return (cond as { _value: unknown[] })._value.includes(value?.id);
         return value?.id === cond;
       }
-      if (v && typeof v === 'object' && '_value' in (v as object)) return ((v as { _value: unknown[] })._value).includes(row[k]);
+      if (v && typeof v === 'object' && '_value' in (v as object)) return (v as { _value: unknown[] })._value.includes(row[k]);
       return row[k] === v;
     });
   const manager = {
@@ -78,10 +78,16 @@ function makeHarness(opts: { leaves?: { lad: string; employee: string; benefit: 
 }
 
 const suspension = (type: WorkSuspensionType, start: string | null): WorkSuspension =>
-  ({ id: WS_ID, name: 'Typhoon', suspensionDate: '2026-10-08', suspensionType: type, suspensionStartTime: start, isArchived: false } as unknown as WorkSuspension);
+  ({
+    id: WS_ID,
+    name: 'Typhoon',
+    suspensionDate: '2026-10-08',
+    suspensionType: type,
+    suspensionStartTime: start,
+    isArchived: false,
+  } as unknown as WorkSuspension);
 
-const values = (list: Record<string, unknown>[], key: string) =>
-  list.map((r) => [(r.leaveBenefitsId as LeaveBenefits)?.leaveName, Number(r[key])]);
+const values = (list: Record<string, unknown>[], key: string) => list.map((r) => [(r.leaveBenefitsId as LeaveBenefits)?.leaveName, Number(r[key])]);
 
 describe('WorkSuspensionAddBackService', () => {
   it('spec example: SPL on Oct 8, suspension 16:00 (8-5) → +1 SPL, −0.875 VL, with ledger rows', async () => {
@@ -132,7 +138,10 @@ describe('WorkSuspensionAddBackService', () => {
   });
 
   it('suspension after the schedule time out gives nothing', async () => {
-    const { service, rows } = makeHarness({ leaves: [{ lad: 'lad-1', employee: 'e1', benefit: 'spl' }], passSlips: [{ ps: 'ps-1', employee: 'e1' }] });
+    const { service, rows } = makeHarness({
+      leaves: [{ lad: 'lad-1', employee: 'e1', benefit: 'spl' }],
+      passSlips: [{ ps: 'ps-1', employee: 'e1' }],
+    });
     expect(await service.applyForSuspension(suspension(WorkSuspensionType.TIME_OF_DAY, '18:00:00'))).toMatchObject({ created: 0, skipped: 2 });
     expect(rows.get(LeaveCreditEarnings)).toHaveLength(0);
   });

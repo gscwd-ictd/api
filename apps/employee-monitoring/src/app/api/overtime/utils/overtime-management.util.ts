@@ -13,7 +13,11 @@
 export const MANAGEMENT_POSITION_TITLES = ['General Manager A', 'Assistant General Manager', 'Department Manager A', 'Division Manager A'] as const;
 
 export function normalizePositionTitle(title: string | null | undefined): string {
-  return (title ?? '').replace(/\*+\s*$/, '').replace(/\s+/g, ' ').trim().toLowerCase();
+  return (title ?? '')
+    .replace(/\*+\s*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
 }
 
 const NORMALIZED = new Set(MANAGEMENT_POSITION_TITLES.map(normalizePositionTitle));
