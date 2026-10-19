@@ -53,7 +53,9 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       let status = PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL;
 
       const passSlipResult = await transactionEntityManager.getRepository(PassSlip).save({ ...rest, isMedical, dateOfApplication: dayjs().toDate() });
-      if (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS) status = PassSlipApprovalStatus.FOR_HRMO_APPROVAL;
+      // Official Business and Wellness Pass go to HRMO first, then the supervisor
+      if (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS || natureOfBusiness === NatureOfBusiness.WELLNESS_PASS)
+        status = PassSlipApprovalStatus.FOR_HRMO_APPROVAL;
 
       const approvalResult = await transactionEntityManager.getRepository(PassSlipApproval).save({
         passSlipId: passSlipResult,
