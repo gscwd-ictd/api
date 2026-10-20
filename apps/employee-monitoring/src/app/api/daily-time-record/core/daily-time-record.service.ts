@@ -683,7 +683,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           if (!leaveCardItem) {
             debitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
 
-            await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+            await this.addDtrLedgerDebitOnce({
               dailyTimeRecordId: dtr,
               debitValue,
               createdAt: dtr.dtrDate,
@@ -704,7 +704,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         } else if (noOfLates > 0 && latesUndertimesNoAttendance.isHalfDay && latesUndertimesNoAttendance.minutesLate > 0) {
           const debitValue = latesUndertimesNoAttendance.minutesLate / 480;
           if (!leaveCardItem) {
-            await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+            await this.addDtrLedgerDebitOnce({
               dailyTimeRecordId: dtr,
               debitValue,
               createdAt: dtr.dtrDate,
@@ -748,7 +748,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             if (!leaveCardItem) {
               if (latesUndertimesNoAttendance.minutesUndertime > 0) {
                 debitValue = latesUndertimesNoAttendance.minutesUndertime / 480;
-                await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+                await this.addDtrLedgerDebitOnce({
                   dailyTimeRecordId: dtr,
                   debitValue,
                   createdAt: dayjs().toDate(),
@@ -770,7 +770,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             await this.removeDtrLedgerDebit(leaveCardItem);
           if (!passSlipCovers) {
             if (!leaveCardItem) {
-              await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+              await this.addDtrLedgerDebitOnce({
                 dailyTimeRecordId: dtr,
                 debitValue: 0.5,
                 createdAt: dtr.dtrDate,
@@ -783,7 +783,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
                 .crud()
                 .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
               if (!leaveCardItem) {
-                await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+                await this.addDtrLedgerDebitOnce({
                   dailyTimeRecordId: dtr,
                   debitValue: latesUndertimesNoAttendance.minutesLate / 480,
                   createdAt: dtr.dtrDate,
@@ -1654,6 +1654,30 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       ])
     )[0];
     return Number(passSlipCount) > 0;
+  }
+
+  /**
+   * Insert a DTR debit (tardiness / undertime / half day) only if the employee has none of that type for the
+   * day yet, on ANY DTR row of the day. Duplicate DTR rows for the same day, or two overlapping runs, used to
+   * deduct the same tardiness twice (229 days in 2026).
+   */
+  private async addDtrLedgerDebitOnce(debit: {
+    dailyTimeRecordId: DailyTimeRecord;
+    debitValue: number;
+    createdAt: Date;
+    dtrDeductionType: DtrDeductionType;
+  }) {
+    const { companyId, dtrDate } = debit.dailyTimeRecordId;
+    const { n } = (
+      await this.rawQuery(
+        `SELECT COUNT(*) n FROM leave_card_ledger_debit l
+           INNER JOIN daily_time_record d ON d.daily_time_record_id = l.daily_time_record_id_fk
+          WHERE d.company_id_fk = ? AND d.dtr_date = ? AND l.dtr_deduction_type = ?;`,
+        [companyId, dayjs(dtrDate).format('YYYY-MM-DD'), debit.dtrDeductionType]
+      )
+    )[0];
+    if (Number(n) > 0) return null;
+    return await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit(debit);
   }
 
   /** True when a pass slip of this employee on this date already has a leave ledger debit. */
