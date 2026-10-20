@@ -1,4 +1,4 @@
-import { PASS_SLIP_COVERS_DTR_TIME_OUT_SQL } from '../../pass-slip/core/pass-slip-deduction.util';
+import { PASS_SLIP_COVERS_DTR_TIME_OUT_SQL, PASS_SLIP_DEBITED_ON_DATE_SQL } from '../../pass-slip/core/pass-slip-deduction.util';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { CreateDtrRemarksDto, DailyTimeRecord, DtrCorrection, UpdateDailyTimeRecordDto, UpdateDtrRemarksDto } from '@gscwd-api/models';
@@ -572,7 +572,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         return applyWorkSuspensionToDtr(
           suspensionWindow,
           schedule,
-          { timeIn: this.logString(dtr.timeIn), lunchOut: this.logString(dtr.lunchOut), lunchIn: this.logString(dtr.lunchIn), timeOut: this.logString(dtr.timeOut) },
+          {
+            timeIn: this.logString(dtr.timeIn),
+            lunchOut: this.logString(dtr.lunchOut),
+            lunchIn: this.logString(dtr.lunchIn),
+            timeOut: this.logString(dtr.timeOut),
+          },
           result
         );
       }
@@ -733,9 +738,11 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             .crud()
             .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.UNDERTIME } } });
           let debitValue = 0;
-          // a pass slip (app scan) already accounts for leaving early -> no DTR undertime (avoid double deduction)
+          // a pass slip (app scan) also accounts for leaving early -> only the first deduction stays:
+          // pass slip already posted -> drop the DTR undertime; DTR undertime already posted -> keep it (the pass slip skips)
           const passSlipCovers = await this.passSlipCoversDtrTimeOut(employeeDetails.userId, employeeDetails.companyId, dtr.dtrDate);
-          if (passSlipCovers && leaveCardItem) await this.removeDtrLedgerDebit(leaveCardItem);
+          if (passSlipCovers && leaveCardItem && (await this.passSlipDebitedOnDate(employeeDetails.userId, dtr.dtrDate)))
+            await this.removeDtrLedgerDebit(leaveCardItem);
 
           if (!passSlipCovers) {
             if (!leaveCardItem) {
@@ -757,8 +764,10 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             .crud()
             .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.HALFDAY } } });
           const debitValue = 0;
+          // first deduction wins (see undertime above)
           const passSlipCovers = await this.passSlipCoversDtrTimeOut(employeeDetails.userId, employeeDetails.companyId, dtr.dtrDate);
-          if (passSlipCovers && leaveCardItem) await this.removeDtrLedgerDebit(leaveCardItem);
+          if (passSlipCovers && leaveCardItem && (await this.passSlipDebitedOnDate(employeeDetails.userId, dtr.dtrDate)))
+            await this.removeDtrLedgerDebit(leaveCardItem);
           if (!passSlipCovers) {
             if (!leaveCardItem) {
               await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
@@ -1644,6 +1653,13 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         dayjs(dtrDate).format('YYYY-MM-DD'),
       ])
     )[0];
+    return Number(passSlipCount) > 0;
+  }
+
+  /** True when a pass slip of this employee on this date already has a leave ledger debit. */
+  private async passSlipDebitedOnDate(employeeId: string, dtrDate: Date | string) {
+    const date = dayjs(dtrDate).format('YYYY-MM-DD');
+    const { passSlipCount } = (await this.rawQuery(PASS_SLIP_DEBITED_ON_DATE_SQL, [employeeId, date, date]))[0];
     return Number(passSlipCount) > 0;
   }
 

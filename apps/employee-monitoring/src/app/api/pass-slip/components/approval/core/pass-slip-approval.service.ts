@@ -58,10 +58,10 @@ export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {
     } else if (typeof isDisputeApproved === 'boolean') {
       updateResult = await this.crudService.update({ dto: { status: PassSlipApprovalStatus.APPROVED }, updateBy: { passSlipId } });
       if (isDisputeApproved === true)
-        await this.rawQuery(`UPDATE pass_slip SET is_dispute_approved=?,time_in = encoded_time_in WHERE pass_slip_id = ?`, [
-          isDisputeApproved,
-          passSlipId,
-        ]);
+        await this.rawQuery(
+          `UPDATE pass_slip SET is_dispute_approved=?, time_in = encoded_time_in, time_out = COALESCE(encoded_time_out, time_out) WHERE pass_slip_id = ?`,
+          [isDisputeApproved, passSlipId]
+        );
       else await this.rawQuery(`UPDATE pass_slip SET is_dispute_approved=? WHERE pass_slip_id = ?`, [isDisputeApproved, passSlipId]);
     } else updateResult = await this.crudService.update({ dto: { status }, updateBy: { passSlipId } });
 

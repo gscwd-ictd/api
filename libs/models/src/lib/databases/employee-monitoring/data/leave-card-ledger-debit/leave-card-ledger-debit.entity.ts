@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { LeaveApplication } from '../leave-application';
 import { PassSlip } from '../pass-slip';
@@ -7,6 +7,8 @@ import { LeaveBenefits } from '../leave-benefits';
 import { LeaveCreditDeductions } from '../leave-credit-deductions';
 import { DtrDeductionType } from '@gscwd-api/utils';
 
+/** a pass slip has at most one ledger debit (two cron runs at the same time posted 15 slips twice in Oct 2026) */
+@Index('uq_ledger_debit_pass_slip', ['passSlipId'], { unique: true })
 @Entity()
 export class LeaveCardLedgerDebit extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'leave_card_ledger_id' })

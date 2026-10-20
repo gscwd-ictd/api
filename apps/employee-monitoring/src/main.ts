@@ -29,6 +29,7 @@ const whitelist = [
   'http://172.20.10.59:3005',
   'http://172.20.10.59:3109',
   'http://172.20.110.45:3005',
+  'http://172.20.110.45:3002',
   'http://172.20.10.57:3005',
   'http://172.20.110.60:3001',
   'http://172.20.110.60:3002',
@@ -43,7 +44,6 @@ const whitelist = [
   'http://172.20.110.85:3000',
   'http://172.20.110.85:3001',
   'http://172.20.10.57:3001',
-  'https://mr.gscwd.app',
 ];
 //${process.env.EMPLOYEE_MONITORING_REDIS_HOST}
 const redisClientHrms = redis.createClient({
@@ -128,7 +128,7 @@ async function bootstrap() {
     options: {
       host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
       port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
-      //password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
+      password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
     },
   });
 
