@@ -1,3 +1,4 @@
+import { ExclusiveJob } from '../../../utils/exclusive-job.decorator';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { Holidays, HolidaysDto, UpdateHolidayDto } from '@gscwd-api/models';
 import { LeaveApplicationStatus } from '@gscwd-api/utils';
@@ -33,6 +34,7 @@ export class HolidaysService extends CrudHelper<Holidays> {
   }
 
   @Cron('0 0 0 1 1 *')
+  @ExclusiveJob('holidays:addRegularHolidaysForCurrentYear')
   async addRegularHolidaysForCurrentYear() {
     const holidays = (await this.rawQuery(`
       SELECT 

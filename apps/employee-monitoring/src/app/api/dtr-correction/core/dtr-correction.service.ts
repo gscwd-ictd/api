@@ -24,7 +24,7 @@ export class DtrCorrectionService extends CrudHelper<DtrCorrection> {
       const dtrIdByCompanyIdAndDate = await this.dailyTimeRecordService.crud().findOneOrNull({ find: { where: { dtrDate, companyId } } });
 
       if (dtrId === null && dtrIdByCompanyIdAndDate === null) {
-        _dtrId = await this.dailyTimeRecordService.crud().create({
+        _dtrId = await this.dailyTimeRecordService.createDtrOnce({
           dto: {
             companyId,
             timeIn: null,

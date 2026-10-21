@@ -1,3 +1,4 @@
+import { ExclusiveJob } from '../../../utils/exclusive-job.decorator';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import {
@@ -712,6 +713,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ps.deleted_at deletedAt`;
 
   @Cron('0 45 23 * * 0-6')
+  @ExclusiveJob('pass-slip:updatePassSlipStatusCron')
   async updatePassSlipStatusCron() {
     await this.updatePassSlipStatusByDate(dayjs().format('YYYY-MM-DD'));
   }
@@ -781,6 +783,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
   /** Rule 2.4.3: still awaiting medical certificate after 3 weekdays -> approved without medical certificate (VL). */
   @Cron('0 50 23 * * 0-6')
+  @ExclusiveJob('pass-slip:updateMedicalPassSlips')
   async updateMedicalPassSlips() {
     const passSlips = (await this.rawQuery(
       `SELECT ps.pass_slip_id id
@@ -803,6 +806,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
 
   @Cron('0 55 23 * * 0-6')
+  @ExclusiveJob('pass-slip:addPassSlipsToLedger')
   async addPassSlipsToLedger() {
     return await this.postPassSlipsToLedger({ asOf: dayjs().format('YYYY-MM-DD') });
   }
@@ -946,7 +950,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       // Official Business = still working -> schedule time out; others left at pass slip time out
       const dtrTimeOut = natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS ? schedule.timeOut : timeOut;
       if (!dtr) {
-        await this.dailyTimeRecordService.crud().create({
+        await this.dailyTimeRecordService.createDtrOnce({
           dto: { companyId, dtrDate: date, scheduleId: schedule.scheduleId, timeOut: dtrTimeOut as unknown as number, hasCorrection: true } as never,
         });
       } else if (dtr.dtrTimeOut === null) {

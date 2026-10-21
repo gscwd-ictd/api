@@ -1,3 +1,4 @@
+import { ExclusiveJob } from '../../../../../utils/exclusive-job.decorator';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveCardLedgerDebitDto, LeaveApplication, LeaveCardLedgerDebit } from '@gscwd-api/models';
 import { forwardRef, HttpException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
@@ -144,6 +145,7 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
    */
   //TODO: During this was created, the period displayed on the ledger is hrmo_approval_date, due to audit concerns this cannot be amended during the year, so before the year ends (11:57-59pm), it should be amended to be hrdm_approval_date,
   @Cron('0 57 23 7-12 1 *')
+  @ExclusiveJob('leave-ledger-debit:forfeitureOfSpecialPrivilegeLeave')
   async forfeitureOfSpecialPrivilegeLeave() {
     try {
       const employees = await this.employeeService.getAllPermanentEmployeeIds();
@@ -201,6 +203,7 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
   }
 
   @Cron('0 57 23 5-10 12 *')
+  @ExclusiveJob('leave-ledger-debit:forfeitureOfForcedLeave')
   async forfeitureOfForcedLeave() {
     const novemberLastWeekDay = await this.holidaysService.getLastWeekDayOfTheMonth(dayjs().format('YYYY') + '-11-30');
     const finalWorkingDay = await this.holidaysService.getTheNextWorkingDayByDays(dayjs(novemberLastWeekDay).toDate(), 5);
