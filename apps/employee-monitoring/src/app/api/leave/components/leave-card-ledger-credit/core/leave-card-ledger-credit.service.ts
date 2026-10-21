@@ -1,3 +1,4 @@
+import { ExclusiveJob } from '../../../../../utils/exclusive-job.decorator';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveCardLedgerCreditDto, LeaveBenefits, LeaveBenefitsIds, LeaveCardLedgerCredit, LeaveCreditEarnings } from '@gscwd-api/models';
 import { LeaveLedger } from '@gscwd-api/utils';
@@ -27,6 +28,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
   }
 
   @Cron('0 0 0 1 1 *')
+  @ExclusiveJob('leave-ledger-credit:creditRecurringLeaves')
   async creditRecurringLeaves() {
     const employees = await this.employeeService.getAllActivePermanentEmployeeIds();
     //select all cumulative and val
@@ -78,6 +80,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
   }
 
   @Cron('0 57 23 31 12 *')
+  @ExclusiveJob('leave-ledger-credit:creditBeginningBalance')
   async creditBeginningBalance() {
     const employees = await this.employeeService.getAllActivePermanentEmployeeIds();
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
@@ -305,6 +308,7 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
   }
 
   @Cron('0 57 23 28-31 * *')
+  @ExclusiveJob('leave-ledger-credit:creditCumulativeLeavesManuallyCron')
   async creditCumulativeLeavesManuallyCron() {
     if (dayjs().format('YYYY-MM-DD') === dayjs().endOf('month').format('YYYY-MM-DD'))
       return await this.creditCumulativeLeavesManually(dayjs().toDate());

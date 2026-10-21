@@ -1,3 +1,4 @@
+import { ExclusiveJob } from '../../../utils/exclusive-job.decorator';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import {
@@ -712,6 +713,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ps.deleted_at deletedAt`;
 
   @Cron('0 45 23 * * 0-6')
+  @ExclusiveJob('pass-slip:updatePassSlipStatusCron')
   async updatePassSlipStatusCron() {
     await this.updatePassSlipStatusByDate(dayjs().format('YYYY-MM-DD'));
   }
@@ -781,6 +783,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
   /** Rule 2.4.3: still awaiting medical certificate after 3 weekdays -> approved without medical certificate (VL). */
   @Cron('0 50 23 * * 0-6')
+  @ExclusiveJob('pass-slip:updateMedicalPassSlips')
   async updateMedicalPassSlips() {
     const passSlips = (await this.rawQuery(
       `SELECT ps.pass_slip_id id
@@ -803,6 +806,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
 
   @Cron('0 55 23 * * 0-6')
+  @ExclusiveJob('pass-slip:addPassSlipsToLedger')
   async addPassSlipsToLedger() {
     return await this.postPassSlipsToLedger({ asOf: dayjs().format('YYYY-MM-DD') });
   }
@@ -946,7 +950,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       // Official Business = still working -> schedule time out; others left at pass slip time out
       const dtrTimeOut = natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS ? schedule.timeOut : timeOut;
       if (!dtr) {
-        await this.dailyTimeRecordService.crud().create({
+        await this.dailyTimeRecordService.createDtrOnce({
           dto: { companyId, dtrDate: date, scheduleId: schedule.scheduleId, timeOut: dtrTimeOut as unknown as number, hasCorrection: true } as never,
         });
       } else if (dtr.dtrTimeOut === null) {
@@ -970,8 +974,11 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
     // 4. no leave credit deduction for Official Business or job order / contract of service
     if (natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS) return false;
-    const natureOfAppointment = await this.employeeService.getEmployeeNatureOfAppointment(employeeId);
-    if (natureOfAppointment === 'job order' || natureOfAppointment === 'cos jo') return false;
+    // only permanent / casual personnel are charged, based on the appointment in effect on the slip date
+    // (NOSI/NOSA), not today's appointment: e.g. a job order who became permanent on 2026-09-01 is not
+    // charged for slips before that date
+    const natureOfAppointment = await this.getNatureOfAppointmentOnDate(employeeId, date);
+    if (natureOfAppointment !== 'permanent' && natureOfAppointment !== 'casual') return false;
 
     const wellnessMinutesUsedThisQuarter =
       natureOfBusiness === NatureOfBusiness.WELLNESS_PASS ? await this.getWellnessMinutesUsedBefore(passSlip, companyId) : 0;
@@ -1011,6 +1018,24 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       throw error;
     }
     return true;
+  }
+
+  /**
+   * Nature of appointment in effect on a date, from NOSI/NOSA: the latest record effective on or before the
+   * date, through its plantilla position. 'inactive' (separated) and no record yet return null.
+   */
+  private async getNatureOfAppointmentOnDate(employeeId: string, date: string): Promise<string | null> {
+    const rows = (await this.rawQuery(
+      `SELECT n.status, pp.nature_of_appointment natureOfAppointment
+         FROM ${process.env.HRMS_DB_NAME}nosi_nosa n
+         LEFT JOIN ${process.env.HRMS_DB_NAME}plantilla_positions pp ON pp._id = n.position_id_fk
+        WHERE n.employee_id_fk = ? AND n.effectivity_date <= ?
+        ORDER BY n.effectivity_date DESC, n.created_at DESC
+        LIMIT 1;`,
+      [employeeId, date]
+    )) as { status: string; natureOfAppointment: string | null }[];
+    if (rows.length === 0 || rows[0].status === 'inactive') return null;
+    return rows[0].natureOfAppointment;
   }
 
   /**

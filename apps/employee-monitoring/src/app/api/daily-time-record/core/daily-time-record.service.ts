@@ -1,3 +1,4 @@
+import { ExclusiveJob } from '../../../utils/exclusive-job.decorator';
 import { PASS_SLIP_COVERS_DTR_TIME_OUT_SQL, PASS_SLIP_DEBITED_ON_DATE_SQL } from '../../pass-slip/core/pass-slip-deduction.util';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
@@ -683,7 +684,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           if (!leaveCardItem) {
             debitValue = (await this.rawQuery(`SELECT get_debit_value(?) debitValue;`, [dtr.id]))[0].debitValue;
 
-            await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+            await this.addDtrLedgerDebitOnce({
               dailyTimeRecordId: dtr,
               debitValue,
               createdAt: dtr.dtrDate,
@@ -704,7 +705,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         } else if (noOfLates > 0 && latesUndertimesNoAttendance.isHalfDay && latesUndertimesNoAttendance.minutesLate > 0) {
           const debitValue = latesUndertimesNoAttendance.minutesLate / 480;
           if (!leaveCardItem) {
-            await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+            await this.addDtrLedgerDebitOnce({
               dailyTimeRecordId: dtr,
               debitValue,
               createdAt: dtr.dtrDate,
@@ -748,7 +749,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             if (!leaveCardItem) {
               if (latesUndertimesNoAttendance.minutesUndertime > 0) {
                 debitValue = latesUndertimesNoAttendance.minutesUndertime / 480;
-                await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+                await this.addDtrLedgerDebitOnce({
                   dailyTimeRecordId: dtr,
                   debitValue,
                   createdAt: dayjs().toDate(),
@@ -770,7 +771,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
             await this.removeDtrLedgerDebit(leaveCardItem);
           if (!passSlipCovers) {
             if (!leaveCardItem) {
-              await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+              await this.addDtrLedgerDebitOnce({
                 dailyTimeRecordId: dtr,
                 debitValue: 0.5,
                 createdAt: dtr.dtrDate,
@@ -783,7 +784,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
                 .crud()
                 .findOneOrNull({ find: { where: { dailyTimeRecordId: { id: dtr.id }, dtrDeductionType: DtrDeductionType.TARDINESS } } });
               if (!leaveCardItem) {
-                await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+                await this.addDtrLedgerDebitOnce({
                   dailyTimeRecordId: dtr,
                   debitValue: latesUndertimesNoAttendance.minutesLate / 480,
                   createdAt: dtr.dtrDate,
@@ -893,6 +894,24 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     }
   }
 
+  /**
+   * Insert a DTR row; when another request inserted the same employee + day at the same moment, the unique
+   * key (company_id_fk, dtr_date for 2026 onward) rejects this insert and the existing row is returned
+   * instead of failing the request. Prevents duplicate DTR rows (and the duplicate deductions they caused).
+   */
+  async createDtrOnce(options: { dto: Partial<DailyTimeRecord> | Record<string, unknown>; onError?: (error: unknown) => Error }) {
+    try {
+      return await this.crudService.create({ dto: options.dto as DailyTimeRecord });
+    } catch (error) {
+      const dto = options.dto as { companyId?: string; dtrDate?: Date | string };
+      if (dto?.companyId && dto?.dtrDate) {
+        const existing = await this.findByCompanyIdAndDate(dto.companyId, dayjs(dto.dtrDate).format('YYYY-MM-DD') as unknown as Date);
+        if (existing) return existing;
+      }
+      throw options.onError ? options.onError(error) : error;
+    }
+  }
+
   private async findByCompanyIdAndDate(companyId: string, dtrDate: Date) {
     const findResult = await this.crud().findOneOrNull({
       find: { where: { companyId, dtrDate } },
@@ -985,7 +1004,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-    return await this.crudService.create({
+    return await this.createDtrOnce({
       dto: {
         id: currEmployeeDtr.id,
         companyId: currEmployeeDtr.companyId,
@@ -1029,7 +1048,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       })
     );
 
-    return await this.crudService.create({
+    return await this.createDtrOnce({
       dto: {
         id: currEmployeeDtr.id,
         companyId: currEmployeeDtr.companyId,
@@ -1131,7 +1150,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       })
     );
 
-    return await this.crudService.create({
+    return await this.createDtrOnce({
       dto: {
         id: currEmployeeDtr.id,
         companyId: currEmployeeDtr.companyId,
@@ -1213,7 +1232,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-    return await this.crudService.create({
+    return await this.createDtrOnce({
       dto: {
         companyId,
         dtrDate: ivmsEntry[0].date,
@@ -1250,7 +1269,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-    await this.crudService.create({ dto: { companyId, timeIn: _timeIn, scheduleId: schedule, dtrDate: ivmsEntry[0].date } });
+    await this.createDtrOnce({ dto: { companyId, timeIn: _timeIn, scheduleId: schedule, dtrDate: ivmsEntry[0].date } });
 
     //insert or update sa kagahapon na sched (out)
 
@@ -1266,12 +1285,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
 
     if (employeeShift === 'night') {
       if (yesterdayDtr !== null)
-        await this.crudService.create({
+        await this.createDtrOnce({
           dto: { companyId, timeOut: _timeOut, dtrDate: yesterday.toDate(), id: yesterdayDtr.id },
           onError: (error) => new InternalServerErrorException(error),
         });
       else
-        await this.crudService.create({
+        await this.createDtrOnce({
           dto: { companyId, timeOut: _timeOut, dtrDate: yesterday.toDate() },
           onError: (error) => new InternalServerErrorException(error),
         });
@@ -1350,7 +1369,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     });
 
     //update DTR ID for today
-    const result = await this.crudService.create({
+    const result = await this.createDtrOnce({
       dto: { companyId, timeIn: _timeIn, timeOut: _timeOut, dtrDate: ivmsEntry[0].date, id: dtrId.id },
       onError: (error) => new InternalServerErrorException(error),
     });
@@ -1385,7 +1404,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       })
     );
     //insert sa karon na (in)
-    await this.crudService.create({ dto: { companyId, timeIn: _timeIn, scheduleId: schedule, dtrDate: ivmsEntry[0].date } });
+    await this.createDtrOnce({ dto: { companyId, timeIn: _timeIn, scheduleId: schedule, dtrDate: ivmsEntry[0].date } });
     //insert or update sa kagahapon na sched (out)
     //what if kagahapon lahi iyang schedule?
     const yesterday = dayjs(ivmsEntry[0].date).subtract(1, 'day');
@@ -1395,12 +1414,12 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     });
 
     if (yesterdayDtr !== null)
-      await this.crudService.create({
+      await this.createDtrOnce({
         dto: { companyId, timeOut: _timeOut, dtrDate: yesterday.toDate(), id: yesterdayDtr.id },
         onError: (error) => new InternalServerErrorException(error),
       });
     else
-      await this.crudService.create({
+      await this.createDtrOnce({
         dto: { companyId, timeOut: _timeOut, dtrDate: yesterday.toDate() },
         onError: (error) => new InternalServerErrorException(error),
       });
@@ -1464,7 +1483,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       onError: (error) => new InternalServerErrorException(error),
     });
 
-    const result = await this.crudService.create({
+    const result = await this.createDtrOnce({
       dto: { companyId, timeIn: _timeIn, timeOut: _timeOut, dtrDate: ivmsEntry[0].date, id: dtrId.id },
       onError: (error) => new InternalServerErrorException(error),
     });
@@ -1501,7 +1520,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       })
     );
 
-    return await this.crudService.create({
+    return await this.createDtrOnce({
       dto: {
         companyId,
         dtrDate: ivmsEntry[0].date,
@@ -1589,7 +1608,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         }
       })
     );
-    return await this.crudService.create({
+    return await this.createDtrOnce({
       dto: {
         companyId,
         dtrDate: ivmsEntry[0].date,
@@ -1634,7 +1653,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
         throw new HttpException('No attendance found on this date', HttpStatus.NOT_ACCEPTABLE);
       }
     } else {
-      return await this.crud().create({
+      return await this.createDtrOnce({
         dto: dailyTimeRecordDto,
         onError: () => {
           return new InternalServerErrorException();
@@ -1656,6 +1675,42 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     return Number(passSlipCount) > 0;
   }
 
+  /**
+   * Insert a DTR debit (tardiness / undertime / half day) only if the employee has none of that type for the
+   * day yet, on ANY DTR row of the day. Duplicate DTR rows for the same day, or two overlapping runs, used to
+   * deduct the same tardiness twice (229 days in 2026).
+   */
+  private async addDtrLedgerDebitOnce(debit: {
+    dailyTimeRecordId: DailyTimeRecord;
+    debitValue: number;
+    createdAt: Date;
+    dtrDeductionType: DtrDeductionType;
+  }) {
+    const { companyId, dtrDate } = debit.dailyTimeRecordId;
+    const { n } = (
+      await this.rawQuery(
+        `SELECT COUNT(*) n FROM leave_card_ledger_debit l
+           INNER JOIN daily_time_record d ON d.daily_time_record_id = l.daily_time_record_id_fk
+          WHERE d.company_id_fk = ? AND d.dtr_date = ? AND l.dtr_deduction_type = ?;`,
+        [companyId, dayjs(dtrDate).format('YYYY-MM-DD'), debit.dtrDeductionType]
+      )
+    )[0];
+    if (Number(n) > 0) return null;
+    try {
+      return await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit(debit);
+    } catch (error) {
+      // a simultaneous request posted the same deduction; the unique key keeps one
+      const { n: after } = (
+        await this.rawQuery(`SELECT COUNT(*) n FROM leave_card_ledger_debit WHERE daily_time_record_id_fk = ? AND dtr_deduction_type = ?;`, [
+          debit.dailyTimeRecordId.id,
+          debit.dtrDeductionType,
+        ])
+      )[0];
+      if (Number(after) > 0) return null;
+      throw error;
+    }
+  }
+
   /** True when a pass slip of this employee on this date already has a leave ledger debit. */
   private async passSlipDebitedOnDate(employeeId: string, dtrDate: Date | string) {
     const date = dayjs(dtrDate).format('YYYY-MM-DD');
@@ -1673,6 +1728,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
   }
 
   @Cron('0 59 23 * * 0-6')
+  @ExclusiveJob('dtr:addDTRToLedger')
   async addDTRToLedger() {
     const employees = (await this.employeeService.getAllPermanentEmployeeIds()) as { employeeId: string; companyId: string }[];
 
@@ -1719,7 +1775,7 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
           const dtrRemarksResult = await this.crud().update({ dto: { remarks }, updateBy: { id: dtrId.id } });
           if (dtrRemarksResult.affected > 0) return { companyId, id: dtrId, dtrDate, remarks };
         }
-        return await this.crudService.create({ dto: { companyId, dtrDate, remarks } });
+        return await this.createDtrOnce({ dto: { companyId, dtrDate, remarks } });
       })
     );
     return dtrRemarks;

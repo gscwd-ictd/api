@@ -1,3 +1,4 @@
+import { ExclusiveJob } from '../../../../../utils/exclusive-job.decorator';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveAddBackDto, LeaveAddBack, LeaveApplicationDates, LeaveBenefits } from '@gscwd-api/models';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
@@ -49,6 +50,7 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
   }
 
   @Cron('0 59 23 * * 1-5')
+  @ExclusiveJob('leave-add-back:scheduledAddBackLeaveOnWorkSuspension')
   async scheduledAddBackLeaveOnWorkSuspension() {
     // LEGACY suspensions (suspension_hours)
     await this.addBackLeaveOnWorkSuspensionV3();
