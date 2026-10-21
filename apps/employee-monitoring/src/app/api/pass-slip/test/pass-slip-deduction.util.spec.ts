@@ -1,5 +1,12 @@
 import { NatureOfBusiness } from '@gscwd-api/utils';
-import { computeDeductibleMinutes, minutesToCredits, getLunchBreak, quarterStart } from '../core/pass-slip-deduction.util';
+import {
+  computeDeductibleMinutes,
+  minutesToCredits,
+  getLunchBreak,
+  quarterStart,
+  sickLeaveBalanceAsOf,
+  neverCameBack,
+} from '../core/pass-slip-deduction.util';
 
 const regular = { timeIn: '08:00:00', timeOut: '17:00:00', lunchOut: '12:00:00', lunchIn: '13:00:00' };
 const earlyLunch = { timeIn: '08:00:00', timeOut: '17:00:00', lunchOut: '11:00:00', lunchIn: '12:00:00' };
@@ -89,5 +96,36 @@ describe('pass slip deductions', () => {
   it('quarter start', () => {
     expect(quarterStart('2026-09-29T10:00:00')).toBe('2026-07-01');
     expect(quarterStart('2026-01-05T10:00:00')).toBe('2026-01-01');
+  });
+});
+
+describe('sickLeaveBalanceAsOf (Wellness Pass SL -> VL fallback)', () => {
+  const rows = [
+    { period: '2026-01-01', sickLeaveBalance: '10.000' },
+    { period: '2026-10-01', sickLeaveBalance: '0.500' },
+    { period: '2026-10-10', sickLeaveBalance: '-0.250' },
+    { period: '2026-11-01', sickLeaveBalance: '5.000' },
+  ];
+  it('uses the last row on or before the slip date', () => {
+    expect(sickLeaveBalanceAsOf(rows, '2026-10-05')).toBe(0.5);
+    expect(sickLeaveBalanceAsOf(rows, '2026-10-10')).toBe(-0.25);
+  });
+  it('ignores rows after the slip date', () => {
+    expect(sickLeaveBalanceAsOf(rows, '2026-10-31')).toBe(-0.25);
+  });
+  it('no rows or nothing before the date -> 0 (charged to VL)', () => {
+    expect(sickLeaveBalanceAsOf([], '2026-10-05')).toBe(0);
+    expect(sickLeaveBalanceAsOf(rows, '2025-12-31')).toBe(0);
+  });
+});
+
+describe('neverCameBack', () => {
+  it('no time in, or time in at/after schedule time out -> never came back', () => {
+    expect(neverCameBack(null, regular)).toBe(true);
+    expect(neverCameBack('17:00:00', regular)).toBe(true);
+    expect(neverCameBack('17:04:11', regular)).toBe(true);
+  });
+  it('time in before schedule time out -> came back', () => {
+    expect(neverCameBack('13:35:17', regular)).toBe(false);
   });
 });

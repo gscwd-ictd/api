@@ -1,4 +1,3 @@
-import { DtrDeductionType } from '@gscwd-api/utils';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import {
@@ -28,7 +27,16 @@ import { EmployeesService } from '../../employees/core/employees.service';
 import { OfficerOfTheDayService } from '../../officer-of-the-day/core/officer-of-the-day.service';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
-import { computeDeductibleMinutes, computeUsedMinutes, minutesToCredits, quarterStart, ScheduleWindow } from './pass-slip-deduction.util';
+import {
+  computeDeductibleMinutes,
+  computeUsedMinutes,
+  DTR_EARLY_OUT_DEBIT_ON_DATE_SQL,
+  minutesToCredits,
+  quarterStart,
+  ScheduleWindow,
+  neverCameBack,
+  sickLeaveBalanceAsOf,
+} from './pass-slip-deduction.util';
 
 @Injectable()
 export class PassSlipService extends CrudHelper<PassSlip> {
@@ -258,10 +266,12 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
 
   async getCurrentPassSlipsByEmployeeId(employeeId: string) {
+    // only today's slips can block a new application: a previous day's unused or incomplete slip
+    // (no time in yet, waiting for the end-of-day / ledger cron) must not stop the employee from applying
     const today = dayjs(dayjs().format('YYYY-MM-DD'));
     const basePassSlip = {
       employeeId,
-      dateOfApplication: Between(today.subtract(1, 'day').toDate(), today.add(1, 'day').toDate()),
+      dateOfApplication: Between(today.toDate(), today.endOf('day').toDate()),
     };
 
     const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
@@ -729,8 +739,44 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         console.error(`[pass-slip] status update failed for ${id}:`, error);
       }
     }
-    console.log(`-------------- PASS SLIP STATUS CRON DONE (${passSlips.length}) --------------------`);
-    return { processed: passSlips.length };
+    const autoTimedIn = await this.autoFillMissingTimeInByDate(dateString);
+    console.log(`-------------- PASS SLIP STATUS CRON DONE (${passSlips.length} unused/cancelled, ${autoTimedIn} auto time in) --------------------`);
+    return { processed: passSlips.length, autoTimedIn };
+  }
+
+  /**
+   * End of day: pass slips with a time out but no time in (employee never scanned back in, or an
+   * Undertime / Half Day slip) get the schedule time out as time in, the same day. Disputes can still
+   * replace it with the encoded time in. Returns the number of slips updated.
+   */
+  async autoFillMissingTimeInByDate(dateString: string) {
+    const passSlips = (await this.rawQuery(
+      `SELECT ${this.passSlipSelect}
+         FROM pass_slip ps
+        INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id
+        WHERE DATE_FORMAT(ps.date_of_application,'%Y-%m-%d') = DATE_FORMAT(?,'%Y-%m-%d')
+          AND ps.time_out IS NOT NULL AND ps.time_in IS NULL
+          AND psa.status IN ('approved','awaiting medical certificate','approved with medical certificate','approved without medical certificate');`,
+      [dateString]
+    )) as PassSlipForLedger[];
+
+    let updated = 0;
+    for (const passSlip of passSlips) {
+      try {
+        const date = dayjs(passSlip.dateOfApplication).format('YYYY-MM-DD');
+        const companyId = (await this.employeeService.getEmployeeDetails(passSlip.employeeId)).companyId;
+        const { schedule } = await this.getScheduleForDate(passSlip.employeeId, companyId, date);
+        if (!schedule?.timeOut) {
+          console.warn(`[pass-slip] auto time in: no schedule for ${passSlip.employeeId} on ${date}; ${passSlip.id} left for the ledger cron`);
+          continue;
+        }
+        await this.rawQuery(`UPDATE pass_slip SET time_in = ? WHERE pass_slip_id = ? AND time_in IS NULL;`, [schedule.timeOut, passSlip.id]);
+        updated++;
+      } catch (error) {
+        console.error(`[pass-slip] auto time in failed for ${passSlip.id}:`, error);
+      }
+    }
+    return updated;
   }
 
   /** Rule 2.4.3: still awaiting medical certificate after 3 weekdays -> approved without medical certificate (VL). */
@@ -892,9 +938,11 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     if (originalTimeIn === null) {
       await this.crud().update({ dto: { timeIn: timeIn as unknown as number }, updateBy: { id } });
     }
+    // never came back: no IN, or the IN is the schedule time out filled by the end-of-day cron
+    const neverReturned = originalTimeIn === null || neverCameBack(originalTimeIn as unknown as string, schedule);
 
     // 2. employee never came back -> make sure the DTR has a time out
-    if (originalTimeIn === null) {
+    if (neverReturned) {
       // Official Business = still working -> schedule time out; others left at pass slip time out
       const dtrTimeOut = natureOfBusiness === NatureOfBusiness.OFFICIAL_BUSINESS ? schedule.timeOut : timeOut;
       if (!dtr) {
@@ -906,20 +954,18 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       }
     }
 
-    // 3. this pass slip accounts for leaving early -> drop any DTR undertime / half day debit for the
-    //    same day so the employee is not deducted twice (phone app + face scanner)
+    // 3. this pass slip accounts for leaving early. The face scanner (DTR undertime / half day) may have
+    //    deducted the same early exit first; only the first deduction stays, so skip this one.
     const coversDtrTimeOut =
       natureOfBusiness === NatureOfBusiness.UNDERTIME ||
       natureOfBusiness === NatureOfBusiness.HALF_DAY ||
-      ((natureOfBusiness === NatureOfBusiness.PERSONAL || natureOfBusiness === NatureOfBusiness.WELLNESS_PASS) && originalTimeIn === null);
+      ((natureOfBusiness === NatureOfBusiness.PERSONAL || natureOfBusiness === NatureOfBusiness.WELLNESS_PASS) && neverReturned);
     if (coversDtrTimeOut) {
-      await this.rawQuery(
-        `DELETE lcld FROM leave_card_ledger_debit lcld
-           INNER JOIN daily_time_record dtr ON dtr.daily_time_record_id = lcld.daily_time_record_id_fk
-          WHERE dtr.company_id_fk = ? AND DATE_FORMAT(dtr.dtr_date,'%Y-%m-%d') = ?
-            AND lcld.dtr_deduction_type IN (?, ?);`,
-        [companyId, date, DtrDeductionType.UNDERTIME, DtrDeductionType.HALFDAY]
-      );
+      const { debitCount } = (await this.rawQuery(DTR_EARLY_OUT_DEBIT_ON_DATE_SQL, [companyId, date]))[0];
+      if (Number(debitCount) > 0) {
+        console.log(`[pass-slip] ${id}: early exit already deducted from the DTR on ${date}; pass slip debit skipped`);
+        return false;
+      }
     }
 
     // 4. no leave credit deduction for Official Business or job order / contract of service
@@ -948,19 +994,34 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       leaveTypeCharged = slBalance > 0 ? 'SL' : 'VL';
     }
 
-    await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
-      passSlipId: { ...passSlip, timeIn: timeIn as unknown as number } as never,
-      debitValue,
-      leaveTypeCharged,
-    });
+    try {
+      await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+        passSlipId: { ...passSlip, timeIn: timeIn as unknown as number } as never,
+        debitValue,
+        leaveTypeCharged,
+      });
+    } catch (error) {
+      // another cron run posted this slip at the same moment; the unique key keeps a single debit
+      // (the crud helper wraps the MySQL error, so check the ledger instead of the error code)
+      const existing = (await this.rawQuery(`SELECT COUNT(*) n FROM leave_card_ledger_debit WHERE pass_slip_id_fk = ?;`, [id]))[0];
+      if (Number(existing?.n) > 0) {
+        console.warn(`[pass-slip] ${id} already posted by another run; duplicate debit not created`);
+        return false;
+      }
+      throw error;
+    }
     return true;
   }
 
-  /** Employee's current SL balance (last row of the leave ledger for the slip's year). */
+  /**
+   * Employee's SL balance as of the pass slip date, from sp_get_employee_ledger (the leave card).
+   * Uses the last ledger row dated on or before the slip date. Errors are not swallowed: the slip stays
+   * unposted and the nightly cron retries it, instead of guessing SL or VL.
+   */
   private async getSickLeaveBalance(employeeId: string, companyId: string, date: string): Promise<number> {
-    const ledger = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs(date).year()]))[0] as LeaveLedger[];
-    if (!ledger || ledger.length === 0) return 0;
-    return Number(ledger[ledger.length - 1].sickLeaveBalance) || 0;
+    const result = await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs(date).year()]);
+    const ledger = (Array.isArray(result) && Array.isArray(result[0]) ? result[0] : result) as LeaveLedger[];
+    return sickLeaveBalanceAsOf(ledger, date);
   }
 
   async getUsedPassSlipsCountByEmployeeId(employeeId: string) {

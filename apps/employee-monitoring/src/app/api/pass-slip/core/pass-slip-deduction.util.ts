@@ -149,3 +149,43 @@ export const PASS_SLIP_COVERS_DTR_TIME_OUT_SQL = `
        OR (ps.nature_of_business IN ('Personal Business','Wellness Pass')
            AND (ps.time_in IS NULL OR (s.time_out IS NOT NULL AND ps.time_in >= s.time_out)))
      );`;
+
+/** Pass slip debits already posted for an employee on a date. Params: employeeId, date, date. */
+export const PASS_SLIP_DEBITED_ON_DATE_SQL = `
+  SELECT COUNT(l.leave_card_ledger_id) passSlipCount
+    FROM leave_card_ledger_debit l
+   INNER JOIN pass_slip ps ON ps.pass_slip_id = l.pass_slip_id_fk
+   WHERE ps.employee_id_fk = ?
+     AND ps.date_of_application >= ? AND ps.date_of_application < DATE_ADD(?, INTERVAL 1 DAY);`;
+
+/** DTR undertime / half day debits already posted for a company id on a date. Params: companyId, date. */
+export const DTR_EARLY_OUT_DEBIT_ON_DATE_SQL = `
+  SELECT COUNT(l.leave_card_ledger_id) debitCount
+    FROM leave_card_ledger_debit l
+   INNER JOIN daily_time_record dtr ON dtr.daily_time_record_id = l.daily_time_record_id_fk
+   WHERE dtr.company_id_fk = ? AND dtr.dtr_date = ?
+     AND l.dtr_deduction_type IN ('Undertime','Half Day');`;
+
+/**
+ * SL balance from leave card rows (sp_get_employee_ledger output, in ledger order) as of a date:
+ * the sickLeaveBalance of the last row whose period is on or before the date. No rows -> 0.
+ */
+export function sickLeaveBalanceAsOf(rows: { period?: string | Date | null; sickLeaveBalance?: number | string | null }[], date: string): number {
+  if (!rows || rows.length === 0) return 0;
+  const asOf = date.slice(0, 10);
+  let balance: number | null = null;
+  for (const row of rows) {
+    const period = row.period instanceof Date ? row.period.toISOString().slice(0, 10) : String(row.period ?? '').slice(0, 10);
+    if (period && period <= asOf) balance = Number(row.sickLeaveBalance) || 0;
+  }
+  return balance ?? 0;
+}
+
+/** A pass slip time in at or after the schedule time out means the employee did not come back. */
+export function neverCameBack(timeIn: string | null | undefined, schedule: ScheduleWindow): boolean {
+  const back = toMinutes(timeIn);
+  const end = toMinutes(schedule.timeOut);
+  if (back === null) return true;
+  if (end === null) return false;
+  return back >= end;
+}
