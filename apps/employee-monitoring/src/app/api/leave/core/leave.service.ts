@@ -111,6 +111,9 @@ export class LeaveService {
           status: true,
           studyLeaveOther: true,
           supervisorId: true,
+          hrmoApprovalDate: true,
+          supervisorApprovalDate: true,
+          hrdmApprovalDate: true,
           leaveBenefitsId: {
             id: true,
             leaveName: true,
@@ -159,7 +162,13 @@ export class LeaveService {
                 employeeId: leaveApplicationId.employeeId,
               },
             });
-            const leaveCardLedgerDebit = await this.leaveCardLedgerDebitService.crud().create({ dto: { leaveCreditDeductionsId, debitValue } });
+            // The ledger dates the FL row by the first approval date (HRMO, then supervisor, then HRDM);
+            // give the paired VL deduction the same date so both show on the same period.
+            const { hrmoApprovalDate, supervisorApprovalDate, hrdmApprovalDate } = leaveApplicationId;
+            const flPeriod = hrmoApprovalDate ?? supervisorApprovalDate ?? hrdmApprovalDate ?? new Date();
+            const leaveCardLedgerDebit = await this.leaveCardLedgerDebitService
+              .crud()
+              .create({ dto: { leaveCreditDeductionsId, debitValue, createdAt: flPeriod } });
           }
 
           if (leaveApplicationId.leaveBenefitsId.leaveType === 'special leave benefit') {
