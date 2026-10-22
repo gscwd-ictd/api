@@ -145,10 +145,19 @@ export class LeaveService {
           .findOneOrNull({ find: { where: { leaveApplicationId: { id: leaveApplicationId.id } } } });
 
         if (countLeaveLedgerDebit === null) {
-          const leaveCardLedgerDebit = await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
-            leaveApplicationId,
-            debitValue,
-          });
+          // The ledger dates the FL row by the first approval date (HRMO, then supervisor, then HRDM).
+          // For Forced Leave, write the FL ledger row at that time and the paired VL deduction one second
+          // later, so both show on the same period with FL first, then VL.
+          const { hrmoApprovalDate, supervisorApprovalDate, hrdmApprovalDate } = leaveApplicationId;
+          const flPeriod = hrmoApprovalDate ?? supervisorApprovalDate ?? hrdmApprovalDate ?? new Date();
+
+          const leaveCardLedgerDebit =
+            leaveName === 'Forced Leave'
+              ? await this.leaveCardLedgerDebitService.crud().create({ dto: { leaveApplicationId, debitValue, createdAt: flPeriod } })
+              : await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+                  leaveApplicationId,
+                  debitValue,
+                });
 
           if (leaveName === 'Forced Leave') {
             //
