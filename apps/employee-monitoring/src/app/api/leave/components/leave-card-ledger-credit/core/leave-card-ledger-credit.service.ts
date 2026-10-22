@@ -314,9 +314,65 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
       return await this.creditCumulativeLeavesManually(dayjs().toDate());
   }
 
+  /** Remarks of the zero-value VL entry that marks the end of an inactive employee's leave ledger. */
+  static readonly END_OF_LEDGER_REMARKS = 'End of Leave Ledger';
+
+  /**
+   * Employees whose latest nosi_nosa record is 'inactive' with an effectivity date on or before `day`
+   * (resigned, retired, deceased, ...). They no longer earn monthly leave credits.
+   */
+  async getInactiveNosiNosaEmployees(day: Date): Promise<{ employeeId: string; effectivityDate: string; inactiveReason: string | null }[]> {
+    return await this.rawQuery(
+      `SELECT nn.employee_id_fk employeeId, DATE_FORMAT(nn.effectivity_date,'%Y-%m-%d') effectivityDate, nn.inactive_reason inactiveReason
+         FROM ${process.env.HRMS_DB_NAME}nosi_nosa nn
+        WHERE nn.status = 'inactive' AND nn.effectivity_date <= ?
+          AND nn.effectivity_date = (SELECT MAX(nn2.effectivity_date) FROM ${process.env.HRMS_DB_NAME}nosi_nosa nn2 WHERE nn2.employee_id_fk = nn.employee_id_fk);`,
+      [dayjs(day).format('YYYY-MM-DD')]
+    );
+  }
+
+  /** One zero-value Vacation Leave entry on the effectivity date that marks the end of the ledger (once per employee). */
+  async addEndOfLedgerEntries(inactive: { employeeId: string; effectivityDate: string; inactiveReason: string | null }[]) {
+    if (inactive.length === 0) return 0;
+    const vl = (
+      await this.rawQuery(`SELECT leave_benefits_id leaveBenefitsId FROM leave_benefits WHERE leave_name = 'Vacation Leave' AND deleted_at IS NULL LIMIT 1;`)
+    )[0] as { leaveBenefitsId: LeaveBenefits };
+    let created = 0;
+    for (const { employeeId, effectivityDate, inactiveReason } of inactive) {
+      const exists = (await this.rawQuery(
+        `SELECT COUNT(*) cnt FROM leave_credit_earnings WHERE employee_id_fk = ? AND remarks LIKE CONCAT(?, '%');`,
+        [employeeId, LeaveCardLedgerCreditService.END_OF_LEDGER_REMARKS]
+      )) as { cnt: string }[];
+      if (Number(exists[0].cnt) > 0) continue;
+
+      const reason = (inactiveReason ?? 'inactive').replace(/_/g, ' ');
+      const createdAt = dayjs(effectivityDate).hour(23).minute(59).toDate();
+      await this.dataSource.transaction(async (entityManager: EntityManager) => {
+        const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
+          {
+            createdAt,
+            employeeId,
+            creditDate: dayjs(effectivityDate).toDate(),
+            creditValue: 0,
+            leaveBenefitsId: vl.leaveBenefitsId,
+            remarks: `${LeaveCardLedgerCreditService.END_OF_LEDGER_REMARKS} | ${reason} effective ${effectivityDate}`,
+          },
+          entityManager
+        );
+        await this.crudService.transact<LeaveCardLedgerCredit>(entityManager).create({ dto: { createdAt, leaveCreditEarningId: leaveCreditEarning } });
+      });
+      created += 1;
+    }
+    return created;
+  }
+
   async creditCumulativeLeavesManually(day: Date) {
     try {
-      const employees = await this.employeeService.getAllActivePermanentEmployeeIds();
+      // inactive (nosi_nosa) employees stop earning; their ledger gets an end entry instead
+      const inactive = await this.getInactiveNosiNosaEmployees(day);
+      const inactiveIds = new Set(inactive.map((i) => i.employeeId));
+      await this.addEndOfLedgerEntries(inactive);
+      const employees = (await this.employeeService.getAllActivePermanentEmployeeIds()).filter((e) => !inactiveIds.has(e.employeeId));
 
       const leaveBenefits = (await this.rawQuery(
         `SELECT leave_benefits_id leaveBenefitsId, accumulated_credits accumulatedCredits 
@@ -329,7 +385,8 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
         const credits = await Promise.all(
           employees.map(async (employee) => {
             const { employeeId } = employee;
-            const createdAt = dayjs(day).add(1, 'hour').toDate();
+            // same day as the credit date (23:57): the ledger dates VL credits by created_at, SL by credit_date
+            const createdAt = dayjs(day).startOf('day').hour(23).minute(57).toDate();
             const leaveCredits = await Promise.all(
               leaveBenefits.map(async (leaveBenefit) => {
                 const monthYear = dayjs(day).format('YYYY-MM');
