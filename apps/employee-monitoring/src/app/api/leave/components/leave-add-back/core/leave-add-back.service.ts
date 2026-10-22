@@ -61,7 +61,7 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
   /**
    * Finds leave_application_dates rows eligible for add-back on a given date.
    * Only excludes rows already processed through the generic (non FL/SPL) path,
-   * tracked via leave_add_back. Forced Leave / Special Privilege Leave duplicate
+   * tracked via leave_add_back. Forced Leave / Special Privilege Leave / Wellness Leave duplicate
    * protection is handled separately in processSingleAddBack, since those two
    * paths never write to leave_add_back.
    */
@@ -119,7 +119,9 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
       throw new Error(`Leave benefits not found for id=${candidate.leaveBenefitsId} (employeeId=${candidate.employeeId})`);
     }
 
-    if (leaveBenefitsId.leaveName === 'Special Privilege Leave') {
+    // Special Privilege Leave and Wellness Leave: the whole day (1) goes back to the leave, and the
+    // part of the day that was NOT suspended (1 - suspended hrs / 8) is deducted from VL.
+    if (leaveBenefitsId.leaveName === 'Special Privilege Leave' || leaveBenefitsId.leaveName === 'Wellness Leave') {
       const vlLeaveBenefits = await this.leaveBenefitsService.crud().findOne({
         find: {
           select: { id: true, leaveName: true },
@@ -153,8 +155,13 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
         },
       });
 
-      if (existingPrimaryCredit && existingVlDebit) {
-        return { skipped: true, employeeId: candidate.employeeId, reason: 'Special Privilege Leave add-back already exists' };
+      // Deduct the equivalent VL credit, since the add-back is drawn from the VL pool.
+      // Clamp at 0 so an unexpectedly large suspensionHrs (e.g. multi-day) never flips
+      // this into a positive credit instead of a debit.
+      const debitValue = Math.max(0, 1 - Math.round((suspensionHrsForEmployee / 8) * 1000) / 1000);
+
+      if (existingPrimaryCredit && (existingVlDebit || debitValue <= 0)) {
+        return { skipped: true, employeeId: candidate.employeeId, reason: `${leaveBenefitsId.leaveName} add-back already exists` };
       }
 
       const leaveCreditEarningId = await this.leaveCreditEarningsService.addLeaveCreditEarnings({
@@ -169,10 +176,7 @@ export class LeaveAddBackService extends CrudHelper<LeaveAddBack> {
         dto: { leaveCreditEarningId },
       });
 
-      // Deduct the equivalent VL credit, since SPL add-back is drawn from the VL pool.
-      // Clamp at 0 so an unexpectedly large suspensionHrs (e.g. multi-day) never flips
-      // this into a positive credit instead of a debit.
-      const debitValue = Math.max(0, 1 - Math.round((suspensionHrsForEmployee / 8) * 1000) / 1000);
+      if (debitValue <= 0) return { employeeId: candidate.employeeId, leaveCreditEarningId, leaveCardLedgerCredit };
 
       const leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
         dto: {
