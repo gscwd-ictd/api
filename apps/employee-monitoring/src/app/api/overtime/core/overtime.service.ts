@@ -1844,6 +1844,26 @@ export class OvertimeService {
     }
   }
 
+  /**
+   * overtime_employee keeps the salary grade amount / daily rate in effect on the planned date, taken from
+   * NOSI/NOSA when the overtime is filed. If the NOSI/NOSA (e.g. a job order's new contract) is encoded
+   * later, the row was saved with 0 and the report showed a 0 daily rate. Re-read the rate for those rows.
+   */
+  async fillMissingOvertimeRates(year: number, month: string, days: number[]) {
+    const hrms = process.env.HRMS_DB_NAME;
+    return await this.overtimeApplicationService.rawQuery(
+      `UPDATE overtime_employee oe
+         INNER JOIN overtime_application oa ON oa.overtime_application_id = oe.overtime_application_id_fk
+          SET oe.daily_rate = ${hrms}get_nosi_nosa_daily_rate(oe.employee_id_fk, oa.planned_date),
+              oe.salary_grade_amount = ${hrms}get_nosi_nosa_salary_grade_amount(oe.employee_id_fk, oa.planned_date)
+        WHERE DATE_FORMAT(oa.planned_date,'%Y') = ? AND DATE_FORMAT(oa.planned_date,'%m') = ? AND DATE_FORMAT(oa.planned_date,'%d') IN (?)
+          AND COALESCE(oe.daily_rate, 0) = 0 AND COALESCE(oe.salary_grade_amount, 0) = 0
+          AND (COALESCE(${hrms}get_nosi_nosa_daily_rate(oe.employee_id_fk, oa.planned_date), 0) > 0
+            OR COALESCE(${hrms}get_nosi_nosa_salary_grade_amount(oe.employee_id_fk, oa.planned_date), 0) > 0);`,
+      [String(year), month, days.map((d) => ('0' + d).slice(-2))]
+    );
+  }
+
   async getOvertimeSummaryRegular(
     immediateSupervisorEmployeeId: string,
     year: number,
@@ -1878,6 +1898,9 @@ export class OvertimeService {
     const days = half === ReportHalf.FIRST_HALF ? getDayRange1stHalf() : half === ReportHalf.SECOND_HALF ? getDayRange2ndHalf(numOfDays) : [];
 
     const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
+
+    // rows saved before the employee's NOSI/NOSA was encoded have no rate (0/NULL); fill them first
+    await this.fillMissingOvertimeRates(year, _month, days);
 
     const employees = (await this.overtimeApplicationService.rawQuery(
       `
