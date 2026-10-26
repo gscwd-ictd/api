@@ -134,133 +134,135 @@ export class LeaveCardLedgerDebitService extends CrudHelper<LeaveCardLedgerDebit
     return vlDeductions;
   }
 
-  /**
-   * @created 2025-04-30
-   * @description SPL Forfeiture after 7 working days of january
-   * @IMPORTANT During this was created, the period displayed on the ledger is hrmo_approval_date,
-   * due to audit concerns this cannot be amended during the year,
-   * so before the year ends (11:57-59pm), it should be amended to be hrdm_approval_date,
-   * so that the carry over function of SPL to the next year will work accordingly with the forfeiture
-   * for now, the logic flow of this function is assumingly in accordance to the amendment.
-   */
-  //TODO: During this was created, the period displayed on the ledger is hrmo_approval_date, due to audit concerns this cannot be amended during the year, so before the year ends (11:57-59pm), it should be amended to be hrdm_approval_date,
-  @Cron('0 57 23 7-12 1 *')
-  @ExclusiveJob('leave-ledger-debit:forfeitureOfSpecialPrivilegeLeave')
-  async forfeitureOfSpecialPrivilegeLeave() {
-    try {
-      const employees = await this.employeeService.getAllPermanentEmployeeIds();
-      const now = dayjs().format('YYYY-MM-DD');
-      const finalWorkingDay = dayjs(await this.holidaysService.getTheNextWorkingDayByDays(dayjs('2025-01-01').toDate(), 7)).format('YYYY-MM-DD');
+  // ---------------------------------------------------------------- forfeiture (HR 2026-10-22)
+  //  - Forced Leave and Wellness Leave: expire 1 week after the last day of November (Dec 7, 23:57).
+  //    Filing closes after Nov 30; the week is for pending approvals so balances do not go negative.
+  //      unused FL -> deducted from Forced Leave AND Vacation Leave
+  //      unused WL -> deducted from Wellness Leave
+  //  - Special Privilege Leave: expires 1 week after the last day of December (Jan 7, 23:57).
+  //    During that week the balance can exceed 3 (carry-over + the new year's 3); the excess is forfeited.
 
-      if (finalWorkingDay === now) {
-        const result = await Promise.all(
-          employees.map(async (employee) => {
-            const { employeeId } = employee;
+  static readonly FL_FORFEITURE_REMARKS = 'FL Forfeiture';
+  static readonly WL_FORFEITURE_REMARKS = 'WL Forfeiture';
+  static readonly SPL_FORFEITURE_REMARKS = 'SPL Forfeiture';
 
-            const forfeitedSpl = parseInt(
-              (
-                await this.rawQuery(
-                  `
-                  SELECT COUNT(*) previousYearSplApplicationsValue
-                  FROM leave_application la
-                    INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
-                  WHERE employee_id_fk = ?
-                  AND YEAR(hrdm_approval_date) = YEAR(NOW())
-                  AND YEAR(date_of_filing) = YEAR(NOW())-1
-                  AND la.status NOT IN ('disapproved by supervisor', 'disapproved by hrdm', 'disapproved by hrmo', 'cancelled')
-                  AND lad.status in ('approved')
-                  AND leave_benefits_id_fk = 'cb91fdda-9f65-4132-ae80-c61bda9abe31';
-        `,
-                  [employeeId]
-                )
-              )[0].previousYearSplApplicationsValue
-            );
-            if (forfeitedSpl > 0) {
-              const splLeaveBenefit = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Special Privilege Leave' } } });
-              const splDeduction = await this.leaveCreditDeductionService.crud().create({
-                dto: {
-                  leaveBenefitsId: splLeaveBenefit,
-                  debitValue: forfeitedSpl,
-                  employeeId,
-                  remarks: 'SPL Forfeiture',
-                },
-              });
-
-              const splLedger = await this.crud().create({
-                dto: {
-                  leaveCreditDeductionsId: splDeduction,
-                  debitValue: forfeitedSpl,
-                },
-              });
-            }
-          })
-        );
-        console.log('SPL Forfeiture executed');
-      }
-    } catch (error) {
-      console.log(error, '\nSPL Forfeiture failed');
-    }
+  /** Dec 7 = 1 week after Nov 30; Jan 7 = 1 week after Dec 31. */
+  static forfeitureDate(kind: 'FL_WL' | 'SPL', year: number): string {
+    return kind === 'FL_WL' ? `${year}-12-07` : `${year}-01-07`;
   }
 
-  @Cron('0 57 23 5-10 12 *')
-  @ExclusiveJob('leave-ledger-debit:forfeitureOfForcedLeave')
-  async forfeitureOfForcedLeave() {
-    const novemberLastWeekDay = await this.holidaysService.getLastWeekDayOfTheMonth(dayjs().format('YYYY') + '-11-30');
-    const finalWorkingDay = await this.holidaysService.getTheNextWorkingDayByDays(dayjs(novemberLastWeekDay).toDate(), 5);
-    const dayNow = dayjs().format('YYYY-MM-DD');
-    if (dayjs(finalWorkingDay).format('YYYY-MM-DD') === dayNow) {
-      const employees = await this.employeeService.getAllPermanentEmployeeIds();
-      const result = await Promise.all(
-        employees.map(async (employee) => {
-          const { companyId, employeeId } = employee;
-          const employeeLeaveLedger = (
-            await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, dayjs().year()])
-          )[0] as LeaveLedger[];
+  private static round3(value: number) {
+    return Math.round((Number(value) + Number.EPSILON) * 1000) / 1000;
+  }
 
-          const currentForcedLeaveBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].forcedLeaveBalance;
-          const currentVLBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1].vacationLeaveBalance;
+  private async latestLedgerRow(employeeId: string, companyId: string, year: number): Promise<LeaveLedger | null> {
+    const rows = (await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, year]))[0] as LeaveLedger[];
+    return rows && rows.length > 0 ? rows[rows.length - 1] : null;
+  }
 
-          const forceLeaveBenefit = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Forced Leave' } } });
-          const vacationLeaveBenefit = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
+  private async alreadyForfeited(employeeId: string, remarks: string, year: number): Promise<boolean> {
+    const rows = (await this.rawQuery(
+      `SELECT COUNT(*) cnt FROM leave_credit_deductions WHERE employee_id_fk = ? AND remarks = ? AND YEAR(created_at) = ?;`,
+      [employeeId, remarks, year]
+    )) as { cnt: string }[];
+    return Number(rows[0].cnt) > 0;
+  }
 
-          if (currentForcedLeaveBalance !== 0) {
-            const flDeduction = await this.leaveCreditDeductionService.crud().create({
-              dto: {
-                leaveBenefitsId: forceLeaveBenefit,
-                debitValue: currentForcedLeaveBalance,
-                employeeId,
-                remarks: 'FL Forfeiture',
-              },
-            });
+  private async addForfeitureDebit(employeeId: string, leaveName: string, value: number, remarks: string, createdAt: Date) {
+    const leaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName } } });
+    const leaveCreditDeductionsId = await this.leaveCreditDeductionService.crud().create({
+      dto: { leaveBenefitsId, debitValue: value, employeeId, remarks, createdAt },
+    });
+    await this.crud().create({ dto: { leaveCreditDeductionsId, debitValue: value, createdAt } });
+  }
 
-            const flLedger = await this.crud().create({
-              dto: {
-                leaveCreditDeductionsId: flDeduction,
-                debitValue: currentForcedLeaveBalance,
-              },
-            });
+  @Cron('0 57 23 7 12 *')
+  @ExclusiveJob('leave-ledger-debit:forfeitureOfForcedAndWellnessLeave')
+  async forfeitureOfForcedAndWellnessLeaveCron() {
+    return await this.forfeitureOfForcedAndWellnessLeave(dayjs().year());
+  }
 
-            const vlDeduction = await this.leaveCreditDeductionService.crud().create({
-              dto: {
-                leaveBenefitsId: vacationLeaveBenefit,
-                debitValue: currentForcedLeaveBalance,
-                employeeId,
-                remarks: 'FL Forfeiture',
-              },
-            });
+  /** Forfeit the unused Forced Leave (FL + VL) and Wellness Leave (WL) of the year. Safe to re-run. */
+  async forfeitureOfForcedAndWellnessLeave(year: number) {
+    const employees = await this.employeeService.getAllActivePermanentEmployeeIds();
+    const createdAt = dayjs(`${LeaveCardLedgerDebitService.forfeitureDate('FL_WL', year)} 23:57:00`).toDate();
+    const result = { forcedLeave: 0, wellnessLeave: 0, failed: 0 };
 
-            const vlLedger = await this.crud().create({
-              dto: {
-                leaveCreditDeductionsId: vlDeduction,
-                debitValue: currentForcedLeaveBalance,
-              },
-            });
-          } else {
-            console.log('0 fl here');
-          }
-        })
-      );
-      console.log('FL forfeiture executed.');
+    for (const { employeeId, companyId } of employees) {
+      try {
+        const last = await this.latestLedgerRow(employeeId, companyId, year);
+        if (!last) continue;
+
+        const fl = LeaveCardLedgerDebitService.round3(Number(last.forcedLeaveBalance) || 0);
+        if (fl > 0 && !(await this.alreadyForfeited(employeeId, LeaveCardLedgerDebitService.FL_FORFEITURE_REMARKS, year))) {
+          await this.addForfeitureDebit(employeeId, 'Forced Leave', fl, LeaveCardLedgerDebitService.FL_FORFEITURE_REMARKS, createdAt);
+          await this.addForfeitureDebit(employeeId, 'Vacation Leave', fl, LeaveCardLedgerDebitService.FL_FORFEITURE_REMARKS, createdAt);
+          result.forcedLeave++;
+        }
+
+        const wl = LeaveCardLedgerDebitService.round3(Number(last.wellnessLeaveBalance) || 0);
+        if (wl > 0 && !(await this.alreadyForfeited(employeeId, LeaveCardLedgerDebitService.WL_FORFEITURE_REMARKS, year))) {
+          await this.addForfeitureDebit(employeeId, 'Wellness Leave', wl, LeaveCardLedgerDebitService.WL_FORFEITURE_REMARKS, createdAt);
+          result.wellnessLeave++;
+        }
+      } catch (error) {
+        result.failed++;
+        console.error(`[forfeiture] FL/WL failed for ${employeeId}:`, error);
+      }
     }
+    console.log(`FL/WL forfeiture ${year}:`, result);
+    return result;
+  }
+
+  @Cron('0 57 23 7 1 *')
+  @ExclusiveJob('leave-ledger-debit:forfeitureOfSpecialPrivilegeLeave')
+  async forfeitureOfSpecialPrivilegeLeaveCron() {
+    return await this.forfeitureOfSpecialPrivilegeLeave(dayjs().year());
+  }
+
+  /**
+   * SPL of `year` should be 3 minus the SPL days filed in `year` that are already debited. Anything above
+   * that on Jan 7 is the previous year's carry-over (left after late approvals of last year's SPL) and is
+   * forfeited. Safe to re-run.
+   */
+  async forfeitureOfSpecialPrivilegeLeave(year: number) {
+    const employees = await this.employeeService.getAllActivePermanentEmployeeIds();
+    const createdAt = dayjs(`${LeaveCardLedgerDebitService.forfeitureDate('SPL', year)} 23:57:00`).toDate();
+    const result = { forfeited: 0, failed: 0 };
+
+    for (const { employeeId, companyId } of employees) {
+      try {
+        if (await this.alreadyForfeited(employeeId, LeaveCardLedgerDebitService.SPL_FORFEITURE_REMARKS, year)) continue;
+        const last = await this.latestLedgerRow(employeeId, companyId, year);
+        if (!last) continue;
+
+        const balance = Number(last.specialPrivilegeLeaveBalance) || 0;
+        const usedThisYear = Number(
+          (
+            await this.rawQuery(
+              `SELECT COUNT(DISTINCT lad.leave_application_date_id) used
+                 FROM leave_application la
+                INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+                INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
+                INNER JOIN leave_card_ledger_debit lcld ON lcld.leave_application_id_fk = la.leave_application_id
+                WHERE la.employee_id_fk = ? AND lb.leave_name = 'Special Privilege Leave'
+                  AND YEAR(la.date_of_filing) = ? AND la.status = 'approved' AND lad.status = 'approved';`,
+              [employeeId, year]
+            )
+          )[0].used
+        );
+        const allowed = Math.max(0, 3 - usedThisYear);
+        const excess = LeaveCardLedgerDebitService.round3(balance - allowed);
+        if (excess > 0) {
+          await this.addForfeitureDebit(employeeId, 'Special Privilege Leave', excess, LeaveCardLedgerDebitService.SPL_FORFEITURE_REMARKS, createdAt);
+          result.forfeited++;
+        }
+      } catch (error) {
+        result.failed++;
+        console.error(`[forfeiture] SPL failed for ${employeeId}:`, error);
+      }
+    }
+    console.log(`SPL forfeiture ${year}:`, result);
+    return result;
   }
 }

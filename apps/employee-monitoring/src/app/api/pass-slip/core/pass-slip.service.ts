@@ -37,6 +37,7 @@ import {
   ScheduleWindow,
   neverCameBack,
   sickLeaveBalanceAsOf,
+  toMinutes,
 } from './pass-slip-deduction.util';
 
 @Injectable()
@@ -716,6 +717,24 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   @ExclusiveJob('pass-slip:updatePassSlipStatusCron')
   async updatePassSlipStatusCron() {
     await this.updatePassSlipStatusByDate(dayjs().format('YYYY-MM-DD'));
+    // catch up slips of the previous days that are still without a time in (missed or failed runs)
+    for (let back = 1; back <= PassSlipService.AUTO_TIME_IN_CATCH_UP_DAYS; back++) {
+      await this.autoFillMissingTimeInByDate(dayjs().subtract(back, 'day').format('YYYY-MM-DD'));
+    }
+  }
+
+  /** Days before today re-checked for a missing pass slip time in at the end-of-day run. */
+  static readonly AUTO_TIME_IN_CATCH_UP_DAYS = 7;
+
+  /**
+   * Every 15 minutes: today's slips that are out (no time in) get the schedule time out as time in once
+   * the employee's schedule time out has passed, so the employee is "auto out" at the end of the day
+   * instead of waiting for the 23:45 run.
+   */
+  @Cron('0 */15 * * * *')
+  @ExclusiveJob('pass-slip:autoTimeInAfterScheduleCron')
+  async autoTimeInAfterScheduleCron() {
+    await this.autoFillMissingTimeInByDate(dayjs().format('YYYY-MM-DD'), dayjs().format('HH:mm:ss'));
   }
 
   /** Rule 2.2: both time logs empty at end of day -> UNUSED (approved) or CANCELLED (never approved). */
@@ -751,7 +770,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
    * Undertime / Half Day slip) get the schedule time out as time in, the same day. Disputes can still
    * replace it with the encoded time in. Returns the number of slips updated.
    */
-  async autoFillMissingTimeInByDate(dateString: string) {
+  async autoFillMissingTimeInByDate(dateString: string, onlyIfScheduleEndedBy?: string) {
     const passSlips = (await this.rawQuery(
       `SELECT ${this.passSlipSelect}
          FROM pass_slip ps
@@ -766,12 +785,20 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     for (const passSlip of passSlips) {
       try {
         const date = dayjs(passSlip.dateOfApplication).format('YYYY-MM-DD');
-        const companyId = (await this.employeeService.getEmployeeDetails(passSlip.employeeId)).companyId;
+        const companyId = await this.getCompanyIdFromHris(passSlip.employeeId);
+        if (!companyId) {
+          console.warn(`[pass-slip] auto time in: no company id for ${passSlip.employeeId}; ${passSlip.id} left for the ledger cron`);
+          continue;
+        }
         const { schedule } = await this.getScheduleForDate(passSlip.employeeId, companyId, date);
         if (!schedule?.timeOut) {
           console.warn(`[pass-slip] auto time in: no schedule for ${passSlip.employeeId} on ${date}; ${passSlip.id} left for the ledger cron`);
           continue;
         }
+        // during the day: wait until the schedule time out has passed
+        if (onlyIfScheduleEndedBy && toMinutes(onlyIfScheduleEndedBy) < toMinutes(schedule.timeOut)) continue;
+        // pass slip out after the schedule time out (overtime): nothing to fill
+        if (toMinutes(passSlip.timeOut as unknown as string) >= toMinutes(schedule.timeOut)) continue;
         await this.rawQuery(`UPDATE pass_slip SET time_in = ? WHERE pass_slip_id = ? AND time_in IS NULL;`, [schedule.timeOut, passSlip.id]);
         updated++;
       } catch (error) {
@@ -857,6 +884,14 @@ export class PassSlipService extends CrudHelper<PassSlip> {
   }
 
   /** Schedule in effect for the employee on a date: DTR schedule first, else assigned schedule. */
+  /** Company id straight from the HRIS employees table (no microservice call; used by the 15-minute job). */
+  private async getCompanyIdFromHris(employeeId: string): Promise<string | null> {
+    const rows = (await this.rawQuery(`SELECT company_id companyId FROM ${process.env.HRMS_DB_NAME}employees WHERE _id = ? LIMIT 1;`, [
+      employeeId,
+    ])) as { companyId: string | null }[];
+    return rows[0]?.companyId ?? null;
+  }
+
   private async getScheduleForDate(employeeId: string, companyId: string, date: string) {
     const dtr = (await this.rawQuery(
       `SELECT dtr.daily_time_record_id dtrId, dtr.time_out dtrTimeOut, s.schedule_id scheduleId,

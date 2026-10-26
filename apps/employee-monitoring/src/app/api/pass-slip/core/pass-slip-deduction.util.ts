@@ -2,8 +2,6 @@ import { NatureOfBusiness } from '@gscwd-api/utils';
 
 /** Minutes in one working day; leave credit = deductible minutes / 480. */
 export const MINUTES_PER_DAY = 480;
-/** Half Day base deduction (4 hours). */
-export const HALF_DAY_MINUTES = 240;
 /** Wellness Pass free allowance per quarter (4 hours). */
 export const WELLNESS_ALLOWANCE_MINUTES = 240;
 
@@ -80,6 +78,8 @@ export function computeUsedMinutes(input: DeductionInput): number {
       return minutesOutsideLunch(out, back, schedule);
     }
     case NatureOfBusiness.UNDERTIME:
+    case NatureOfBusiness.HALF_DAY:
+      // Half Day is treated like Undertime (HR 2026-10-22): pass slip out -> schedule time out, lunch excluded
       return minutesOutsideLunch(out, scheduleOut, schedule);
     default:
       return 0;
@@ -94,12 +94,6 @@ export function computeDeductibleMinutes(input: DeductionInput): number {
   switch (natureOfBusiness) {
     case NatureOfBusiness.OFFICIAL_BUSINESS:
       return 0;
-    case NatureOfBusiness.HALF_DAY: {
-      // automatic 0.500; plus any time out before the lunch break (the half day starts after lunch)
-      const lunch = getLunchBreak(schedule);
-      const early = out !== null ? Math.max(0, lunch.start - out) : 0;
-      return HALF_DAY_MINUTES + early;
-    }
     case NatureOfBusiness.WELLNESS_PASS: {
       const used = Math.max(0, input.wellnessMinutesUsedThisQuarter ?? 0);
       const current = computeUsedMinutes(input);
@@ -108,6 +102,7 @@ export function computeDeductibleMinutes(input: DeductionInput): number {
     }
     case NatureOfBusiness.PERSONAL:
     case NatureOfBusiness.UNDERTIME:
+    case NatureOfBusiness.HALF_DAY:
       return computeUsedMinutes(input);
     default:
       return 0;

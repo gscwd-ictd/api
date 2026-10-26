@@ -47,8 +47,83 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
     });
   }
 
+  /** SPL days an employee may use per year (HR 2026-10-22). */
+  static readonly SPL_DAYS_PER_YEAR = 3;
+
+  /**
+   * Filing rules checked before a leave application is saved:
+   *  - Forced Leave / Wellness Leave: no new application after November 30 (their credits are forfeited
+   *    one week later; the week is for approvals only).
+   *  - Special Privilege Leave: at most 3 days per year (by leave date), not counting cancelled or
+   *    disapproved dates and dates whose credit was added back (work suspension / cancellation).
+   */
+  async validateLeaveFilingRules(employeeId: string, leaveBenefitsId: string, leaveDates: unknown) {
+    if (!leaveBenefitsId) return;
+    const benefit = (await this.rawQuery(`SELECT leave_name leaveName FROM leave_benefits WHERE leave_benefits_id = ?;`, [leaveBenefitsId]))[0] as
+      | { leaveName: string }
+      | undefined;
+    if (!benefit) return;
+    const { leaveName } = benefit;
+
+    if (leaveName === 'Forced Leave' || leaveName === 'Wellness Leave') {
+      const today = dayjs().format('YYYY-MM-DD');
+      if (today > `${dayjs().year()}-11-30`)
+        throw new ForbiddenException(`${leaveName} applications are closed after November 30. Unused credits will be forfeited.`);
+    }
+
+    if (leaveName === 'Special Privilege Leave' && isArray(leaveDates) && leaveDates.length > 0) {
+      const perYear = new Map<number, number>();
+      for (const d of leaveDates as Date[]) perYear.set(dayjs(d).year(), (perYear.get(dayjs(d).year()) ?? 0) + 1);
+      for (const [year, requested] of perYear) {
+        const used = Number(
+          (
+            await this.rawQuery(
+              `SELECT COUNT(lad.leave_application_date_id) used
+                 FROM leave_application la
+                INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
+                INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
+                WHERE la.employee_id_fk = ? AND lb.leave_name = 'Special Privilege Leave' AND YEAR(lad.leave_date) = ?
+                  AND la.status NOT IN ('cancelled','disapproved by supervisor','disapproved by hrdm','disapproved by hrmo')
+                  AND lad.status NOT IN ('cancelled','disapproved')
+                  AND NOT EXISTS (SELECT 1 FROM leave_add_back lab WHERE lab.leave_application_dates_id_fk = lad.leave_application_date_id)
+                  ${
+                    (await this.hasAddBackSourceColumn())
+                      ? `AND NOT EXISTS (SELECT 1 FROM leave_credit_earnings lce
+                                         WHERE lce.add_back_source_id = lad.leave_application_date_id AND lce.leave_benefits_id_fk = lb.leave_benefits_id)`
+                      : ''
+                  };`,
+              [employeeId, year]
+            )
+          )[0].used
+        );
+        if (used + requested > LeaveApplicationService.SPL_DAYS_PER_YEAR)
+          throw new ForbiddenException(
+            `Special Privilege Leave is limited to ${LeaveApplicationService.SPL_DAYS_PER_YEAR} days per year. ` +
+              `Already used/applied in ${year}: ${used}; requested: ${requested}.`
+          );
+      }
+    }
+  }
+
+  private addBackSourceColumn: boolean | null = null;
+
+  /** leave_credit_earnings.add_back_source_id (work suspension add-backs) exists once the rework is deployed. */
+  private async hasAddBackSourceColumn(): Promise<boolean> {
+    if (this.addBackSourceColumn === null) {
+      const rows = (await this.rawQuery(
+        `SELECT COUNT(*) cnt FROM information_schema.columns
+          WHERE table_schema = DATABASE() AND table_name = 'leave_credit_earnings' AND column_name = 'add_back_source_id';`
+      )) as { cnt: string }[];
+      this.addBackSourceColumn = Number(rows[0]?.cnt) > 0;
+    }
+    return this.addBackSourceColumn;
+  }
+
   async createLeaveApplication(createLeaveApplication: CreateLeaveApplicationDto) {
     const { leaveBenefitId, employeeId } = createLeaveApplication;
+    const benefitsId =
+      (createLeaveApplication as unknown as { leaveBenefitsId?: string }).leaveBenefitsId ?? (leaveBenefitId as unknown as string);
+    await this.validateLeaveFilingRules(employeeId, benefitsId, createLeaveApplication.leaveApplicationDates);
 
     // const pendingSameLeaveType = await this.crud().findOneOrNull({
     //   find: {

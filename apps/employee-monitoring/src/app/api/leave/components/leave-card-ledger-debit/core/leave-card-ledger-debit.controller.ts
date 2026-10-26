@@ -1,5 +1,5 @@
 import { CreateLeaveCardLedgerDebitDto } from '@gscwd-api/models';
-import { Body, Controller, forwardRef, Get, Inject, Post } from '@nestjs/common';
+import { Body, Controller, forwardRef, Inject, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { LeaveCardLedgerDebitService } from './leave-card-ledger-debit.service';
 import dayjs = require('dayjs');
 import { HolidaysService } from '../../../../holidays/core/holidays.service';
@@ -17,9 +17,15 @@ export class LeaveCardLedgerDebitController {
     return await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit(leaveCardLedgerDebitDto);
   }
 
-  @Get('')
-  async forceForfeitureOfForcedLeave() {
-    //return await this.leaveCardLedgerDebitService.forfeitureOfForcedLeave();
-    return await this.leaveCardLedgerDebitService.forfeitureOfSpecialPrivilegeLeave();
+  /** Manual run (same as the Dec 7 job). Safe to re-run: employees already forfeited are skipped. */
+  @Post('forfeiture/forced-wellness/:year')
+  async forfeitureOfForcedAndWellnessLeave(@Param('year', ParseIntPipe) year: number) {
+    return await this.leaveCardLedgerDebitService.forfeitureOfForcedAndWellnessLeave(year);
+  }
+
+  /** Manual run (same as the Jan 7 job) for the SPL of `year`. Safe to re-run. */
+  @Post('forfeiture/spl/:year')
+  async forfeitureOfSpecialPrivilegeLeave(@Param('year', ParseIntPipe) year: number) {
+    return await this.leaveCardLedgerDebitService.forfeitureOfSpecialPrivilegeLeave(year);
   }
 }

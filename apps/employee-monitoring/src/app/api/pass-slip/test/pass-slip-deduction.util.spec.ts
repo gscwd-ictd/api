@@ -40,13 +40,16 @@ describe('pass slip deductions', () => {
     });
   });
 
-  describe('Half Day', () => {
-    it('base 0.500', () => expect(credits(NatureOfBusiness.HALF_DAY, '13:00:00', null)).toBe(0.5));
-    it('rule example: out 11:00 with 12-1 lunch = 0.625', () => expect(credits(NatureOfBusiness.HALF_DAY, '11:00:00', null)).toBe(0.625));
+  describe('Half Day (same as Undertime: time log, lunch excluded)', () => {
+    it('out 13:00 -> 13-17 = 0.500', () => expect(credits(NatureOfBusiness.HALF_DAY, '13:00:00', null)).toBe(0.5));
+    it('out 14:00 -> 3h = 0.375, not an automatic 0.500', () => expect(credits(NatureOfBusiness.HALF_DAY, '14:00:00', null)).toBe(0.375));
+    it('out 11:00 with 12-1 lunch -> 5h = 0.625', () => expect(credits(NatureOfBusiness.HALF_DAY, '11:00:00', null)).toBe(0.625));
+    it('out during lunch -> 13-17', () => expect(credits(NatureOfBusiness.HALF_DAY, '12:23:00', null)).toBe(0.5));
     it('no lunch assigned -> break 4h after time in', () => {
       expect(getLunchBreak(noLunch)).toEqual({ start: 720, end: 780 });
       expect(credits(NatureOfBusiness.HALF_DAY, '11:00:00', null, noLunch)).toBe(0.625);
     });
+    it('no pass slip out -> nothing', () => expect(credits(NatureOfBusiness.HALF_DAY, null as unknown as string, null)).toBe(0));
   });
 
   describe('Undertime', () => {
