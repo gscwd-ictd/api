@@ -3,6 +3,15 @@ import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-
 import { EmployeesService } from '../../employees/core/employees.service';
 import { NatureOfAppointment, NatureOfBusiness, Report, User } from '@gscwd-api/utils';
 import dayjs = require('dayjs');
+import {
+  buildDetailedReport,
+  buildSummaryReport,
+  buildWellnessReport,
+  PassSlipReportRow,
+  passSlipReportParams,
+  passSlipReportSql,
+  PERSONAL_REPORT_NATURES,
+} from './pass-slip-report.util';
 
 @Injectable()
 export class ReportsService {
@@ -27,24 +36,27 @@ export class ReportsService {
     }
   }
 
-  async generateReportOnPersonalPassSlip(dateFrom: Date, dateTo: Date) {
+  /** Approved pass slips of the given natures in the date range, with the schedule of the day (see pass-slip-report.util). */
+  private async getPassSlipsForReport(natures: NatureOfBusiness[], dateFrom: Date, dateTo: Date) {
+    return (await this.dtrService.rawQuery(
+      passSlipReportSql(natures.length),
+      passSlipReportParams(natures, dateFrom, dateTo)
+    )) as PassSlipReportRow[];
+  }
+
+  private async getPermanentCasualNames(employeeId?: string) {
+    if (employeeId) {
+      const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
+      return new Map<string, string>([[employeeId, employeeDetails.employeeFullName]]);
+    }
     const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+    return new Map<string, string>(employees.map((employee) => [employee.value, employee.label]));
+  }
 
-    const _employeePassSlips = [];
-
-    const employeePassSlips = await Promise.all(
-      employees.map(async (employee) => {
-        const employeeId = employee.value;
-        const name = employee.label;
-
-        const report = (
-          await this.dtrService.rawQuery(`CALL sp_generate_report_on_personal_business_pass_slip(?,?,?);`, [employee.value, dateFrom, dateTo])
-        )[0][0];
-
-        if (report.noOfTimes !== '0') _employeePassSlips.push({ employeeId, name, ...report });
-      })
-    );
-    return _employeePassSlips;
+  /** Personal Business, Half Day and Undertime pass slips per employee (permanent / casual). */
+  async generateReportOnPersonalPassSlip(dateFrom: Date, dateTo: Date) {
+    const names = await this.getPermanentCasualNames();
+    return buildSummaryReport(await this.getPassSlipsForReport(PERSONAL_REPORT_NATURES, dateFrom, dateTo), names);
   }
 
   async generateReportOnSummaryOfSickLeave(dateFrom: Date, dateTo: Date, employeeId?: string) {
@@ -120,137 +132,30 @@ export class ReportsService {
   }
 
   async generateReportOnOfficialBusinessPassSlip(dateFrom: Date, dateTo: Date) {
-    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
-
-    const _employeePassSlips = [];
-
-    const employeePassSlips = await Promise.all(
-      employees.map(async (employee) => {
-        const employeeId = employee.value;
-        const name = employee.label;
-
-        const report = (
-          await this.dtrService.rawQuery(`CALL sp_generate_report_on_official_business_pass_slip(?,?,?);`, [employee.value, dateFrom, dateTo])
-        )[0][0];
-
-        if (report.noOfTimes !== '0') _employeePassSlips.push({ employeeId, name, ...report });
-      })
-    );
-    return _employeePassSlips;
+    const names = await this.getPermanentCasualNames();
+    return buildSummaryReport(await this.getPassSlipsForReport([NatureOfBusiness.OFFICIAL_BUSINESS], dateFrom, dateTo), names);
   }
 
   async generateReportOnPersonalPassSlipDetailedCosJo(dateFrom: Date, dateTo: Date) {
     const employees = await this.employeesService.getEmployeesByNatureOfAppointment(NatureOfAppointment.JOBORDER);
-
-    const _employeePassSlips = [];
-
-    const employeePassSlips = await Promise.all(
-      employees.map(async (employee) => {
-        const employeeId = employee.employeeId;
-        const name = employee.fullName;
-
-        const report = (
-          await this.dtrService.rawQuery(`CALL sp_generate_report_on_personal_business_pass_slip_detailed(?,?,?,?);`, [
-            employeeId,
-            name,
-            dateFrom,
-            dateTo,
-          ])
-        )[0];
-
-        await Promise.all(
-          report.map(async (reportItem) => {
-            _employeePassSlips.push(reportItem);
-          })
-        );
-      })
-    );
-    return _employeePassSlips.sort(function (a, b) {
-      if (a.name < b.name) {
-        return -1;
-      }
-      if (a.name > b.name) {
-        return 1;
-      }
-      return 0;
-    });
+    const names = new Map<string, string>(employees.map((employee) => [employee.employeeId, employee.fullName]));
+    return buildDetailedReport(await this.getPassSlipsForReport(PERSONAL_REPORT_NATURES, dateFrom, dateTo), names);
   }
 
   async generateReportOnPersonalPassSlipDetailed(dateFrom: Date, dateTo: Date) {
-    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
-
-    const _employeePassSlips = [];
-
-    const employeePassSlips = await Promise.all(
-      employees.map(async (employee) => {
-        const employeeId = employee.value;
-        const name = employee.label;
-
-        const report = (
-          await this.dtrService.rawQuery(`CALL sp_generate_report_on_personal_business_pass_slip_detailed(?,?,?,?);`, [
-            employeeId,
-            name,
-            dateFrom,
-            dateTo,
-          ])
-        )[0];
-
-        await Promise.all(
-          report.map(async (reportItem) => {
-            _employeePassSlips.push(reportItem);
-          })
-        );
-      })
-    );
-    return _employeePassSlips.sort(function (a, b) {
-      if (a.name < b.name) {
-        return -1;
-      }
-      if (a.name > b.name) {
-        return 1;
-      }
-      return 0;
-    });
+    const names = await this.getPermanentCasualNames();
+    return buildDetailedReport(await this.getPassSlipsForReport(PERSONAL_REPORT_NATURES, dateFrom, dateTo), names);
   }
 
   async generateReportOnOfficialBusinessPassSlipDetailed(dateFrom: Date, dateTo: Date, employeeId: string) {
-    let employees;
-    if (employeeId !== '') {
-      const employeeDetails = await this.employeesService.getEmployeeDetails(employeeId);
-      employees = [{ label: employeeDetails.employeeFullName, value: employeeId }];
-    } else employees = await this.employeesService.getAllPermanentCasualEmployees2();
-    const _employeePassSlips = [];
+    const names = await this.getPermanentCasualNames(employeeId);
+    return buildDetailedReport(await this.getPassSlipsForReport([NatureOfBusiness.OFFICIAL_BUSINESS], dateFrom, dateTo), names);
+  }
 
-    const employeePassSlips = await Promise.all(
-      employees.map(async (employee) => {
-        const employeeId = employee.value;
-        const name = employee.label;
-
-        const report = (
-          await this.dtrService.rawQuery(`CALL sp_generate_report_on_official_business_pass_slip_detailed(?,?,?,?);`, [
-            employeeId,
-            name,
-            dateFrom,
-            dateTo,
-          ])
-        )[0];
-
-        await Promise.all(
-          report.map(async (reportItem) => {
-            _employeePassSlips.push(reportItem);
-          })
-        );
-      })
-    );
-    return _employeePassSlips.sort(function (a, b) {
-      if (a.name < b.name) {
-        return -1;
-      }
-      if (a.name > b.name) {
-        return 1;
-      }
-      return 0;
-    });
+  /** Wellness Pass per employee: dates and accumulated hours in the period (a quarter or the whole year). */
+  async generateReportOnWellnessPass(dateFrom: Date, dateTo: Date, employeeId?: string) {
+    const names = await this.getPermanentCasualNames(employeeId);
+    return buildWellnessReport(await this.getPassSlipsForReport([NatureOfBusiness.WELLNESS_PASS], dateFrom, dateTo), names);
   }
 
   async generateReportOnUnusedPassSlips(dateFrom: Date, dateTo: Date, natureOfBusiness: NatureOfBusiness) {
@@ -732,6 +637,9 @@ export class ReportsService {
           break;
         case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
           reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo, employeeId);
+          break;
+        case decodeURI(Report.REPORT_ON_WELLNESS_PASS):
+          reportDetails = await this.generateReportOnWellnessPass(dateFrom, dateTo, employeeId);
           break;
         case decodeURI(Report.REPORT_ON_UNUSED_PASS_SLIP):
           console.log(natureOfBusiness);

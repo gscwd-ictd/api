@@ -140,197 +140,230 @@ export class LeaveService {
 
         const { leaveName } = leaveApplicationId.leaveBenefitsId;
 
-        const countLeaveLedgerDebit = await this.leaveCardLedgerDebitService
-          .crud()
-          .findOneOrNull({ find: { where: { leaveApplicationId: { id: leaveApplicationId.id } } } });
+        // One approval posts the ledger once: a second request for the same leave (double click, retry)
+        // waits for the first, then finds its debit and posts nothing (duplicate SBL credits, 2026-10-02).
+        const releaseApprovalLock = await this.lockLeaveApproval(id);
+        try {
+          const countLeaveLedgerDebit = await this.leaveCardLedgerDebitService
+            .crud()
+            .findOneOrNull({ find: { where: { leaveApplicationId: { id: leaveApplicationId.id } } } });
 
-        if (countLeaveLedgerDebit === null) {
-          // The ledger dates the FL row by the first approval date (HRMO, then supervisor, then HRDM).
-          // For Forced Leave, write the FL ledger row at that time and the paired VL deduction one second
-          // later, so both show on the same period with FL first, then VL.
-          const { hrmoApprovalDate, supervisorApprovalDate, hrdmApprovalDate } = leaveApplicationId;
-          const flPeriod = hrmoApprovalDate ?? supervisorApprovalDate ?? hrdmApprovalDate ?? new Date();
-
-          const leaveCardLedgerDebit =
-            leaveName === 'Forced Leave'
-              ? await this.leaveCardLedgerDebitService.crud().create({ dto: { leaveApplicationId, debitValue, createdAt: flPeriod } })
-              : await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
-                  leaveApplicationId,
-                  debitValue,
-                });
-
-          if (leaveName === 'Forced Leave') {
-            //
-            const leaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
-            const leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
-              dto: {
-                debitValue,
-                createdAt: leaveApplicationId.dateOfFiling,
-                leaveBenefitsId,
-                remarks: 'Deduction from Forced Leave',
-                employeeId: leaveApplicationId.employeeId,
-              },
-            });
-            // The ledger dates the FL row by the first approval date (HRMO, then supervisor, then HRDM);
-            // give the paired VL deduction the same date so both show on the same period.
+          if (countLeaveLedgerDebit === null) {
+            // The ledger dates the FL row by the first approval date (HRMO, then supervisor, then HRDM).
+            // For Forced Leave, write the FL ledger row at that time and the paired VL deduction one second
+            // later, so both show on the same period with FL first, then VL.
             const { hrmoApprovalDate, supervisorApprovalDate, hrdmApprovalDate } = leaveApplicationId;
             const flPeriod = hrmoApprovalDate ?? supervisorApprovalDate ?? hrdmApprovalDate ?? new Date();
-            const leaveCardLedgerDebit = await this.leaveCardLedgerDebitService
-              .crud()
-              .create({ dto: { leaveCreditDeductionsId, debitValue, createdAt: flPeriod } });
-          }
 
-          if (leaveApplicationId.leaveBenefitsId.leaveType === 'special leave benefit') {
-            const leaveCreditEarning = await this.leaveCreditEarningsService.addLeaveCreditEarnings({
-              creditDate: dayjs().toDate(),
-              creditValue: debitValue,
-              dailyTimeRecordId: null,
-              employeeId: leaveApplicationId.employeeId,
-              leaveBenefitsId: leaveApplicationId.leaveBenefitsId,
-              remarks: leaveApplicationId.leaveBenefitsId.leaveType,
-            });
-            const leaveCardLedgerCredit = await this.leaveCardLedgerCreditService.crud().create({
-              dto: { leaveCreditEarningId: leaveCreditEarning },
-            });
-          }
+            const leaveCardLedgerDebit =
+              leaveName === 'Forced Leave'
+                ? await this.leaveCardLedgerDebitService.crud().create({ dto: { leaveApplicationId, debitValue, createdAt: flPeriod } })
+                : await this.leaveCardLedgerDebitService.addLeaveCardLedgerDebit({
+                    leaveApplicationId,
+                    debitValue,
+                  });
 
-          //!todo add condition for rehabilitation leave
-
-          if (leaveName === 'Monetization' || leaveName === 'Terminal Leave') {
-            //leaveApplicationId.
-
-            let leaveCreditDeductionsId;
-            const vlLeaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
-            const slLeaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Sick Leave' } } });
-            const flLeaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Forced Leave' } } });
-            const splLeaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Special Privilege Leave' } } });
-            const monetizationDetails = await this.leaveMonetizationService.crud().findOne({
-              find: {
-                select: { convertedSl: true, convertedVl: true, id: true, leaveApplicationId: { id: true }, monetizedAmount: true },
-                where: { leaveApplicationId: { id: leaveApplicationId.id } },
-              },
-            });
-
-            const { convertedSl, convertedVl, monetizedAmount } = monetizationDetails;
-
-            if (leaveName === 'Terminal Leave') {
-              const companyId = await this.employeesService.getCompanyId(leaveApplicationId.employeeId);
-              const employeeLeaveLedger = (
-                await this.leaveApplicationService.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [
-                  leaveApplicationId.employeeId,
-                  companyId,
-                  dayjs().year(),
-                ])
-              )[0] as LeaveLedger[];
-              const finalBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
-              const { vacationLeaveBalance, sickLeaveBalance, forcedLeaveBalance, specialPrivilegeLeaveBalance } = finalBalance;
-              const vlExcessLeaveCreditEarning = await this.leaveCreditEarningsService.crud().create({
+            if (leaveName === 'Forced Leave') {
+              //
+              const leaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
+              const leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
                 dto: {
-                  creditValue: parseFloat(convertedVl.toString()) - parseFloat(vacationLeaveBalance.toString()),
-                  leaveBenefitsId: vlLeaveBenefitsId,
+                  debitValue,
+                  createdAt: leaveApplicationId.dateOfFiling,
+                  leaveBenefitsId,
+                  remarks: 'Deduction from Forced Leave',
                   employeeId: leaveApplicationId.employeeId,
-                  creditDate: dayjs().toDate(),
-                  remarks: 'VL Credit Earnings for the Month prior Terminal Leave',
                 },
               });
-
-              const vlLeaveCardLedgerCredit = await this.leaveCardLedgerCreditService.crud().create({
-                dto: { leaveCreditEarningId: vlExcessLeaveCreditEarning },
-              });
-
-              const slExcessLeaveCreditEarning = await this.leaveCreditEarningsService.crud().create({
-                dto: {
-                  creditValue: parseFloat(convertedSl.toString()) - parseFloat(sickLeaveBalance.toString()),
-                  leaveBenefitsId: slLeaveBenefitsId,
-                  remarks: 'SL Credit Earnings for the Month prior Terminal Leave',
-                  employeeId: leaveApplicationId.employeeId,
-                  creditDate: dayjs().toDate(),
-                },
-              });
-
-              const slLeaveCardLedgerCredit = await this.leaveCardLedgerCreditService.crud().create({
-                dto: { leaveCreditEarningId: slExcessLeaveCreditEarning },
-              });
-
-              //zero out fl and spl
-              if (parseFloat(forcedLeaveBalance.toString()) > 0) {
-                leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
-                  dto: {
-                    debitValue: parseFloat(forcedLeaveBalance.toString()),
-                    createdAt: leaveApplicationId.dateOfFiling,
-                    leaveBenefitsId: flLeaveBenefitsId,
-                    remarks: `FL deduction from Terminal Leave`,
-                    employeeId: leaveApplicationId.employeeId,
-                  },
-                });
-                const flLeaveCardLedgerDebit = await this.leaveCardLedgerDebitService
-                  .crud()
-                  .create({ dto: { leaveCreditDeductionsId, debitValue: parseFloat(forcedLeaveBalance.toString()) } });
-              }
-
-              if (parseFloat(specialPrivilegeLeaveBalance.toString()) > 0) {
-                leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
-                  dto: {
-                    debitValue: parseFloat(specialPrivilegeLeaveBalance.toString()),
-                    createdAt: leaveApplicationId.dateOfFiling,
-                    leaveBenefitsId: splLeaveBenefitsId,
-                    remarks: `SPL deduction from Terminal Leave`,
-                    employeeId: leaveApplicationId.employeeId,
-                  },
-                });
-                const splLeaveCardLedgerDebit = await this.leaveCardLedgerDebitService
-                  .crud()
-                  .create({ dto: { leaveCreditDeductionsId, debitValue: parseFloat(specialPrivilegeLeaveBalance.toString()) } });
-              }
+              // The ledger dates the FL row by the first approval date (HRMO, then supervisor, then HRDM);
+              // give the paired VL deduction the same date so both show on the same period.
+              const { hrmoApprovalDate, supervisorApprovalDate, hrdmApprovalDate } = leaveApplicationId;
+              const flPeriod = hrmoApprovalDate ?? supervisorApprovalDate ?? hrdmApprovalDate ?? new Date();
+              const leaveCardLedgerDebit = await this.leaveCardLedgerDebitService
+                .crud()
+                .create({ dto: { leaveCreditDeductionsId, debitValue, createdAt: flPeriod } });
             }
 
-            leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
-              dto: {
-                debitValue: convertedVl,
-                createdAt: leaveApplicationId.dateOfFiling,
-                leaveBenefitsId: vlLeaveBenefitsId,
-                remarks:
-                  leaveName === 'Monetization'
-                    ? `VL deduction from monetization | ` + leaveApplicationId.referenceNo
-                    : `VL deduction from Terminal Leave` +
-                      ` (` +
-                      dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
-                      `/₱ ` +
-                      monetizedAmount +
-                      `)`,
+            if (leaveApplicationId.leaveBenefitsId.leaveType === 'special leave benefit') {
+              const leaveCreditEarning = await this.leaveCreditEarningsService.addLeaveCreditEarnings({
+                creditDate: dayjs().toDate(),
+                creditValue: debitValue,
+                dailyTimeRecordId: null,
                 employeeId: leaveApplicationId.employeeId,
-              },
-            });
-            const vlLeaveCardLedgerDebit = await this.leaveCardLedgerDebitService
-              .crud()
-              .create({ dto: { leaveCreditDeductionsId, debitValue: convertedVl } });
+                leaveBenefitsId: leaveApplicationId.leaveBenefitsId,
+                remarks: leaveApplicationId.leaveBenefitsId.leaveType,
+              });
+              const leaveCardLedgerCredit = await this.leaveCardLedgerCreditService.crud().create({
+                dto: { leaveCreditEarningId: leaveCreditEarning },
+              });
+            }
 
-            leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
-              dto: {
-                debitValue: convertedSl,
-                createdAt: leaveApplicationId.dateOfFiling,
-                leaveBenefitsId: slLeaveBenefitsId,
-                remarks:
-                  leaveName === 'Monetization'
-                    ? `SL deduction from monetization | ` + leaveApplicationId.referenceNo
-                    : `SL deduction from Terminal Leave` +
-                      ` (` +
-                      dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
-                      `/₱ ` +
-                      monetizedAmount +
-                      `)`,
-                employeeId: leaveApplicationId.employeeId,
-              },
-            });
-            const slLeaveCardLedgerDebit = await this.leaveCardLedgerDebitService
-              .crud()
-              .create({ dto: { leaveCreditDeductionsId, debitValue: convertedSl } });
+            //!todo add condition for rehabilitation leave
+
+            if (leaveName === 'Monetization' || leaveName === 'Terminal Leave') {
+              //leaveApplicationId.
+
+              let leaveCreditDeductionsId;
+              const vlLeaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Vacation Leave' } } });
+              const slLeaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Sick Leave' } } });
+              const flLeaveBenefitsId = await this.leaveBenefitsService.crud().findOne({ find: { where: { leaveName: 'Forced Leave' } } });
+              const splLeaveBenefitsId = await this.leaveBenefitsService
+                .crud()
+                .findOne({ find: { where: { leaveName: 'Special Privilege Leave' } } });
+              const monetizationDetails = await this.leaveMonetizationService.crud().findOne({
+                find: {
+                  select: { convertedSl: true, convertedVl: true, id: true, leaveApplicationId: { id: true }, monetizedAmount: true },
+                  where: { leaveApplicationId: { id: leaveApplicationId.id } },
+                },
+              });
+
+              const { convertedSl, convertedVl, monetizedAmount } = monetizationDetails;
+
+              if (leaveName === 'Terminal Leave') {
+                const companyId = await this.employeesService.getCompanyId(leaveApplicationId.employeeId);
+                const employeeLeaveLedger = (
+                  await this.leaveApplicationService.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [
+                    leaveApplicationId.employeeId,
+                    companyId,
+                    dayjs().year(),
+                  ])
+                )[0] as LeaveLedger[];
+                const finalBalance = employeeLeaveLedger[employeeLeaveLedger.length - 1];
+                const { vacationLeaveBalance, sickLeaveBalance, forcedLeaveBalance, specialPrivilegeLeaveBalance } = finalBalance;
+                const vlExcessLeaveCreditEarning = await this.leaveCreditEarningsService.crud().create({
+                  dto: {
+                    creditValue: parseFloat(convertedVl.toString()) - parseFloat(vacationLeaveBalance.toString()),
+                    leaveBenefitsId: vlLeaveBenefitsId,
+                    employeeId: leaveApplicationId.employeeId,
+                    creditDate: dayjs().toDate(),
+                    remarks: 'VL Credit Earnings for the Month prior Terminal Leave',
+                  },
+                });
+
+                const vlLeaveCardLedgerCredit = await this.leaveCardLedgerCreditService.crud().create({
+                  dto: { leaveCreditEarningId: vlExcessLeaveCreditEarning },
+                });
+
+                const slExcessLeaveCreditEarning = await this.leaveCreditEarningsService.crud().create({
+                  dto: {
+                    creditValue: parseFloat(convertedSl.toString()) - parseFloat(sickLeaveBalance.toString()),
+                    leaveBenefitsId: slLeaveBenefitsId,
+                    remarks: 'SL Credit Earnings for the Month prior Terminal Leave',
+                    employeeId: leaveApplicationId.employeeId,
+                    creditDate: dayjs().toDate(),
+                  },
+                });
+
+                const slLeaveCardLedgerCredit = await this.leaveCardLedgerCreditService.crud().create({
+                  dto: { leaveCreditEarningId: slExcessLeaveCreditEarning },
+                });
+
+                //zero out fl and spl
+                if (parseFloat(forcedLeaveBalance.toString()) > 0) {
+                  leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
+                    dto: {
+                      debitValue: parseFloat(forcedLeaveBalance.toString()),
+                      createdAt: leaveApplicationId.dateOfFiling,
+                      leaveBenefitsId: flLeaveBenefitsId,
+                      remarks: `FL deduction from Terminal Leave`,
+                      employeeId: leaveApplicationId.employeeId,
+                    },
+                  });
+                  const flLeaveCardLedgerDebit = await this.leaveCardLedgerDebitService
+                    .crud()
+                    .create({ dto: { leaveCreditDeductionsId, debitValue: parseFloat(forcedLeaveBalance.toString()) } });
+                }
+
+                if (parseFloat(specialPrivilegeLeaveBalance.toString()) > 0) {
+                  leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
+                    dto: {
+                      debitValue: parseFloat(specialPrivilegeLeaveBalance.toString()),
+                      createdAt: leaveApplicationId.dateOfFiling,
+                      leaveBenefitsId: splLeaveBenefitsId,
+                      remarks: `SPL deduction from Terminal Leave`,
+                      employeeId: leaveApplicationId.employeeId,
+                    },
+                  });
+                  const splLeaveCardLedgerDebit = await this.leaveCardLedgerDebitService
+                    .crud()
+                    .create({ dto: { leaveCreditDeductionsId, debitValue: parseFloat(specialPrivilegeLeaveBalance.toString()) } });
+                }
+              }
+
+              leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
+                dto: {
+                  debitValue: convertedVl,
+                  createdAt: leaveApplicationId.dateOfFiling,
+                  leaveBenefitsId: vlLeaveBenefitsId,
+                  remarks:
+                    leaveName === 'Monetization'
+                      ? `VL deduction from monetization | ` + leaveApplicationId.referenceNo
+                      : `VL deduction from Terminal Leave` +
+                        ` (` +
+                        dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
+                        `/₱ ` +
+                        monetizedAmount +
+                        `)`,
+                  employeeId: leaveApplicationId.employeeId,
+                },
+              });
+              const vlLeaveCardLedgerDebit = await this.leaveCardLedgerDebitService
+                .crud()
+                .create({ dto: { leaveCreditDeductionsId, debitValue: convertedVl } });
+
+              leaveCreditDeductionsId = await this.leaveCreditDeductionsService.crud().create({
+                dto: {
+                  debitValue: convertedSl,
+                  createdAt: leaveApplicationId.dateOfFiling,
+                  leaveBenefitsId: slLeaveBenefitsId,
+                  remarks:
+                    leaveName === 'Monetization'
+                      ? `SL deduction from monetization | ` + leaveApplicationId.referenceNo
+                      : `SL deduction from Terminal Leave` +
+                        ` (` +
+                        dayjs(leaveApplicationId.dateOfFiling).format('YYYY-MM-DD') +
+                        `/₱ ` +
+                        monetizedAmount +
+                        `)`,
+                  employeeId: leaveApplicationId.employeeId,
+                },
+              });
+              const slLeaveCardLedgerDebit = await this.leaveCardLedgerDebitService
+                .crud()
+                .create({ dto: { leaveCreditDeductionsId, debitValue: convertedSl } });
+            }
+            //}
           }
-          //}
+        } finally {
+          await releaseApprovalLock();
         }
       }
       return await this.leaveApplicationService.getLeaveApplicationDetails(id, leaveApplicationId.employeeId);
     }
+  }
+
+  /**
+   * MySQL named lock per leave application, held on its own connection (GET_LOCK belongs to the connection).
+   * Returns the release function.
+   */
+  private async lockLeaveApproval(leaveApplicationId: string): Promise<() => Promise<void>> {
+    const lockName = `leave-approval:${leaveApplicationId}`;
+    const runner = this.dataSource.createQueryRunner();
+    await runner.connect();
+    try {
+      const rows = (await runner.query(`SELECT GET_LOCK(?, 30) acquired;`, [lockName])) as { acquired: number | string | null }[];
+      if (Number(rows[0]?.acquired) !== 1) throw new HttpException('Leave application is being processed. Please try again.', HttpStatus.CONFLICT);
+    } catch (error) {
+      await runner.release();
+      throw error;
+    }
+    return async () => {
+      try {
+        await runner.query(`SELECT RELEASE_LOCK(?);`, [lockName]);
+      } finally {
+        await runner.release();
+      }
+    };
   }
 
   async cancelLeave(updateLeaveApplicationEmployeeStatus: UpdateLeaveApplicationEmployeeStatus) {
