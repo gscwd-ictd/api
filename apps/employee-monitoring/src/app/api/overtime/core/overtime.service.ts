@@ -88,6 +88,24 @@ export class OvertimeService {
    * Employees (of `employeeIds`) at management level: plantilla position GM / AGM / Department Manager /
    * Division Manager, or OIC of an office / department / division head position.
    */
+  /** Of the given employees, those separated: latest NOSI/NOSA record is 'inactive', effective on or before today. */
+  async getSeparatedEmployeeIds(employeeIds: string[]): Promise<Set<string>> {
+    if (!employeeIds || employeeIds.length === 0) return new Set();
+    const hrms = process.env.HRMS_DB_NAME;
+    const rows = (await this.overtimeApplicationService.rawQuery(
+      `
+        SELECT nn.employee_id_fk employeeId
+          FROM ${hrms}nosi_nosa nn
+         WHERE nn.employee_id_fk IN (?)
+           AND nn.status = 'inactive'
+           AND nn.effectivity_date <= CURDATE()
+           AND nn.effectivity_date = (SELECT MAX(nn2.effectivity_date) FROM ${hrms}nosi_nosa nn2 WHERE nn2.employee_id_fk = nn.employee_id_fk);
+      `,
+      [employeeIds]
+    )) as { employeeId: string }[];
+    return new Set(rows.map((r) => r.employeeId));
+  }
+
   async getManagementLevelEmployees(employeeIds: string[]): Promise<{ employeeId: string; employeeName: string; reason: string }[]> {
     if (!employeeIds || employeeIds.length === 0) return [];
     const hrms = process.env.HRMS_DB_NAME;
@@ -1269,7 +1287,9 @@ export class OvertimeService {
       // management level employees cannot have overtime → leave them out of the picker
       const employees = await this.employeeService.getEmployeesByOrgId(orgId);
       const management = new Set((await this.getManagementLevelEmployees(employees.map((e) => e.value))).map((m) => m.employeeId));
-      return employees.filter((e) => !management.has(e.value));
+      // separated employees (retired, resigned, deceased, ...) cannot be given overtime either
+      const separated = await this.getSeparatedEmployeeIds(employees.map((e) => e.value));
+      return employees.filter((e) => !management.has(e.value) && !separated.has(e.value));
     } else throw new HttpException('You are not an immediate supervisor or a manager.', HttpStatus.FORBIDDEN);
   }
 
