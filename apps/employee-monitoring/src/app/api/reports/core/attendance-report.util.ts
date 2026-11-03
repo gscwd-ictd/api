@@ -158,3 +158,53 @@ export function buildAttendanceReport(
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 }
+
+/** Employee Tardiness: every late record in the range. Params: [dateFrom, dateTo, companyIds]. */
+export function tardinessSql() {
+  return `
+  SELECT d.company_id_fk companyId, DATE_FORMAT(d.dtr_date, '%Y-%m-%d') dtrDate,
+         TIME_FORMAT(s.time_in, '%H:%i') scheduleTimeIn, TIME_FORMAT(s.lunch_in, '%H:%i') scheduleLunchIn,
+         TIME_FORMAT(d.time_in, '%H:%i') timeIn, TIME_FORMAT(d.lunch_out, '%H:%i') lunchOut,
+         TIME_FORMAT(d.lunch_in, '%H:%i') lunchIn, TIME_FORMAT(d.time_out, '%H:%i') timeOut,
+         l.debit_value credits
+    FROM leave_card_ledger_debit l
+    INNER JOIN daily_time_record d ON d.daily_time_record_id = l.daily_time_record_id_fk
+    LEFT JOIN schedule s ON s.schedule_id = d.schedule_id_fk
+   WHERE l.deleted_at IS NULL AND l.dtr_deduction_type = 'Tardiness'
+     AND d.dtr_date >= ? AND d.dtr_date <= ? AND d.company_id_fk IN (?)
+   ORDER BY d.dtr_date;`;
+}
+
+export type TardinessRow = {
+  companyId: string;
+  dtrDate: string;
+  scheduleTimeIn: string | null;
+  scheduleLunchIn: string | null;
+  timeIn: string | null;
+  lunchOut: string | null;
+  lunchIn: string | null;
+  timeOut: string | null;
+  credits: number | string;
+};
+
+export type TardinessReportItem = TardinessRow & {
+  employeeId: string;
+  name: string;
+  minutesLate: number;
+  conversion: string;
+};
+
+export function buildTardinessReport(
+  employees: { employeeId: string; companyId: string; name: string }[],
+  rows: TardinessRow[]
+): TardinessReportItem[] {
+  const byCompany = new Map(employees.map((e) => [e.companyId, e]));
+  return rows
+    .filter((r) => byCompany.has(r.companyId))
+    .map((r) => {
+      const e = byCompany.get(r.companyId);
+      const credits = Number(r.credits);
+      return { ...r, employeeId: e.employeeId, name: e.name, minutesLate: Math.round(credits * 480), conversion: credits.toFixed(3) };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name) || a.dtrDate.localeCompare(b.dtrDate));
+}

@@ -8,7 +8,10 @@ import {
   attendanceDeductionsParams,
   attendanceDeductionsSql,
   buildAttendanceReport,
+  buildTardinessReport,
   NoAttendanceRow,
+  TardinessRow,
+  tardinessSql,
   noAttendanceParams,
   noAttendanceSql,
 } from './attendance-report.util';
@@ -60,6 +63,18 @@ export class ReportsService {
       this.dtrService.rawQuery(noAttendanceSql(), noAttendanceParams(dateFrom, dateTo, companyIds)) as Promise<NoAttendanceRow[]>,
     ]);
     return buildAttendanceReport(employees, deductions, noAttendance);
+  }
+
+  /** Report on Employee Tardiness: every late (Tardiness deduction) in the range, per employee. */
+  async generateReportOnEmployeeTardiness(dateFrom: Date, dateTo: Date, orgId?: string) {
+    const employees = await this.getReportEmployees(orgId);
+    if (employees.length === 0) return [];
+    const rows = (await this.dtrService.rawQuery(tardinessSql(), [
+      dayjs(dateFrom).format('YYYY-MM-DD'),
+      dayjs(dateTo).format('YYYY-MM-DD'),
+      employees.map((e) => e.companyId),
+    ])) as TardinessRow[];
+    return buildTardinessReport(employees, rows);
   }
 
   /** Approved pass slips of the given natures in the date range, with the schedule of the day (see pass-slip-report.util). */
@@ -664,6 +679,9 @@ export class ReportsService {
           break;
         case decodeURI(Report.REPORT_ON_OFFICIAL_BUSINESS_DETAILED):
           reportDetails = await this.generateReportOnOfficialBusinessPassSlipDetailed(dateFrom, dateTo, employeeId);
+          break;
+        case decodeURI(Report.REPORT_ON_EMPLOYEE_TARDINESS):
+          reportDetails = await this.generateReportOnEmployeeTardiness(dateFrom, dateTo, orgId);
           break;
         case decodeURI(Report.REPORT_ON_WELLNESS_PASS):
           reportDetails = await this.generateReportOnWellnessPass(dateFrom, dateTo, employeeId);
