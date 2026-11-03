@@ -669,12 +669,63 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     if (result.affected > 0) return { ...passSlipHrCancellationDto, status: PassSlipApprovalStatus.CANCELLED };
   }
 
+  /**
+   * HR edits the pass slip time logs. Allowed whatever the status, including UNUSED (the employee did go out but
+   * the logs were missing): an UNUSED slip becomes APPROVED. For Personal Business, Half Day and Undertime the
+   * leave ledger is updated right away: the deduction is posted, or the existing one recomputed from the new logs.
+   */
   async hrUpdatePassSlipTimeLog(hrUpdatePassSlipTimeRecordDto: HrUpdatePassSlipTimeRecordDto) {
     const { id, timeIn, timeOut } = hrUpdatePassSlipTimeRecordDto;
     const result = await this.crud().update({
       dto: { timeIn, timeOut },
       updateBy: { id },
     });
+
+    const passSlip = (
+      (await this.rawQuery(
+        `SELECT ${this.passSlipSelect} FROM pass_slip ps INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id WHERE ps.pass_slip_id = ?;`,
+        [id]
+      )) as PassSlipForLedger[]
+    )[0];
+    if (!passSlip) return result;
+
+    if ((passSlip.status as unknown as string) === 'unused' && passSlip.timeOut !== null) {
+      await this.rawQuery(`UPDATE pass_slip_approval SET status = 'approved' WHERE pass_slip_id_fk = ?;`, [id]);
+    }
+
+    const deductible = [NatureOfBusiness.PERSONAL, NatureOfBusiness.HALF_DAY, NatureOfBusiness.UNDERTIME];
+    if (!deductible.includes(passSlip.natureOfBusiness) || passSlip.timeOut === null) return result;
+
+    const existing = (await this.rawQuery(
+      `SELECT leave_card_ledger_id id, debit_value debitValue FROM leave_card_ledger_debit WHERE pass_slip_id_fk = ? AND deleted_at IS NULL;`,
+      [id]
+    )) as { id: string; debitValue: string }[];
+
+    if (existing.length === 0) {
+      // not posted yet (unused, or still inside the dispute window): post it now
+      await this.finalizePassSlip(passSlip);
+      return result;
+    }
+
+    // already posted: recompute from the new logs
+    const date = dayjs(passSlip.dateOfApplication).format('YYYY-MM-DD');
+    const companyId = (await this.employeeService.getEmployeeDetails(passSlip.employeeId)).companyId;
+    const { schedule } = await this.getScheduleForDate(passSlip.employeeId, companyId, date);
+    if (!schedule) return result;
+    const debitValue = minutesToCredits(
+      computeDeductibleMinutes({
+        natureOfBusiness: passSlip.natureOfBusiness,
+        timeOut: passSlip.timeOut as unknown as string,
+        timeIn: (passSlip.timeIn ?? schedule.timeOut) as unknown as string,
+        schedule,
+      })
+    );
+    if (debitValue <= 0) {
+      await this.rawQuery(`UPDATE leave_card_ledger_debit SET deleted_at = NOW(6) WHERE leave_card_ledger_id = ?;`, [existing[0].id]);
+    } else if (Number(existing[0].debitValue) !== debitValue) {
+      await this.rawQuery(`UPDATE leave_card_ledger_debit SET debit_value = ? WHERE leave_card_ledger_id = ?;`, [debitValue, existing[0].id]);
+    }
+    return result;
   }
 
   // ---------------------------------------------------------------------------
