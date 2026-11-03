@@ -14,8 +14,9 @@ export class ReportsController {
     @Query('date_to') dateTo: Date,
     @Query('employee_id') employeeId: string,
     @Query('pass_slip') natureOfBusiness: NatureOfBusiness,
+    @Query('org_id') orgId: string,
     @LoginUser() user: User
   ) {
-    return await this.reportsService.generateReport(user, report, dateFrom, dateTo, monthYear, employeeId, natureOfBusiness);
+    return await this.reportsService.generateReport(user, report, dateFrom, dateTo, monthYear, employeeId, natureOfBusiness, orgId);
   }
 }

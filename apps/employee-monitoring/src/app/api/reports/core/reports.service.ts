@@ -4,6 +4,15 @@ import { EmployeesService } from '../../employees/core/employees.service';
 import { NatureOfAppointment, NatureOfBusiness, Report, User } from '@gscwd-api/utils';
 import dayjs = require('dayjs');
 import {
+  AttendanceDeductionRow,
+  attendanceDeductionsParams,
+  attendanceDeductionsSql,
+  buildAttendanceReport,
+  NoAttendanceRow,
+  noAttendanceParams,
+  noAttendanceSql,
+} from './attendance-report.util';
+import {
   buildDetailedReport,
   buildSummaryReport,
   buildWellnessReport,
@@ -17,23 +26,40 @@ import {
 export class ReportsService {
   constructor(private readonly employeesService: EmployeesService, private readonly dtrService: DailyTimeRecordService) {}
 
-  async generateReportOnAttendance(dateFrom: Date, dateTo: Date) {
-    try {
-      const employees = await this.employeesService.getAllPermanentCasualEmployees2();
-
-      const employeeAttendance = await Promise.all(
-        employees.map(async (employee) => {
-          const name = employee.label;
-          const report = (
-            await this.dtrService.rawQuery(`CALL sp_generate_report_on_attendance_v3(?,?,?);`, [employee.value, dateFrom, dateTo])
-          )[0][0];
-          return { name, ...report };
-        })
-      );
-      return employeeAttendance;
-    } catch (error) {
-      console.log(error);
+  /**
+   * Permanent / casual employees for a report, optionally only those under an office, department or division
+   * (orgId). Returns employee id, company id and name.
+   */
+  async getReportEmployees(orgId?: string): Promise<{ employeeId: string; companyId: string; name: string }[]> {
+    const employees = await this.employeesService.getAllPermanentCasualEmployees2();
+    if (employees.length === 0) return [];
+    const companies = (await this.dtrService.rawQuery(
+      `SELECT _id employeeId, company_id companyId FROM ${process.env.HRMS_DB_NAME}employees WHERE _id IN (?);`,
+      [employees.map((e) => e.value)]
+    )) as { employeeId: string; companyId: string | null }[];
+    const companyOf = new Map(companies.map((c) => [c.employeeId, c.companyId]));
+    let list = employees
+      .map((e) => ({ employeeId: e.value, companyId: companyOf.get(e.value), name: e.label }))
+      .filter((e) => e.companyId !== null && e.companyId !== undefined && e.companyId !== '');
+    if (orgId) {
+      const inOrg = new Set((await this.employeesService.getCompanyIdsByOrgId(orgId)).map((c) => c.companyId));
+      list = list.filter((e) => inOrg.has(e.companyId));
     }
+    return list;
+  }
+
+  /** Report on Attendance from the leave ledger (see attendance-report.util). */
+  async generateReportOnAttendance(dateFrom: Date, dateTo: Date, orgId?: string) {
+    const employees = await this.getReportEmployees(orgId);
+    if (employees.length === 0) return [];
+    const companyIds = employees.map((e) => e.companyId);
+    const [deductions, noAttendance] = await Promise.all([
+      this.dtrService.rawQuery(attendanceDeductionsSql(), attendanceDeductionsParams(dateFrom, dateTo, companyIds)) as Promise<
+        AttendanceDeductionRow[]
+      >,
+      this.dtrService.rawQuery(noAttendanceSql(), noAttendanceParams(dateFrom, dateTo, companyIds)) as Promise<NoAttendanceRow[]>,
+    ]);
+    return buildAttendanceReport(employees, deductions, noAttendance);
   }
 
   /** Approved pass slips of the given natures in the date range, with the schedule of the day (see pass-slip-report.util). */
@@ -613,14 +639,15 @@ export class ReportsService {
     dateTo?: Date,
     monthYear?: string,
     employeeId?: string,
-    natureOfBusiness?: NatureOfBusiness
+    natureOfBusiness?: NatureOfBusiness,
+    orgId?: string
   ) {
     try {
       if (user === null) throw new ForbiddenException();
       let reportDetails: object;
       switch (report) {
         case decodeURI(Report.REPORT_ON_ATTENDANCE):
-          reportDetails = await this.generateReportOnAttendance(dateFrom, dateTo);
+          reportDetails = await this.generateReportOnAttendance(dateFrom, dateTo, orgId);
           break;
         //#region Report About Pass Slips
         case decodeURI(Report.REPORT_ON_PERSONAL_BUSINESS):

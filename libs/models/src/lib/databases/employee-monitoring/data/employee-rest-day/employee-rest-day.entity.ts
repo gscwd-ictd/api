@@ -1,6 +1,7 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Index } from 'typeorm';
 
+@Index('IDX_erd_employee_dates', ['employeeId', 'dateFrom', 'dateTo'])
 @Entity({ name: 'employee_rest_day' })
 export class EmployeeRestDay extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'employee_rest_day_id' })
