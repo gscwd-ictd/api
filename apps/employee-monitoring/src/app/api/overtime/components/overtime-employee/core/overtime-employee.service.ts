@@ -30,12 +30,13 @@ export class OvertimeEmployeeService extends CrudHelper<OvertimeEmployee> {
     const { plannedDate } = createOvertimeEmployeeDto.overtimeApplicationId;
     const { employeeId } = createOvertimeEmployeeDto;
     //get salary grade if casual/permanent...get daily rate if job order
+    // the rate that does not apply is saved as NULL, never 0: a 0 next to NULL made the OT report list the employee twice
     const { dailyRate, salaryGradeAmount } = (
       await this.rawQuery(
         `
       SELECT 
-        ${process.env.HRMS_DB_NAME}get_nosi_nosa_daily_rate(?,?) dailyRate,
-        ${process.env.HRMS_DB_NAME}get_nosi_nosa_salary_grade_amount(?,?) salaryGradeAmount;
+        NULLIF(${process.env.HRMS_DB_NAME}get_nosi_nosa_daily_rate(?,?), 0) dailyRate,
+        NULLIF(${process.env.HRMS_DB_NAME}get_nosi_nosa_salary_grade_amount(?,?), 0) salaryGradeAmount;
     `,
         [employeeId, plannedDate, employeeId, plannedDate]
       )

@@ -1854,8 +1854,8 @@ export class OvertimeService {
     return await this.overtimeApplicationService.rawQuery(
       `UPDATE overtime_employee oe
          INNER JOIN overtime_application oa ON oa.overtime_application_id = oe.overtime_application_id_fk
-          SET oe.daily_rate = ${hrms}get_nosi_nosa_daily_rate(oe.employee_id_fk, oa.planned_date),
-              oe.salary_grade_amount = ${hrms}get_nosi_nosa_salary_grade_amount(oe.employee_id_fk, oa.planned_date)
+          SET oe.daily_rate = NULLIF(${hrms}get_nosi_nosa_daily_rate(oe.employee_id_fk, oa.planned_date), 0),
+              oe.salary_grade_amount = NULLIF(${hrms}get_nosi_nosa_salary_grade_amount(oe.employee_id_fk, oa.planned_date), 0)
         WHERE DATE_FORMAT(oa.planned_date,'%Y') = ? AND DATE_FORMAT(oa.planned_date,'%m') = ? AND DATE_FORMAT(oa.planned_date,'%d') IN (?)
           AND COALESCE(oe.daily_rate, 0) = 0 AND COALESCE(oe.salary_grade_amount, 0) = 0
           AND (COALESCE(${hrms}get_nosi_nosa_daily_rate(oe.employee_id_fk, oa.planned_date), 0) > 0
@@ -1900,6 +1900,7 @@ export class OvertimeService {
     const periodCovered = dayjs(year + '-' + month + '-1').format('MMMM') + ' ' + days[0] + '-' + days[days.length - 1] + ', ' + year;
 
     // rows saved before the employee's NOSI/NOSA was encoded have no rate (0/NULL); fill them first
+    // 0 and NULL are read as the same 'no rate' (NULLIF below), so a 0 can never split one employee into two rows
     await this.fillMissingOvertimeRates(year, _month, days);
 
     const employees = (await this.overtimeApplicationService.rawQuery(
@@ -1908,7 +1909,7 @@ export class OvertimeService {
        DISTINCT oe.employee_id_fk employeeId, 
        ${process.env.HRMS_DB_NAME}get_employee_fullname2(oe.employee_id_fk) employeeName,
        ${process.env.HRMS_DB_NAME}get_company_id_by_employee_id(oe.employee_id_fk) companyId,
-       ${process.env.HRMS_DB_NAME}get_nature_of_appointment_by_employee_id(oe.employee_id_fk) natureOfAppointment, oe.salary_grade_amount salaryGradeAmount,oe.daily_rate dailyRate FROM overtime_employee oe 
+       ${process.env.HRMS_DB_NAME}get_nature_of_appointment_by_employee_id(oe.employee_id_fk) natureOfAppointment, NULLIF(oe.salary_grade_amount, 0) salaryGradeAmount, NULLIF(oe.daily_rate, 0) dailyRate FROM overtime_employee oe 
         INNER JOIN overtime_application oa ON oa.overtime_application_id = oe.overtime_application_id_fk 
         LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk 
         INNER JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id 
