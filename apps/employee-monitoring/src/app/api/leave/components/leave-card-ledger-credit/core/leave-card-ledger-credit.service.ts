@@ -311,7 +311,33 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
   @ExclusiveJob('leave-ledger-credit:creditCumulativeLeavesManuallyCron')
   async creditCumulativeLeavesManuallyCron() {
     if (dayjs().format('YYYY-MM-DD') === dayjs().endOf('month').format('YYYY-MM-DD'))
-      return await this.creditCumulativeLeavesManually(dayjs().toDate());
+      return await this.creditCumulativeLeavesManually(dayjs().startOf('day').toDate());
+  }
+
+  /**
+   * Catch-up: the month-end run happens once at 23:57 on the last day. If the API was down or restarting
+   * then (deploy, PM2 restart) or the run failed, nobody got the month's VL/SL. On the 1st-5th at 06:30 this
+   * credits last month's end for every employee who still has no VL/SL earning on that date
+   * (creditCumulativeLeavesManually skips employees already credited, so it never doubles).
+   */
+  @Cron('0 30 6 1-5 * *')
+  @ExclusiveJob('leave-ledger-credit:creditCumulativeLeavesCatchUpCron')
+  async creditCumulativeLeavesCatchUpCron() {
+    const previousMonthEnd = dayjs().subtract(1, 'month').endOf('month').startOf('day').toDate();
+    return await this.creditCumulativeLeavesManually(previousMonthEnd);
+  }
+
+  /** employeeId|leaveBenefitsId pairs that already have the regular monthly VL/SL earning on `creditDate`. */
+  private async getMonthlyCreditsAlreadyPosted(creditDate: string): Promise<Set<string>> {
+    const rows = (await this.rawQuery(
+      `SELECT lce.employee_id_fk employeeId, lce.leave_benefits_id_fk leaveBenefitsId
+         FROM leave_credit_earnings lce
+        INNER JOIN leave_benefits lb ON lb.leave_benefits_id = lce.leave_benefits_id_fk
+        WHERE lce.credit_date = ? AND lce.deleted_at IS NULL AND COALESCE(lce.remarks, '') = ''
+          AND lb.credit_distribution = 'monthly' AND lb.leave_types = 'cumulative';`,
+      [creditDate]
+    )) as { employeeId: string; leaveBenefitsId: string }[];
+    return new Set(rows.map((r) => `${r.employeeId}|${r.leaveBenefitsId}`));
   }
 
   /** Remarks of the zero-value VL entry that marks the end of an inactive employee's leave ledger. */
@@ -335,7 +361,9 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
   async addEndOfLedgerEntries(inactive: { employeeId: string; effectivityDate: string; inactiveReason: string | null }[]) {
     if (inactive.length === 0) return 0;
     const vl = (
-      await this.rawQuery(`SELECT leave_benefits_id leaveBenefitsId FROM leave_benefits WHERE leave_name = 'Vacation Leave' AND deleted_at IS NULL LIMIT 1;`)
+      await this.rawQuery(
+        `SELECT leave_benefits_id leaveBenefitsId FROM leave_benefits WHERE leave_name = 'Vacation Leave' AND deleted_at IS NULL LIMIT 1;`
+      )
     )[0] as { leaveBenefitsId: LeaveBenefits };
     let created = 0;
     for (const { employeeId, effectivityDate, inactiveReason } of inactive) {
@@ -359,7 +387,9 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
           },
           entityManager
         );
-        await this.crudService.transact<LeaveCardLedgerCredit>(entityManager).create({ dto: { createdAt, leaveCreditEarningId: leaveCreditEarning } });
+        await this.crudService
+          .transact<LeaveCardLedgerCredit>(entityManager)
+          .create({ dto: { createdAt, leaveCreditEarningId: leaveCreditEarning } });
       });
       created += 1;
     }
@@ -373,6 +403,8 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
       const inactiveIds = new Set(inactive.map((i) => i.employeeId));
       await this.addEndOfLedgerEntries(inactive);
       const employees = (await this.employeeService.getAllActivePermanentEmployeeIds()).filter((e) => !inactiveIds.has(e.employeeId));
+      // never credit the same month twice (manual re-run, catch-up after a partial run)
+      const alreadyPosted = await this.getMonthlyCreditsAlreadyPosted(dayjs(day).format('YYYY-MM-DD'));
 
       const leaveBenefits = (await this.rawQuery(
         `SELECT leave_benefits_id leaveBenefitsId, accumulated_credits accumulatedCredits 
@@ -389,6 +421,9 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
             const createdAt = dayjs(day).startOf('day').hour(23).minute(57).toDate();
             const leaveCredits = await Promise.all(
               leaveBenefits.map(async (leaveBenefit) => {
+                const leaveBenefitsId =
+                  (leaveBenefit.leaveBenefitsId as unknown as { id?: string })?.id ?? (leaveBenefit.leaveBenefitsId as unknown as string);
+                if (alreadyPosted.has(`${employeeId}|${leaveBenefitsId}`)) return null;
                 const monthYear = dayjs(day).format('YYYY-MM');
 
                 const lwopsForTheMonth = (await this.rawQuery(
@@ -446,11 +481,22 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
             return leaveCredits;
           })
         );
+        return credits.flat();
       });
-      console.log('Monthly Leave Credit Earnings Addition executed');
-      return 'Monthly Leave Credit Earnings Addition executed';
+      const posted = result.flat().filter((c) => c !== null).length;
+      const message = `Monthly Leave Credit Earnings ${dayjs(day).format('YYYY-MM-DD')}: ${posted} credits posted for ${
+        employees.length
+      } employees (${alreadyPosted.size} already posted)`;
+      Logger.log(message, 'LeaveCardLedgerCredit');
+      return message;
     } catch (error) {
-      Logger.error(error.message);
+      // the whole month is in one transaction: nothing was posted; the catch-up job retries on the 1st-5th
+      Logger.error(
+        `Monthly Leave Credit Earnings ${dayjs(day).format('YYYY-MM-DD')} FAILED: ${error?.message}`,
+        error?.stack,
+        'LeaveCardLedgerCredit'
+      );
+      throw error;
     }
   }
 
