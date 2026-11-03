@@ -1687,6 +1687,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     dtrDeductionType: DtrDeductionType;
   }) {
     const { companyId, dtrDate } = debit.dailyTimeRecordId;
+    // only permanent / casual personnel are charged, based on the appointment ON THE DTR DATE (not today's)
+    if (!(await this.isChargeableOnDate(companyId, dtrDate))) return null;
     const { n } = (
       await this.rawQuery(
         `SELECT COUNT(*) n FROM leave_card_ledger_debit l
@@ -1709,6 +1711,41 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       if (Number(after) > 0) return null;
       throw error;
     }
+  }
+
+  /**
+   * Whether a DTR deduction may be posted for the employee on this date. Not chargeable when:
+   *  - the date is before the employee's leave ledger starts (first leave credit), e.g. a job order later
+   *    promoted to casual/permanent opening a month when he/she was still a job order;
+   *  - the NOSI/NOSA record in effect on the date is not permanent/casual (job order, contract of service, inactive);
+   *  - there is no NOSI/NOSA record yet on the date and the employee's first record is not permanent/casual.
+   * If the employee's NOSI/NOSA history starts later with a permanent/casual record (records encoded late), the
+   * deduction is allowed as before.
+   */
+  async isChargeableOnDate(companyId: string, dtrDate: Date | string): Promise<boolean> {
+    const hrms = process.env.HRMS_DB_NAME;
+    const date = dayjs(dtrDate).format('YYYY-MM-DD');
+    const rows = (await this.rawQuery(
+      `SELECT
+         (SELECT MIN(lce.credit_date) FROM leave_credit_earnings lce
+           WHERE lce.employee_id_fk = emp._id AND lce.deleted_at IS NULL) firstCredit,
+         (SELECT IF(n.status = 'inactive', 'inactive', pp.nature_of_appointment)
+            FROM ${hrms}nosi_nosa n LEFT JOIN ${hrms}plantilla_positions pp ON pp._id = n.position_id_fk
+           WHERE n.employee_id_fk = emp._id AND n.effectivity_date <= ?
+           ORDER BY n.effectivity_date DESC, n.created_at DESC LIMIT 1) appointmentOnDate,
+         (SELECT IF(n.status = 'inactive', 'inactive', pp.nature_of_appointment)
+            FROM ${hrms}nosi_nosa n LEFT JOIN ${hrms}plantilla_positions pp ON pp._id = n.position_id_fk
+           WHERE n.employee_id_fk = emp._id
+           ORDER BY n.effectivity_date ASC, n.created_at ASC LIMIT 1) firstAppointment
+       FROM ${hrms}employees emp WHERE emp.company_id = ? LIMIT 1;`,
+      [date, companyId]
+    )) as { firstCredit: string | Date | null; appointmentOnDate: string | null; firstAppointment: string | null }[];
+    if (rows.length === 0) return true;
+    const { firstCredit, appointmentOnDate, firstAppointment } = rows[0];
+    const chargeable = (appointment: string | null) => appointment === 'permanent' || appointment === 'casual';
+    if (firstCredit !== null && date < dayjs(firstCredit).format('YYYY-MM-DD')) return false;
+    if (appointmentOnDate !== null) return chargeable(appointmentOnDate);
+    return firstAppointment === null || chargeable(firstAppointment);
   }
 
   /** True when a pass slip of this employee on this date already has a leave ledger debit. */
