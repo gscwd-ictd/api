@@ -1,6 +1,7 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Index } from 'typeorm';
 
+@Index('IDX_to_employee', ['employeeId'])
 @Entity({ name: 'travel_order' })
 export class TravelOrder extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'travel_order_id' })

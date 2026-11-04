@@ -1,8 +1,9 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Index } from 'typeorm';
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
 import { LeaveBenefits } from '../leave-benefits/leave-benefits.entity';
 import { LeaveApplicationStatus } from '@gscwd-api/utils';
 
+@Index('IDX_la_employee', ['employeeId'])
 @Entity('leave_application')
 export class LeaveApplication extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'leave_application_id' })

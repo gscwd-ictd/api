@@ -129,6 +129,7 @@ export enum Report {
   REPORT_ON_LEAVE_APPLICATION_LATE_FILING = 'report on leave application late filing',
   REPORT_ON_NIGHT_DIFFERENTIAL_PAY = 'report on night differential pay',
   REPORT_ON_WELLNESS_PASS = 'report on wellness pass',
+  REPORT_ON_EMPLOYEE_TARDINESS = 'report on employee tardiness',
 }
 
 export enum NatureOfAppointment {

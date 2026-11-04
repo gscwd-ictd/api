@@ -1,8 +1,9 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { LeaveApplication } from '../leave-application/leave-application.entity';
 import { LeaveDayStatus } from '@gscwd-api/utils';
 
+@Index('IDX_lad_leave_date', ['leaveDate'])
 @Entity()
 export class LeaveApplicationDates extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'leave_application_date_id' })

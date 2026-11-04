@@ -1,7 +1,8 @@
 import { DatabaseEntity, IEntity } from '@gscwd-api/crud';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TravelOrder } from '../travel-order/travel-order.entity';
 
+@Index('IDX_toi_schedule_date', ['scheduleDate'])
 @Entity()
 export class TravelOrderItinerary extends DatabaseEntity implements IEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'travel_order_places_id' })
