@@ -1,23 +1,27 @@
 import dayjs = require('dayjs');
 
 /**
- * Report on Attendance, computed from the leave ledger so the report and the ledger always agree:
- *  - lates, undertimes and half days are the DTR deductions posted to the leave ledger (Tardiness / Undertime /
- *    Half Day), plus the Half Day / Undertime pass slip deductions
- *  - minutes late/undertime = the posted credits x 480 (credits are minutes / 480 rounded up to 3 decimals)
- *  - conversion = the credits actually deducted
+ * Report on Attendance, computed exactly like the employee's DTR page summary:
+ *  - lates, undertimes and half days per day come from DailyTimeRecordService.getLatesUndertimesNoAttendancePerDay
+ *    (a half day morning absence counts as a late, like on the DTR page)
+ *  - total minutes = minutes late + minutes undertime
+ *  - conversion = CSC conversion of the total minutes (hours x 0.125 + minutes table)
+ *  - Date/s (Late & Undertime) = late dates (incl. half day morning) + undertime dates
  *  - no attendance = scheduled working days (not a rest day, holiday, whole-day work suspension, approved leave,
  *    travel order, HR remark on the DTR, or after separation) without any time log
- * Everything is computed in three set-based queries for all employees at once.
+ * Only DTR days that can have a late / undertime / half day are evaluated (candidateDaysSql), so the report stays fast.
  */
 
-export type AttendanceDeductionRow = {
-  companyId: string;
-  kind: 'Tardiness' | 'Undertime' | 'Half Day';
-  times: number | string;
-  dates: string | null;
-  credits: number | string | null;
+export type DaySummary = {
+  minutesLate: number;
+  noOfLates: number;
+  noOfUndertimes: number;
+  minutesUndertime: number;
+  noAttendance: number;
+  isHalfDay: boolean;
 };
+
+export type CandidateDayRow = { companyId: string; dtrDate: string };
 
 export type NoAttendanceRow = { companyId: string; noAttendance: string | null; noAttendanceCount: number | string };
 
@@ -27,8 +31,10 @@ export type AttendanceReportItem = {
   name: string;
   numberOfTimesLate: number;
   datesLate: string;
+  totalMinutesLate: number;
   numberOfTimesUndertime: number;
   datesUndertime: string;
+  totalMinutesUndertime: number;
   totalMinutesLateUndertime: number;
   conversion: string;
   numberOfTimesHalfDay: number;
@@ -39,31 +45,32 @@ export type AttendanceReportItem = {
 
 const ymd = (d: Date | string) => dayjs(d).format('YYYY-MM-DD');
 
-/** Ledger deductions per employee and kind. Params: [dateFrom, dateTo, companyIds, dateFrom, dateTo, companyIds]. */
-export function attendanceDeductionsSql(hrms = process.env.HRMS_DB_NAME ?? '') {
+/**
+ * DTR days that may have a late, undertime or half day: missing time in / time out, time in after the schedule,
+ * time out before the schedule, or lunch in after the 30-minute allowance. Params: [dateFrom, dateTo, companyIds].
+ */
+export function candidateDaysSql() {
   return `
-  SELECT companyId, kind, COUNT(DISTINCT dtrDate) times,
-         GROUP_CONCAT(DISTINCT DATE_FORMAT(dtrDate, '%Y-%m-%d') ORDER BY dtrDate SEPARATOR ', ') dates,
-         SUM(credits) credits
-    FROM (
-      SELECT d.company_id_fk companyId, l.dtr_deduction_type kind, d.dtr_date dtrDate, l.debit_value credits
-        FROM leave_card_ledger_debit l
-        INNER JOIN daily_time_record d ON d.daily_time_record_id = l.daily_time_record_id_fk
-       WHERE l.deleted_at IS NULL AND l.dtr_deduction_type IN ('Tardiness', 'Undertime', 'Half Day')
-         AND d.dtr_date >= ? AND d.dtr_date <= ? AND d.company_id_fk IN (?)
-      UNION ALL
-      SELECT e.company_id companyId, ps.nature_of_business kind, DATE(ps.date_of_application) dtrDate, l.debit_value credits
-        FROM leave_card_ledger_debit l
-        INNER JOIN pass_slip ps ON ps.pass_slip_id = l.pass_slip_id_fk
-        INNER JOIN ${hrms}employees e ON e._id = ps.employee_id_fk
-       WHERE l.deleted_at IS NULL AND ps.nature_of_business IN ('Undertime', 'Half Day')
-         AND ps.date_of_application >= ? AND ps.date_of_application < DATE_ADD(?, INTERVAL 1 DAY) AND e.company_id IN (?)
-    ) deductions
-   GROUP BY companyId, kind;`;
+  SELECT DISTINCT d.company_id_fk companyId, DATE_FORMAT(d.dtr_date, '%Y-%m-%d') dtrDate
+    FROM daily_time_record d
+    LEFT JOIN schedule s ON s.schedule_id = d.schedule_id_fk
+   WHERE d.dtr_date >= ? AND d.dtr_date <= ? AND d.company_id_fk IN (?)
+     AND (d.time_in IS NULL OR d.time_out IS NULL OR s.schedule_id IS NULL
+          OR d.time_in > s.time_in OR d.time_out < s.time_out
+          OR (s.lunch_in IS NOT NULL AND d.lunch_in > ADDTIME(s.lunch_in, '00:29:00')));`;
 }
 
-export function attendanceDeductionsParams(dateFrom: Date | string, dateTo: Date | string, companyIds: string[]) {
-  return [ymd(dateFrom), ymd(dateTo), companyIds, ymd(dateFrom), ymd(dateTo), companyIds];
+export function candidateDaysParams(dateFrom: Date | string, dateTo: Date | string, companyIds: string[]) {
+  return [ymd(dateFrom), ymd(dateTo), companyIds];
+}
+
+/** CSC conversion of minutes to leave credits: whole hours x 0.125 plus the minutes table (minutes x 0.125 / 60, 3 decimals). */
+export function cscConversion(totalMinutes: number): number {
+  if (!totalMinutes || totalMinutes <= 0) return 0;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const minuteCredits = Math.round(((minutes * 0.125) / 60) * 1000) / 1000;
+  return Math.round((hours * 0.125 + minuteCredits) * 1000) / 1000;
 }
 
 /** Working days without any time log. Params: [dateFrom, dateTo, companyIds]. */
@@ -111,47 +118,55 @@ export function noAttendanceParams(dateFrom: Date | string, dateTo: Date | strin
 
 export function buildAttendanceReport(
   employees: { employeeId: string; companyId: string; name: string }[],
-  deductions: AttendanceDeductionRow[],
+  days: { companyId: string; dtrDate: string; summary: DaySummary | null }[],
   noAttendance: NoAttendanceRow[]
 ): AttendanceReportItem[] {
-  const byCompany = new Map<string, Partial<Record<AttendanceDeductionRow['kind'], AttendanceDeductionRow>>>();
-  for (const row of deductions) {
-    const item = byCompany.get(row.companyId) ?? {};
-    const prev = item[row.kind];
-    // DTR and pass slip undertime / half day on different days: merge
-    item[row.kind] = prev
-      ? {
-          ...prev,
-          times: Number(prev.times) + Number(row.times),
-          dates: [prev.dates, row.dates].filter(Boolean).join(', '),
-          credits: Number(prev.credits ?? 0) + Number(row.credits ?? 0),
-        }
-      : row;
-    byCompany.set(row.companyId, item);
+  const byCompany = new Map<string, { companyId: string; dtrDate: string; summary: DaySummary }[]>();
+  for (const day of days) {
+    if (!day.summary) continue;
+    const list = byCompany.get(day.companyId) ?? [];
+    list.push(day as { companyId: string; dtrDate: string; summary: DaySummary });
+    byCompany.set(day.companyId, list);
   }
   const absent = new Map(noAttendance.map((r) => [r.companyId, r]));
-  const sortDates = (dates: string | null | undefined) => [...new Set((dates ?? '').split(', ').filter(Boolean))].sort().join(', ');
 
   return employees
     .map(({ employeeId, companyId, name }) => {
-      const k = byCompany.get(companyId) ?? {};
-      const late = k['Tardiness'];
-      const under = k['Undertime'];
-      const half = k['Half Day'];
-      const credits = Number(late?.credits ?? 0) + Number(under?.credits ?? 0);
+      const list = (byCompany.get(companyId) ?? []).sort((a, b) => a.dtrDate.localeCompare(b.dtrDate));
+      let numberOfTimesLate = 0;
+      let totalMinutesLate = 0;
+      let numberOfTimesUndertime = 0;
+      let totalMinutesUndertime = 0;
+      const lateDates: string[] = [];
+      const undertimeDates: string[] = [];
+      const halfDayDates: string[] = [];
+      for (const { dtrDate, summary } of list) {
+        const lates = Number(summary.noOfLates ?? 0);
+        const undertimes = Number(summary.noOfUndertimes ?? 0);
+        numberOfTimesLate += lates;
+        totalMinutesLate += Math.max(0, Number(summary.minutesLate ?? 0));
+        numberOfTimesUndertime += undertimes;
+        totalMinutesUndertime += Math.max(0, Number(summary.minutesUndertime ?? 0));
+        if (lates > 0) lateDates.push(dtrDate);
+        if (undertimes > 0) undertimeDates.push(dtrDate);
+        if (summary.isHalfDay) halfDayDates.push(dtrDate);
+      }
+      const totalMinutesLateUndertime = totalMinutesLate + totalMinutesUndertime;
       const na = absent.get(companyId);
       return {
         employeeId,
         companyId,
         name,
-        numberOfTimesLate: Number(late?.times ?? 0),
-        datesLate: sortDates(late?.dates),
-        numberOfTimesUndertime: Number(under?.times ?? 0),
-        datesUndertime: sortDates(under?.dates),
-        totalMinutesLateUndertime: Math.round(credits * 480),
-        conversion: credits.toFixed(3),
-        numberOfTimesHalfDay: Number(half?.times ?? 0),
-        daysHalfDay: sortDates(half?.dates),
+        numberOfTimesLate,
+        datesLate: lateDates.join(', '),
+        totalMinutesLate,
+        numberOfTimesUndertime,
+        datesUndertime: undertimeDates.join(', '),
+        totalMinutesUndertime,
+        totalMinutesLateUndertime,
+        conversion: cscConversion(totalMinutesLateUndertime).toFixed(3),
+        numberOfTimesHalfDay: halfDayDates.length,
+        daysHalfDay: halfDayDates.join(', '),
         noAttendance: na?.noAttendance ?? '',
         numberOfNoAttendance: Number(na?.noAttendanceCount ?? 0),
       };

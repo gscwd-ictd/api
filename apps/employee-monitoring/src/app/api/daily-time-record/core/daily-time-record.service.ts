@@ -570,21 +570,84 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     if (!isHoliday && !isRestDay && !isLNDRemarks && schedule?.timeIn && schedule?.timeOut) {
       const suspensionWindow = await this.workSuspensionService.getSuspensionWindow(dayjs(dtr.dtrDate).toDate(), schedule);
       if (suspensionWindow.isSuspended) {
-        return applyWorkSuspensionToDtr(
-          suspensionWindow,
+        return await this.excludeWellnessPassUndertime(
+          applyWorkSuspensionToDtr(
+            suspensionWindow,
+            schedule,
+            {
+              timeIn: this.logString(dtr.timeIn),
+              lunchOut: this.logString(dtr.lunchOut),
+              lunchIn: this.logString(dtr.lunchIn),
+              timeOut: this.logString(dtr.timeOut),
+            },
+            result
+          ),
+          dtr,
           schedule,
-          {
-            timeIn: this.logString(dtr.timeIn),
-            lunchOut: this.logString(dtr.lunchOut),
-            lunchIn: this.logString(dtr.lunchIn),
-            timeOut: this.logString(dtr.timeOut),
-          },
-          result
+          employeeId
         );
       }
     }
 
-    return result;
+    return await this.excludeWellnessPassUndertime(result, dtr, schedule, employeeId);
+  }
+
+  /**
+   * A Wellness Pass is free time (up to 4 hours a quarter; any excess is charged to the leave ledger by the pass
+   * slip itself). The part of the undertime that falls inside an approved Wellness Pass (pass slip out -> pass slip
+   * in, or the schedule time out when the employee did not come back) is not undertime. If nothing is left, the day
+   * is not an undertime / half day either. Used by the DTR page and the Report on Attendance.
+   */
+  private async excludeWellnessPassUndertime<
+    T extends { noOfUndertimes: number; minutesUndertime: number; isHalfDay: boolean; noOfLates: number; minutesLate: number }
+  >(result: T, dtr: DailyTimeRecord, schedule: EmployeeScheduleType, employeeId: string): Promise<T> {
+    if (!result || (result.noOfUndertimes <= 0 && result.minutesUndertime <= 0 && !result.isHalfDay)) return result;
+    if (!schedule?.timeOut || !dtr?.timeOut) return result;
+    const toMin = (t: unknown) => {
+      if (t === null || t === undefined || t === '') return null;
+      const [h, m] = String(t).split(':').map(Number);
+      return isNaN(h) || isNaN(m) ? null : h * 60 + m;
+    };
+    const scheduleOut = toMin(schedule.timeOut);
+    const dtrOut = toMin(dtr.timeOut);
+    if (scheduleOut === null || dtrOut === null || dtrOut >= scheduleOut) return result;
+
+    const wellness = (await this.rawQuery(
+      `SELECT TIME_FORMAT(ps.time_out, '%H:%i') timeOut, TIME_FORMAT(ps.time_in, '%H:%i') timeIn
+         FROM pass_slip ps
+        INNER JOIN pass_slip_approval psa ON psa.pass_slip_id_fk = ps.pass_slip_id
+        WHERE ps.employee_id_fk = ? AND ps.nature_of_business = 'Wellness Pass' AND ps.deleted_at IS NULL
+          AND ps.time_out IS NOT NULL
+          AND ps.date_of_application >= ? AND ps.date_of_application < DATE_ADD(?, INTERVAL 1 DAY)
+          AND psa.status IN ('approved', 'approved with medical certificate', 'approved without medical certificate');`,
+      [employeeId, dayjs(dtr.dtrDate).format('YYYY-MM-DD'), dayjs(dtr.dtrDate).format('YYYY-MM-DD')]
+    )) as { timeOut: string; timeIn: string | null }[];
+    if (wellness.length === 0) return result;
+
+    // undertime window: DTR time out -> schedule time out (lunch break not counted)
+    const lunchStart = toMin(schedule.lunchOut) ?? (toMin(schedule.timeIn) ?? 0) + 240;
+    const lunchEnd = toMin(schedule.lunchIn) ?? lunchStart + 60;
+    const overlap = (a1: number, a2: number, b1: number, b2: number) => Math.max(0, Math.min(a2, b2) - Math.max(a1, b1));
+    let covered = 0;
+    for (const w of wellness) {
+      const out = toMin(w.timeOut);
+      // the Wellness Pass explains the early time out only if the employee went out on it at (about) that time
+      if (out === null || out > dtrOut + 15) continue;
+      const back = Math.min(toMin(w.timeIn) ?? scheduleOut, scheduleOut);
+      if (back <= dtrOut) continue;
+      covered += back - dtrOut - overlap(dtrOut, back, lunchStart, lunchEnd);
+    }
+    if (covered <= 0) return result;
+
+    const minutesUndertime = Math.max(0, result.minutesUndertime - covered);
+    const fullyCovered = minutesUndertime === 0;
+    return {
+      ...result,
+      minutesUndertime,
+      noOfUndertimes: fullyCovered ? 0 : result.noOfUndertimes,
+      // a half day that came only from leaving early on a Wellness Pass is not a half day
+      isHalfDay: fullyCovered && result.noOfLates === 0 ? false : result.isHalfDay,
+    };
   }
   //#endregion
 
@@ -910,6 +973,20 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       }
       throw options.onError ? options.onError(error) : error;
     }
+  }
+
+  /**
+   * Lates / undertime / half day of one saved DTR day, computed exactly like the employee's DTR page summary
+   * (getLatesUndertimesNoAttendancePerDay), without re-reading the biometrics. Used by the Report on Attendance.
+   * Returns null when there is no DTR row or no schedule for the day.
+   */
+  async getDaySummaryForReport(companyId: string, employeeId: string, dtrDate: string) {
+    const date = dayjs(dtrDate).toDate();
+    const dtr = await this.findByCompanyIdAndDate(companyId, dayjs(dtrDate).format('YYYY-MM-DD') as unknown as Date);
+    if (!dtr) return null;
+    const { schedule } = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, date)) as { schedule: EmployeeScheduleType };
+    if (!schedule || !schedule.timeIn || !schedule.timeOut) return null;
+    return await this.getLatesUndertimesNoAttendancePerDay(dtr, schedule, employeeId);
   }
 
   private async findByCompanyIdAndDate(companyId: string, dtrDate: Date) {
