@@ -4,10 +4,11 @@ import { EmployeesService } from '../../employees/core/employees.service';
 import { NatureOfAppointment, NatureOfBusiness, Report, User } from '@gscwd-api/utils';
 import dayjs = require('dayjs');
 import {
-  AttendanceDeductionRow,
-  attendanceDeductionsParams,
-  attendanceDeductionsSql,
   buildAttendanceReport,
+  CandidateDayRow,
+  candidateDaysParams,
+  candidateDaysSql,
+  DaySummary,
   buildTardinessReport,
   NoAttendanceRow,
   TardinessRow,
@@ -51,18 +52,34 @@ export class ReportsService {
     return list;
   }
 
-  /** Report on Attendance from the leave ledger (see attendance-report.util). */
+  /** Report on Attendance, same computation as the employees' DTR page summary (see attendance-report.util). */
   async generateReportOnAttendance(dateFrom: Date, dateTo: Date, orgId?: string) {
     const employees = await this.getReportEmployees(orgId);
     if (employees.length === 0) return [];
     const companyIds = employees.map((e) => e.companyId);
-    const [deductions, noAttendance] = await Promise.all([
-      this.dtrService.rawQuery(attendanceDeductionsSql(), attendanceDeductionsParams(dateFrom, dateTo, companyIds)) as Promise<
-        AttendanceDeductionRow[]
-      >,
+    const employeeIdOf = new Map(employees.map((e) => [e.companyId, e.employeeId]));
+
+    const [candidates, noAttendance] = await Promise.all([
+      this.dtrService.rawQuery(candidateDaysSql(), candidateDaysParams(dateFrom, dateTo, companyIds)) as Promise<CandidateDayRow[]>,
       this.dtrService.rawQuery(noAttendanceSql(), noAttendanceParams(dateFrom, dateTo, companyIds)) as Promise<NoAttendanceRow[]>,
     ]);
-    return buildAttendanceReport(employees, deductions, noAttendance);
+
+    // evaluate the candidate days 10 at a time (each day runs several small queries)
+    const days: { companyId: string; dtrDate: string; summary: DaySummary | null }[] = [];
+    for (let i = 0; i < candidates.length; i += 10) {
+      const batch = await Promise.all(
+        candidates.slice(i, i + 10).map(async ({ companyId, dtrDate }) => {
+          try {
+            const summary = (await this.dtrService.getDaySummaryForReport(companyId, employeeIdOf.get(companyId), dtrDate)) as DaySummary | null;
+            return { companyId, dtrDate, summary };
+          } catch (error) {
+            return { companyId, dtrDate, summary: null };
+          }
+        })
+      );
+      days.push(...batch);
+    }
+    return buildAttendanceReport(employees, days, noAttendance);
   }
 
   /** Report on Employee Tardiness: every late (Tardiness deduction) in the range, per employee. */

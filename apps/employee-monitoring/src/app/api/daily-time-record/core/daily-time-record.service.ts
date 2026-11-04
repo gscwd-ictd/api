@@ -912,6 +912,20 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
     }
   }
 
+  /**
+   * Lates / undertime / half day of one saved DTR day, computed exactly like the employee's DTR page summary
+   * (getLatesUndertimesNoAttendancePerDay), without re-reading the biometrics. Used by the Report on Attendance.
+   * Returns null when there is no DTR row or no schedule for the day.
+   */
+  async getDaySummaryForReport(companyId: string, employeeId: string, dtrDate: string) {
+    const date = dayjs(dtrDate).toDate();
+    const dtr = await this.findByCompanyIdAndDate(companyId, dayjs(dtrDate).format('YYYY-MM-DD') as unknown as Date);
+    if (!dtr) return null;
+    const { schedule } = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, date)) as { schedule: EmployeeScheduleType };
+    if (!schedule || !schedule.timeIn || !schedule.timeOut) return null;
+    return await this.getLatesUndertimesNoAttendancePerDay(dtr, schedule, employeeId);
+  }
+
   private async findByCompanyIdAndDate(companyId: string, dtrDate: Date) {
     const findResult = await this.crud().findOneOrNull({
       find: { where: { companyId, dtrDate } },
