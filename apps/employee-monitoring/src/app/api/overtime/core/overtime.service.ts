@@ -37,6 +37,7 @@ import { WorkSuspensionService } from '../../work-suspension/core/work-suspensio
 
 import { managementReason } from '../utils/overtime-management.util';
 import {
+  clipOvertimeStartToSuspension,
   OvertimeSuspensionSplit,
   REGULAR_OT_MULTIPLIER,
   splitOvertimeBySuspension,
@@ -984,6 +985,13 @@ export class OvertimeService {
           relations: { overtimeEmployeeId: { overtimeApplicationId: true } },
         },
       })) as OvertimeAccomplishment;
+      // work suspension day: count from the suspension start (hours before it are regular duty)
+      updatedOvertimeDetails.encodedTimeIn = await this.getSuspensionAdjustedOvertimeStart(
+        employeeId,
+        updatedOvertimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate,
+        updatedOvertimeDetails.encodedTimeIn,
+        updatedOvertimeDetails.encodedTimeOut
+      );
       const { overtimeEmployeeId, ...restOfUpdatedOvertime } = updatedOvertimeDetails;
       const estimatedHours = overtimeEmployeeId.overtimeApplicationId.estimatedHours;
 
@@ -1131,17 +1139,24 @@ export class OvertimeService {
 
       let computedEncodedHours = null;
       const plannedDate = updatedOvertimeDetails.overtimeEmployeeId.overtimeApplicationId.plannedDate;
+      // hours are computed from the suspension start on a work suspension day; the response keeps the encoded start
+      const encodedTimeInForHours = await this.getSuspensionAdjustedOvertimeStart(
+        employeeId,
+        plannedDate,
+        updatedOvertimeDetails.encodedTimeIn,
+        updatedOvertimeDetails.encodedTimeOut
+      );
 
       if (updatedOvertimeDetails.encodedTimeIn !== null && updatedOvertimeDetails.encodedTimeOut !== null) {
         if (dayjs(plannedDate).day() in restDays) {
           computedEncodedHours =
-            ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(updatedOvertimeDetails.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
+            ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(encodedTimeInForHours), 'minute') / 60 + Number.EPSILON) * 100) /
             100;
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         } else {
           //get overtime after schedule
           computedEncodedHours =
-            ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(updatedOvertimeDetails.encodedTimeIn), 'minute') / 60 + Number.EPSILON) * 100) /
+            ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(encodedTimeInForHours), 'minute') / 60 + Number.EPSILON) * 100) /
             100;
 
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
@@ -1156,7 +1171,7 @@ export class OvertimeService {
           //check previous day time out
           const previousDayTimeOutDate = dayjs(plannedDate + ' ' + previousDaySchedule.schedule.timeOut).add(1, 'day');
 
-          const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
+          const encodedTimeInDate = dayjs(encodedTimeInForHours);
 
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(previousDayTimeOutDate, 'minute');
 
@@ -1175,7 +1190,7 @@ export class OvertimeService {
           } else computedEncodedHours = computedEncodedHours >= 5 ? computedEncodedHours - 1 : computedEncodedHours; // minus 1 to account lunchbreak
         } else {
           const currentDaySchedule = await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, dayjs(plannedDate).toDate());
-          const encodedTimeInDate = dayjs(updatedOvertimeDetails.encodedTimeIn);
+          const encodedTimeInDate = dayjs(encodedTimeInForHours);
           const otAndPreviousShiftInterval = encodedTimeInDate.diff(plannedDate + ' ' + currentDaySchedule.schedule.timeOut, 'minute');
 
           if (computedEncodedHours > 4) {
@@ -2252,6 +2267,26 @@ export class OvertimeService {
     return { ...overtimeDetails, employeeName, assignment, employeeSignature, supervisorName, supervisorSignature, supervisorPosition };
   }
   //#endregion Reports
+
+  /**
+   * OT start used for the hours: on a TIME_OF_DAY work suspension date, a log that starts before the
+   * suspension start and ends after it is counted from the suspension start (the earlier hours are
+   * regular duty). Other days / logs: the encoded start.
+   */
+  private async getSuspensionAdjustedOvertimeStart(employeeId: string, plannedDate: Date | string, otStart: Date | null, otEnd: Date | null) {
+    if (!otStart || !otEnd) return otStart;
+    try {
+      const date = dayjs(dayjs(plannedDate).format('YYYY-MM-DD')).toDate();
+      const suspension = await this.workSuspensionService.getActiveWorkSuspensionByDate(date);
+      if (!suspension || suspension.suspensionType !== WorkSuspensionType.TIME_OF_DAY) return otStart;
+      const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, date))?.schedule;
+      if (!schedule?.timeIn || !schedule?.timeOut) return otStart;
+      const window = await this.workSuspensionService.getSuspensionWindow(date, schedule);
+      return clipOvertimeStartToSuspension(otStart, otEnd, date, window.isSuspended ? window.start : null);
+    } catch {
+      return otStart;
+    }
+  }
 
   private async getComputedHrs(hrsRendered: OvertimeHrsRendered) {
     //

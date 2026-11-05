@@ -1,4 +1,4 @@
-import { splitOvertimeBySuspension } from '../utils/overtime-suspension.util';
+import { clipOvertimeStartToSuspension, splitOvertimeBySuspension } from '../utils/overtime-suspension.util';
 
 describe('splitOvertimeBySuspension', () => {
   const date = '2026-10-08';
@@ -40,4 +40,16 @@ describe('splitOvertimeBySuspension — WHOLE_DAY (window 00:00 -> 24:00)', () =
   it('OT that crosses into the next day is suspension OT only until midnight', () => {
     expect(splitOvertimeBySuspension(3, '2026-10-08 23:00', '2026-10-09 02:00', '2026-10-08', 0)).toEqual({ regularHrs: 2, suspensionHrs: 1 });
   });
+});
+
+describe('clipOvertimeStartToSuspension (TIME_OF_DAY)', () => {
+  const at = (d: Date | null) => (d ? `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}` : null);
+  it('log straddling the suspension start begins at the start (Servano 07:54-17:00, from 10:00)', () =>
+    expect(at(clipOvertimeStartToSuspension('2026-10-28 07:54', '2026-10-28 17:00', '2026-10-28', 600))).toBe('10:00'));
+  it('log after the start is unchanged', () =>
+    expect(at(clipOvertimeStartToSuspension('2026-10-28 12:00', '2026-10-28 17:38', '2026-10-28', 600))).toBe('12:00'));
+  it('log fully before the start (early-morning OT) is unchanged', () =>
+    expect(at(clipOvertimeStartToSuspension('2026-10-28 04:00', '2026-10-28 07:00', '2026-10-28', 600))).toBe('4:00'));
+  it('not suspended -> unchanged', () =>
+    expect(at(clipOvertimeStartToSuspension('2026-10-28 07:54', '2026-10-28 17:00', '2026-10-28', null))).toBe('7:54'));
 });
