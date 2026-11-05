@@ -54,3 +54,25 @@ export function splitOvertimeBySuspension(
   const suspensionHrs = Math.min(hours, round2((hours * overlap) / total));
   return { regularHrs: round2(hours - suspensionHrs), suspensionHrs };
 }
+
+/**
+ * TIME_OF_DAY suspension: OT logs that start before the suspension start and end after it begin at the
+ * suspension start; the hours before it are the employee's regular duty, not overtime (HR 2026-11-05,
+ * e.g. Servano 2026-10-28 logged 07:54-17:00 with the suspension from 10:00 -> 10:00-17:00).
+ * Logs fully before or fully after the suspension start are unchanged.
+ *
+ * @param windowStart suspension start in minutes from 00:00 of the date, or null when not suspended
+ */
+export function clipOvertimeStartToSuspension(
+  otStart: Date | string | null,
+  otEnd: Date | string | null,
+  suspensionDate: Date | string,
+  windowStart: number | null
+): Date | null {
+  if (!otStart) return null;
+  const start = dayjs(otStart);
+  if (windowStart === null || !otEnd || !start.isValid()) return start.toDate();
+  const end = dayjs(otEnd);
+  const suspensionStart = dayjs(dayjs(suspensionDate).format('YYYY-MM-DD')).add(windowStart, 'minute');
+  return start.isBefore(suspensionStart) && end.isAfter(suspensionStart) ? suspensionStart.toDate() : start.toDate();
+}
