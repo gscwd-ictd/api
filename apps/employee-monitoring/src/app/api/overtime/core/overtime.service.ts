@@ -43,6 +43,7 @@ import {
   SUSPENSION_OT_MULTIPLIER,
 } from '../utils/overtime-suspension.util';
 
+import { validateOvertimeLogWindow } from '../utils/overtime-log-window.util';
 @Injectable()
 export class OvertimeService {
   constructor(
@@ -1215,6 +1216,24 @@ export class OvertimeService {
     const { employeeId, overtimeApplicationId, ...overtimeAccomplishmentDto } = updateOvertimeAccomplishmentDto;
 
     const _overtimeApplicationId = overtimeApplicationId.id ? overtimeApplicationId.id : overtimeApplicationId;
+
+    // encoded time logs must be on the planned date (a wrong date moves the hours out of that day)
+    // the employee's accomplishment form (PATCH /overtime/employees/accomplishments) reaches this method with
+    // encodedTimeIn / encodedTimeOut in the body
+    const { encodedTimeIn, encodedTimeOut } = overtimeAccomplishmentDto as { encodedTimeIn?: string | Date; encodedTimeOut?: string | Date };
+    if (encodedTimeIn || encodedTimeOut) {
+      const planned = (
+        await this.overtimeAccomplishmentService.rawQuery(
+          `SELECT DATE_FORMAT(planned_date,'%Y-%m-%d') plannedDate FROM overtime_application WHERE overtime_application_id = ?;`,
+          [_overtimeApplicationId]
+        )
+      )[0] as { plannedDate: string } | undefined;
+      if (planned) {
+        const error = validateOvertimeLogWindow(planned.plannedDate, encodedTimeIn, encodedTimeOut);
+        if (error) throw new HttpException(error, HttpStatus.BAD_REQUEST);
+      }
+    }
+
     const id = (
       await this.overtimeAccomplishmentService.rawQuery(
         `
