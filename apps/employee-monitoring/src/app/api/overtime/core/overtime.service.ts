@@ -1150,14 +1150,12 @@ export class OvertimeService {
       if (updatedOvertimeDetails.encodedTimeIn !== null && updatedOvertimeDetails.encodedTimeOut !== null) {
         if (dayjs(plannedDate).day() in restDays) {
           computedEncodedHours =
-            ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(encodedTimeInForHours), 'minute') / 60 + Number.EPSILON) * 100) /
-            100;
+            ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(encodedTimeInForHours), 'minute') / 60 + Number.EPSILON) * 100) / 100;
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         } else {
           //get overtime after schedule
           computedEncodedHours =
-            ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(encodedTimeInForHours), 'minute') / 60 + Number.EPSILON) * 100) /
-            100;
+            ((dayjs(updatedOvertimeDetails.encodedTimeOut).diff(dayjs(encodedTimeInForHours), 'minute') / 60 + Number.EPSILON) * 100) / 100;
 
           computedEncodedHours = Math.round((computedEncodedHours + Number.EPSILON) * 100) / 100;
         }
@@ -1233,8 +1231,6 @@ export class OvertimeService {
     const _overtimeApplicationId = overtimeApplicationId.id ? overtimeApplicationId.id : overtimeApplicationId;
 
     // encoded time logs must be on the planned date (a wrong date moves the hours out of that day)
-    // the employee's accomplishment form (PATCH /overtime/employees/accomplishments) reaches this method with
-    // encodedTimeIn / encodedTimeOut in the body
     const { encodedTimeIn, encodedTimeOut } = overtimeAccomplishmentDto as { encodedTimeIn?: string | Date; encodedTimeOut?: string | Date };
     if (encodedTimeIn || encodedTimeOut) {
       const planned = (
@@ -1356,15 +1352,50 @@ export class OvertimeService {
     return {};
   }
 
+  /**
+   * Employee's accomplishment form (PATCH /overtime/employees/accomplishments): saves the accomplishments and the
+   * encoded time in / out. Only these fields are saved, so extra form fields (e.g. encodedTimeInTime) are ignored.
+   */
   async updateAccomplishments(updateOvertimeAccomplishmentByEmployeeDto: UpdateOvertimeAccomplishmentByEmployeeDto) {
-    const { employeeId, overtimeApplicationId, accomplishments } = updateOvertimeAccomplishmentByEmployeeDto;
-    const overtimeEmployeeId = await this.overtimeEmployeeService
-      .crud()
-      .findOne({ find: { select: { id: true }, where: { overtimeApplicationId: { id: overtimeApplicationId }, employeeId } } });
+    const { employeeId, overtimeApplicationId, accomplishments, encodedTimeIn, encodedTimeOut } = updateOvertimeAccomplishmentByEmployeeDto;
+
+    const overtimeEmployee = await this.overtimeEmployeeService.crud().findOneOrNull({
+      find: { select: { id: true }, where: { overtimeApplicationId: { id: overtimeApplicationId }, employeeId } },
+    });
+    if (!overtimeEmployee) throw new HttpException('You are not included in this overtime.', HttpStatus.NOT_FOUND);
+
+    const toDate = (value: unknown) => {
+      if (value === undefined) return undefined;
+      if (value === null || value === '') return null;
+      if (typeof value !== 'string' && !(value instanceof Date)) throw new HttpException('Invalid overtime time log.', HttpStatus.BAD_REQUEST);
+      const date = dayjs(value);
+      if (!date.isValid()) throw new HttpException('Invalid overtime time log.', HttpStatus.BAD_REQUEST);
+      return date.toDate();
+    };
+    const timeIn = toDate(encodedTimeIn);
+    const timeOut = toDate(encodedTimeOut);
+
+    // encoded time logs must be on the planned date (a wrong date moves the hours out of that day)
+    if (timeIn || timeOut) {
+      const planned = (
+        await this.overtimeAccomplishmentService.rawQuery(
+          `SELECT DATE_FORMAT(planned_date,'%Y-%m-%d') plannedDate FROM overtime_application WHERE overtime_application_id = ?;`,
+          [overtimeApplicationId]
+        )
+      )[0] as { plannedDate: string } | undefined;
+      if (planned) {
+        const error = validateOvertimeLogWindow(planned.plannedDate, timeIn, timeOut);
+        if (error) throw new HttpException(error, HttpStatus.BAD_REQUEST);
+      }
+    }
+
+    const dto: Partial<OvertimeAccomplishment> = { accomplishments };
+    if (timeIn !== undefined) dto.encodedTimeIn = timeIn;
+    if (timeOut !== undefined) dto.encodedTimeOut = timeOut;
 
     const result = await this.overtimeAccomplishmentService.crud().update({
-      dto: { accomplishments },
-      updateBy: { overtimeEmployeeId: { id: overtimeEmployeeId.id } },
+      dto,
+      updateBy: { overtimeEmployeeId: { id: overtimeEmployee.id } },
     });
     if (result.affected > 0) return updateOvertimeAccomplishmentByEmployeeDto;
   }
