@@ -7,7 +7,7 @@ const SUPERVISOR = '11111111-1111-1111-1111-111111111111';
 const OTHER = '22222222-2222-2222-2222-222222222222';
 const OT_ID = 'ot-1';
 
-function makeService(row: { status: OvertimeStatus; immediateSupervisorEmployeeId: string } | null) {
+function makeService(row: { status: OvertimeStatus; immediateSupervisorEmployeeId: string | null; managerId?: string | null } | null) {
   const queries: { sql: string; params: unknown[] }[] = [];
   const entityManager = { query: jest.fn(async (sql: string, params: unknown[]) => queries.push({ sql, params })) };
   const service = Object.create(OvertimeService.prototype) as OvertimeService;
@@ -39,6 +39,17 @@ describe('OvertimeService.immediateSupervisorCancelOvertimeApplication', () => {
     const { service, queries } = makeService({ status: OvertimeStatus.APPROVED, immediateSupervisorEmployeeId: OTHER });
     await expect(service.immediateSupervisorCancelOvertimeApplication(OT_ID, dto)).rejects.toBeInstanceOf(ForbiddenException);
     expect(queries).toHaveLength(0);
+  });
+
+  it('the manager who filed the overtime (no immediate supervisor) can cancel it', async () => {
+    const { service, queries } = makeService({ status: OvertimeStatus.PENDING, immediateSupervisorEmployeeId: null, managerId: SUPERVISOR });
+    await service.immediateSupervisorCancelOvertimeApplication(OT_ID, dto);
+    expect(queries.length).toBeGreaterThan(0);
+  });
+
+  it('403 for someone who is neither the immediate supervisor nor the filing manager', async () => {
+    const { service } = makeService({ status: OvertimeStatus.PENDING, immediateSupervisorEmployeeId: null, managerId: OTHER });
+    await expect(service.immediateSupervisorCancelOvertimeApplication(OT_ID, dto)).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('409 when already cancelled', async () => {
