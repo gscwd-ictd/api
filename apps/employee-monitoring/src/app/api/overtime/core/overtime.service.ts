@@ -2429,7 +2429,7 @@ export class OvertimeService {
   }
 
   /**
-   * OT immediate supervisor cancels an overtime application at any stage — also after the
+   * OT immediate supervisor (or the manager who filed it) cancels an overtime application at any stage — also after the
    * next higher head approved it and after accomplishments were approved (HR, 2026-10-13).
    * Cancelled OT drops out of reports (queries filter status <> 'cancelled'); accomplishments are
    * kept for audit. Already processed payroll periods are not recomputed.
@@ -2439,19 +2439,23 @@ export class OvertimeService {
 
     const rows = (await this.overtimeApplicationService.rawQuery(
       `
-        SELECT oa.overtime_application_id id, oa.status status, ois.employee_id_fk immediateSupervisorEmployeeId
+        SELECT oa.overtime_application_id id, oa.status status, ois.employee_id_fk immediateSupervisorEmployeeId, oa.manager_id_fk managerId
         FROM overtime_application oa
         LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
         WHERE oa.overtime_application_id = ?;
       `,
       [id]
-    )) as { id: string; status: OvertimeStatus; immediateSupervisorEmployeeId: string | null }[];
+    )) as { id: string; status: OvertimeStatus; immediateSupervisorEmployeeId: string | null; managerId?: string | null }[];
 
     if (rows.length === 0) throw new NotFoundException('Overtime application not found.');
     const overtimeApplication = rows[0];
 
-    if (overtimeApplication.immediateSupervisorEmployeeId !== immediateSupervisorEmployeeId)
-      throw new ForbiddenException('Only the immediate supervisor of this overtime can cancel it.');
+    // the OT immediate supervisor, or the manager who filed it (manager-filed OT has no immediate supervisor)
+    if (
+      overtimeApplication.immediateSupervisorEmployeeId !== immediateSupervisorEmployeeId &&
+      overtimeApplication.managerId !== immediateSupervisorEmployeeId
+    )
+      throw new ForbiddenException('Only the immediate supervisor or the manager who filed this overtime can cancel it.');
 
     if (overtimeApplication.status === OvertimeStatus.CANCELLED) throw new ConflictException('Overtime application is already cancelled.');
 
@@ -2503,10 +2507,18 @@ export class OvertimeService {
     await this.checkNoManagementEmployees(updateOvertimeApplicationDto.employees);
     await this.checkEmployeeHasOtOnUpdate(updateOvertimeApplicationDto);
     const { id, estimatedHours, plannedDate, purpose, employeeId, employees } = updateOvertimeApplicationDto;
-    const overtimeImmediateSupervisorId = await this.overtimeApplicationService.crud().findOneOrNull({
-      find: { where: { id, overtimeImmediateSupervisorId: { employeeId } } },
-    });
-    if (!overtimeImmediateSupervisorId) throw new HttpException('User is not the immediate supervisor of this overtime application', 403);
+    // who may edit: the OT immediate supervisor of the application, or the manager who filed it
+    // (an application filed by a manager has no OT immediate supervisor, only manager_id_fk)
+    const canEdit = (
+      await this.overtimeApplicationService.rawQuery(
+        `SELECT COUNT(*) n FROM overtime_application oa
+           LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
+          WHERE oa.overtime_application_id = ? AND (ois.employee_id_fk = ? OR oa.manager_id_fk = ?);`,
+        [id, employeeId, employeeId]
+      )
+    )[0] as { n: number | string };
+    if (!canEdit || Number(canEdit.n) === 0)
+      throw new HttpException('User is not the immediate supervisor or the manager of this overtime application', 403);
     const otDetails = await this.dataSource.transaction(async (entityManager) => {
       const updateOvertimeApplication = await this.overtimeApplicationService.crud().transact(entityManager).update({
         dto: {
