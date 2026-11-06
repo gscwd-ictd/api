@@ -44,8 +44,9 @@ export function ExclusiveJob(name: string): MethodDecorator {
   };
 }
 
-/** Scheduled jobs run only on PM2 instance 0 (or when not running under PM2 cluster mode). */
+/** Scheduled jobs run only on PM2 instance 0 (or when not running under PM2 cluster mode), and never when ENABLE_CRON=false. */
 export function shouldRunScheduledJobs(): boolean {
+  if (process.env.ENABLE_CRON === 'false') return false;
   const instance = process.env.NODE_APP_INSTANCE;
   return instance === undefined || instance === '' || instance === '0';
 }

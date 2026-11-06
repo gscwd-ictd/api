@@ -64,3 +64,23 @@ describe('ExclusiveJob', () => {
     expect(shouldRunScheduledJobs()).toBe(true);
   });
 });
+
+describe('ENABLE_CRON', () => {
+  afterEach(() => delete process.env.ENABLE_CRON);
+
+  it('skips the job when ENABLE_CRON=false', async () => {
+    process.env.ENABLE_CRON = 'false';
+    const { service, queryRunner } = makeService(1);
+    expect(shouldRunScheduledJobs()).toBe(false);
+    await service.job();
+    expect(service.runs).toBe(0);
+    expect(queryRunner.connect).not.toHaveBeenCalled();
+  });
+
+  it('runs the job when ENABLE_CRON is not set or true', async () => {
+    process.env.ENABLE_CRON = 'true';
+    const { service } = makeService(1);
+    await service.job();
+    expect(service.runs).toBe(1);
+  });
+});

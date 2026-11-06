@@ -1,3 +1,4 @@
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
@@ -155,6 +156,13 @@ async function bootstrap() {
   });
 
   await app.listen(port);
+
+  // ENABLE_CRON=false in this server's .env stops every @Cron job (e.g. on the backup server, so only one server runs them)
+  if (process.env.ENABLE_CRON === 'false') {
+    const jobs = app.get(SchedulerRegistry).getCronJobs();
+    jobs.forEach((job) => job.stop());
+    Logger.warn(`ENABLE_CRON=false: ${jobs.size} scheduled job(s) stopped on this server`, 'Scheduler');
+  }
   Logger.log(`🚀 Application is running on: http://localhost:${port}/api/lms`, 'LMS');
 }
 

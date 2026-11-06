@@ -3,6 +3,7 @@
  * This is only a minimal backend to get started.
  */
 
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
@@ -169,6 +170,13 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3333;
   await app.listen(port);
+
+  // ENABLE_CRON=false in this server's .env stops every @Cron job (e.g. on the backup server, so only one server runs them)
+  if (process.env.ENABLE_CRON === 'false') {
+    const jobs = app.get(SchedulerRegistry).getCronJobs();
+    jobs.forEach((job) => job.stop());
+    Logger.warn(`ENABLE_CRON=false: ${jobs.size} scheduled job(s) stopped on this server`, 'Scheduler');
+  }
   Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
 }
 
