@@ -22,6 +22,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { truncate2 } from '../utils/truncate.util';
 import dayjs = require('dayjs');
 import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
@@ -2104,7 +2105,7 @@ export class OvertimeService {
 
               const hoursRendered =
                 status === 'approved'
-                  ? Math.trunc((await this.getComputedHrs(restOfOvertime)) * 100) / 100
+                  ? truncate2(await this.getComputedHrs(restOfOvertime))
                   : (await this.getComputedHrs(restOfOvertime)) !== null
                   ? 0
                   : null;
@@ -2196,10 +2197,10 @@ export class OvertimeService {
         return {
           employeeFullName: employee.employeeName,
           overtimes,
-          monthlyRate: isSalaryGradeBased ? employee.salaryGradeAmount : (Math.trunc(employee.dailyRate * 22 * 100) / 100).toFixed(2), // CHANGED: uses isSalaryGradeBased
+          monthlyRate: isSalaryGradeBased ? employee.salaryGradeAmount : truncate2(employee.dailyRate * 22).toFixed(2), // CHANGED: uses isSalaryGradeBased
           hourlyRate: isSalaryGradeBased // CHANGED: uses isSalaryGradeBased
-            ? (Math.trunc((employee.salaryGradeAmount / 22 / 8) * 100) / 100).toFixed(2)
-            : (Math.trunc((employee.dailyRate / 8) * 100) / 100).toFixed(2),
+            ? truncate2(employee.salaryGradeAmount / 22 / 8).toFixed(2)
+            : truncate2(employee.dailyRate / 8).toFixed(2),
           totalOTHoursRendered,
           totalRegularOTHoursRendered,
           totalOffOTHoursRendered,
@@ -2302,7 +2303,7 @@ export class OvertimeService {
   /**
    * OT start used for the hours: on a TIME_OF_DAY work suspension date, a log that starts before the
    * suspension start and ends after it is counted from the suspension start (the earlier hours are
-   * regular duty). Other days / logs: the encoded start.
+   * regular duty). Rest days, holidays, other days / logs: the encoded start.
    */
   private async getSuspensionAdjustedOvertimeStart(employeeId: string, plannedDate: Date | string, otStart: Date | null, otEnd: Date | null) {
     if (!otStart || !otEnd) return otStart;
@@ -2312,6 +2313,14 @@ export class OvertimeService {
       if (!suspension || suspension.suspensionType !== WorkSuspensionType.TIME_OF_DAY) return otStart;
       const schedule = (await this.employeeScheduleService.getEmployeeScheduleByDtrDate(employeeId, date))?.schedule;
       if (!schedule?.timeIn || !schedule?.timeOut) return otStart;
+      // rest day / holiday: there is no regular duty before the suspension start, so every OT hour counts
+      // (rest day OT is all paid 1.5x and overrides the suspension rules; HR 2026-11-06, Las Marias 2026-10-28)
+      const restDays = (schedule.restDaysNumbers ?? '').split(',').map((d: string) => d.trim());
+      if (restDays.includes(dayjs(date).day().toString())) return otStart;
+      const isHoliday = (
+        await this.employeeScheduleService.rawQuery(`SELECT COUNT(*) n FROM holidays WHERE holiday_date = ?;`, [dayjs(date).format('YYYY-MM-DD')])
+      )[0] as { n: number | string };
+      if (Number(isHoliday?.n) > 0) return otStart;
       const window = await this.workSuspensionService.getSuspensionWindow(date, schedule);
       return clipOvertimeStartToSuspension(otStart, otEnd, date, window.isSuspended ? window.start : null);
     } catch {

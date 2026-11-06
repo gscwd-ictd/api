@@ -4,8 +4,9 @@
  * Only the OT minutes that overlap the suspension window (suspension start -> 12:00 midnight of
  * the suspension date) earn the suspension multiplier (1.5x); the rest stay regular (1.25x).
  *
- * The rendered hours (already computed by the OT rules, e.g. the > 4 hours deduction) are split
- * by the share of the OT log interval that falls inside the window, so the total never changes.
+ * Suspension hours = the OT log hours inside the window, capped at the rendered (approved) hours; the rest of the
+ * rendered hours are regular, so the total never changes (HR 2026-11-06: Casinao 2026-10-28, suspension from 10:00,
+ * logged 19:00 -> 07:00 next day, 8 hours approved -> 5 suspension hours (19:00-24:00) + 3 regular).
  */
 import dayjs = require('dayjs');
 import { MINUTES_PER_DAY } from '../../work-suspension/core/work-suspension-window.util';
@@ -51,7 +52,7 @@ export function splitOvertimeBySuspension(
   const overlapTo = end.isBefore(windowTo) ? end : windowTo;
   const overlap = Math.max(0, overlapTo.diff(overlapFrom, 'minute'));
 
-  const suspensionHrs = Math.min(hours, round2((hours * overlap) / total));
+  const suspensionHrs = Math.min(hours, round2(overlap / 60));
   return { regularHrs: round2(hours - suspensionHrs), suspensionHrs };
 }
 
