@@ -51,6 +51,14 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
           ).toDate();
           const leaveCredits = await Promise.all(
             leaveBenefits.map(async (leaveBenefit) => {
+              // already credited this year (re-run / catch-up): skip
+              const [{ n }] = await entityManager.query(
+                `SELECT COUNT(*) n FROM leave_credit_earnings
+                  WHERE employee_id_fk = ? AND leave_benefits_id_fk = ? AND credit_date = ? AND deleted_at IS NULL
+                    AND COALESCE(remarks, '') <> 'Beginning Balance';`,
+                [employeeId, leaveBenefit.leaveBenefitsId, dayjs(creditDate).format('YYYY-MM-DD')]
+              );
+              if (Number(n) > 0) return null;
               const leaveCreditEarning = await this.leaveCreditEarnings.addLeaveCreditEarningsTransaction(
                 {
                   createdAt,
@@ -87,7 +95,14 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
       const credits = await Promise.all(
         employees.map(async (employee, idx) => {
           const { employeeId, companyId } = employee;
-          const previousYear = dayjs().year() - 1;
+          // runs Dec 31 23:57: closes the ending year and opens the next one (also correct if run in January)
+          const previousYear = dayjs().month() === 11 ? dayjs().year() : dayjs().year() - 1;
+          const newYear = previousYear + 1;
+          const [{ n: alreadyOpened }] = await entityManager.query(
+            `SELECT COUNT(*) n FROM leave_credit_earnings WHERE employee_id_fk = ? AND credit_date = ? AND remarks = 'Beginning Balance' AND deleted_at IS NULL;`,
+            [employeeId, `${newYear}-01-01`]
+          );
+          if (Number(alreadyOpened) > 0) return;
           const employeeLeaveLedger = (
             await this.rawQuery(`CALL sp_get_employee_ledger(?,?,?)`, [employeeId, companyId, previousYear])
           )[0] as LeaveLedger[];
@@ -116,12 +131,8 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
             )[0];
 
             const { forcedLeaveId, sickLeaveId, vacationLeaveId, specialPrivilegeLeaveId, wellnessLeaveId } = leaveBenefits;
-            const creditDate = dayjs(dayjs().add(0, 'year').year() + '-01-01').toDate();
-            const createdAt = dayjs(
-              dayjs().add(0, 'year').year() + '-01-01 ' + '00' + ':' + dayjs().minute() + ':' + dayjs().second()
-              //dayjs().add(0, 'year').year() + '-01-01 ' + dayjs().hour() + ':' + dayjs().minute() + ':' + dayjs().second()
-              //dayjs().add(0, 'year').year() + '-01-01 ' + '00' + ':' + '00' + ':' + '00'
-            ).toDate();
+            const creditDate = dayjs(`${newYear}-01-01`).toDate();
+            const createdAt = dayjs(`${newYear}-01-01 00:00:00`).toDate();
 
             const forcedLeaveCredit = await this.leaveCreditEarnings
               .crud()
@@ -131,7 +142,8 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                   createdAt,
                   leaveBenefitsId: forcedLeaveId,
                   employeeId,
-                  creditValue: 5,
+                  // unused FL is forfeited on Dec 7; the yearly 5 is credited by creditRecurringLeaves (Jan 1)
+                  creditValue: 0,
                   creditDate,
                   remarks: 'Beginning Balance',
                 },
@@ -153,7 +165,8 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                   createdAt,
                   leaveBenefitsId: specialPrivilegeLeaveId,
                   employeeId,
-                  creditValue: parseFloat(specialPrivilegeLeaveBalance.toString()) + 3,
+                  // carry-over only (forfeited Jan 7); the yearly 3 is credited by creditRecurringLeaves (Jan 1)
+                  creditValue: parseFloat(specialPrivilegeLeaveBalance.toString()),
                   creditDate,
                   remarks: 'Beginning Balance',
                 },
@@ -175,7 +188,8 @@ export class LeaveCardLedgerCreditService extends CrudHelper<LeaveCardLedgerCred
                   createdAt,
                   leaveBenefitsId: wellnessLeaveId,
                   employeeId,
-                  creditValue: (wellnessLeaveBalance ?? 0) + 5,
+                  // unused WL is forfeited on Dec 7; the yearly 5 is credited by creditRecurringLeaves (Jan 1)
+                  creditValue: 0,
                   creditDate,
                   remarks: 'Beginning Balance',
                 },
