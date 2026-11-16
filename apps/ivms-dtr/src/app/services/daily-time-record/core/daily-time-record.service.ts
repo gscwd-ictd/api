@@ -4,6 +4,15 @@ import { DailyTimeRecordPayload, DailyTimeRecordPayloadForSingleEmployee } from 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import dayjs from 'dayjs';
 
+/**
+ * The face scan database (SQL Server datetime) only holds years 1753-9999. Overtime / schedule dates typed with a
+ * wrong year (0005, 0026, 0206, ...) failed every lookup with "Validation failed for parameter '1'. Invalid date."
+ */
+function isFaceScanDate(value: unknown): boolean {
+  const d = dayjs(value as string);
+  return d.isValid() && d.year() >= 1900 && d.year() <= 2100;
+}
+
 @Injectable()
 export class DailyTimeRecordService extends CrudHelper<IvmsDailyTimeRecord> {
   constructor(private readonly crudService: CrudService<IvmsDailyTimeRecord>) {
@@ -16,6 +25,8 @@ export class DailyTimeRecordService extends CrudHelper<IvmsDailyTimeRecord> {
 
   async getEmployeeDtrByDayAndCompanyId(dailyTimeRecordPayloadForSingleEmployee: DailyTimeRecordPayloadForSingleEmployee) {
     const { companyId, date } = dailyTimeRecordPayloadForSingleEmployee;
+    // a date the face scan database cannot hold (e.g. a typo year 0026) has no face scans
+    if (!isFaceScanDate(date)) return [];
     const dateNow = dayjs(date).toDate();
 
     const dtr = await this.crudService.findAll({
@@ -29,6 +40,7 @@ export class DailyTimeRecordService extends CrudHelper<IvmsDailyTimeRecord> {
 
   async getEntriesTheDayAndTheNext(entry: { companyId: string; date: Date }) {
     const { companyId, date } = entry;
+    if (!isFaceScanDate(date)) return [];
     const trimmedCompanyId = companyId.replace('-', '');
 
     const entries = (await this.rawQuery(
@@ -76,6 +88,7 @@ export class DailyTimeRecordService extends CrudHelper<IvmsDailyTimeRecord> {
     const { companyId, entryDate } = data;
 
     if (dayjs(entryDate).isAfter(dayjs())) return null;
+    if (!isFaceScanDate(entryDate)) return false;
 
     const hasData = (await this.rawQuery(`SELECT count(ID) countAttendance FROM atteninfo WHERE ID = @0 AND date = @1;`, [companyId, entryDate]))[0]
       .countAttendance;

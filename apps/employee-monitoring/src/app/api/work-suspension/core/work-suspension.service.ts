@@ -12,6 +12,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import dayjs = require('dayjs');
+import { httpStatusOf } from '../../../utils/http-status.util';
 
 export type WorkSuspensionListFilter = {
   from?: string;
@@ -234,7 +235,7 @@ export class WorkSuspensionService extends CrudHelper<WorkSuspension> {
           ORDER BY suspension_date DESC;
       `);
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new HttpException(error.message, httpStatusOf(error));
     }
   }
 

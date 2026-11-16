@@ -24,6 +24,8 @@ import {
 } from '@nestjs/common';
 import { truncate2 } from '../utils/truncate.util';
 import dayjs = require('dayjs');
+import { checkActualYear } from '../../../utils/actual-year.util';
+import { httpStatusOf } from '../../../utils/http-status.util';
 import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
@@ -141,6 +143,8 @@ export class OvertimeService {
   }
 
   async createOvertime(createOverTimeDto: CreateOvertimeDto) {
+    const plannedDateError = checkActualYear('Planned date', createOverTimeDto.plannedDate);
+    if (plannedDateError) throw new HttpException(plannedDateError, HttpStatus.BAD_REQUEST);
     await this.checkNoManagementEmployees(createOverTimeDto.employees);
     await this.checkEmployeeHasOt(createOverTimeDto);
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
@@ -1622,7 +1626,7 @@ export class OvertimeService {
 
       return { forApproval: pendingResult, completed: approvedResult };
     } catch (error) {
-      throw new HttpException(error, error.message);
+      throw new HttpException(error, httpStatusOf(error));
     }
   }
 
@@ -1754,7 +1758,7 @@ export class OvertimeService {
 
       return { forApproval: pendingResult, completed: approvedResult };
     } catch (error) {
-      throw new HttpException(error, error.status);
+      throw new HttpException(error, httpStatusOf(error));
     }
   }
 
@@ -2512,6 +2516,8 @@ export class OvertimeService {
   }
 
   async updateOvertimeDetails(updateOvertimeApplicationDto: UpdateOvertimeApplicationDto) {
+    const plannedDateError = checkActualYear('Planned date', updateOvertimeApplicationDto.plannedDate);
+    if (plannedDateError) throw new HttpException(plannedDateError, HttpStatus.BAD_REQUEST);
     //
     await this.checkNoManagementEmployees(updateOvertimeApplicationDto.employees);
     await this.checkEmployeeHasOtOnUpdate(updateOvertimeApplicationDto);
