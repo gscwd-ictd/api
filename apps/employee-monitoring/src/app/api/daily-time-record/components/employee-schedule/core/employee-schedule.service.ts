@@ -2,8 +2,9 @@ import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { MicroserviceClient } from '@gscwd-api/microservices';
 import { EmployeeSchedule, CreateEmployeeScheduleDto, CreateEmployeeScheduleByGroupDto, DeleteEmployeeScheduleDto } from '@gscwd-api/models';
 import { EmployeeDetails, EmployeeScheduleType, ScheduleType } from '@gscwd-api/utils';
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import dayjs = require('dayjs');
+import { checkActualYear } from '../../../../../utils/actual-year.util';
 import { DataSource, EntityManager } from 'typeorm';
 import { CustomGroupMembersService } from '../../../../custom-groups/components/custom-group-members/core/custom-group-members.service';
 import { EmployeeRestDaysService } from '../components/employee-rest-day/components/employee-rest-days/core/employee-rest-days.service';
@@ -24,6 +25,17 @@ export class EmployeeScheduleService extends CrudHelper<EmployeeSchedule> {
 
   async addEmployeeSchedule(employeeScheduleDto: CreateEmployeeScheduleDto) {
     const { restDays, dtrDates, employeeId, ...restOfEmployeeSchedules } = employeeScheduleDto;
+    // schedule dates must be in an actual year (typos like 0204-07-01 broke the face scan lookups)
+    const scheduleDates = Array.isArray(dtrDates)
+      ? dtrDates.map((d) => ['Schedule date', d])
+      : [
+          ['Schedule date from', (dtrDates as { dateFrom?: Date })?.dateFrom ?? (employeeScheduleDto as { dateFrom?: Date }).dateFrom],
+          ['Schedule date to', (dtrDates as { dateTo?: Date })?.dateTo ?? (employeeScheduleDto as { dateTo?: Date }).dateTo],
+        ];
+    for (const [label, value] of scheduleDates) {
+      const scheduleDateError = checkActualYear(label as string, value);
+      if (scheduleDateError) throw new HttpException(scheduleDateError, HttpStatus.BAD_REQUEST);
+    }
     //#region 1. Create Employee Schedule
     const result = await this.dataSource.transaction(async (entityManager) => {
       let employeeSchedule: EmployeeSchedule;
