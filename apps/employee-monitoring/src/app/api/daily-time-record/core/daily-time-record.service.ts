@@ -12,7 +12,7 @@ import {
   getDayRange1stHalf,
   getDayRange2ndHalf,
 } from '@gscwd-api/utils';
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import dayjs = require('dayjs');
 import { EmployeesService } from '../../employees/core/employees.service';
@@ -53,6 +53,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       action: 'send',
       payload: entry,
       pattern: 'get_entries_the_day_and_the_next',
+      // face scan (IVMS) service did not answer: a clear 503 instead of Error('[object Object]')
+      onError: () => new ServiceUnavailableException('The face scan (IVMS) service is not responding.'),
     })) as string;
   }
 
@@ -61,6 +63,8 @@ export class DailyTimeRecordService extends CrudHelper<DailyTimeRecord> {
       action: 'send',
       payload: data,
       pattern: 'get_has_ivms',
+      // face scan (IVMS) service did not answer: a clear 503 instead of Error('[object Object]')
+      onError: () => new ServiceUnavailableException('The face scan (IVMS) service is not responding.'),
     })) as boolean;
   }
 

@@ -24,6 +24,7 @@ import {
 } from '@nestjs/common';
 import { truncate2 } from '../utils/truncate.util';
 import dayjs = require('dayjs');
+import { httpStatusOf } from '../../../utils/http-status.util';
 import { Between, DataSource, EntityManager, EntityMetadata, MoreThanOrEqual } from 'typeorm';
 import { EmployeeScheduleService } from '../../daily-time-record/components/employee-schedule/core/employee-schedule.service';
 import { DailyTimeRecordService } from '../../daily-time-record/core/daily-time-record.service';
@@ -1622,7 +1623,7 @@ export class OvertimeService {
 
       return { forApproval: pendingResult, completed: approvedResult };
     } catch (error) {
-      throw new HttpException(error, error.message);
+      throw new HttpException(error, httpStatusOf(error));
     }
   }
 
@@ -1754,7 +1755,7 @@ export class OvertimeService {
 
       return { forApproval: pendingResult, completed: approvedResult };
     } catch (error) {
-      throw new HttpException(error, error.status);
+      throw new HttpException(error, httpStatusOf(error));
     }
   }
 
