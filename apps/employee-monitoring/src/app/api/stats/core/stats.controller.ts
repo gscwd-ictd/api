@@ -8,7 +8,7 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 export class StatsController {
   constructor(private readonly statsService: StatsService, private readonly chartsService: ChartsService) {}
 
-  // Charts page: ?level=office|department|division&year=YYYY
+  // Charts page: ?level=office|department|division&dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD
   @Get('charts/:type')
   async getChartCounts(@Param('type') type: string, @Query() filter: ChartFilter) {
     return await this.chartsService.getCounts(type, filter);
