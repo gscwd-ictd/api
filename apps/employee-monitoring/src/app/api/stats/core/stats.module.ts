@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { StatsService } from './stats.service';
+import { ChartsService } from './charts.service';
 import { StatsController } from './stats.controller';
 import { PassSlipModule } from '../../pass-slip/core/pass-slip.module';
 import { EmployeesModule } from '../../employees/core/employees.module';
@@ -10,7 +11,7 @@ import { OvertimeModule } from '../../overtime/core/overtime.module';
 
 @Module({
   imports: [CacheModule.register({ ttl: 43200000 }), PassSlipModule, EmployeesModule, OrganizationModule, OvertimeModule],
-  providers: [StatsService],
+  providers: [StatsService, ChartsService],
   controllers: [StatsController, StatsMsController],
 })
 export class StatsModule {}
