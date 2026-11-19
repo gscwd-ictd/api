@@ -3,6 +3,7 @@
  * This is only a minimal backend to get started.
  */
 
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
@@ -44,6 +45,9 @@ const whitelist = [
   'http://172.20.110.85:3000',
   'http://172.20.110.85:3001',
   'http://172.20.10.57:3001',
+  'https://portal.gscwd.app',
+  'https://pds.gscwd.app',
+  'https://job-portal.gscwd.app',
 ];
 //${process.env.EMPLOYEE_MONITORING_REDIS_HOST}
 const redisClientHrms = redis.createClient({
@@ -123,14 +127,18 @@ async function bootstrap() {
     next();
   });
 
-  app.connectMicroservice({
-    transport: Transport.REDIS,
-    options: {
-      host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
-      port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
-      password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
-    },
-  });
+  // ENABLE_MICROSERVICES=false in this server's .env: this server does not answer microservice (Redis) requests,
+  // so a second server on the same Redis (e.g. the backup .61) does not handle them twice
+  if (process.env.ENABLE_MICROSERVICES !== 'false') {
+    app.connectMicroservice({
+      transport: Transport.REDIS,
+      options: {
+        host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
+        port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
+        password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
+      },
+    });
+  }
 
   app.use(
     helmet({
@@ -157,7 +165,8 @@ async function bootstrap() {
     next();
   });
 
-  app.startAllMicroservices();
+  if (process.env.ENABLE_MICROSERVICES !== 'false') app.startAllMicroservices();
+  else Logger.warn('ENABLE_MICROSERVICES=false: microservice (Redis) handlers are off on this server', 'Microservices');
   //app.useGlobalPipes(new ValidationPipe({ enableDebugMessages: true }));
   app.enableCors({
     credentials: true,
@@ -169,6 +178,13 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3333;
   await app.listen(port);
+
+  // ENABLE_CRON=false in this server's .env stops every @Cron job (e.g. on the backup server, so only one server runs them)
+  if (process.env.ENABLE_CRON === 'false') {
+    const jobs = app.get(SchedulerRegistry).getCronJobs();
+    jobs.forEach((job) => job.stop());
+    Logger.warn(`ENABLE_CRON=false: ${jobs.size} scheduled job(s) stopped on this server`, 'Scheduler');
+  }
   Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
 }
 

@@ -1,3 +1,4 @@
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
@@ -127,34 +128,45 @@ async function bootstrap() {
   /**
    *  enable hybrid application to listen to microservice requests
    */
-  HybridApp.startMicroservice(app, {
-    /**
-     * set redis as the transport broker for this microservice
-     */
-    transport: Transport.REDIS,
-
-    /**
-     * provide connection settings
-     */
-    options: {
+  // ENABLE_MICROSERVICES=false in this server's .env: this server does not answer microservice (Redis) requests,
+  // so a second server on the same Redis (e.g. the backup .61) does not handle them twice
+  if (process.env.ENABLE_MICROSERVICES !== 'false') {
+    HybridApp.startMicroservice(app, {
       /**
-       * identify redis host
+       * set redis as the transport broker for this microservice
        */
-      host: configService.getOrThrow<string>('LND_HOST'),
+      transport: Transport.REDIS,
 
       /**
-       * identify redis port
+       * provide connection settings
        */
-      port: parseInt(configService.getOrThrow<string>('LND_PORT')),
+      options: {
+        /**
+         * identify redis host
+         */
+        host: configService.getOrThrow<string>('LND_HOST'),
 
-      /**
-       * identify redis password
-       */
-      password: configService.getOrThrow<string>('LND_PASS'),
-    },
-  });
+        /**
+         * identify redis port
+         */
+        port: parseInt(configService.getOrThrow<string>('LND_PORT')),
+
+        /**
+         * identify redis password
+         */
+        password: configService.getOrThrow<string>('LND_PASS'),
+      },
+    });
+  } else Logger.warn('ENABLE_MICROSERVICES=false: microservice (Redis) handlers are off on this server');
 
   await app.listen(port);
+
+  // ENABLE_CRON=false in this server's .env stops every @Cron job (e.g. on the backup server, so only one server runs them)
+  if (process.env.ENABLE_CRON === 'false') {
+    const jobs = app.get(SchedulerRegistry).getCronJobs();
+    jobs.forEach((job) => job.stop());
+    Logger.warn(`ENABLE_CRON=false: ${jobs.size} scheduled job(s) stopped on this server`, 'Scheduler');
+  }
   Logger.log(`🚀 Application is running on: http://localhost:${port}/api/lms`, 'LMS');
 }
 
