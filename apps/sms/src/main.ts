@@ -76,32 +76,36 @@ async function bootstrap() {
   /**
    *  enable hybrid application to listen to microservice requests
    */
-  HybridApp.startMicroservice(app, {
-    /**
-     * set redis as the transport broker for this microservice
-     */
-    transport: Transport.REDIS,
-
-    /**
-     * provide connection settings
-     */
-    options: {
+  // ENABLE_MICROSERVICES=false in this server's .env: this server does not answer microservice (Redis) requests,
+  // so a second server on the same Redis (e.g. the backup .61) does not handle them twice
+  if (process.env.ENABLE_MICROSERVICES !== 'false') {
+    HybridApp.startMicroservice(app, {
       /**
-       * identify redis host
+       * set redis as the transport broker for this microservice
        */
-      host: configService.getOrThrow<string>('SMSV2_HOST'),
+      transport: Transport.REDIS,
 
       /**
-       * identify redis port
+       * provide connection settings
        */
-      port: parseInt(configService.getOrThrow<string>('SMSV2_PORT')),
+      options: {
+        /**
+         * identify redis host
+         */
+        host: configService.getOrThrow<string>('SMSV2_HOST'),
 
-      /**
-       * identify redis password
-       */
-      password: configService.getOrThrow<string>('SMSV2_PASS'),
-    },
-  });
+        /**
+         * identify redis port
+         */
+        port: parseInt(configService.getOrThrow<string>('SMSV2_PORT')),
+
+        /**
+         * identify redis password
+         */
+        password: configService.getOrThrow<string>('SMSV2_PASS'),
+      },
+    });
+  } else Logger.warn('ENABLE_MICROSERVICES=false: microservice (Redis) handlers are off on this server');
 
   await app.listen(port);
   Logger.log(`🚀 Application is running on: http://localhost:${port}/api/smsv2`, 'SMS');

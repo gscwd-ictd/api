@@ -124,14 +124,18 @@ async function bootstrap() {
     next();
   });
 
-  app.connectMicroservice({
-    transport: Transport.REDIS,
-    options: {
-      host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
-      port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
-      password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
-    },
-  });
+  // ENABLE_MICROSERVICES=false in this server's .env: this server does not answer microservice (Redis) requests,
+  // so a second server on the same Redis (e.g. the backup .61) does not handle them twice
+  if (process.env.ENABLE_MICROSERVICES !== 'false') {
+    app.connectMicroservice({
+      transport: Transport.REDIS,
+      options: {
+        host: process.env.EMPLOYEE_MONITORING_REDIS_HOST,
+        port: parseInt(process.env.EMPLOYEE_MONITORING_REDIS_PORT),
+        password: process.env.EMPLOYEE_MONITORING_REDIS_PASSWORD,
+      },
+    });
+  }
 
   app.use(
     helmet({
@@ -158,7 +162,8 @@ async function bootstrap() {
     next();
   });
 
-  app.startAllMicroservices();
+  if (process.env.ENABLE_MICROSERVICES !== 'false') app.startAllMicroservices();
+  else Logger.warn('ENABLE_MICROSERVICES=false: microservice (Redis) handlers are off on this server', 'Microservices');
   //app.useGlobalPipes(new ValidationPipe({ enableDebugMessages: true }));
   app.enableCors({
     credentials: true,
