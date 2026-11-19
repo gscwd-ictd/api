@@ -45,6 +45,9 @@ const whitelist = [
   'http://172.20.110.85:3000',
   'http://172.20.110.85:3001',
   'http://172.20.10.57:3001',
+  'https://portal.gscwd.app',
+  'https://pds.gscwd.app',
+  'https://job-portal.gscwd.app',
 ];
 //${process.env.EMPLOYEE_MONITORING_REDIS_HOST}
 const redisClientHrms = redis.createClient({
