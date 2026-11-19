@@ -674,6 +674,38 @@ export class PassSlipService extends CrudHelper<PassSlip> {
    * the logs were missing): an UNUSED slip becomes APPROVED. For Personal Business, Half Day and Undertime the
    * leave ledger is updated right away: the deduction is posted, or the existing one recomputed from the new logs.
    */
+  /**
+   * Before HR saves a pass slip time log: can a leave deduction be posted for it?
+   * needsSchedule = a Personal Business / Half Day / Undertime slip of a permanent or casual employee with no schedule
+   * on the slip date (the time log is still saved, but no deduction is posted until a schedule is set and the
+   * time log is submitted again, or the nightly ledger job runs).
+   */
+  async checkPassSlipSchedule(id: string) {
+    const passSlip = (
+      (await this.rawQuery(
+        `SELECT employee_id_fk employeeId, nature_of_business natureOfBusiness, DATE_FORMAT(date_of_application, '%Y-%m-%d') date
+           FROM pass_slip WHERE pass_slip_id = ?;`,
+        [id]
+      )) as { employeeId: string; natureOfBusiness: NatureOfBusiness; date: string }[]
+    )[0];
+    if (!passSlip) throw new NotFoundException('Pass slip not found.');
+
+    const deductible = [NatureOfBusiness.PERSONAL, NatureOfBusiness.HALF_DAY, NatureOfBusiness.UNDERTIME].includes(passSlip.natureOfBusiness);
+    const natureOfAppointment = deductible ? await this.getNatureOfAppointmentOnDate(passSlip.employeeId, passSlip.date) : null;
+    const charged = deductible && (natureOfAppointment === 'permanent' || natureOfAppointment === 'casual');
+
+    let hasSchedule = true;
+    if (charged) {
+      const companyId = await this.getCompanyIdFromHris(passSlip.employeeId);
+      try {
+        hasSchedule = !!(await this.getScheduleForDate(passSlip.employeeId, companyId, passSlip.date)).schedule;
+      } catch {
+        hasSchedule = false;
+      }
+    }
+    return { date: passSlip.date, hasSchedule, needsSchedule: charged && !hasSchedule };
+  }
+
   async hrUpdatePassSlipTimeLog(hrUpdatePassSlipTimeRecordDto: HrUpdatePassSlipTimeRecordDto) {
     const { id, timeIn, timeOut } = hrUpdatePassSlipTimeRecordDto;
     const result = await this.crud().update({
