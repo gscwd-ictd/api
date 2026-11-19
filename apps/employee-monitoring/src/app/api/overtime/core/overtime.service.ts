@@ -74,8 +74,11 @@ export class OvertimeService {
                 SELECT if(ote.existingEmployeeOtCount > 0, true, false) employeeHasOtForTheDay,ote.employeeName employeeName
                 FROM (SELECT count(*) existingEmployeeOtCount, ${process.env.HRMS_DB_NAME}get_employee_fullname2(oe.employee_id_fk) employeeName FROM overtime_application oa
                   INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
+                  -- an employee removed from an overtime (by the manager / immediate supervisor) can be requested again
+                  LEFT JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id
                 WHERE 
-                  oa.planned_date = ? AND (status='pending' OR status='approved') 
+                  oa.planned_date = ? AND (oa.status='pending' OR oa.status='approved') 
+                  AND (oacc.status IS NULL OR oacc.status NOT IN ('removed by manager', 'removed by immediate supervisor')) 
                   AND oe.employee_id_fk = ?) ote; 
             `,
             [overtimeApplication.plannedDate, employee]
@@ -926,19 +929,21 @@ export class OvertimeService {
 
     const employeeList = await Promise.all(
       // separated employees (latest NOSI/NOSA 'inactive') are not listed
-      supervisors.filter((supervisor) => activeIds.has(supervisor.employeeId)).map(async (supervisor) => {
-        const { employeeId, id } = supervisor;
-        const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
+      supervisors
+        .filter((supervisor) => activeIds.has(supervisor.employeeId))
+        .map(async (supervisor) => {
+          const { employeeId, id } = supervisor;
+          const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
 
-        const { assignment, employeeFullName, photoUrl } = employeeDetails;
-        return {
-          id,
-          immediateSupervisorName: employeeFullName,
-          positionTitle: assignment.positionTitle,
-          assignment: assignment.name,
-          avatarUrl: photoUrl,
-        };
-      })
+          const { assignment, employeeFullName, photoUrl } = employeeDetails;
+          return {
+            id,
+            immediateSupervisorName: employeeFullName,
+            positionTitle: assignment.positionTitle,
+            assignment: assignment.name,
+            avatarUrl: photoUrl,
+          };
+        })
     );
     return employeeList;
   }
@@ -2513,8 +2518,11 @@ export class OvertimeService {
                 SELECT if(ote.existingEmployeeOtCount > 0, true, false) employeeHasOtForTheDay,ote.employeeName employeeName
                 FROM (SELECT count(*) existingEmployeeOtCount, ${process.env.HRMS_DB_NAME}get_employee_fullname2(oe.employee_id_fk) employeeName FROM overtime_application oa
                   INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id 
+                  -- an employee removed from an overtime (by the manager / immediate supervisor) can be requested again
+                  LEFT JOIN overtime_accomplishment oacc ON oacc.overtime_employee_id_fk = oe.overtime_employee_id
                 WHERE 
-                  oa.planned_date = ? AND (status='pending' OR status='approved') 
+                  oa.planned_date = ? AND (oa.status='pending' OR oa.status='approved') 
+                  AND (oacc.status IS NULL OR oacc.status NOT IN ('removed by manager', 'removed by immediate supervisor')) 
                   AND oe.employee_id_fk = ? AND oa.overtime_application_id <> ? ) ote; 
             `,
             [plannedDate, employee, id]
