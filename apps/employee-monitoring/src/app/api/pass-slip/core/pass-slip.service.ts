@@ -1199,10 +1199,22 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             value: '010a0d3a-5b3d-11ed-a08b-000c29f95a80',
           }
         : null,
-      { label: 'Pe, Charlene Marie D. ', value: 'af7bbec8-b26e-11ed-a79b-000c29f95a80' },
+      // HR pass slip approvers (EMS Settings > HR Pass Slip Approvers), never the applicant
+      ...(await this.getHrPassSlipApproversForDropdown(employeeData.employeeId)),
     ];
     return result
       .filter((n) => n)
-      .filter((value, index, self) => index === self.findIndex((item) => item.label === value.label && item.value === value.value));
+      .filter((value, index, self) => index === self.findIndex((item) => item.value === value.value)); // one entry per approver
+  }
+
+  /** EMS Settings > HR Pass Slip Approvers (ems_settings name 'hr_pass_slip_approver') as dropdown options */
+  private async getHrPassSlipApproversForDropdown(applicantId: string) {
+    return (await this.rawQuery(
+      `SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname2(s.value) label, s.value value
+         FROM ems_settings s
+        WHERE s.name = 'hr_pass_slip_approver' AND s.deleted_at IS NULL AND s.value <> ?
+        ORDER BY label`,
+      [applicantId]
+    )) as { label: string; value: string }[];
   }
 }
