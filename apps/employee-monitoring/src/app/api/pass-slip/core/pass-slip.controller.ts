@@ -83,6 +83,12 @@ export class PassSlipController {
   }
 
   //@UseGuards(AuthenticatedGuard)
+  // HR Update Pass Slip Time Log: asked before saving, so HR is prompted when no leave deduction can be posted
+  @Get('hr/time-record/:id/schedule-check')
+  async checkPassSlipSchedule(@Param('id') id: string) {
+    return await this.passSlipService.checkPassSlipSchedule(id);
+  }
+
   @Patch('hr/time-record/')
   async hrUpdatePassSlipTimeLog(@Body() hrUpdatePassSlipTimeRecordDto: HrUpdatePassSlipTimeRecordDto) {
     return await this.passSlipService.hrUpdatePassSlipTimeLog(hrUpdatePassSlipTimeRecordDto);

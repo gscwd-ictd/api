@@ -674,6 +674,38 @@ export class PassSlipService extends CrudHelper<PassSlip> {
    * the logs were missing): an UNUSED slip becomes APPROVED. For Personal Business, Half Day and Undertime the
    * leave ledger is updated right away: the deduction is posted, or the existing one recomputed from the new logs.
    */
+  /**
+   * Before HR saves a pass slip time log: can a leave deduction be posted for it?
+   * needsSchedule = a Personal Business / Half Day / Undertime slip of a permanent or casual employee with no schedule
+   * on the slip date (the time log is still saved, but no deduction is posted until a schedule is set and the
+   * time log is submitted again, or the nightly ledger job runs).
+   */
+  async checkPassSlipSchedule(id: string) {
+    const passSlip = (
+      (await this.rawQuery(
+        `SELECT employee_id_fk employeeId, nature_of_business natureOfBusiness, DATE_FORMAT(date_of_application, '%Y-%m-%d') date
+           FROM pass_slip WHERE pass_slip_id = ?;`,
+        [id]
+      )) as { employeeId: string; natureOfBusiness: NatureOfBusiness; date: string }[]
+    )[0];
+    if (!passSlip) throw new NotFoundException('Pass slip not found.');
+
+    const deductible = [NatureOfBusiness.PERSONAL, NatureOfBusiness.HALF_DAY, NatureOfBusiness.UNDERTIME].includes(passSlip.natureOfBusiness);
+    const natureOfAppointment = deductible ? await this.getNatureOfAppointmentOnDate(passSlip.employeeId, passSlip.date) : null;
+    const charged = deductible && (natureOfAppointment === 'permanent' || natureOfAppointment === 'casual');
+
+    let hasSchedule = true;
+    if (charged) {
+      const companyId = await this.getCompanyIdFromHris(passSlip.employeeId);
+      try {
+        hasSchedule = !!(await this.getScheduleForDate(passSlip.employeeId, companyId, passSlip.date)).schedule;
+      } catch {
+        hasSchedule = false;
+      }
+    }
+    return { date: passSlip.date, hasSchedule, needsSchedule: charged && !hasSchedule };
+  }
+
   async hrUpdatePassSlipTimeLog(hrUpdatePassSlipTimeRecordDto: HrUpdatePassSlipTimeRecordDto) {
     const { id, timeIn, timeOut } = hrUpdatePassSlipTimeRecordDto;
     const result = await this.crud().update({
@@ -1199,10 +1231,22 @@ export class PassSlipService extends CrudHelper<PassSlip> {
             value: '010a0d3a-5b3d-11ed-a08b-000c29f95a80',
           }
         : null,
-      { label: 'Pe, Charlene Marie D. ', value: 'af7bbec8-b26e-11ed-a79b-000c29f95a80' },
+      // HR pass slip approvers (EMS Settings > HR Pass Slip Approvers), never the applicant
+      ...(await this.getHrPassSlipApproversForDropdown(employeeData.employeeId)),
     ];
     return result
       .filter((n) => n)
-      .filter((value, index, self) => index === self.findIndex((item) => item.label === value.label && item.value === value.value));
+      .filter((value, index, self) => index === self.findIndex((item) => item.value === value.value)); // one entry per approver
+  }
+
+  /** EMS Settings > HR Pass Slip Approvers (ems_settings name 'hr_pass_slip_approver') as dropdown options */
+  private async getHrPassSlipApproversForDropdown(applicantId: string) {
+    return (await this.rawQuery(
+      `SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname2(s.value) label, s.value value
+         FROM ems_settings s
+        WHERE s.name = 'hr_pass_slip_approver' AND s.deleted_at IS NULL AND s.value <> ?
+        ORDER BY label`,
+      [applicantId]
+    )) as { label: string; value: string }[];
   }
 }
