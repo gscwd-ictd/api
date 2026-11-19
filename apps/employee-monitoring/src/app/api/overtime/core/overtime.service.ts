@@ -217,6 +217,9 @@ export class OvertimeService {
         return employee.value;
       })
     );
+    for (const id of await this.getEmployeeIdsOfOvertimesFiledByDirectReports(managerId)) {
+      if (!employeeIds.includes(id)) employeeIds.push(id);
+    }
 
     //3. get overtime employee ids for approval
     const overtimeApplication = await this.overtimeApplicationService.getOvertimeApplicationByEmployeeIdsAndOvertimeId(employeeIds, id);
@@ -282,6 +285,9 @@ export class OvertimeService {
     //2. get employeeIds from organization id
     const employees = await this.employeeService.getEmployeesByOrgId(managerOrgId);
     const employeeIds = employees.map((emp) => emp.value);
+    for (const id of await this.getEmployeeIdsOfOvertimesFiledByDirectReports(managerId)) {
+      if (!employeeIds.includes(id)) employeeIds.push(id);
+    }
 
     const count = (
       await this.overtimeApplicationService.rawQuery(
@@ -319,6 +325,10 @@ export class OvertimeService {
     ).filter((val) => {
       return val !== managerId;
     });
+    // + overtimes filed by employees whose supervisor is this manager (e.g. the org's own manager is separated)
+    for (const id of await this.getEmployeeIdsOfOvertimesFiledByDirectReports(managerId)) {
+      if (id !== managerId && !employeeIds.includes(id)) employeeIds.push(id);
+    }
 
     //3. get overtime employee ids for approval
     const overtimeApplications = await this.overtimeApplicationService.getOvertimeApplicationsByEmployeeIds(employeeIds, managerId);
@@ -912,9 +922,11 @@ export class OvertimeService {
     const supervisors = (await this.overtimeImmediateSupervisorService
       .crud()
       .findAll({ find: { select: { id: true, employeeId: true } } })) as OvertimeImmediateSupervisor[];
+    const activeIds = await this.getActiveEmployeeIds(supervisors.map((s) => s.employeeId));
 
     const employeeList = await Promise.all(
-      supervisors.map(async (supervisor) => {
+      // separated employees (latest NOSI/NOSA 'inactive') are not listed
+      supervisors.filter((supervisor) => activeIds.has(supervisor.employeeId)).map(async (supervisor) => {
         const { employeeId, id } = supervisor;
         const employeeDetails = await this.employeeService.getEmployeeDetails(employeeId);
 
@@ -2627,5 +2639,41 @@ export class OvertimeService {
     if (hours >= 4) deduction = Math.floor(hours / 4);
 
     return hours - deduction;
+  }
+
+  /** employees not separated (latest NOSI/NOSA is not 'inactive') */
+  private async getActiveEmployeeIds(employeeIds: string[]): Promise<Set<string>> {
+    if (employeeIds.length === 0) return new Set();
+    const rows = (await this.overtimeApplicationService.rawQuery(
+      `SELECT _id id FROM ${process.env.HRMS_DB_NAME}employees WHERE _id IN (?) AND ${process.env.HRMS_DB_NAME}is_active_employee(_id, CURDATE()) = 1;`,
+      [employeeIds]
+    )) as { id: string }[];
+    return new Set(rows.map((r) => r.id));
+  }
+
+  /**
+   * Employees on the overtimes (last 90 days) filed by someone whose supervisor (HRMS get_employee_supervisor,
+   * which skips separated managers) is this manager. The org-based approval list misses these when the filer's
+   * own manager is separated, e.g. a division / department whose manager retired.
+   */
+  private async getEmployeeIdsOfOvertimesFiledByDirectReports(managerId: string): Promise<string[]> {
+    const rows = (await this.overtimeApplicationService.rawQuery(
+      `SELECT DISTINCT oe.employee_id_fk employeeId
+         FROM overtime_application oa
+        INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id
+         LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
+        WHERE oa.planned_date >= DATE_ADD(NOW(), INTERVAL -90 DAY)
+          AND COALESCE(ois.employee_id_fk, oa.manager_id_fk) IN (
+                SELECT f.filer FROM (
+                  SELECT DISTINCT COALESCE(ois2.employee_id_fk, oa2.manager_id_fk) filer
+                    FROM overtime_application oa2
+                    LEFT JOIN overtime_immediate_supervisor ois2 ON ois2.overtime_immediate_supervisor_id = oa2.overtime_immediate_supervisor_id_fk
+                   WHERE oa2.planned_date >= DATE_ADD(NOW(), INTERVAL -90 DAY)
+                ) f
+                WHERE f.filer <> ? AND ${process.env.HRMS_DB_NAME}get_employee_supervisor(f.filer) = ?
+              );`,
+      [managerId, managerId]
+    )) as { employeeId: string }[];
+    return rows.map((r) => r.employeeId);
   }
 }

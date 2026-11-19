@@ -1234,8 +1234,17 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       // HR pass slip approvers (EMS Settings > HR Pass Slip Approvers), never the applicant
       ...(await this.getHrPassSlipApproversForDropdown(employeeData.employeeId)),
     ];
-    return result
-      .filter((n) => n)
+    // separated employees (latest NOSI/NOSA 'inactive') cannot approve
+    const candidates = result.filter((n) => n);
+    const active = candidates.length
+      ? ((await this.rawQuery(
+          `SELECT _id id FROM ${process.env.HRMS_DB_NAME}employees WHERE _id IN (?) AND ${process.env.HRMS_DB_NAME}is_active_employee(_id, CURDATE()) = 1;`,
+          [candidates.map((c) => c.value)]
+        )) as { id: string }[])
+      : [];
+    const activeIds = new Set(active.map((a) => a.id));
+    return candidates
+      .filter((n) => activeIds.has(n.value))
       .filter((value, index, self) => index === self.findIndex((item) => item.value === value.value)); // one entry per approver
   }
 
