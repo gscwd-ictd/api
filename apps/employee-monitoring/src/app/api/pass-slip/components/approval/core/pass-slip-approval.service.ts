@@ -1,7 +1,7 @@
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { PassSlipApproval, UpdatePassSlipApprovalDto } from '@gscwd-api/models';
 import { PassSlipApprovalStatus } from '@gscwd-api/utils';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import dayjs = require('dayjs');
 
 @Injectable()
@@ -14,7 +14,15 @@ export class PassSlipApprovalService extends CrudHelper<PassSlipApproval> {
     const { status, passSlipId, disputeRemarks, encodedTimeIn, isDisputeApproved, hrmoDisapprovalRemarks } = updatePassSlipApprovalDto;
 
     let updateResult;
-    if (status === PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL || status === PassSlipApprovalStatus.DISAPPROVED_BY_HRMO) {
+    if (status === PassSlipApprovalStatus.CANCELLED) {
+      // employee or manager cancels: the reason is required
+      const cancelRemarks = (updatePassSlipApprovalDto.cancelRemarks ?? '').trim();
+      if (cancelRemarks.length < 5) throw new BadRequestException('Please give the reason for cancelling the pass slip.');
+      updateResult = await this.crudService.update({
+        dto: { status, cancelRemarks, cancelledBy: updatePassSlipApprovalDto.cancelledBy ?? null, cancelledAt: dayjs().toDate() },
+        updateBy: { passSlipId },
+      });
+    } else if (status === PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL || status === PassSlipApprovalStatus.DISAPPROVED_BY_HRMO) {
       if (status === PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL)
         updateResult = await this.crudService.update({ dto: { status, hrmoApprovalDate: dayjs().toDate() }, updateBy: { passSlipId } });
       else if (status === PassSlipApprovalStatus.DISAPPROVED_BY_HRMO)

@@ -1,3 +1,4 @@
+import { assertNotSeparated } from './utils/employee-separation.util';
 import {
   LeaveApplicationDates,
   LeaveDateCancellationDto,
@@ -70,6 +71,16 @@ export class LeaveService {
   }
 
   async cancelLeaveDate(leaveDateCancellationDto: LeaveDateCancellationDto) {
+    const owner = (await this.leaveApplicationService.rawQuery(
+      `SELECT la.employee_id_fk employeeId FROM leave_application la WHERE la.leave_application_id = ?;`,
+      [
+        typeof leaveDateCancellationDto.leaveApplicationId === 'string'
+          ? leaveDateCancellationDto.leaveApplicationId
+          : (leaveDateCancellationDto.leaveApplicationId as unknown as { id: string })?.id,
+      ]
+    )) as { employeeId: string }[];
+    if (owner[0]?.employeeId)
+      await assertNotSeparated((sql, params) => this.leaveApplicationService.rawQuery(sql, params), owner[0].employeeId, 'Cancelling leave dates');
     const result = await this.dataSource.transaction(async (entityManager: EntityManager) => {
       return await this.leaveApplicationDatesService.cancelLeaveDateTransaction(entityManager, leaveDateCancellationDto);
     });
@@ -369,7 +380,16 @@ export class LeaveService {
   async cancelLeave(updateLeaveApplicationEmployeeStatus: UpdateLeaveApplicationEmployeeStatus) {
     const { id, ...rest } = updateLeaveApplicationEmployeeStatus;
 
-    const leaveApplication = await this.leaveApplicationService.crud().findOne({ find: { select: { id: true, status: true }, where: { id } } });
+    const leaveApplication = await this.leaveApplicationService
+      .crud()
+      .findOne({ find: { select: { id: true, status: true, employeeId: true }, where: { id } } });
+    // an approved leave cancelled after separation would add credits back
+    if (leaveApplication.status === 'approved')
+      await assertNotSeparated(
+        (sql, params) => this.leaveApplicationService.rawQuery(sql, params),
+        leaveApplication.employeeId,
+        'Cancelling an approved leave'
+      );
 
     const cancelLeave = await this.leaveApplicationService.crud().update({
       dto: { status: LeaveApplicationStatus.CANCELLED, cancelDate: dayjs().toDate(), ...rest },
@@ -470,6 +490,7 @@ export class LeaveService {
         });
       }
     } else if (category === 'credit') {
+      await assertNotSeparated((sql, params) => this.leaveApplicationService.rawQuery(sql, params), employeeId, 'Adding leave credits');
       const leaveCreditEarningId = await this.leaveCreditEarningsService
         .crud()
         .create({ dto: { creditDate: dayjs().toDate(), creditValue: value, leaveBenefitsId, employeeId, remarks } });

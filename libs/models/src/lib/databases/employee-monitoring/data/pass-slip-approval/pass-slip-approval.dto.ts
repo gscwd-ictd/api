@@ -22,6 +22,16 @@ export class PassSlipHrCancellationDto {
 export class UpdatePassSlipApprovalDto {
   passSlipId?: PassSlip;
 
+  /** required when the status is cancelled */
+  @IsOptional()
+  @IsString()
+  cancelRemarks?: string;
+
+  /** employee id of who cancelled (the employee or the manager) */
+  @IsOptional()
+  @IsString()
+  cancelledBy?: string;
+
   @IsOptional()
   @IsEnum(PassSlipApprovalStatus)
   status: PassSlipApprovalStatus;

@@ -1,5 +1,5 @@
-import { CreateLeaveApplicationDto } from '@gscwd-api/models';
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { CreateLeaveApplicationDto, UpdateLeaveApplicationDto } from '@gscwd-api/models';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { LeaveApplicationGuard } from '../misc/leave-application.guard';
 import { LeaveApplicationService } from './leave-application.service';
 import { Throttle } from '@nestjs/throttler';
@@ -15,6 +15,13 @@ export class LeaveApplicationController {
     return await this.leaveApplicationService.createLeaveApplication(createLeaveApplicationDto);
   }
 
+  /** employee edits own leave application until the HRMO certifies it (leave type cannot be changed) */
+  @Throttle({ default: { limit: 1, ttl: 5000 } })
+  @Put(':leave_application_id')
+  async updateLeaveApplication(@Param('leave_application_id') id: string, @Body() updateLeaveApplicationDto: UpdateLeaveApplicationDto) {
+    return await this.leaveApplicationService.updateLeaveApplication(id, updateLeaveApplicationDto);
+  }
+
   @Get('details/:employee_id/:leave_application_id')
   async getLeaveApplicationDetails(@Param('employee_id') employeeId: string, @Param('leave_application_id') leaveApplicationId: string) {
     return await this.leaveApplicationService.getLeaveApplicationDetails(leaveApplicationId, employeeId);
@@ -26,8 +33,8 @@ export class LeaveApplicationController {
   }
 
   @Get('unavailable-dates/:employee_id')
-  async getUnavailableDates(@Param('employee_id') employeeId: string) {
-    return await this.leaveApplicationService.getUnavailableDates(employeeId);
+  async getUnavailableDates(@Param('employee_id') employeeId: string, @Query('exclude') excludeLeaveApplicationId?: string) {
+    return await this.leaveApplicationService.getUnavailableDates(employeeId, excludeLeaveApplicationId);
   }
 
   @Get('supervisor/:supervisor_id')

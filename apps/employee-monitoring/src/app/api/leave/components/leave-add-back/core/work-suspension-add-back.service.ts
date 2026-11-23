@@ -1,3 +1,4 @@
+import { getEmployeeSeparation } from '../../../core/utils/employee-separation.util';
 import {
   LeaveAddBack,
   LeaveApplicationDates,
@@ -173,6 +174,7 @@ export class WorkSuspensionAddBackService {
   }
 
   private async processLeave(suspension: WorkSuspension, candidate: LeaveCandidate): Promise<'created' | 'skipped'> {
+    if (await this.isSeparated(candidate.employeeId)) return 'skipped';
     const fraction = await this.fractionFor(candidate.employeeId, suspension);
     const entries = computeLeaveAddBack({ leaveName: candidate.leaveName, leaveTypes: candidate.leaveTypes }, suspension.suspensionType, fraction);
     if (entries.length === 0) return 'skipped';
@@ -216,7 +218,13 @@ export class WorkSuspensionAddBackService {
     });
   }
 
+  /** separated employees (nosi_nosa inactive) get no add-back: their leave ledger has ended */
+  private async isSeparated(employeeId: string): Promise<boolean> {
+    return (await getEmployeeSeparation((sql, params) => this.dataSource.query(sql, params), employeeId)) !== null;
+  }
+
   private async processPassSlip(suspension: WorkSuspension, candidate: PassSlipCandidate): Promise<'created' | 'skipped'> {
+    if (await this.isSeparated(candidate.employeeId)) return 'skipped';
     if ((await this.fractionFor(candidate.employeeId, suspension)) <= 0) return 'skipped';
     return await this.dataSource.transaction(async (manager) => {
       if (await this.alreadyCredited(manager, suspension.id, candidate.passSlipId, false)) return 'skipped';
