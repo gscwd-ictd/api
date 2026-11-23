@@ -1,5 +1,5 @@
 import { CreateLeaveApplicationDto, UpdateLeaveApplicationDto } from '@gscwd-api/models';
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { LeaveApplicationGuard } from '../misc/leave-application.guard';
 import { LeaveApplicationService } from './leave-application.service';
 import { Throttle } from '@nestjs/throttler';
@@ -33,8 +33,8 @@ export class LeaveApplicationController {
   }
 
   @Get('unavailable-dates/:employee_id')
-  async getUnavailableDates(@Param('employee_id') employeeId: string) {
-    return await this.leaveApplicationService.getUnavailableDates(employeeId);
+  async getUnavailableDates(@Param('employee_id') employeeId: string, @Query('exclude') excludeLeaveApplicationId?: string) {
+    return await this.leaveApplicationService.getUnavailableDates(employeeId, excludeLeaveApplicationId);
   }
 
   @Get('supervisor/:supervisor_id')
