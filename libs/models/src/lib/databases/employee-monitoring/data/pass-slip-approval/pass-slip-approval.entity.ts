@@ -26,4 +26,14 @@ export class PassSlipApproval extends DatabaseEntity implements IEntity {
 
   @Column({ name: 'status', type: 'enum', enum: PassSlipApprovalStatus })
   status: PassSlipApprovalStatus;
+
+  /** reason given by the employee or the manager when the pass slip is cancelled (required) */
+  @Column({ name: 'cancel_remarks', nullable: true, default: null, type: 'text' })
+  cancelRemarks: string;
+
+  @Column({ name: 'cancelled_by', nullable: true, default: null })
+  cancelledBy: string;
+
+  @Column({ name: 'cancelled_at', type: 'datetime', nullable: true, default: null })
+  cancelledAt: Date;
 }

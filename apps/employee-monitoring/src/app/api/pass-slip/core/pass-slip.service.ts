@@ -113,7 +113,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipsForApproval = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, cancelRemarks: true, cancelledAt: true },
         where: { supervisorId, status: PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL },
         order: { passSlipId: { dateOfApplication: 'ASC' } },
       },
@@ -137,7 +137,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, cancelRemarks: true, cancelledAt: true },
         where: { supervisorId, status: PassSlipApprovalStatus.APPROVED },
       },
     });
@@ -160,7 +160,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipsDisapproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, cancelRemarks: true, cancelledAt: true },
         where: { supervisorId, status: PassSlipApprovalStatus.DISAPPROVED },
       },
     });
@@ -182,7 +182,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipsCancelled = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, cancelRemarks: true, cancelledAt: true },
         where: { supervisorId, status: PassSlipApprovalStatus.CANCELLED },
       },
     });
@@ -207,7 +207,15 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlips = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true, hrmoApprovalDate: true, supervisorApprovalDate: true, hrmoDisapprovalRemarks: true },
+        select: {
+          supervisorId: true,
+          status: true,
+          hrmoApprovalDate: true,
+          supervisorApprovalDate: true,
+          hrmoDisapprovalRemarks: true,
+          cancelRemarks: true,
+          cancelledAt: true,
+        },
         where: [
           {
             supervisorId,
@@ -245,7 +253,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, cancelRemarks: true, cancelledAt: true },
         where: { passSlipId: { employeeId }, status: PassSlipApprovalStatus.APPROVED },
       },
     });
@@ -279,7 +287,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipsApproved = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, cancelRemarks: true, cancelledAt: true },
         where: [
           {
             passSlipId: { ...basePassSlip, natureOfBusiness: NatureOfBusiness.PERSONAL, timeIn: IsNull() },
@@ -333,7 +341,15 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlipsForApproval = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true, hrmoApprovalDate: true, hrmoDisapprovalRemarks: true, supervisorApprovalDate: true },
+        select: {
+          supervisorId: true,
+          status: true,
+          hrmoApprovalDate: true,
+          hrmoDisapprovalRemarks: true,
+          cancelRemarks: true,
+          cancelledAt: true,
+          supervisorApprovalDate: true,
+        },
         where: [
           { passSlipId: { employeeId }, status: PassSlipApprovalStatus.FOR_SUPERVISOR_APPROVAL },
           { passSlipId: { employeeId }, status: PassSlipApprovalStatus.FOR_HRMO_APPROVAL },
@@ -383,7 +399,9 @@ export class PassSlipService extends CrudHelper<PassSlip> {
         ps.is_deductible_to_pay isDeductibleToPay, 
         is_cancelled isCancelled,
         DATE_FORMAT(psa.hrmo_approval_date,'%Y-%m-%d %H:%i:%s') hrmoApprovalDate,
-        hrmo_disapproval_remarks hrmoDisapprovalRemarks
+        hrmo_disapproval_remarks hrmoDisapprovalRemarks,
+        psa.cancel_remarks cancelRemarks,
+        DATE_FORMAT(psa.cancelled_at,'%Y-%m-%d %H:%i:%s') cancelledAt
       FROM pass_slip_approval psa 
         INNER JOIN pass_slip ps ON ps.pass_slip_id = psa.pass_slip_id_fk 
       WHERE ps.employee_id_fk = ? AND 
@@ -426,6 +444,8 @@ export class PassSlipService extends CrudHelper<PassSlip> {
       hrmoApprovalDate: Date;
       isDeductibleToPay: boolean;
       hrmoDisapprovalRemarks: string;
+      cancelRemarks: string;
+      cancelledAt: string;
     }[];
 
     const approvedDisapproved = await Promise.all(
@@ -541,7 +561,7 @@ export class PassSlipService extends CrudHelper<PassSlip> {
     const passSlips = <PassSlipApproval[]>await this.passSlipApprovalService.crud().findAll({
       find: {
         relations: { passSlipId: true },
-        select: { supervisorId: true, status: true },
+        select: { supervisorId: true, status: true, cancelRemarks: true, cancelledAt: true },
         order: { createdAt: 'DESC', status: 'ASC' },
         where: [{ passSlipId: { timeIn: Not(IsNull()), timeOut: IsNull() } }, { passSlipId: { timeIn: IsNull(), timeOut: IsNull() } }],
       },
