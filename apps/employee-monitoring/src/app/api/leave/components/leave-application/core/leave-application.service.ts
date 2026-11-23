@@ -97,10 +97,29 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
             )
           )[0].used
         );
-        if (used + requested > LeaveApplicationService.SPL_DAYS_PER_YEAR)
+        // SPL credits added back in the ledger without a link to the leave date (HR adjustments such as
+        // "Add back SPL credit used on June 9, 2026 due to work suspension." / "Add Back | Work Suspension ...");
+        // the linked ones (leave_add_back, add_back_source_id) are already left out of "used" above
+        const addedBack = Number(
+          (
+            await this.rawQuery(
+              `SELECT COALESCE(SUM(lce.credit_value), 0) addedBack
+                 FROM leave_credit_earnings lce
+                INNER JOIN leave_benefits lb ON lb.leave_benefits_id = lce.leave_benefits_id_fk
+                WHERE lce.employee_id_fk = ? AND lb.leave_name = 'Special Privilege Leave' AND YEAR(lce.credit_date) = ?
+                  AND lce.deleted_at IS NULL AND LOWER(IFNULL(lce.remarks, '')) LIKE '%add back%'
+                  ${(await this.hasAddBackSourceColumn()) ? 'AND lce.add_back_source_id IS NULL' : ''};`,
+              [employeeId, year]
+            )
+          )[0].addedBack
+        );
+        const usedNet = Math.max(0, used - Math.floor(addedBack));
+        if (usedNet + requested > LeaveApplicationService.SPL_DAYS_PER_YEAR)
           throw new ForbiddenException(
             `Special Privilege Leave is limited to ${LeaveApplicationService.SPL_DAYS_PER_YEAR} days per year. ` +
-              `Already used/applied in ${year}: ${used}; requested: ${requested}.`
+              `Already used/applied in ${year}: ${usedNet}${
+                addedBack > 0 ? ` (${used} less ${Math.floor(addedBack)} added back)` : ''
+              }; requested: ${requested}.`
           );
       }
     }
