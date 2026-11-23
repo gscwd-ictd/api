@@ -21,6 +21,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { truncate2 } from '../utils/truncate.util';
 import dayjs = require('dayjs');
@@ -339,7 +340,7 @@ export class OvertimeService {
     const overtimeApplicationsWithSupervisorName = await Promise.all(
       overtimeApplications.map(async (overtimeApplication) => {
         const { employeeId, overtimeApplicationId, ...rest } = overtimeApplication;
-        const immediateSupervisorName = (await this.employeeService.getBasicEmployeeDetails(employeeId)).employeeFullName;
+        const immediateSupervisorName = (await this.getBasicEmployeeDetailsOrFallback(employeeId)).employeeFullName;
 
         const employees = (await this.overtimeEmployeeService.crud().findAll({
           find: {
@@ -354,7 +355,7 @@ export class OvertimeService {
         const employeesWithDetails = await Promise.all(
           employees.map(async (employee) => {
             const { employeeId } = employee;
-            const employeeDetail = await this.employeeService.getBasicEmployeeDetailsByEmployeeId(employeeId);
+            const employeeDetail = await this.getBasicEmployeeDetailsOrFallback(employeeId);
 
             const { assignment, employeeFullName, companyId, photoUrl } = employeeDetail;
 
@@ -367,7 +368,7 @@ export class OvertimeService {
             WHERE oe.employee_id_fk = ? AND oe.overtime_application_id_fk = ?;`,
                 [employeeId, overtimeApplication.overtimeApplicationId]
               )
-            )[0];
+            )[0] ?? { isAccomplishmentSubmitted: false, status: null, overtimeAccomplishmentId: null };
 
             const overtimeEmployeeEncodedHours = await this.getOvertimeEmployeeEncodedHours(employeeId, overtimeApplicationId);
 
@@ -2664,23 +2665,56 @@ export class OvertimeService {
    * which skips separated managers) is this manager. The org-based approval list misses these when the filer's
    * own manager is separated, e.g. a division / department whose manager retired.
    */
+  /**
+   * employee details for the approval lists; an employee HRMS cannot return (e.g. separated, position removed)
+   * no longer fails the whole list: name and company id come from the employees table
+   */
+  private async getBasicEmployeeDetailsOrFallback(employeeId: string) {
+    try {
+      const details = await this.employeeService.getBasicEmployeeDetailsByEmployeeId(employeeId);
+      if (details?.assignment) return details;
+    } catch (error) {
+      Logger.warn(`OT approvals: no HRMS details for employee ${employeeId}`);
+    }
+    const row = (
+      (await this.overtimeApplicationService.rawQuery(
+        `SELECT company_id companyId, ${process.env.HRMS_DB_NAME}get_employee_fullname2(_id) employeeFullName
+           FROM ${process.env.HRMS_DB_NAME}employees WHERE _id = ?`,
+        [employeeId]
+      )) as { companyId: string; employeeFullName: string }[]
+    )[0];
+    return {
+      userId: employeeId,
+      companyId: row?.companyId ?? null,
+      employeeFullName: row?.employeeFullName ?? 'N/A',
+      photoUrl: null,
+      assignment: { id: null, name: 'N/A', positionId: null, positionTitle: 'N/A' },
+    };
+  }
+
   private async getEmployeeIdsOfOvertimesFiledByDirectReports(managerId: string): Promise<string[]> {
+    // the supervisor is compared here, not in SQL: the HRMS function returns another collation than the EMS connection
+    // (prod: "Illegal mix of collations" on get_employee_supervisor(...) = ?)
+    const filers = (await this.overtimeApplicationService.rawQuery(
+      `SELECT f.filer, ${process.env.HRMS_DB_NAME}get_employee_supervisor(f.filer) supervisor FROM (
+          SELECT DISTINCT COALESCE(ois.employee_id_fk, oa.manager_id_fk) filer
+            FROM overtime_application oa
+            LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
+           WHERE oa.planned_date >= DATE_ADD(NOW(), INTERVAL -90 DAY)
+        ) f
+       WHERE f.filer IS NOT NULL`
+    )) as { filer: string; supervisor: string }[];
+    const directReports = filers.filter((f) => f.filer !== managerId && f.supervisor === managerId).map((f) => f.filer);
+    if (directReports.length === 0) return [];
+
     const rows = (await this.overtimeApplicationService.rawQuery(
       `SELECT DISTINCT oe.employee_id_fk employeeId
          FROM overtime_application oa
         INNER JOIN overtime_employee oe ON oe.overtime_application_id_fk = oa.overtime_application_id
          LEFT JOIN overtime_immediate_supervisor ois ON ois.overtime_immediate_supervisor_id = oa.overtime_immediate_supervisor_id_fk
         WHERE oa.planned_date >= DATE_ADD(NOW(), INTERVAL -90 DAY)
-          AND COALESCE(ois.employee_id_fk, oa.manager_id_fk) IN (
-                SELECT f.filer FROM (
-                  SELECT DISTINCT COALESCE(ois2.employee_id_fk, oa2.manager_id_fk) filer
-                    FROM overtime_application oa2
-                    LEFT JOIN overtime_immediate_supervisor ois2 ON ois2.overtime_immediate_supervisor_id = oa2.overtime_immediate_supervisor_id_fk
-                   WHERE oa2.planned_date >= DATE_ADD(NOW(), INTERVAL -90 DAY)
-                ) f
-                WHERE f.filer <> ? AND ${process.env.HRMS_DB_NAME}get_employee_supervisor(f.filer) = ?
-              );`,
-      [managerId, managerId]
+          AND COALESCE(ois.employee_id_fk, oa.manager_id_fk) IN (?)`,
+      [directReports]
     )) as { employeeId: string }[];
     return rows.map((r) => r.employeeId);
   }
