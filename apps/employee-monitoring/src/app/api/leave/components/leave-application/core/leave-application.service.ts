@@ -1,3 +1,4 @@
+import { assertNotSeparated } from '../../../core/utils/employee-separation.util';
 import { CrudHelper, CrudService } from '@gscwd-api/crud';
 import { CreateLeaveApplicationDto, LeaveApplicationDates, LeaveBenefits, UpdateLeaveApplicationDto } from '@gscwd-api/models';
 import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
@@ -142,6 +143,15 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
   async createLeaveApplication(createLeaveApplication: CreateLeaveApplicationDto) {
     const { leaveBenefitId, employeeId } = createLeaveApplication;
     const benefitsId = (createLeaveApplication as unknown as { leaveBenefitsId?: string }).leaveBenefitsId ?? (leaveBenefitId as unknown as string);
+    // separated employees file no more leave, except Terminal Leave (the end of their ledger)
+    const benefitName = benefitsId
+      ? (
+          (await this.rawQuery(`SELECT leave_name leaveName FROM leave_benefits WHERE leave_benefits_id = ?;`, [benefitsId]))[0] as {
+            leaveName: string;
+          }
+        )?.leaveName
+      : null;
+    if (benefitName !== 'Terminal Leave') await assertNotSeparated((sql, params) => this.rawQuery(sql, params), employeeId, 'Filing a leave');
     await this.validateLeaveFilingRules(employeeId, benefitsId, createLeaveApplication.leaveApplicationDates);
 
     // const pendingSameLeaveType = await this.crud().findOneOrNull({
@@ -338,6 +348,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       )[0];
 
       if (!current) throw new NotFoundException('Leave application not found.');
+      await assertNotSeparated((sql, params) => em.query(sql, params), current.employeeId, 'Editing a leave');
       if (employeeId && current.employeeId !== employeeId) throw new ForbiddenException('You can only edit your own leave application.');
       if (current.status !== LeaveApplicationStatus.FOR_HRMO_CREDIT_CERTIFICATION)
         throw new ForbiddenException('This leave application can no longer be edited. It has already been certified by the HRMO.');
