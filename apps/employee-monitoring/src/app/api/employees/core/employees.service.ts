@@ -30,7 +30,14 @@ export class EmployeesService {
       },
     })) as { employeeId: string; companyId: string }[];
 
-    return employees;
+    // separated per nosi_nosa (latest record inactive, effective today or earlier): no more ledger credits / debits
+    const separated = (await this.dataSource.query(
+      `SELECT nn.employee_id_fk employeeId FROM ${process.env.HRMS_DB_NAME}nosi_nosa nn
+        WHERE nn.status = 'inactive' AND nn.effectivity_date <= CURDATE()
+          AND nn.effectivity_date = (SELECT MAX(nn2.effectivity_date) FROM ${process.env.HRMS_DB_NAME}nosi_nosa nn2 WHERE nn2.employee_id_fk = nn.employee_id_fk);`
+    )) as { employeeId: string }[];
+    const separatedIds = new Set(separated.map((s) => s.employeeId));
+    return employees.filter((e) => !separatedIds.has(e.employeeId));
   }
 
   async getBasicEmployeeDetailsByEmployeeId(
