@@ -57,7 +57,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
    *  - Special Privilege Leave: at most 3 days per year (by leave date), not counting cancelled or
    *    disapproved dates and dates whose credit was added back (work suspension / cancellation).
    */
-  async validateLeaveFilingRules(employeeId: string, leaveBenefitsId: string, leaveDates: unknown) {
+  async validateLeaveFilingRules(employeeId: string, leaveBenefitsId: string, leaveDates: unknown, excludeLeaveApplicationId?: string) {
     if (!leaveBenefitsId) return;
     const benefit = (await this.rawQuery(`SELECT leave_name leaveName FROM leave_benefits WHERE leave_benefits_id = ?;`, [leaveBenefitsId]))[0] as
       | { leaveName: string }
@@ -83,6 +83,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
                 INNER JOIN leave_application_dates lad ON lad.leave_application_id_fk = la.leave_application_id
                 INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
                 WHERE la.employee_id_fk = ? AND lb.leave_name = 'Special Privilege Leave' AND YEAR(lad.leave_date) = ?
+                  AND la.leave_application_id <> ?
                   AND la.status NOT IN ('cancelled','disapproved by supervisor','disapproved by hrdm','disapproved by hrmo')
                   AND lad.status NOT IN ('cancelled','disapproved')
                   AND NOT EXISTS (SELECT 1 FROM leave_add_back lab WHERE lab.leave_application_dates_id_fk = lad.leave_application_date_id)
@@ -92,7 +93,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
                                          WHERE lce.add_back_source_id = lad.leave_application_date_id AND lce.leave_benefits_id_fk = lb.leave_benefits_id)`
                       : ''
                   };`,
-              [employeeId, year]
+              [employeeId, year, excludeLeaveApplicationId ?? '']
             )
           )[0].used
         );
@@ -121,8 +122,7 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
 
   async createLeaveApplication(createLeaveApplication: CreateLeaveApplicationDto) {
     const { leaveBenefitId, employeeId } = createLeaveApplication;
-    const benefitsId =
-      (createLeaveApplication as unknown as { leaveBenefitsId?: string }).leaveBenefitsId ?? (leaveBenefitId as unknown as string);
+    const benefitsId = (createLeaveApplication as unknown as { leaveBenefitsId?: string }).leaveBenefitsId ?? (leaveBenefitId as unknown as string);
     await this.validateLeaveFilingRules(employeeId, benefitsId, createLeaveApplication.leaveApplicationDates);
 
     // const pendingSameLeaveType = await this.crud().findOneOrNull({
@@ -272,6 +272,114 @@ export class LeaveApplicationService extends CrudHelper<LeaveApplication> {
       };
     });
     return result;
+  }
+
+  /** fields the employee may change; the leave type, dates of filing and approvals are not editable */
+  static readonly EDITABLE_FIELDS: Record<string, string> = {
+    inPhilippines: 'in_philippines',
+    abroad: 'abroad',
+    inHospital: 'in_hospital',
+    outPatient: 'out_patient',
+    splWomen: 'spl_women',
+    forMastersCompletion: 'for_masters_completion',
+    forBarBoardReview: 'for_bar_board_review',
+    studyLeaveOther: 'study_leave_other',
+    requestedCommutation: 'requested_commutation',
+    isLateFiling: 'is_late_filing',
+    lateFilingJustification: 'late_filing_justification',
+  };
+
+  /**
+   * Employee edits own leave application while it is not yet certified by the HRMO (status "for hrmo credit certification").
+   * Everything but the leave type can be changed: the leave dates and the details (place, illness, study, commutation, late filing).
+   * Monetization and terminal leave applications cannot be edited (cancel and file again).
+   */
+  async updateLeaveApplication(leaveApplicationId: string, dto: UpdateLeaveApplicationDto) {
+    const { employeeId, leaveApplicationDates } = dto;
+    const leaveBenefitId = ((dto as unknown as { leaveBenefitsId?: string }).leaveBenefitsId ?? dto.leaveBenefitId) as unknown as string;
+
+    return await this.dataSource.transaction(async (em) => {
+      // lock the row: HRMO certification at the same time waits for this edit
+      const current = (
+        (await em.query(
+          `SELECT la.employee_id_fk employeeId, la.status, la.leave_benefits_id_fk leaveBenefitsId, la.for_monetization forMonetization,
+                  la.is_terminal_leave isTerminalLeave, lb.leave_name leaveName
+             FROM leave_application la
+            INNER JOIN leave_benefits lb ON lb.leave_benefits_id = la.leave_benefits_id_fk
+            WHERE la.leave_application_id = ? FOR UPDATE;`,
+          [leaveApplicationId]
+        )) as {
+          employeeId: string;
+          status: LeaveApplicationStatus;
+          leaveBenefitsId: string;
+          forMonetization: number;
+          isTerminalLeave: number;
+          leaveName: string;
+        }[]
+      )[0];
+
+      if (!current) throw new NotFoundException('Leave application not found.');
+      if (employeeId && current.employeeId !== employeeId) throw new ForbiddenException('You can only edit your own leave application.');
+      if (current.status !== LeaveApplicationStatus.FOR_HRMO_CREDIT_CERTIFICATION)
+        throw new ForbiddenException('This leave application can no longer be edited. It has already been certified by the HRMO.');
+      if (leaveBenefitId && leaveBenefitId !== current.leaveBenefitsId) throw new ForbiddenException('The leave type cannot be changed.');
+      if (Number(current.forMonetization) === 1 || Number(current.isTerminalLeave) === 1 || current.leaveName === 'Terminal Leave')
+        throw new ForbiddenException('Monetization and terminal leave applications cannot be edited. Cancel it and file again.');
+
+      // 1. details
+      const sets: string[] = [];
+      const values: unknown[] = [];
+      for (const [field, column] of Object.entries(LeaveApplicationService.EDITABLE_FIELDS)) {
+        if (field in dto) {
+          sets.push(`${column} = ?`);
+          values.push((dto as Record<string, unknown>)[field] ?? null);
+        }
+      }
+      if (sets.length)
+        await em.query(`UPDATE leave_application SET ${sets.join(', ')} WHERE leave_application_id = ?;`, [...values, leaveApplicationId]);
+
+      // 2. leave dates (only when sent): replace the dates
+      let dates: unknown = undefined;
+      if (leaveApplicationDates !== undefined && leaveApplicationDates !== null) {
+        let newDates: string[] = [];
+        if (isArray(leaveApplicationDates)) newDates = (leaveApplicationDates as Date[]).map((d) => dayjs(d).format('YYYY-MM-DD'));
+        if (newDates.length === 0 && !isArray(leaveApplicationDates) && !(leaveApplicationDates as { from: Date }).from)
+          throw new ForbiddenException('Select the leave dates.');
+
+        await this.validateLeaveFilingRules(current.employeeId, current.leaveBenefitsId, leaveApplicationDates, leaveApplicationId);
+
+        await em.query(`DELETE FROM leave_application_dates WHERE leave_application_id_fk = ?;`, [leaveApplicationId]);
+        if (isArray(leaveApplicationDates)) {
+          dates = await Promise.all(
+            (leaveApplicationDates as Date[]).map(async (leaveDate) =>
+              this.leaveApplicationDatesService.createApplicationDatesTransaction(em, {
+                leaveDate,
+                leaveApplicationId: { id: leaveApplicationId } as LeaveApplication,
+              })
+            )
+          );
+        } else {
+          const { from, to } = leaveApplicationDates as { from: Date; to: Date };
+          dates = (await em.query(`CALL sp_generate_date_range(?,?,?,?);`, [current.employeeId, leaveApplicationId, from, to]))[0];
+        }
+
+        // no overlap with the employee's other leave applications
+        const overlap = (await em.query(
+          `SELECT DATE_FORMAT(lad.leave_date, '%Y-%m-%d') leaveDate
+             FROM leave_application_dates lad
+            INNER JOIN leave_application la ON la.leave_application_id = lad.leave_application_id_fk
+            WHERE la.employee_id_fk = ? AND la.leave_application_id <> ?
+              AND la.status NOT IN ('cancelled','disapproved by supervisor','disapproved by hrdm','disapproved by hrmo')
+              AND lad.status NOT IN ('cancelled','disapproved')
+              AND lad.leave_date IN (SELECT leave_date FROM leave_application_dates WHERE leave_application_id_fk = ?);`,
+          [current.employeeId, leaveApplicationId, leaveApplicationId]
+        )) as { leaveDate: string }[];
+        if (overlap.length)
+          throw new ForbiddenException(`You already have a leave on: ${overlap.map((o) => dayjs(o.leaveDate).format('MMM DD, YYYY')).join(', ')}.`);
+      }
+
+      return { leaveApplicationId, leaveApplicationDates: dates, numberOfDays: isArray(dates) ? dates.length : undefined };
+    });
   }
 
   async getLeaveApplicationByEmployeeId(employeeId: string) {

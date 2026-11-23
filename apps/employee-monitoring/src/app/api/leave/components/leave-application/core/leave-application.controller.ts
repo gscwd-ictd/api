@@ -1,5 +1,5 @@
-import { CreateLeaveApplicationDto } from '@gscwd-api/models';
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { CreateLeaveApplicationDto, UpdateLeaveApplicationDto } from '@gscwd-api/models';
+import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { LeaveApplicationGuard } from '../misc/leave-application.guard';
 import { LeaveApplicationService } from './leave-application.service';
 import { Throttle } from '@nestjs/throttler';
@@ -13,6 +13,13 @@ export class LeaveApplicationController {
   @Post()
   async addLeaveApplication(@Body() createLeaveApplicationDto: CreateLeaveApplicationDto) {
     return await this.leaveApplicationService.createLeaveApplication(createLeaveApplicationDto);
+  }
+
+  /** employee edits own leave application until the HRMO certifies it (leave type cannot be changed) */
+  @Throttle({ default: { limit: 1, ttl: 5000 } })
+  @Put(':leave_application_id')
+  async updateLeaveApplication(@Param('leave_application_id') id: string, @Body() updateLeaveApplicationDto: UpdateLeaveApplicationDto) {
+    return await this.leaveApplicationService.updateLeaveApplication(id, updateLeaveApplicationDto);
   }
 
   @Get('details/:employee_id/:leave_application_id')
