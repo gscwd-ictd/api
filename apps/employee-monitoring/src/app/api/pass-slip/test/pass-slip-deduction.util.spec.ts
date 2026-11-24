@@ -38,6 +38,21 @@ describe('pass slip deductions', () => {
     it('missing IN uses schedule time out', () => {
       expect(credits(NatureOfBusiness.PERSONAL, '15:00:00', null)).toBe(0.25);
     });
+    it('IN after the schedule time out counts only up to the schedule time out', () => {
+      // out 3:00 PM, back 5:16 PM, schedule out 5:00 PM -> 120 min, not 136
+      expect(credits(NatureOfBusiness.PERSONAL, '15:00:00', '17:16:00')).toBe(0.25);
+    });
+    it('Wellness Pass IN after the schedule time out is capped too', () => {
+      expect(
+        computeDeductibleMinutes({
+          natureOfBusiness: NatureOfBusiness.WELLNESS_PASS,
+          timeOut: '15:00:00',
+          timeIn: '17:16:00',
+          schedule: regular,
+          wellnessMinutesUsedThisQuarter: 240,
+        })
+      ).toBe(120);
+    });
   });
 
   describe('Half Day (same as Undertime: time log, lunch excluded)', () => {

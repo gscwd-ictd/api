@@ -73,8 +73,10 @@ export function computeUsedMinutes(input: DeductionInput): number {
   switch (natureOfBusiness) {
     case NatureOfBusiness.PERSONAL:
     case NatureOfBusiness.WELLNESS_PASS: {
-      // no pass slip IN -> schedule time out is used
-      const back = toMinutes(input.timeIn) ?? scheduleOut;
+      // no pass slip IN -> schedule time out is used; an IN after the schedule time out counts only up to the
+      // schedule time out (out 3:00 PM, back 5:16 PM, schedule out 5:00 PM -> 2 hours, not 2 hours 16 minutes)
+      const timeIn = toMinutes(input.timeIn);
+      const back = timeIn === null ? scheduleOut : scheduleOut === null ? timeIn : Math.min(timeIn, scheduleOut);
       return minutesOutsideLunch(out, back, schedule);
     }
     case NatureOfBusiness.UNDERTIME:
