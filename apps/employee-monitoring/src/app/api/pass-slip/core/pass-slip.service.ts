@@ -539,11 +539,20 @@ export class PassSlipService extends CrudHelper<PassSlip> {
 
           const { passSlipId, ...restOfPassSlip } = passSlip;
           const { dateOfApplication, ...restOfPassSlipId } = passSlipId;
+          // cancelled by the employee or the manager: who (name) for the EMS pass slip view
+          const cancelledByName = restOfPassSlip.cancelledBy
+            ? (
+                (await this.rawQuery(`SELECT ${process.env.HRMS_DB_NAME}get_employee_fullname(?) name;`, [restOfPassSlip.cancelledBy])) as {
+                  name: string;
+                }[]
+              )[0]?.name ?? null
+            : null;
           return {
             ...restOfPassSlip,
             dateOfApplication: dayjs(dateOfApplication).format('YYYY-MM-DD'),
             ...restOfPassSlipId,
             ...names,
+            cancelledByName,
             avatarUrl: employeeDetails.photoUrl,
             assignmentName: employeeDetails.assignment.name,
           };
